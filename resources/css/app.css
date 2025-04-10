@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* Estilos básicos para el POS */
+
+.category-active {
+    background-color: #e6f0ff;
+    color: #1e429f;
+    font-weight: 500;
+}
+
+
+/* Animación simple */
+
+@keyframes pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+.animate-pulse-subtle {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    position: relative;
+    max-width: 500px;
+    width: 100%;
+}
