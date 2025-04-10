@@ -292,3 +292,4 @@ class EmployeeResource extends Resource
         return 'Gestión del Personal';
     }
 }
+//cambios visuales
