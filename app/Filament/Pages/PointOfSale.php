@@ -16,5 +16,6 @@ class PointOfSale extends Page
     public function mount(): void
     {
         redirect()->to(route('pos.index'));
+        //cambio en ventas
     }
 }
