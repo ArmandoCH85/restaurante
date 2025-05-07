@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Models\Ingredient;
 
 class InventoryMovement extends Model
 {
@@ -26,6 +27,7 @@ class InventoryMovement extends Model
      */
     protected $fillable = [
         'product_id',
+        'warehouse_id',
         'movement_type',
         'quantity',
         'unit_cost',
@@ -73,6 +75,14 @@ class InventoryMovement extends Model
     }
 
     /**
+     * Obtiene el almacén asociado con este movimiento.
+     */
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+    }
+
+    /**
      * Obtiene la entidad de referencia (orden, compra, etc.).
      */
     public function reference(): MorphTo
@@ -113,18 +123,22 @@ class InventoryMovement extends Model
             'notes' => $notes
         ]);
 
-        // Actualizar stock del producto (puede ser ingrediente u otro tipo)
+        // Actualizar stock del producto
         $product = Product::find($productId);
         if ($product) {
-            // Si es un ingrediente, usar su método específico
-            if ($product instanceof Ingredient) {
-                $product->updateStock(abs($quantity), $unitCost);
-            } else {
-                // Para otros productos, actualizar directamente el stock
-                $product->current_stock = ($product->current_stock ?? 0) + abs($quantity);
-                $product->current_cost = $unitCost;
-                $product->save();
+            // Verificar si es un ingrediente por el tipo de producto
+            if ($product->isIngredient()) {
+                // Buscar el ingrediente correspondiente
+                $ingredient = Ingredient::where('code', $product->code)->first();
+                if ($ingredient) {
+                    $ingredient->updateStock(abs($quantity), $unitCost);
+                }
             }
+
+            // Actualizar el stock del producto en todos los casos
+            $product->current_stock = ($product->current_stock ?? 0) + abs($quantity);
+            $product->current_cost = $unitCost;
+            $product->save();
         }
 
         return $movement;
@@ -167,14 +181,18 @@ class InventoryMovement extends Model
 
         // Actualizar stock del producto
         if ($product) {
-            // Si es un ingrediente, usar su método específico
-            if ($product instanceof Ingredient) {
-                $product->updateStock(-1 * abs($quantity));
-            } else {
-                // Para otros productos, actualizar directamente el stock
-                $product->current_stock = ($product->current_stock ?? 0) - abs($quantity);
-                $product->save();
+            // Verificar si es un ingrediente por el tipo de producto
+            if ($product->isIngredient()) {
+                // Buscar el ingrediente correspondiente
+                $ingredient = Ingredient::where('code', $product->code)->first();
+                if ($ingredient) {
+                    $ingredient->updateStock(-1 * abs($quantity));
+                }
             }
+
+            // Actualizar el stock del producto en todos los casos
+            $product->current_stock = ($product->current_stock ?? 0) - abs($quantity);
+            $product->save();
         }
 
         return $movement;
@@ -221,17 +239,21 @@ class InventoryMovement extends Model
 
         // Actualizar stock del producto
         if ($product) {
-            // Si es un ingrediente, usar su método específico
-            if ($product instanceof Ingredient) {
-                $product->updateStock($quantity, $quantity > 0 ? $unitCost : null);
-            } else {
-                // Para otros productos, actualizar directamente el stock
-                $product->current_stock = ($product->current_stock ?? 0) + $quantity;
-                if ($quantity > 0 && $unitCost > 0) {
-                    $product->current_cost = $unitCost;
+            // Verificar si es un ingrediente por el tipo de producto
+            if ($product->isIngredient()) {
+                // Buscar el ingrediente correspondiente
+                $ingredient = Ingredient::where('code', $product->code)->first();
+                if ($ingredient) {
+                    $ingredient->updateStock($quantity, $quantity > 0 ? $unitCost : null);
                 }
-                $product->save();
             }
+
+            // Actualizar el stock del producto en todos los casos
+            $product->current_stock = ($product->current_stock ?? 0) + $quantity;
+            if ($quantity > 0 && $unitCost > 0) {
+                $product->current_cost = $unitCost;
+            }
+            $product->save();
         }
 
         return $movement;
@@ -272,14 +294,18 @@ class InventoryMovement extends Model
 
         // Actualizar stock del producto
         if ($product) {
-            // Si es un ingrediente, usar su método específico
-            if ($product instanceof Ingredient) {
-                $product->updateStock(-1 * abs($quantity));
-            } else {
-                // Para otros productos, actualizar directamente el stock
-                $product->current_stock = ($product->current_stock ?? 0) - abs($quantity);
-                $product->save();
+            // Verificar si es un ingrediente por el tipo de producto
+            if ($product->isIngredient()) {
+                // Buscar el ingrediente correspondiente
+                $ingredient = Ingredient::where('code', $product->code)->first();
+                if ($ingredient) {
+                    $ingredient->updateStock(-1 * abs($quantity));
+                }
             }
+
+            // Actualizar el stock del producto en todos los casos
+            $product->current_stock = ($product->current_stock ?? 0) - abs($quantity);
+            $product->save();
         }
 
         return $movement;

@@ -153,4 +153,53 @@ class Product extends Model
         $this->current_cost = $this->calculateAverageCost();
         return $this->save();
     }
+
+    /**
+     * Agrega stock al producto utilizando el método FIFO.
+     *
+     * @param float $quantity Cantidad a agregar
+     * @param float $unitCost Costo unitario
+     * @param int|null $warehouseId ID del almacén
+     * @param string|null $expiryDate Fecha de vencimiento (formato Y-m-d)
+     * @param int|null $purchaseId ID de la compra relacionada
+     * @return IngredientStock|null El stock creado (si es un ingrediente) o null (si es un producto normal)
+     */
+    public function addStock(float $quantity, float $unitCost, ?int $warehouseId = null, ?string $expiryDate = null, ?int $purchaseId = null)
+    {
+        // Si es un ingrediente, crear un nuevo registro de stock
+        if ($this->isIngredient()) {
+            // Crear un nuevo registro de stock
+            $stock = IngredientStock::create([
+                'ingredient_id' => $this->id,
+                'warehouse_id' => $warehouseId ?? Warehouse::where('is_default', true)->first()?->id,
+                'quantity' => $quantity,
+                'unit_cost' => $unitCost,
+                'expiry_date' => $expiryDate,
+                'status' => IngredientStock::STATUS_AVAILABLE,
+                'purchase_id' => $purchaseId
+            ]);
+
+            // Actualizar el stock total y el costo promedio del ingrediente
+            $this->current_stock += $quantity;
+
+            // Calcular el nuevo costo promedio
+            $totalCost = ($this->current_stock - $quantity) * $this->current_cost + $quantity * $unitCost;
+            $this->current_cost = $this->current_stock > 0 ? $totalCost / $this->current_stock : $unitCost;
+
+            $this->save();
+
+            return $stock;
+        } else {
+            // Si es un producto normal, solo actualizar el stock y el costo
+            $this->current_stock += $quantity;
+
+            // Calcular el nuevo costo promedio
+            $totalCost = ($this->current_stock - $quantity) * $this->current_cost + $quantity * $unitCost;
+            $this->current_cost = $this->current_stock > 0 ? $totalCost / $this->current_stock : $unitCost;
+
+            $this->save();
+
+            return null;
+        }
+    }
 }

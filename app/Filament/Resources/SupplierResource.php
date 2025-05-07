@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Models\Supplier;
-use App\Exports\SuppliersExport;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -16,7 +15,7 @@ class SupplierResource extends Resource
 {
     protected static ?string $model = Supplier::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-truck';
+    protected static ?string $navigationIcon = 'heroicon-o-building-office';
 
     protected static ?string $navigationGroup = 'Inventario';
 
@@ -26,27 +25,22 @@ class SupplierResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Proveedores';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Datos Principales')
+                Forms\Components\Section::make('Información General')
                     ->schema([
                         Forms\Components\TextInput::make('business_name')
                             ->required()
-                            ->maxLength(100)
+                            ->maxLength(255)
                             ->label('Razón Social'),
                         Forms\Components\TextInput::make('tax_id')
                             ->required()
-                            ->unique(ignoreRecord: true)
-                            ->mask('99.99999.999-9')
-                            ->stripCharacters(['.', '-'])
-                            ->length(11)
-                            ->label('RUC')
-                            ->rules(['regex:/^[0-9]{11}$/'])
-                            ->extraAlpineAttributes(['x-mask:dynamic' => '$input.length <= 11 ? $input.replace(/\D/g, "") : $input.replace(/\D/g, "").slice(0, 11)']),
+                            ->maxLength(20)
+                            ->label('RUC'),
                         Forms\Components\TextInput::make('address')
                             ->required()
                             ->maxLength(255)
@@ -110,8 +104,8 @@ class SupplierResource extends Resource
                     ->label('Estado'),
             ])
             ->headerActions([
-                Tables\Actions\ExportAction::make()
-                    ->exporter(SuppliersExport::class)
+                // Tables\Actions\ExportAction::make()
+                //     ->exporter(SuppliersExport::class)
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

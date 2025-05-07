@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductResource\Pages;
-use App\Filament\Resources\ProductResource\RelationManagers;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Support\Enums\FontWeight;
 
 class ProductResource extends Resource
@@ -74,7 +71,7 @@ class ProductResource extends Resource
                             ])
                             ->default('sale_item')
                             ->native(false),
-                            
+
                         Forms\Components\Select::make('ingredient_id')
                             ->label('Ingrediente')
                             ->options(function () {
@@ -109,6 +106,14 @@ class ProductResource extends Resource
                             ->default(0.00)
                             ->maxValue(99999999.99)
                             ->step(0.01),
+
+                        Forms\Components\TextInput::make('current_stock')
+                            ->label('Stock Inicial')
+                            ->numeric()
+                            ->default(0.00)
+                            ->step(0.001)
+                            ->disabled()
+                            ->helperText('El stock inicial solo puede ser establecido al crear un ingrediente desde el módulo de compras.'),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Detalles Adicionales')

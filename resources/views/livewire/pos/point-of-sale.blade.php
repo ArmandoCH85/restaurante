@@ -64,7 +64,23 @@
                     </span>
                 </div>
                 <div class="flex items-center gap-2 overflow-x-auto py-1 px-1 -mx-1 pb-2 sm:pb-0 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-                    <a href="{{ url('/admin') }}" title="Volver al Escritorio" class="flex-shrink-0 p-2 rounded-md text-white bg-green-600 hover:bg-green-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md hover:-translate-y-0.5 animate-pulse border-2 border-green-400 relative z-10" style="box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);">
+                    <!-- Botón para ir al mapa de mesas -->
+                    <a
+                        href="{{ url('/tables') }}"
+                        title="Ir al mapa de mesas"
+                        class="flex-shrink-0 p-2 rounded-md text-white bg-green-600 hover:bg-green-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md hover:-translate-y-0.5 border-2 border-green-400 relative z-10"
+                        style="box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);"
+                    >
+                        <span class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span class="sm:inline font-bold">MAPA DE MESAS</span>
+                        </span>
+                    </a>
+
+                    <a href="{{ url('/admin') }}" title="Volver al Escritorio" class="flex-shrink-0 p-2 rounded-md text-white bg-green-600 hover:bg-green-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md hover:-translate-y-0.5 border-2 border-green-400 relative z-10" style="box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);">
                         <span class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                             <span class="sm:inline">Escritorio</span>
@@ -76,12 +92,12 @@
                             <span class="hidden sm:inline">Dashboard</span>
                         </span>
                     </a>
-                    <a href="{{ route('tables.map') }}" title="Mapa de Mesas" class="flex-shrink-0 p-2 rounded-md text-white bg-red-600 hover:bg-red-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md hover:-translate-y-0.5 animate-pulse border-2 border-red-400 relative z-10" style="box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25);">
+                    <button onclick="irAMesas()" title="Mapa de Mesas" class="flex-shrink-0 p-2 rounded-md text-white bg-red-600 hover:bg-red-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md hover:-translate-y-0.5 animate-pulse border-2 border-red-400 relative z-10" style="box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25);">
                         <span class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                             <span class="sm:inline">Mesas</span>
                         </span>
-                    </a>
+                    </button>
                     <a href="{{ url('admin/facturacion/comprobantes') }}" title="Ver Comprobantes" class="flex-shrink-0 p-2 rounded-md text-white bg-amber-600 hover:bg-amber-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md hover:-translate-y-0.5">
                         <span class="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
@@ -221,177 +237,282 @@
 
         <!-- Panel Derecho - Pedido -->
         <div class="w-80 flex-shrink-0 h-full flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg">
-            <!-- Encabezado del pedido -->
-            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 class="text-base font-semibold text-gray-700 dark:text-gray-200 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- Encabezado del pedido compacto -->
+            <div class="p-2 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800">
+                <div class="flex items-center justify-between mb-1">
+                    <h2 class="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                         Pedido Actual
+                        <span class="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full text-xs">
+                            {{ count($cart) }} {{ count($cart) === 1 ? 'item' : 'items' }}
+                        </span>
                     </h2>
                     <button
                         wire:click="clearCart"
                         type="button"
-                        class="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5"
+                        class="text-xs text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded flex items-center"
                          {{ count($cart) === 0 ? 'disabled' : '' }}
                     >
-                        Vaciar Carrito
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                        Vaciar
                     </button>
                 </div>
 
-                <!-- Botones principales -->
-                <div class="grid grid-cols-3 gap-2 mb-1">
+                <!-- Selector de tipo de servicio compacto -->
+                <div class="mb-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <h3 class="text-xs font-semibold text-gray-700 dark:text-gray-300">Tipo de Servicio</h3>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1">
+                        <button
+                            type="button"
+                            wire:click="setServiceType('dine_in')"
+                            class="px-1 py-1 rounded-md text-xs font-medium transition-all duration-200 flex flex-col items-center justify-center border
+                                {{ $serviceType === 'dine_in'
+                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300 border-blue-400 dark:border-blue-700'
+                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700' }}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            <span class="font-medium">En Local</span>
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="setServiceType('takeout')"
+                            class="px-1 py-1 rounded-md text-xs font-medium transition-all duration-200 flex flex-col items-center justify-center border
+                                {{ $serviceType === 'takeout'
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300 border-green-400 dark:border-green-700'
+                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700' }}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <span class="font-medium">Para Llevar</span>
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="setServiceType('delivery')"
+                            class="px-1 py-1 rounded-md text-xs font-medium transition-all duration-200 flex flex-col items-center justify-center border
+                                {{ $serviceType === 'delivery'
+                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300 border-red-400 dark:border-red-700'
+                                    : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700' }}"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                            </svg>
+                            <span class="font-medium">Delivery</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botones principales con diseño compacto -->
+                <div class="grid grid-cols-3 gap-1 mb-2">
                     <!-- Botón Comanda -->
                     <button
                         onclick="abrirComanda()"
                         type="button"
-                        class="px-2 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs space-y-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                        class="px-1 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                         {{ count($cart) === 0 ? 'disabled' : '' }}
                     >
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                        <span>COMANDA</span>
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                        <span class="text-xs font-medium">Comanda</span>
                     </button>
 
                     <!-- Botón Pre-Cuenta -->
                     <button
                         onclick="abrirPreCuenta()"
                         type="button"
-                        class="px-2 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs space-y-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                        class="px-1 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                         {{ count($cart) === 0 ? 'disabled' : '' }}
                     >
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /> </svg>
-                        <span>PRE-CUENTA</span>
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /> </svg>
+                        <span class="text-xs font-medium">Pre-Cuenta</span>
                     </button>
 
-                    <!-- Botón Confirmar Venta -->
+                    <!-- Botón Facturar -->
                     <button
                         onclick="abrirFactura()"
                         type="button"
-                        class="px-2 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs space-y-1 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                        class="px-1 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                         {{ count($cart) === 0 ? 'disabled' : '' }}
                     >
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /> </svg>
-                        <span>FACTURAR</span>
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /> </svg>
+                        <span class="text-xs font-medium">Facturar</span>
                     </button>
                 </div>
 
-                <!-- Botón Transferir Mesa (siempre visible) -->
-                <div class="mt-3 mb-2">
+                <!-- Botones de acciones adicionales (compactos) -->
+                <div class="mt-1 mb-1 grid grid-cols-3 gap-1">
+                    @if($table)
+                        <!-- Botón Iniciar Mesa -->
+                        <button
+                            type="button"
+                            wire:click="iniciarMesa"
+                            class="px-1 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs"
+                            id="btn-iniciar-mesa"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            <span class="text-xs font-medium">Iniciar Mesa</span>
+                        </button>
+
+                        <!-- Botón Transferir Mesa -->
+                        <button
+                            type="button"
+                            onclick="abrirModalTransferencia()"
+                            class="px-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs"
+                            id="btn-transferir-mesa"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /> </svg>
+                            <span class="text-xs font-medium">Transferir</span>
+                        </button>
+                    @endif
+
+                    <!-- Botón Cancelar Pedido -->
                     <button
-                        type="button"
-                        onclick="abrirModalTransferencia()"
-                        class="w-full px-3 py-3 bg-red-500 hover:bg-red-600 animate-pulse text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-sm gap-2 shadow-md hover:shadow-lg"
-                        id="btn-transferir-mesa"
-                    >
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /> </svg>
-                        <span class="text-base font-bold">TRANSFERIR MESA</span>
-                    </button>
-                </div>
-
-                <!-- Botón Cancelar Pedido con estilo mejorado -->
-                <div class="mt-3 mb-2 relative z-10">
-                    <a
-                        href="javascript:void(0);"
                         @if(count($cart) > 0)
                         onclick="if(confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.')) { @this.cancelOrder(); }"
                         @else
                         onclick="alert('No hay productos en el carrito para cancelar.')"
                         @endif
-                        class="w-full px-3 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center text-sm gap-2 shadow-md hover:shadow-lg cursor-pointer border-2 border-red-400 {{ count($cart) === 0 ? 'opacity-50' : 'animate-pulse' }}"
-                        style="box-shadow: 0 4px 6px rgba(220, 38, 38, 0.25);"
+                        class="px-1 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs {{ count($cart) === 0 ? 'opacity-50' : '' }} {{ $table ? 'col-span-1' : 'col-span-2' }}"
                     >
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /> </svg>
-                        <span class="text-base font-bold">CANCELAR PEDIDO</span>
-                    </a>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /> </svg>
+                        <span class="text-xs font-medium">Cancelar</span>
+                    </button>
+
+                    <!-- Botón Liberar Mesa (solo para consumo en tienda) -->
+                    @if($table && ($serviceType === 'dine_in' || !$serviceType))
+                    <button
+                        onclick="if(confirm('¿Estás seguro de que deseas liberar esta mesa? Esta acción cambiará el estado de la mesa a disponible y cancelará cualquier orden asociada. Esta acción es solo para casos excepcionales cuando un cliente se va sin consumir.')) { @this.releaseTable(); }"
+                        class="px-1 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                        <span class="text-xs font-medium">Liberar Mesa</span>
+                    </button>
+                    @endif
                 </div>
             </div>
 
-            <!-- Lista de productos en el pedido -->
-             <div class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/50 dark:bg-gray-800/30">
+            <!-- Lista de productos en el pedido - Diseño estándar sin scroll -->
+            <div class="cart-standard">
+                <!-- Lista de productos con diseño estándar -->
                 @forelse ($cart as $item)
-                    <div wire:key="cart-item-{{ $item['id'] }}" class="flex items-center space-x-3 bg-white dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600/50 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group">
-                                <div class="flex-1 min-w-0">
-                            <p class="font-medium text-sm text-gray-800 dark:text-gray-100 truncate">{{ $item['name'] }}</p>
-                             <div class="flex items-center text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                                 <span>S/ {{ number_format($item['price'], 2) }}</span>
-                                 @can('admin')
-                                 <button type="button" wire:click="openEditPriceModal('{{ $item['id'] }}')" class="ml-1 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 bg-blue-50 dark:bg-blue-900/20 p-0.5 rounded-full" title="Editar precio">
-                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /> </svg>
-                                        </button>
-                                 @endcan
-                                    </div>
-                            <!-- Futura nota para el producto -->
-                                </div>
-                        <div class="flex items-center space-x-2 flex-shrink-0">
-                                        <button
-                                            wire:click="updateCartItemQuantity('{{ $item['id'] }}', {{ $item['quantity'] - 1 }})"
-                                            type="button"
-                                class="w-6 h-6 flex items-center justify-center bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-full hover:bg-gray-200 dark:hover:bg-gray-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow"
-                            > &minus; </button>
-                            <span class="text-sm font-medium text-gray-800 dark:text-gray-200 w-5 text-center">{{ $item['quantity'] }}</span>
-                                        <button
-                                            wire:click="updateCartItemQuantity('{{ $item['id'] }}', {{ $item['quantity'] + 1 }})"
-                                            type="button"
-                                class="w-6 h-6 flex items-center justify-center bg-blue-100 dark:bg-blue-600 text-blue-700 dark:text-blue-200 rounded-full hover:bg-blue-200 dark:hover:bg-blue-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 shadow-sm hover:shadow"
-                            > + </button>
-                                    </div>
-                         <div class="flex flex-col items-end w-16 text-right flex-shrink-0">
-                                        <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">S/ {{ number_format($item['subtotal'], 2) }}</span>
-                                        <button
-                                            wire:click="removeFromCart('{{ $item['id'] }}')"
-                                            type="button"
-                                class="mt-1 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-all duration-200 opacity-70 group-hover:opacity-100 p-1 rounded-full hover:bg-red-50 dark:hover:bg-red-900/30"
+                    <div wire:key="cart-item-{{ $item['id'] }}" class="cart-item-standard">
+                        <div class="cart-item-standard-content">
+                            <!-- Nombre del producto -->
+                            <div class="cart-item-standard-name">{{ $item['name'] }}</div>
+
+                            <!-- Precio unitario -->
+                            <div class="cart-item-standard-price">
+                                Precio unitario: <span>S/ {{ number_format($item['price'], 2) }}</span>
+                                @can('admin')
+                                <button type="button" wire:click="openEditPriceModal('{{ $item['id'] }}')" class="edit-price-btn" title="Editar precio">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                </button>
+                                @endcan
+                            </div>
+
+                            <!-- Controles de cantidad -->
+                            <div class="cart-item-standard-quantity">
+                                <button
+                                    wire:click="updateCartItemQuantity('{{ $item['id'] }}', {{ $item['quantity'] - 1 }})"
+                                    type="button"
+                                    class="quantity-btn-minus"
+                                >&minus;</button>
+                                <span class="quantity-value">{{ $item['quantity'] }}</span>
+                                <button
+                                    wire:click="updateCartItemQuantity('{{ $item['id'] }}', {{ $item['quantity'] + 1 }})"
+                                    type="button"
+                                    class="quantity-btn-plus"
+                                >+</button>
+                            </div>
+
+                            <!-- Subtotal -->
+                            <div class="cart-item-standard-subtotal">
+                                S/ {{ number_format($item['subtotal'], 2) }}
+                            </div>
+
+                            <!-- Botón eliminar -->
+                            <button
+                                wire:click="removeFromCart('{{ $item['id'] }}')"
+                                type="button"
+                                class="cart-item-standard-remove"
                                 title="Eliminar del carrito"
-                                        >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /> </svg>
-                                        </button>
-                                    </div>
-                    </div>
-                 @empty
-                    <div class="h-full flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400 px-4 pt-10">
-                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-full mb-3 shadow-inner">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"> <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /> </svg>
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></path></svg>
+                                <span>Eliminar</span>
+                            </button>
                         </div>
-                        <p class="text-base font-medium">El carrito está vacío</p>
-                        <p class="text-sm mt-1 text-gray-400 dark:text-gray-500">Agrega productos para comenzar tu pedido</p>
-                        <p class="text-xs mt-1">Selecciona productos del panel central para agregarlos al pedido.</p>
+
+                        <!-- Notas del producto si existen -->
+                        @if(!empty($item['notes']))
+                        <div class="cart-item-standard-note">
+                            <span>Nota: </span>{{ $item['notes'] }}
+                        </div>
+                        @endif
+                    </div>
+                @empty
+                    <!-- Estado de carrito vacío -->
+                    <div class="cart-empty-standard">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="cart-empty-icon-standard" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                        <p>El carrito está vacío</p>
+                        <p>Agrega productos para comenzar tu pedido</p>
                     </div>
                 @endforelse
             </div>
 
-            <!-- Resumen y Notas del pedido -->
-            <div class="p-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-                 <div class="mb-3">
-                    <label for="customerNote" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Nota para el pedido (opcional)</label>
+            <!-- Resumen del pedido - Diseño estándar -->
+            <div class="order-summary-standard">
+                <!-- Título del resumen -->
+                <div class="order-summary-standard-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    RESUMEN DEL PEDIDO
+                </div>
+
+                <!-- Resumen del pedido - Contenido -->
+                <div class="order-summary-standard-content">
+                    <div class="order-summary-standard-row">
+                        <span>Subtotal:</span>
+                        <span>S/ {{ number_format($cartTotal, 2) }}</span>
+                    </div>
+                    <div class="order-summary-standard-row">
+                        <span>IGV (18%):</span>
+                        <span>S/ {{ number_format($cartTotal * 0.18, 2) }}</span>
+                    </div>
+                    <div class="order-summary-standard-total">
+                        <span>TOTAL:</span>
+                        <span>S/ {{ number_format($cartTotal * 1.18, 2) }}</span>
+                    </div>
+                </div>
+
+                <!-- Notas del pedido -->
+                <div class="order-note-standard">
+                    <label for="customerNote" class="order-note-standard-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        NOTA PARA EL PEDIDO
+                    </label>
                     <textarea
                         id="customerNote"
                         wire:model="customerNote"
                         placeholder="Ej: Sin ají, bien cocido..."
-                        class="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                        class="order-note-standard-input"
                         rows="2"
                     ></textarea>
                 </div>
-
-                <div class="space-y-1.5 text-sm">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
-                        <span class="font-medium text-gray-700 dark:text-gray-200">S/ {{ number_format($cartTotal, 2) }}</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600 dark:text-gray-400">IGV (18%):</span>
-                        <span class="font-medium text-gray-700 dark:text-gray-200">S/ {{ number_format($cartTotal * 0.18, 2) }}</span>
-                    </div>
-                    <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
-                        <div class="flex justify-between items-center">
-                            <span class="text-base font-semibold text-gray-800 dark:text-gray-100">Total:</span>
-                            <span class="text-base font-bold text-blue-600 dark:text-blue-400">S/ {{ number_format($cartTotal * 1.18, 2) }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Botones inferiores redundantes eliminados para simplificar --}}
-                {{-- <div class="mt-4 grid grid-cols-3 gap-2"> ... </div> --}}
             </div>
         </div>
     </div>
@@ -596,6 +717,8 @@
         </div>
     </div>
 
+
+
     <!-- Modal para Transferir Mesa -->
     <div class="fixed inset-0 bg-gray-600/75 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
          x-data="{showModal: @entangle('showTransferModal')}"
@@ -692,8 +815,356 @@
         </div>
     </div>
 
+    <!-- Modal de Delivery -->
+    <div
+        class="fixed inset-0 bg-gray-600/75 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4"
+        x-data="{
+            get isOpen() {
+                return $wire.showDeliveryModal
+            }
+        }"
+        x-show="isOpen"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        style="display: none;"
+        @click.self="$event.stopPropagation()"
+    >
+        <div
+            class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full overflow-hidden"
+            @click.stop>
+            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-red-50 to-white dark:from-red-900/30 dark:to-gray-800">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                    </svg>
+                    Pedido de Delivery
+                </h3>
+                <button
+                    wire:click="closeDeliveryModal"
+                    class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full p-1 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    onclick="console.log('Botón cerrar clickeado'); $wire.closeDeliveryModal();"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="px-6 py-4">
+                <div class="mb-4">
+                    <p class="text-gray-700 dark:text-gray-300 mb-2">
+                        Ingresa los datos del cliente y la dirección de entrega para el pedido de delivery.
+                    </p>
+                    <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 mb-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm text-yellow-700 dark:text-yellow-200">
+                                    Los pedidos de delivery requieren un cliente registrado y una dirección de entrega.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Columna izquierda - Datos del cliente -->
+                    <div>
+                        <h4 class="text-md font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Datos del Cliente
+                        </h4>
+
+                        <div class="space-y-4">
+                            <!-- Búsqueda de cliente -->
+                            <div class="flex space-x-2">
+                                <div class="w-1/3">
+                                    <label for="customerDocumentType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+                                    <select
+                                        id="customerDocumentType"
+                                        wire:model="customerDocumentType"
+                                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                    >
+                                        <option value="DNI">DNI</option>
+                                        <option value="RUC">RUC</option>
+                                        <option value="CE">CE</option>
+                                        <option value="Pasaporte">Pasaporte</option>
+                                    </select>
+                                </div>
+                                <div class="w-2/3">
+                                    <label for="customerDocument" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Documento</label>
+                                    <div class="flex">
+                                        <input
+                                            type="text"
+                                            id="customerDocument"
+                                            wire:model="customerDocument"
+                                            placeholder="Ingrese número de documento"
+                                            class="w-full px-3 py-2 text-sm rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                        />
+                                        <button
+                                            wire:click="searchCustomer"
+                                            class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg transition-colors duration-200"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Datos del cliente -->
+                            <div>
+                                <label for="customerName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre / Razón Social</label>
+                                <input
+                                    type="text"
+                                    id="customerName"
+                                    wire:model="customerName"
+                                    placeholder="Nombre completo o razón social"
+                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                />
+                            </div>
+
+                            <div>
+                                <label for="customerPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
+                                <input
+                                    type="text"
+                                    id="customerPhone"
+                                    wire:model="customerPhone"
+                                    placeholder="Número de teléfono"
+                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                />
+                            </div>
+
+                            <div>
+                                <button
+                                    wire:click="saveCustomer"
+                                    class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                    x-data="{
+                                        isDisabled: function() {
+                                            // Verificar si falta información del cliente
+                                            return !$wire.customerName || !$wire.customerPhone;
+                                        }
+                                    }"
+                                    x-on:click="
+                                        if (!$wire.customerName || !$wire.customerPhone) {
+                                            $wire.dispatch('notification', {
+                                                type: 'error',
+                                                title: 'Error',
+                                                message: 'Debes ingresar el nombre y teléfono del cliente para guardarlo.',
+                                                showModal: true
+                                            });
+                                            return false;
+                                        }
+                                    "
+                                    x-bind:class="{ 'opacity-50 cursor-not-allowed': isDisabled() }"
+                                    x-bind:disabled="isDisabled()"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Guardar Cliente
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha - Datos de entrega -->
+                    <div>
+                        <h4 class="text-md font-medium text-gray-800 dark:text-gray-200 mb-3 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            Datos de Entrega
+                        </h4>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label for="deliveryAddress" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección de Entrega</label>
+                                <input
+                                    type="text"
+                                    id="deliveryAddress"
+                                    wire:model="deliveryAddress"
+                                    placeholder="Dirección completa"
+                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                />
+                            </div>
+
+                            <div>
+                                <label for="deliveryReferences" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Referencias</label>
+                                <textarea
+                                    id="deliveryReferences"
+                                    wire:model="deliveryReferences"
+                                    placeholder="Referencias para ubicar la dirección"
+                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                    rows="3"
+                                ></textarea>
+                            </div>
+
+                            <div class="pt-4 space-y-3">
+                                <!-- Botón para agregar productos -->
+                                <div x-data="{ cartEmpty: function() { return Object.keys($wire.cart).length === 0; } }">
+                                    <button
+                                        type="button"
+                                        x-on:click="$wire.closeDeliveryModal(); setTimeout(() => { document.getElementById('product-search').focus(); }, 100);"
+                                        class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center font-medium"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Agregar Productos al Carrito
+                                    </button>
+
+                                    <div x-show="cartEmpty()" class="mt-2 text-center text-sm text-red-500">
+                                        <span class="flex items-center justify-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                            Primero debes agregar productos al carrito
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Botón para procesar pedido - Mejorado y más visible -->
+                                <button
+                                    wire:click="processDeliveryOrder"
+                                    class="w-full px-4 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center font-bold text-lg shadow-md"
+                                    x-data="{
+                                        isDisabled: function() {
+                                            // Verificar si el carrito está vacío
+                                            const cartEmpty = Object.keys($wire.cart).length === 0;
+
+                                            // Verificar si falta información del cliente
+                                            const customerInfoMissing = !$wire.customerName || !$wire.customerPhone;
+
+                                            // Verificar si falta dirección de entrega
+                                            const addressMissing = !$wire.deliveryAddress;
+
+                                            return cartEmpty || customerInfoMissing || addressMissing;
+                                        }
+                                    }"
+                                    x-on:click="
+                                        if (Object.keys($wire.cart).length === 0) {
+                                            $wire.dispatch('notification', {
+                                                type: 'error',
+                                                title: 'Error',
+                                                message: 'No hay productos en el carrito. Añade productos para procesar el pedido.',
+                                                showModal: true
+                                            });
+                                            return false;
+                                        }
+                                        if (!$wire.customerName || !$wire.customerPhone) {
+                                            $wire.dispatch('notification', {
+                                                type: 'error',
+                                                title: 'Error',
+                                                message: 'Debes ingresar el nombre y teléfono del cliente.',
+                                                showModal: true
+                                            });
+                                            return false;
+                                        }
+                                        if (!$wire.deliveryAddress) {
+                                            $wire.dispatch('notification', {
+                                                type: 'error',
+                                                title: 'Error',
+                                                message: 'Debes ingresar la dirección de entrega.',
+                                                showModal: true
+                                            });
+                                            return false;
+                                        }
+                                    "
+                                    x-bind:class="{ 'opacity-50 cursor-not-allowed': isDisabled() }"
+                                    x-bind:disabled="isDisabled()"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                    </svg>
+                                    PROCESAR PEDIDO DE DELIVERY
+                                </button>
+
+                                <!-- Mensaje informativo sobre el proceso -->
+                                <div class="mt-3 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                                    <p class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Al procesar el pedido, se registrará la información y se mostrará una notificación de confirmación.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700/50 px-6 py-3 flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700">
+                <button
+                    type="button"
+                    wire:click="closeDeliveryModal"
+                    onclick="console.log('Botón Cancelar clickeado'); $wire.closeDeliveryModal();"
+                    class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-500 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+                >
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Script para comunicación entre iframes -->
     <script>
+        // Escuchar eventos de Livewire
+        document.addEventListener('livewire:initialized', function() {
+            // Escuchar el evento para abrir el modal de delivery después de la renderización
+            Livewire.on('open-delivery-modal-after-render', function() {
+                console.log('Evento open-delivery-modal-after-render recibido');
+                setTimeout(function() {
+                    // Forzar la apertura del modal de delivery
+                    if (window.Livewire && window.Livewire.find('point-of-sale')) {
+                        window.Livewire.find('point-of-sale').set('showDeliveryModal', true);
+                        console.log('Modal de delivery forzado a abrir desde JavaScript');
+                    }
+                }, 300);
+            });
+
+            // Escuchar el evento para cerrar el modal de delivery
+            Livewire.on('delivery-modal-closed', function() {
+                console.log('Evento delivery-modal-closed recibido');
+
+                // Asegurarse de que el modal esté cerrado
+                if (window.Livewire && window.Livewire.find('point-of-sale')) {
+                    window.Livewire.find('point-of-sale').set('showDeliveryModal', false);
+                    console.log('Modal de delivery forzado a cerrar desde JavaScript');
+
+                    // Mostrar una alerta para confirmar que el pedido se procesó correctamente
+                    // y redirigir al mapa de mesas después de hacer clic en Aceptar
+                    setTimeout(function() {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Pedido Procesado!',
+                            text: 'El pedido de delivery ha sido registrado correctamente.',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: '#10b981'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Redirigir al mapa de mesas
+                                window.location.href = '{{ route("tables.map") }}';
+                            }
+                        });
+                    }, 500);
+                }
+            });
+        });
+
         // Script de depuración para verificar los botones
         document.addEventListener('DOMContentLoaded', function() {
             console.log('Verificando botones de acción...');
@@ -790,6 +1261,25 @@
             }
         });
 
+        // Función para ir al mapa de mesas sin perder el carrito
+        function irAMesas() {
+            // Mostrar mensaje de carga
+            Swal.fire({
+                title: 'Guardando...',
+                text: 'Guardando carrito y actualizando mesa',
+                icon: 'info',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Llamar al método de Livewire para guardar el carrito
+            Livewire.dispatch('guardarCarritoYRedirigir');
+        }
+
         // Funciones para mostrar modales
         function showCommandModal(url) {
             // Establecer la URL en el componente Livewire
@@ -812,10 +1302,10 @@
             const productos = [];
             document.querySelectorAll('[wire\\:key^="cart-item-"]').forEach(item => {
                 const id = item.getAttribute('wire:key').replace('cart-item-', '');
-                const name = item.querySelector('.font-medium').textContent;
-                const price = parseFloat(item.querySelector('.text-gray-500').textContent.replace('S/ ', ''));
-                const quantity = parseInt(item.querySelector('.text-center').textContent);
-                const subtotal = parseFloat(item.querySelector('.font-semibold').textContent.replace('S/ ', ''));
+                const name = item.querySelector('.cart-item-standard-name').textContent;
+                const price = parseFloat(item.querySelector('.cart-item-standard-price span').textContent.replace('S/ ', ''));
+                const quantity = parseInt(item.querySelector('.quantity-value').textContent);
+                const subtotal = parseFloat(item.querySelector('.cart-item-standard-subtotal').textContent.replace('S/ ', ''));
 
                 productos.push({
                     id: id,
@@ -868,10 +1358,10 @@
             const productos = [];
             document.querySelectorAll('[wire\\:key^="cart-item-"]').forEach(item => {
                 const id = item.getAttribute('wire:key').replace('cart-item-', '');
-                const name = item.querySelector('.font-medium').textContent;
-                const price = parseFloat(item.querySelector('.text-gray-500').textContent.replace('S/ ', ''));
-                const quantity = parseInt(item.querySelector('.text-center').textContent);
-                const subtotal = parseFloat(item.querySelector('.font-semibold').textContent.replace('S/ ', ''));
+                const name = item.querySelector('.cart-item-standard-name').textContent;
+                const price = parseFloat(item.querySelector('.cart-item-standard-price span').textContent.replace('S/ ', ''));
+                const quantity = parseInt(item.querySelector('.quantity-value').textContent);
+                const subtotal = parseFloat(item.querySelector('.cart-item-standard-subtotal').textContent.replace('S/ ', ''));
 
                 productos.push({
                     id: id,
@@ -946,6 +1436,25 @@
             console.log('Modal cerrado');
         }
 
+        function abrirModalDelivery() {
+            console.log('Abriendo modal de delivery...');
+            try {
+                @this.openDeliveryModal();
+                console.log('Modal de delivery abierto:', @this.showDeliveryModal);
+
+                // Asegurarse de que el modal permanezca abierto
+                setTimeout(() => {
+                    if (!@this.showDeliveryModal) {
+                        console.log('Forzando apertura del modal de delivery...');
+                        @this.showDeliveryModal = true;
+                    }
+                }, 100);
+            } catch (error) {
+                console.error('Error al abrir modal de delivery:', error);
+                alert('Error al abrir el modal de delivery: ' + (error.message || 'Error desconocido'));
+            }
+        }
+
         function transferirMesa(destinationTableId) {
             console.log('Transfiriendo a la mesa ID:', destinationTableId);
 
@@ -972,10 +1481,10 @@
             const productos = [];
             document.querySelectorAll('[wire\\:key^="cart-item-"]').forEach(item => {
                 const id = item.getAttribute('wire:key').replace('cart-item-', '');
-                const name = item.querySelector('.font-medium').textContent;
-                const price = parseFloat(item.querySelector('.text-gray-500').textContent.replace('S/ ', ''));
-                const quantity = parseInt(item.querySelector('.text-center').textContent);
-                const subtotal = parseFloat(item.querySelector('.font-semibold').textContent.replace('S/ ', ''));
+                const name = item.querySelector('.cart-item-standard-name').textContent;
+                const price = parseFloat(item.querySelector('.cart-item-standard-price span').textContent.replace('S/ ', ''));
+                const quantity = parseInt(item.querySelector('.quantity-value').textContent);
+                const subtotal = parseFloat(item.querySelector('.cart-item-standard-subtotal').textContent.replace('S/ ', ''));
 
                 productos.push({
                     id: id,
@@ -1013,8 +1522,8 @@
             })
             .then(procesarRespuesta)
             .then(orderId => {
-                // Abrir el formulario de factura en una ventana nueva a pantalla completa
-                const facturaWindow = window.open('{{ url("pos/invoice/form") }}/' + orderId, '_blank', 'fullscreen=yes,width='+screen.width+',height='+screen.height);
+                // Abrir el formulario de factura en una ventana nueva con tamaño optimizado
+                const facturaWindow = window.open('{{ url("pos/invoice/form") }}/' + orderId, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
 
                 // Cuando la factura se complete, vaciar el carrito
                 if (facturaWindow) {
@@ -1033,6 +1542,37 @@
                 alert('Error: ' + error.message);
                 console.error('Error completo:', error);
             });
+        }
+
+        // Función para abrir el modal de transferencia
+        function abrirModalTransferencia() {
+            @this.loadAvailableTables();
+            @this.showTransferModal = true;
+        }
+
+        // Función para cerrar el modal de transferencia
+        function cerrarModalTransferencia() {
+            @this.showTransferModal = false;
+        }
+
+        // Función para transferir mesa
+        function transferirMesa(targetTableId) {
+            @this.transferTable(targetTableId);
+        }
+
+        // Función para abrir el modal de delivery
+        function abrirModalDelivery() {
+            @this.showDeliveryModal = true;
+        }
+
+        // Ejecutar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar componentes si es necesario
+        });
+
+        // Función para ir a mesas
+        function irAMesas() {
+            window.location.href = '{{ url("/tables") }}';
         }
     </script>
 </div>

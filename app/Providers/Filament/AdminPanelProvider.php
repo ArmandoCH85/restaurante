@@ -28,6 +28,17 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
+            ->homeUrl(function () {
+                $user = \Illuminate\Support\Facades\Auth::user();
+
+                // Si el usuario tiene rol delivery, redirigir directamente a /tables
+                if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                    return '/tables';
+                }
+
+                // Para otros usuarios, redirigir al dashboard por defecto
+                return '/admin';
+            })
             ->sidebarFullyCollapsibleOnDesktop()
             ->colors([
                 'primary' => Color::Amber,
@@ -60,46 +71,98 @@ class AdminPanelProvider extends PanelProvider
                     ->url('/pos')
                     ->icon('heroicon-o-shopping-cart')
                     ->group('Ventas')
-                    ->sort(1),
-                NavigationItem::make('Mapa de Mesas')
+                    ->sort(1)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
+                NavigationItem::make('Mapa de Mesas y Delivery')
                     ->url('/tables')
                     ->icon('heroicon-o-map')
                     ->group('Ventas')
-                    ->sort(2),
+                    ->sort(2)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
                 NavigationItem::make('Dashboard')
                     ->url('/dashboard')
                     ->icon('heroicon-o-chart-bar')
                     ->group('Facturación')
-                    ->sort(1),
+                    ->sort(1)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
                 NavigationItem::make('Apertura de Caja')
                     ->url('/admin/resources/cash-registers')
                     ->icon('heroicon-o-calculator')
                     ->group('Facturación')
-                    ->sort(2),
+                    ->sort(2)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
 
                 // Grupo: Inventario
                 NavigationItem::make('Ingredientes')
                     ->url('/admin/resources/ingredients')
                     ->icon('heroicon-o-cube')
                     ->group('Inventario')
-                    ->sort(1),
+                    ->sort(1)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
                 NavigationItem::make('Recetas')
                     ->url('/admin/resources/recipes')
                     ->icon('heroicon-o-beaker')
                     ->group('Inventario')
-                    ->sort(2),
+                    ->sort(2)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
                 NavigationItem::make('Compras')
                     ->url('/admin/resources/purchases')
                     ->icon('heroicon-o-shopping-bag')
                     ->group('Inventario')
-                    ->sort(3),
-                NavigationItem::make('Almacén')
-                    ->url('/admin/resources/warehouses')
-                    ->icon('heroicon-o-building-storefront')
-                    ->group('Inventario')
-                    ->sort(4),
+                    ->sort(3)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
 
+                // Grupo: Delivery (solo para usuarios con rol delivery)
+                NavigationItem::make('Mis Pedidos')
+                    ->url('/delivery/my-orders')
+                    ->icon('heroicon-o-truck')
+                    ->group('Delivery')
+                    ->sort(1)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return $user && $user->roles->where('name', 'delivery')->count() > 0;
+                    }),
+                NavigationItem::make('Mapa de Pedidos')
+                    ->url('/tables')
+                    ->icon('heroicon-o-map')
+                    ->group('Delivery')
+                    ->sort(2)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return $user && $user->roles->where('name', 'delivery')->count() > 0;
+                    }),
 
+                // Grupo: Ventas (para administradores)
+                NavigationItem::make('Gestión de Delivery')
+                    ->url('/delivery/manage')
+                    ->icon('heroicon-o-truck')
+                    ->group('Ventas')
+                    ->sort(3)
+                    ->visible(function() {
+                        $user = \Illuminate\Support\Facades\Auth::user();
+                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                    }),
             ])
             ->middleware([
                 EncryptCookies::class,

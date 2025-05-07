@@ -17,6 +17,124 @@ class PosController extends Controller
      */
     public function index(Request $request)
     {
+        // SOLUCIÓN DIRECTA: Manejar parámetros de consulta table_id y preserve_cart
+        if ($request->has('table_id')) {
+            $tableId = $request->input('table_id');
+            $preserveCart = $request->input('preserve_cart', false);
+
+            // Registrar información para depuración
+            Log::info('Cargando mesa específica en POS con parámetros de consulta', [
+                'table_id' => $tableId,
+                'preserve_cart' => $preserveCart,
+                'request_url' => $request->fullUrl()
+            ]);
+
+            // Verificar si la mesa existe
+            $table = \App\Models\Table::find($tableId);
+
+            if ($table) {
+                // No cambiar el estado de la mesa automáticamente
+                // La mesa solo debe cambiar a ocupada cuando tenga productos en el carrito
+
+                Log::info('Cargando mesa desde el controlador sin cambiar estado', [
+                    'table_id' => $tableId,
+                    'table_number' => $table->number,
+                    'current_status' => $table->status
+                ]);
+
+                // Buscar una orden activa para esta mesa
+                $order = \App\Models\Order::where('table_id', $tableId)
+                    ->where('status', '!=', 'completed')
+                    ->where('status', '!=', 'cancelled')
+                    ->where('billed', false)
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+
+                if (!$order) {
+                    // Crear una nueva orden para esta mesa
+                    $order = new \App\Models\Order();
+                    $order->table_id = $tableId;
+                    $order->service_type = 'dine_in';
+                    $order->employee_id = \Illuminate\Support\Facades\Auth::id();
+                    $order->order_datetime = now();
+                    $order->status = 'open';
+                    $order->subtotal = 0;
+                    $order->tax = 0;
+                    $order->total = 0;
+                    $order->billed = false;
+                    $order->save();
+
+                    Log::info('Nueva orden creada para la mesa desde el controlador', [
+                        'table_id' => $tableId,
+                        'order_id' => $order->id
+                    ]);
+                }
+
+                // Pasar los parámetros a la vista
+                return view('pos.index', [
+                    'tableId' => $tableId,
+                    'orderId' => $order->id,
+                    'preserveCart' => $preserveCart
+                ]);
+            }
+        }
+
+        // Verificar si se está cargando una orden específica (para Ver Detalles)
+        if ($request->has('order_id')) {
+            $orderId = $request->input('order_id');
+            $preserveCart = $request->input('preserve_cart', false);
+
+            // Verificar si el usuario tiene rol Delivery
+            $user = \Illuminate\Support\Facades\Auth::user();
+            $hasDeliveryRole = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+
+            // Registrar información para depuración
+            Log::info('Cargando orden específica en POS', [
+                'order_id' => $orderId,
+                'preserve_cart' => $preserveCart,
+                'user_id' => $user ? $user->id : 'no_user',
+                'name' => $user ? $user->name : 'no_name',
+                'roles' => $user ? $user->roles->pluck('name')->toArray() : [],
+                'has_delivery_role' => $hasDeliveryRole ? 'Sí' : 'No'
+            ]);
+
+            // Obtener la orden
+            $order = \App\Models\Order::with(['orderDetails.product', 'table', 'deliveryOrder'])
+                ->findOrFail($orderId);
+
+            // Si es una orden de delivery, pasar el tipo de servicio
+            if ($order->service_type === 'delivery') {
+                return view('pos.index', [
+                    'orderId' => $orderId,
+                    'serviceType' => 'delivery',
+                    'preserveCart' => $preserveCart
+                ]);
+            }
+
+            // Si es una orden de mesa, pasar el ID de la mesa
+            if ($order->table_id) {
+                return view('pos.index', [
+                    'tableId' => $order->table_id,
+                    'orderId' => $orderId,
+                    'preserveCart' => $preserveCart
+                ]);
+            }
+
+            // Si no tiene mesa ni es delivery, solo pasar el ID de la orden
+            return view('pos.index', [
+                'orderId' => $orderId,
+                'preserveCart' => $preserveCart
+            ]);
+        }
+
+        // Si se especifica un tipo de servicio (para nuevo pedido de delivery)
+        if ($request->has('serviceType')) {
+            return view('pos.index', [
+                'serviceType' => $request->input('serviceType')
+            ]);
+        }
+
+        // Vista normal sin parámetros
         return view('pos.index');
     }
 
@@ -111,7 +229,7 @@ class PosController extends Controller
     }
 
     /**
-     * Crear una orden desde la sesión y mostrar el formulario de facturación
+     * Crear una orden desde la sesión y mostrar el formulario unificado de pago y facturación
      */
     public function createAndShowInvoiceForm(Request $request)
     {
@@ -131,8 +249,8 @@ class PosController extends Controller
             return redirect()->route('pos.index')->with('error', 'No hay productos en el carrito');
         }
 
-        // Redirigir al formulario de facturación
-        return redirect()->route('pos.invoice.form', ['order' => $order->id]);
+        // Redirigir al formulario unificado de pago y facturación
+        return redirect()->route('pos.unified.form', ['order' => $order->id]);
     }
 
     /**

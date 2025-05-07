@@ -31,6 +31,11 @@ class Invoice extends Model
         'order_id',
         'voided_reason',
         'voided_date',
+        'payment_method',
+        'payment_amount',
+        'client_name',
+        'client_document',
+        'client_address',
     ];
 
     /**

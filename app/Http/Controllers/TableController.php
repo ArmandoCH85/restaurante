@@ -91,9 +91,29 @@ class TableController extends Controller
             'status' => 'required|in:available,occupied,reserved,maintenance',
         ]);
 
+        $oldStatus = $table->status;
         $table->status = $validated['status'];
+
+        // Si la mesa se está ocupando, registrar el tiempo
+        if ($validated['status'] === 'occupied') {
+            $table->occupied_at = now();
+        } else if ($oldStatus === 'occupied' && $validated['status'] !== 'occupied') {
+            // Si la mesa estaba ocupada y ahora cambia a otro estado, limpiar el tiempo
+            $table->occupied_at = null;
+        }
+
         $table->save();
 
+        // Si es una solicitud AJAX, devolver una respuesta JSON
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Estado de mesa actualizado correctamente',
+                'table' => $table
+            ]);
+        }
+
+        // Si es una solicitud normal, redirigir
         return redirect()->route('tables.maintenance')->with('success', 'Estado de mesa actualizado correctamente');
     }
 

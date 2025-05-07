@@ -1,0 +1,1810 @@
+/* Mapa de mesas y delivery mejorado - Aplicando principios de UX/UI */
+:root {
+  /* Paleta de colores principal */
+  --color-primary: #3b82f6;
+  --color-primary-light: #dbeafe;
+  --color-primary-dark: #1e40af;
+
+  /* Estados */
+  --color-success: #10b981;
+  --color-success-light: #d1fae5;
+  --color-success-dark: #065f46;
+
+  --color-warning: #f59e0b;
+  --color-warning-light: #fef3c7;
+  --color-warning-dark: #92400e;
+
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-danger-dark: #991b1b;
+
+  --color-neutral: #6b7280;
+  --color-neutral-light: #f3f4f6;
+  --color-neutral-dark: #374151;
+
+  /* Delivery */
+  --color-delivery: #ec4899;
+  --color-delivery-light: #fce7f3;
+  --color-delivery-dark: #9d174d;
+
+  /* Escala de grises */
+  --color-white: #ffffff;
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Espaciado */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Bordes */
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.375rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-xl: 0.75rem;
+  --border-radius-full: 9999px;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+  /* Transiciones */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+}
+
+/* Estilos generales */
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Contenedor principal - Aplicando mejor estructura */
+.table-map-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-gray-100);
+}
+
+.dark .table-map-container {
+  background-color: var(--color-gray-900);
+}
+
+/* Header - Mejorando jerarquía visual */
+.table-map-header {
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: var(--spacing-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+}
+
+.dark .table-map-header {
+  background-color: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+.header-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.dark .header-title {
+  color: var(--color-gray-100);
+}
+
+/* Agrupando botones de acción - Ley de proximidad */
+.header-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-xs);
+}
+
+/* Estilo consistente para botones - Ley de similitud */
+.header-button {
+  display: flex;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  box-shadow: var(--shadow-sm);
+}
+
+.header-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.header-button svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: var(--spacing-xs);
+}
+
+/* Contenido principal */
+.table-map-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar - Mejorando organización */
+.table-map-sidebar {
+  width: 16rem;
+  background-color: var(--color-white);
+  border-right: 1px solid var(--color-gray-200);
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-sm);
+  z-index: 5;
+}
+
+.dark .table-map-sidebar {
+  background-color: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+.sidebar-section {
+  margin-bottom: var(--spacing-lg);
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.dark .sidebar-section {
+  border-color: var(--color-gray-700);
+}
+
+.sidebar-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sidebar-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin-bottom: var(--spacing-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark .sidebar-title {
+  color: var(--color-gray-300);
+}
+
+/* Área principal de contenido */
+.tables-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-md);
+  background-color: var(--color-gray-100);
+}
+
+.dark .tables-main {
+  background-color: var(--color-gray-900);
+}
+
+/* Estadísticas - Aplicando Ley de Similitud */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+}
+
+.stat-card {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast);
+  border-top: 3px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.dark .stat-card {
+  background-color: var(--color-gray-800);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+  margin-top: var(--spacing-xs);
+  text-align: center;
+}
+
+.dark .stat-label {
+  color: var(--color-gray-400);
+}
+
+/* Colores específicos para cada tipo de estadística */
+.stat-total {
+  border-top-color: var(--color-primary);
+}
+.stat-total .stat-value {
+  color: var(--color-primary);
+}
+
+.stat-available {
+  border-top-color: var(--color-success);
+}
+.stat-available .stat-value {
+  color: var(--color-success);
+}
+
+.stat-occupied {
+  border-top-color: var(--color-danger);
+}
+.stat-occupied .stat-value {
+  color: var(--color-danger);
+}
+
+.stat-reserved {
+  border-top-color: var(--color-warning);
+}
+.stat-reserved .stat-value {
+  color: var(--color-warning);
+}
+
+.stat-maintenance {
+  border-top-color: var(--color-neutral);
+}
+.stat-maintenance .stat-value {
+  color: var(--color-neutral);
+}
+
+/* Filtros rápidos - Aplicando Ley de Hick para simplificar opciones */
+.quick-filters {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  overflow-x: auto;
+  padding-bottom: var(--spacing-sm);
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.quick-filters::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-pill {
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--border-radius-full);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.filter-pill svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: var(--spacing-xs);
+}
+
+/* Secciones de pisos - Mejorando jerarquía visual */
+.floor-section {
+  margin-bottom: var(--spacing-lg);
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.dark .floor-section {
+  background-color: var(--color-gray-800);
+}
+
+.floor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: linear-gradient(to right, var(--color-primary-light), var(--color-white));
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.dark .floor-header {
+  background: linear-gradient(to right, rgba(30, 64, 175, 0.2), var(--color-gray-800));
+  border-color: var(--color-gray-700);
+}
+
+.floor-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+}
+
+.dark .floor-title {
+  color: var(--color-primary-light);
+}
+
+.floor-title svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: var(--spacing-sm);
+  color: var(--color-primary);
+}
+
+/* Sección de ubicación - Aplicando Ley de Proximidad */
+.location-section {
+  margin-bottom: var(--spacing-sm);
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-gray-200);
+}
+
+.dark .location-section {
+  background-color: var(--color-gray-800);
+  border-color: var(--color-gray-700);
+}
+
+.location-header {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--color-gray-700);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dark .location-header {
+  background-color: var(--color-gray-900);
+  border-color: var(--color-gray-700);
+  color: var(--color-gray-300);
+}
+
+.location-header svg {
+  width: 1rem;
+  height: 1rem;
+  margin-right: var(--spacing-sm);
+  color: var(--color-primary);
+}
+
+/* Cuadrícula de mesas - Aplicando Ley de Proximidad y Similitud */
+.tables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.table-container {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.2;
+  max-height: 280px;
+}
+
+/* Tarjeta de mesa - Mejorando jerarquía visual */
+.table-card {
+  position: relative;
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  border-left: 4px solid transparent;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dark .table-card {
+  background-color: var(--color-gray-800);
+}
+
+.table-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  z-index: 1;
+}
+
+/* Estados de mesa con colores consistentes - Ley de Similitud */
+.table-card.available {
+  border-left-color: var(--color-success);
+}
+
+.table-card.occupied {
+  border-left-color: var(--color-danger);
+}
+
+.table-card.reserved {
+  border-left-color: var(--color-warning);
+}
+
+.table-card.maintenance {
+  border-left-color: var(--color-neutral);
+}
+
+/* Cabecera de la mesa */
+.table-header-container {
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.dark .table-header-container {
+  border-color: var(--color-gray-700);
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.table-header h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.dark .table-header h3 {
+  color: var(--color-gray-200);
+}
+
+.table-capacity {
+  font-size: 0.7rem;
+  color: var(--color-gray-500);
+  line-height: 1.2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.table-capacity svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: var(--spacing-xs);
+}
+
+.dark .table-capacity {
+  color: var(--color-gray-400);
+}
+
+/* Indicadores de estado - Ley de Similitud */
+.table-status-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--border-radius-full);
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.table-status-badge-inline.available {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.table-status-badge-inline.occupied {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger-dark);
+}
+
+.table-status-badge-inline.reserved {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+.table-status-badge-inline.maintenance {
+  background-color: var(--color-neutral-light);
+  color: var(--color-neutral-dark);
+}
+
+.status-icon {
+  width: 0.625rem;
+  height: 0.625rem;
+  margin-right: var(--spacing-xs);
+}
+
+/* Representación visual de la mesa */
+.table-visual-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-md);
+  flex: 1;
+}
+
+.table-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Formas de mesa - Ley de Similitud */
+.table-visual-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-md);
+  flex: 1;
+  position: relative;
+}
+
+.table-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.table-visual {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-white);
+  border: 3px solid var(--color-gray-300);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  z-index: 1;
+}
+
+.table-visual:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+.dark .table-visual {
+  background-color: var(--color-gray-700);
+  border-color: var(--color-gray-600);
+}
+
+/* Diferentes formas de mesa */
+.table-round {
+  border-radius: 50%;
+}
+
+.table-square {
+  border-radius: var(--border-radius-md);
+}
+
+.table-rectangular {
+  width: 100px;
+  height: 70px;
+  border-radius: var(--border-radius-md);
+}
+
+.table-oval {
+  width: 100px;
+  height: 70px;
+  border-radius: 50% / 70%;
+}
+
+/* Sillas alrededor de las mesas */
+.table-visual::before,
+.table-visual::after {
+  content: '';
+  position: absolute;
+  background-color: var(--color-gray-400);
+  border-radius: var(--border-radius-sm);
+  opacity: 0.5;
+  transition: all var(--transition-fast);
+}
+
+/* Sillas para mesa cuadrada */
+.table-square::before,
+.table-square::after {
+  width: 12px;
+  height: 12px;
+}
+
+.table-square::before {
+  top: -18px;
+  left: calc(50% - 6px);
+}
+
+.table-square::after {
+  bottom: -18px;
+  left: calc(50% - 6px);
+}
+
+.table-square .chair-left,
+.table-square .chair-right {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-gray-400);
+  border-radius: var(--border-radius-sm);
+  opacity: 0.5;
+}
+
+.table-square .chair-left {
+  left: -18px;
+  top: calc(50% - 6px);
+}
+
+.table-square .chair-right {
+  right: -18px;
+  top: calc(50% - 6px);
+}
+
+/* Sillas para mesa redonda */
+.table-round::before,
+.table-round::after {
+  width: 10px;
+  height: 10px;
+}
+
+.table-round::before {
+  top: -15px;
+  left: calc(50% - 5px);
+}
+
+.table-round::after {
+  bottom: -15px;
+  left: calc(50% - 5px);
+}
+
+.table-round .chair-left,
+.table-round .chair-right,
+.table-round .chair-top-left,
+.table-round .chair-top-right,
+.table-round .chair-bottom-left,
+.table-round .chair-bottom-right {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background-color: var(--color-gray-400);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.table-round .chair-left {
+  left: -15px;
+  top: calc(50% - 5px);
+}
+
+.table-round .chair-right {
+  right: -15px;
+  top: calc(50% - 5px);
+}
+
+.table-round .chair-top-left {
+  top: -10px;
+  left: -10px;
+  transform: translate(50%, 50%);
+}
+
+.table-round .chair-top-right {
+  top: -10px;
+  right: -10px;
+  transform: translate(-50%, 50%);
+}
+
+.table-round .chair-bottom-left {
+  bottom: -10px;
+  left: -10px;
+  transform: translate(50%, -50%);
+}
+
+.table-round .chair-bottom-right {
+  bottom: -10px;
+  right: -10px;
+  transform: translate(-50%, -50%);
+}
+
+/* Sillas para mesa rectangular */
+.table-rectangular::before,
+.table-rectangular::after {
+  width: 12px;
+  height: 12px;
+}
+
+.table-rectangular::before {
+  top: -18px;
+  left: calc(50% - 6px);
+}
+
+.table-rectangular::after {
+  bottom: -18px;
+  left: calc(50% - 6px);
+}
+
+.table-rectangular .chair-left-top,
+.table-rectangular .chair-left-bottom,
+.table-rectangular .chair-right-top,
+.table-rectangular .chair-right-bottom {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-gray-400);
+  border-radius: var(--border-radius-sm);
+  opacity: 0.5;
+}
+
+.table-rectangular .chair-left-top {
+  left: -18px;
+  top: calc(25% - 6px);
+}
+
+.table-rectangular .chair-left-bottom {
+  left: -18px;
+  top: calc(75% - 6px);
+}
+
+.table-rectangular .chair-right-top {
+  right: -18px;
+  top: calc(25% - 6px);
+}
+
+.table-rectangular .chair-right-bottom {
+  right: -18px;
+  top: calc(75% - 6px);
+}
+
+/* Sillas para mesa ovalada */
+.table-oval::before,
+.table-oval::after {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.table-oval::before {
+  top: -18px;
+  left: calc(50% - 6px);
+}
+
+.table-oval::after {
+  bottom: -18px;
+  left: calc(50% - 6px);
+}
+
+.table-oval .chair-left-top,
+.table-oval .chair-left-bottom,
+.table-oval .chair-right-top,
+.table-oval .chair-right-bottom {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background-color: var(--color-gray-400);
+  border-radius: 50%;
+  opacity: 0.5;
+}
+
+.table-oval .chair-left-top {
+  left: -18px;
+  top: calc(25% - 6px);
+}
+
+.table-oval .chair-left-bottom {
+  left: -18px;
+  top: calc(75% - 6px);
+}
+
+.table-oval .chair-right-top {
+  right: -18px;
+  top: calc(25% - 6px);
+}
+
+.table-oval .chair-right-bottom {
+  right: -18px;
+  top: calc(75% - 6px);
+}
+
+/* Estados de mesa con colores consistentes */
+.table-visual.available {
+  border-color: var(--color-success);
+  background-color: var(--color-success-light);
+}
+
+.table-visual.occupied {
+  border-color: var(--color-danger);
+  background-color: var(--color-danger-light);
+}
+
+.table-visual.reserved {
+  border-color: var(--color-warning);
+  background-color: var(--color-warning-light);
+}
+
+.table-visual.maintenance {
+  border-color: var(--color-neutral);
+  background-color: var(--color-neutral-light);
+}
+
+/* Efectos de estado en las sillas */
+.table-visual.occupied::before,
+.table-visual.occupied::after,
+.table-visual.occupied .chair-left,
+.table-visual.occupied .chair-right,
+.table-visual.occupied .chair-top-left,
+.table-visual.occupied .chair-top-right,
+.table-visual.occupied .chair-bottom-left,
+.table-visual.occupied .chair-bottom-right,
+.table-visual.occupied .chair-left-top,
+.table-visual.occupied .chair-left-bottom,
+.table-visual.occupied .chair-right-top,
+.table-visual.occupied .chair-right-bottom {
+  background-color: var(--color-danger);
+  opacity: 0.7;
+}
+
+.table-visual.reserved::before,
+.table-visual.reserved::after,
+.table-visual.reserved .chair-left,
+.table-visual.reserved .chair-right,
+.table-visual.reserved .chair-top-left,
+.table-visual.reserved .chair-top-right,
+.table-visual.reserved .chair-bottom-left,
+.table-visual.reserved .chair-bottom-right,
+.table-visual.reserved .chair-left-top,
+.table-visual.reserved .chair-left-bottom,
+.table-visual.reserved .chair-right-top,
+.table-visual.reserved .chair-right-bottom {
+  background-color: var(--color-warning);
+  opacity: 0.7;
+}
+
+.table-visual.maintenance::before,
+.table-visual.maintenance::after,
+.table-visual.maintenance .chair-left,
+.table-visual.maintenance .chair-right,
+.table-visual.maintenance .chair-top-left,
+.table-visual.maintenance .chair-top-right,
+.table-visual.maintenance .chair-bottom-left,
+.table-visual.maintenance .chair-bottom-right,
+.table-visual.maintenance .chair-left-top,
+.table-visual.maintenance .chair-left-bottom,
+.table-visual.maintenance .chair-right-top,
+.table-visual.maintenance .chair-right-bottom {
+  background-color: var(--color-neutral);
+  opacity: 0.3;
+}
+
+/* Número de mesa */
+.table-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  position: relative;
+  z-index: 2;
+}
+
+.dark .table-number {
+  color: var(--color-gray-200);
+}
+
+/* Indicador de capacidad */
+.table-capacity-indicator {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  box-shadow: var(--shadow-sm);
+  z-index: 3;
+}
+
+.dark .table-capacity-indicator {
+  border-color: var(--color-gray-800);
+}
+
+/* Acciones de mesa - Aplicando Ley de Hick para simplificar opciones */
+.table-actions {
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  border-top: 1px solid var(--color-gray-100);
+  margin-top: auto;
+}
+
+.dark .table-actions {
+  border-top-color: var(--color-gray-700);
+}
+
+.status-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.status-select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--color-gray-700);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+  transition: all var(--transition-fast);
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.dark .status-select {
+  color: var(--color-gray-300);
+  background-color: var(--color-gray-700);
+  border-color: var(--color-gray-600);
+}
+
+/* Botón de reserva */
+.reserve-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-white);
+  background-color: var(--color-warning);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.reserve-button:hover {
+  background-color: var(--color-warning-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.reserve-button.disabled {
+  background-color: var(--color-gray-300);
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dark .reserve-button.disabled {
+  background-color: var(--color-gray-600);
+  color: var(--color-gray-400);
+}
+
+.reserve-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: var(--spacing-xs);
+}
+
+/* Indicador de tiempo de ocupación */
+.occupation-time-container {
+  display: flex;
+  justify-content: center;
+  margin: var(--spacing-xs) 0;
+}
+
+.occupation-time {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+}
+
+.time-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: var(--spacing-xs);
+}
+
+.occupation-time-short {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.occupation-time-medium {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+.occupation-time-long {
+  background-color: var(--color-danger-light);
+  color: var(--color-danger-dark);
+}
+
+/* Información de orden para mesas ocupadas */
+.table-order-info {
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  background-color: var(--color-danger);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--border-radius-full);
+  box-shadow: var(--shadow-sm);
+  z-index: 3;
+  border: 1px solid white;
+  display: flex;
+  align-items: center;
+}
+
+.dark .table-order-info {
+  border-color: var(--color-gray-800);
+}
+
+.table-order-info svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.2rem;
+}
+
+/* Animación de mesa ocupada */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.table-visual.occupied {
+  animation: pulse 2s infinite;
+}
+
+/* Sección de Delivery - Aplicando Jerarquía Visual y Ley de Proximidad */
+.delivery-section {
+  margin-bottom: var(--spacing-lg);
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.dark .delivery-section {
+  background-color: var(--color-gray-800);
+}
+
+.delivery-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  background: linear-gradient(to right, var(--color-delivery-light), var(--color-white));
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.dark .delivery-header {
+  background: linear-gradient(to right, rgba(157, 23, 77, 0.2), var(--color-gray-800));
+  border-color: var(--color-gray-700);
+}
+
+.delivery-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-delivery-dark);
+  display: flex;
+  align-items: center;
+}
+
+.dark .delivery-title {
+  color: var(--color-delivery-light);
+}
+
+.delivery-title svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: var(--spacing-sm);
+  color: var(--color-delivery);
+}
+
+/* Tarjetas de pedidos de delivery - Aplicando Ley de Similitud */
+.delivery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.delivery-card {
+  position: relative;
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  border-left: 4px solid var(--color-delivery);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dark .delivery-card {
+  background-color: var(--color-gray-800);
+}
+
+.delivery-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  z-index: 1;
+}
+
+/* Estados de delivery con colores consistentes - Ley de Similitud */
+.delivery-card.pending {
+  border-left-color: var(--color-warning);
+}
+
+.delivery-card.preparing {
+  border-left-color: var(--color-primary);
+}
+
+.delivery-card.ready {
+  border-left-color: var(--color-success);
+}
+
+.delivery-card.assigned {
+  border-left-color: var(--color-delivery);
+}
+
+.delivery-card.in-transit {
+  border-left-color: var(--color-delivery-dark);
+}
+
+.delivery-card.delivered {
+  border-left-color: var(--color-success-dark);
+}
+
+.delivery-card.cancelled {
+  border-left-color: var(--color-neutral);
+}
+
+/* Cabecera del pedido de delivery */
+.delivery-header-container {
+  padding: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.dark .delivery-header-container {
+  border-color: var(--color-gray-700);
+}
+
+.delivery-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-xs);
+}
+
+.delivery-header-content h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.dark .delivery-header-content h3 {
+  color: var(--color-gray-200);
+}
+
+.delivery-time {
+  font-size: 0.7rem;
+  color: var(--color-gray-500);
+  line-height: 1.2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+
+.delivery-time svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: var(--spacing-xs);
+}
+
+.dark .delivery-time {
+  color: var(--color-gray-400);
+}
+
+/* Indicadores de estado de delivery - Ley de Similitud */
+.delivery-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.375rem;
+  border-radius: var(--border-radius-full);
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.delivery-status-badge.pending {
+  background-color: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+.delivery-status-badge.preparing {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.delivery-status-badge.ready {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.delivery-status-badge.assigned {
+  background-color: var(--color-delivery-light);
+  color: var(--color-delivery-dark);
+}
+
+.delivery-status-badge.in-transit {
+  background-color: var(--color-delivery-light);
+  color: var(--color-delivery-dark);
+}
+
+.delivery-status-badge.delivered {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.delivery-status-badge.cancelled {
+  background-color: var(--color-neutral-light);
+  color: var(--color-neutral-dark);
+}
+
+/* Contenido del pedido de delivery */
+.delivery-content {
+  padding: var(--spacing-sm);
+  flex: 1;
+}
+
+.delivery-info {
+  margin-bottom: var(--spacing-sm);
+}
+
+.delivery-info-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.75rem;
+}
+
+.delivery-info-item:last-child {
+  margin-bottom: 0;
+}
+
+.delivery-info-label {
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-right: var(--spacing-xs);
+  min-width: 70px;
+}
+
+.dark .delivery-info-label {
+  color: var(--color-gray-300);
+}
+
+.delivery-info-value {
+  color: var(--color-gray-600);
+  word-break: break-word;
+}
+
+.dark .delivery-info-value {
+  color: var(--color-gray-400);
+}
+
+/* Acciones de delivery - Aplicando Ley de Hick para simplificar opciones */
+.delivery-actions {
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  border-top: 1px solid var(--color-gray-100);
+  margin-top: auto;
+}
+
+.dark .delivery-actions {
+  border-top-color: var(--color-gray-700);
+}
+
+.delivery-status-select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: var(--color-gray-700);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+  transition: all var(--transition-fast);
+}
+
+.delivery-status-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.dark .delivery-status-select {
+  color: var(--color-gray-300);
+  background-color: var(--color-gray-700);
+  border-color: var(--color-gray-600);
+}
+
+/* Botones de acción para delivery */
+.delivery-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-white);
+  background-color: var(--color-primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.delivery-action-button:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.delivery-action-button.assign {
+  background-color: var(--color-delivery);
+}
+
+.delivery-action-button.assign:hover {
+  background-color: var(--color-delivery-dark);
+}
+
+.delivery-action-button.cancel {
+  background-color: var(--color-danger);
+}
+
+.delivery-action-button.cancel:hover {
+  background-color: var(--color-danger-dark);
+}
+
+.delivery-action-button.disabled {
+  background-color: var(--color-gray-300);
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.dark .delivery-action-button.disabled {
+  background-color: var(--color-gray-600);
+  color: var(--color-gray-400);
+}
+
+.delivery-action-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  margin-right: var(--spacing-xs);
+}
+
+/* Botón para crear nuevo pedido de delivery - Aplicando Jerarquía Visual */
+.new-delivery-button {
+  position: fixed;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 50%;
+  background-color: var(--color-delivery);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: all var(--transition-fast);
+  z-index: 50;
+}
+
+.new-delivery-button:hover {
+  transform: translateY(-2px) scale(1.05);
+  background-color: var(--color-delivery-dark);
+}
+
+.new-delivery-button svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+/* Notificaciones - Mejorando la visibilidad */
+.notification {
+  position: fixed;
+  top: var(--spacing-lg);
+  right: var(--spacing-lg);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background-color: var(--color-white);
+  box-shadow: var(--shadow-lg);
+  transform: translateX(calc(100% + var(--spacing-lg)));
+  transition: transform var(--transition-normal);
+  z-index: 100;
+  max-width: 300px;
+  display: flex;
+  align-items: center;
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+.dark .notification {
+  background-color: var(--color-gray-800);
+}
+
+.notification-success {
+  border-left: 4px solid var(--color-success);
+}
+
+.notification-error {
+  border-left: 4px solid var(--color-danger);
+}
+
+.notification-warning {
+  border-left: 4px solid var(--color-warning);
+}
+
+.notification-info {
+  border-left: 4px solid var(--color-primary);
+}
+
+.notification-icon {
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.notification-success .notification-icon {
+  color: var(--color-success);
+}
+
+.notification-error .notification-icon {
+  color: var(--color-danger);
+}
+
+.notification-warning .notification-icon {
+  color: var(--color-warning);
+}
+
+.notification-info .notification-icon {
+  color: var(--color-primary);
+}
+
+.notification-message {
+  font-size: 0.875rem;
+  color: var(--color-gray-700);
+  line-height: 1.4;
+}
+
+.dark .notification-message {
+  color: var(--color-gray-300);
+}
+
+/* Modales - Mejorando la jerarquía visual */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.modal-container {
+  background-color: var(--color-white);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.dark .modal-container {
+  background-color: var(--color-gray-800);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.dark .modal-header {
+  border-color: var(--color-gray-700);
+}
+
+.modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.dark .modal-title {
+  color: var(--color-gray-100);
+}
+
+.modal-close-button {
+  background: none;
+  border: none;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.modal-close-button:hover {
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+}
+
+.dark .modal-close-button:hover {
+  background-color: var(--color-gray-700);
+  color: var(--color-gray-300);
+}
+
+.modal-body {
+  padding: var(--spacing-md);
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.dark .modal-footer {
+  border-color: var(--color-gray-700);
+}
+
+/* Botones de modal */
+.modal-button {
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-fast);
+}
+
+.modal-button-secondary {
+  background-color: var(--color-white);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-300);
+}
+
+.modal-button-secondary:hover {
+  background-color: var(--color-gray-50);
+}
+
+.dark .modal-button-secondary {
+  background-color: var(--color-gray-700);
+  color: var(--color-gray-300);
+  border-color: var(--color-gray-600);
+}
+
+.dark .modal-button-secondary:hover {
+  background-color: var(--color-gray-600);
+}
+
+.modal-button-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+}
+
+.modal-button-primary:hover {
+  background-color: var(--color-primary-dark);
+}
+
+.modal-button-danger {
+  background-color: var(--color-danger);
+  color: var(--color-white);
+  border: none;
+}
+
+.modal-button-danger:hover {
+  background-color: var(--color-danger-dark);
+}
+
+/* Formularios en modales */
+.form-group {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  margin-bottom: var(--spacing-xs);
+}
+
+.dark .form-label {
+  color: var(--color-gray-300);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-gray-700);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-fast);
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.dark .form-input {
+  color: var(--color-gray-300);
+  background-color: var(--color-gray-700);
+  border-color: var(--color-gray-600);
+}
+
+.form-select {
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--color-gray-700);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius-md);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1rem 1rem;
+  transition: all var(--transition-fast);
+}
+
+.form-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+}
+
+.dark .form-select {
+  color: var(--color-gray-300);
+  background-color: var(--color-gray-700);
+  border-color: var(--color-gray-600);
+}
+
+/* Responsive - Adaptando a diferentes tamaños de pantalla */
+@media (max-width: 768px) {
+  .table-map-content {
+    flex-direction: column;
+  }
+
+  .table-map-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--color-gray-200);
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .dark .table-map-sidebar {
+    border-color: var(--color-gray-700);
+  }
+
+  .tables-grid, .delivery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+  }
+
+  .new-delivery-button {
+    bottom: var(--spacing-md);
+    right: var(--spacing-md);
+  }
+}

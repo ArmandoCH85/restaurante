@@ -31,7 +31,8 @@ class PurchaseDetail extends Model
         'product_id',
         'quantity',
         'unit_cost',
-        'subtotal'
+        'subtotal',
+        'expiry_date'
     ];
 
     /**
@@ -43,6 +44,7 @@ class PurchaseDetail extends Model
         'quantity' => 'decimal:3',
         'unit_cost' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'expiry_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
     ];

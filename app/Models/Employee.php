@@ -54,4 +54,36 @@ class Employee extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Obtiene los pedidos de delivery asignados a este empleado.
+     */
+    public function deliveryOrders()
+    {
+        return $this->hasMany(DeliveryOrder::class, 'delivery_person_id');
+    }
+
+    /**
+     * Scope para filtrar empleados por posición.
+     */
+    public function scopeByPosition($query, string $position)
+    {
+        return $query->where('position', $position);
+    }
+
+    /**
+     * Scope para filtrar repartidores.
+     */
+    public function scopeDeliveryPersons($query)
+    {
+        return $query->where('position', 'Delivery');
+    }
+
+    /**
+     * Verifica si el empleado es un repartidor.
+     */
+    public function isDeliveryPerson(): bool
+    {
+        return $this->position === 'Delivery';
+    }
 }

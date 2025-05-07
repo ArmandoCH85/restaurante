@@ -207,7 +207,21 @@
                 </div>
             </div>
             <div class="document-info">
-                <div class="title">FACTURA ELECTRÓNICA</div>
+                <div class="title">
+                    @switch($invoice->invoice_type)
+                        @case('invoice')
+                            FACTURA ELECTRÓNICA
+                            @break
+                        @case('receipt')
+                            BOLETA DE VENTA ELECTRÓNICA
+                            @break
+                        @case('sales_note')
+                            NOTA DE VENTA
+                            @break
+                        @default
+                            COMPROBANTE DE PAGO
+                    @endswitch
+                </div>
                 <div class="subtitle">{{ $invoice->series }}-{{ $invoice->number }}</div>
                 <div>Fecha de emisión: {{ $invoice->issue_date->format('d/m/Y') }}</div>
             </div>
@@ -231,10 +245,26 @@
         <div class="info">
             <div class="client-info">
                 <div class="info-row">
-                    <span class="label">RAZÓN SOCIAL:</span> {{ $invoice->client_name }}
+                    <span class="label">
+                        @if($invoice->invoice_type == 'invoice')
+                            RAZÓN SOCIAL:
+                        @else
+                            CLIENTE:
+                        @endif
+                    </span>
+                    {{ $invoice->client_name }}
                 </div>
                 <div class="info-row">
-                    <span class="label">RUC:</span> {{ $invoice->client_document }}
+                    <span class="label">
+                        @if($invoice->invoice_type == 'invoice')
+                            RUC:
+                        @elseif($invoice->invoice_type == 'receipt')
+                            DNI:
+                        @else
+                            DOC:
+                        @endif
+                    </span>
+                    {{ $invoice->client_document }}
                 </div>
                 <div class="info-row">
                     <span class="label">DIRECCIÓN:</span> {{ $invoice->client_address }}
@@ -337,15 +367,31 @@
             </div>
         </div>
 
+        @if($invoice->invoice_type != 'sales_note')
         <div class="qr-code">
             <!-- QR code: RUC|TIPO DOC|SERIE|NUMERO|MTO IGV|MTO TOTAL|FECHA EMISIÓN|TIPO DOC ADQUIRIENTE|NRO DOC ADQUIRIENTE -->
             <img src="data:image/png;base64,{{ $qr_code ?? 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' }}" width="150" height="150">
         </div>
+        @endif
 
         <div class="notice">
-            Representación impresa de la Factura Electrónica
-            Autorizado mediante Resolución de Superintendencia N° 000-2023/SUNAT
-            Consulte su comprobante en: www.sunat.gob.pe
+            @switch($invoice->invoice_type)
+                @case('invoice')
+                    Representación impresa de la Factura Electrónica
+                    @break
+                @case('receipt')
+                    Representación impresa de la Boleta de Venta Electrónica
+                    @break
+                @case('sales_note')
+                    Nota de Venta - Documento Interno
+                    @break
+                @default
+                    Representación impresa del Comprobante de Pago
+            @endswitch
+            @if($invoice->invoice_type != 'sales_note')
+            <br>Autorizado mediante Resolución de Superintendencia N° 000-2023/SUNAT
+            <br>Consulte su comprobante en: www.sunat.gob.pe
+            @endif
         </div>
 
         <div class="footer">

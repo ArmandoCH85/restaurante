@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
@@ -87,6 +89,14 @@ class Order extends Model
     }
 
     /**
+     * Obtiene la información de delivery asociada a la orden.
+     */
+    public function deliveryOrder(): HasOne
+    {
+        return $this->hasOne(DeliveryOrder::class);
+    }
+
+    /**
      * Devuelve si la orden está abierta.
      */
     public function isOpen(): bool
@@ -103,15 +113,63 @@ class Order extends Model
     }
 
     /**
-     * Procesa las recetas de los productos en la orden y registra los movimientos de inventario.
-     *
-     * @return bool Si el procesamiento fue exitoso
+     * Verifica si la orden es de tipo delivery.
      */
-    public function processRecipes(): bool
+    public function isDelivery(): bool
     {
-        // Solo procesar si la orden está en preparación
-        if ($this->status !== self::STATUS_IN_PREPARATION) {
-            return false;
+        return $this->service_type === 'delivery';
+    }
+
+    /**
+     * Verifica si la orden es para consumo en el local.
+     */
+    public function isDineIn(): bool
+    {
+        return $this->service_type === 'dine_in';
+    }
+
+    /**
+     * Verifica si la orden es para llevar.
+     */
+    public function isTakeout(): bool
+    {
+        return $this->service_type === 'takeout';
+    }
+
+    /**
+     * Verifica si la orden es para auto-servicio.
+     */
+    public function isDriveThru(): bool
+    {
+        return $this->service_type === 'drive_thru';
+    }
+
+    /**
+     * Procesa las recetas de los productos en la orden y registra los movimientos de inventario
+     * utilizando el método FIFO.
+     *
+     * @param int|null $warehouseId ID del almacén para consumir los ingredientes (opcional)
+     * @return array Detalles del procesamiento
+     */
+    public function processRecipes(?int $warehouseId = null): array
+    {
+        // Solo procesar si la orden está en preparación o abierta
+        if (!in_array($this->status, [self::STATUS_IN_PREPARATION, self::STATUS_OPEN])) {
+            return [
+                'success' => false,
+                'message' => 'La orden no está en un estado válido para procesar recetas',
+                'details' => []
+            ];
+        }
+
+        $processedProducts = [];
+        $totalCost = 0;
+        $errors = [];
+
+        // Obtener el almacén predeterminado si no se especifica uno
+        if (!$warehouseId) {
+            $defaultWarehouse = Warehouse::where('is_default', true)->first();
+            $warehouseId = $defaultWarehouse ? $defaultWarehouse->id : null;
         }
 
         // Recorrer todos los detalles de la orden
@@ -128,25 +186,527 @@ class Order extends Model
             if ($product->has_recipe && $product->recipe) {
                 $recipe = $product->recipe;
 
-                // Recorrer todos los detalles de la receta
-                foreach ($recipe->recipeDetails as $recipeDetail) {
-                    // Calcular la cantidad necesaria del ingrediente
-                    $ingredientQuantity = $recipeDetail->quantity * $detail->quantity;
+                try {
+                    // Verificar si hay suficiente stock
+                    if (!$recipe->hasEnoughIngredients($detail->quantity, $warehouseId)) {
+                        $errors[] = [
+                            'product_id' => $product->id,
+                            'product_name' => $product->name,
+                            'quantity' => $detail->quantity,
+                            'message' => 'No hay suficiente stock para preparar este producto'
+                        ];
+                        continue;
+                    }
 
-                    // Registrar el movimiento de inventario (salida)
-                    InventoryMovement::createSaleMovement(
-                        $recipeDetail->ingredient_id,
-                        $ingredientQuantity,
+                    // Consumir los ingredientes utilizando FIFO
+                    $result = $recipe->consumeIngredients(
+                        $detail->quantity,
+                        $warehouseId,
                         $this->id,
-                        'Orden #' . $this->id,
-                        null, // No hay usuario autenticado en este contexto
-                        'Consumo por orden #' . $this->id . ' - Producto: ' . $product->name
+                        $this->employee_id // Usar el empleado asociado a la orden
                     );
+
+                    $processedProducts[] = [
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'quantity' => $detail->quantity,
+                        'cost' => $result['total_cost'],
+                        'ingredients' => $result['ingredients']
+                    ];
+
+                    $totalCost += $result['total_cost'];
+
+                    // Actualizar el costo en el detalle de la orden
+                    $detail->cost = $result['total_cost'] / $detail->quantity;
+                    $detail->save();
+
+                } catch (\Exception $e) {
+                    $errors[] = [
+                        'product_id' => $product->id,
+                        'product_name' => $product->name,
+                        'quantity' => $detail->quantity,
+                        'message' => $e->getMessage()
+                    ];
                 }
             }
         }
 
+        // Si se procesaron productos, actualizar el estado de la orden
+        if (count($processedProducts) > 0 && $this->status === self::STATUS_OPEN) {
+            $this->status = self::STATUS_IN_PREPARATION;
+            $this->save();
+        }
+
+        return [
+            'success' => count($errors) === 0,
+            'processed_products' => $processedProducts,
+            'total_cost' => $totalCost,
+            'errors' => $errors,
+            'order_id' => $this->id,
+            'order_status' => $this->status,
+            'warehouse_id' => $warehouseId
+        ];
+    }
+
+    /**
+     * Envía la orden a cocina, cambiando su estado a 'in_preparation'.
+     *
+     * @return bool
+     */
+    public function sendToKitchen(): bool
+    {
+        if ($this->status === self::STATUS_OPEN) {
+            $this->status = self::STATUS_IN_PREPARATION;
+            $this->save();
+
+            // Actualizar estado de los detalles de la orden
+            $this->orderDetails()->update(['status' => 'in_preparation']);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Marca la orden como lista para servir.
+     *
+     * @return bool
+     */
+    public function markAsReady(): bool
+    {
+        if ($this->status === self::STATUS_IN_PREPARATION) {
+            $this->status = self::STATUS_READY;
+            $this->save();
+
+            // Actualizar estado de los detalles de la orden
+            $this->orderDetails()->update(['status' => 'ready']);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Marca la orden como entregada al cliente.
+     *
+     * @return bool
+     */
+    public function markAsDelivered(): bool
+    {
+        if ($this->status === self::STATUS_READY) {
+            $this->status = self::STATUS_DELIVERED;
+            $this->save();
+
+            // Actualizar estado de los detalles de la orden
+            $this->orderDetails()->update(['status' => 'delivered']);
+
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Completa la orden, cambiando su estado a 'completed'.
+     * Solo se puede completar si está facturada.
+     *
+     * @return bool
+     */
+    public function completeOrder(): bool
+    {
+        if (!$this->billed) {
+            return false; // No se puede completar si no está facturada
+        }
+
+        $this->status = self::STATUS_COMPLETED;
+        $this->save();
+
+        // Liberar la mesa si es una orden de consumo en local
+        if ($this->service_type === 'dine_in' && $this->table_id) {
+            $table = Table::find($this->table_id);
+            if ($table) {
+                $table->status = Table::STATUS_AVAILABLE;
+                $table->occupied_at = null;
+                $table->save();
+
+                // Registrar en el log
+                Log::info('Mesa liberada al completar la orden', [
+                    'order_id' => $this->id,
+                    'table_id' => $this->table_id,
+                    'table_number' => $table->number
+                ]);
+            }
+        }
+
         return true;
+    }
+
+    /**
+     * Cancela la orden, cambiando su estado a 'cancelled'.
+     *
+     * @param string|null $reason Motivo de la cancelación
+     * @return bool
+     */
+    public function cancelOrder(?string $reason = null): bool
+    {
+        // No se puede cancelar una orden facturada
+        if ($this->billed) {
+            return false;
+        }
+
+        $this->status = self::STATUS_CANCELLED;
+        $this->notes = $reason ? ($this->notes ? $this->notes . "\n" . $reason : $reason) : $this->notes;
+        $this->save();
+
+        // Actualizar estado de los detalles de la orden
+        $this->orderDetails()->update(['status' => 'cancelled']);
+
+        // Liberar la mesa al cancelar la orden
+        if ($this->service_type === 'dine_in' && $this->table_id) {
+            $table = Table::find($this->table_id);
+            if ($table) {
+                // Cambiar el estado de la mesa a disponible
+                $table->status = Table::STATUS_AVAILABLE;
+                $table->occupied_at = null;
+                $table->save();
+
+                // Registrar en el log
+                Log::info('Mesa liberada al cancelar orden', [
+                    'order_id' => $this->id,
+                    'table_id' => $this->table_id,
+                    'table_status' => $table->status
+                ]);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Añade un producto a la orden.
+     *
+     * @param int $productId ID del producto
+     * @param int $quantity Cantidad
+     * @param float|null $unitPrice Precio unitario (opcional, si no se proporciona se usa el precio del producto)
+     * @param string|null $notes Notas adicionales
+     * @return OrderDetail
+     */
+    public function addProduct(int $productId, int $quantity, ?float $unitPrice = null, ?string $notes = null): OrderDetail
+    {
+        $product = Product::findOrFail($productId);
+
+        // Si no se proporciona un precio unitario, usar el precio del producto
+        if ($unitPrice === null) {
+            $unitPrice = $product->sale_price;
+        }
+
+        $subtotal = $unitPrice * $quantity;
+
+        $orderDetail = new OrderDetail([
+            'order_id' => $this->id,
+            'product_id' => $productId,
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'subtotal' => $subtotal,
+            'notes' => $notes,
+            'status' => 'pending'
+        ]);
+
+        $orderDetail->save();
+
+        // Recalcular totales de la orden
+        $this->recalculateTotals();
+
+        return $orderDetail;
+    }
+
+    /**
+     * Actualiza la cantidad de un producto en la orden.
+     *
+     * @param int $orderDetailId ID del detalle de orden
+     * @param int $quantity Nueva cantidad
+     * @return bool
+     */
+    public function updateProductQuantity(int $orderDetailId, int $quantity): bool
+    {
+        $orderDetail = $this->orderDetails()->findOrFail($orderDetailId);
+
+        if ($quantity <= 0) {
+            // Si la cantidad es 0 o negativa, eliminar el producto
+            $orderDetail->delete();
+        } else {
+            // Actualizar cantidad y subtotal
+            $orderDetail->quantity = $quantity;
+            $orderDetail->subtotal = $orderDetail->unit_price * $quantity;
+            $orderDetail->save();
+        }
+
+        // Recalcular totales de la orden
+        $this->recalculateTotals();
+
+        return true;
+    }
+
+    /**
+     * Actualiza el precio unitario de un producto en la orden.
+     *
+     * @param int $orderDetailId ID del detalle de orden
+     * @param float $unitPrice Nuevo precio unitario
+     * @return bool
+     */
+    public function updateProductPrice(int $orderDetailId, float $unitPrice): bool
+    {
+        $orderDetail = $this->orderDetails()->findOrFail($orderDetailId);
+
+        // Actualizar precio y subtotal
+        $orderDetail->unit_price = $unitPrice;
+        $orderDetail->subtotal = $unitPrice * $orderDetail->quantity;
+        $orderDetail->save();
+
+        // Recalcular totales de la orden
+        $this->recalculateTotals();
+
+        return true;
+    }
+
+    /**
+     * Elimina un producto de la orden.
+     *
+     * @param int $orderDetailId ID del detalle de orden
+     * @return bool
+     */
+    public function removeProduct(int $orderDetailId): bool
+    {
+        $orderDetail = $this->orderDetails()->findOrFail($orderDetailId);
+        $orderDetail->delete();
+
+        // Recalcular totales de la orden
+        $this->recalculateTotals();
+
+        return true;
+    }
+
+    /**
+     * Recalcula los totales de la orden basándose en los detalles.
+     */
+    public function recalculateTotals(): void
+    {
+        $subtotal = $this->orderDetails()->sum('subtotal');
+
+        // Calcular impuestos (18% IGV)
+        $tax = $subtotal * 0.18;
+
+        // Calcular total
+        $total = $subtotal + $tax - ($this->discount ?? 0);
+
+        $this->subtotal = $subtotal;
+        $this->tax = $tax;
+        $this->total = $total;
+        $this->save();
+    }
+
+    /**
+     * Aplica un descuento a la orden.
+     *
+     * @param float $amount Monto del descuento
+     * @param string $type Tipo de descuento ('fixed' o 'percentage')
+     * @return void
+     */
+    public function applyDiscount(float $amount, string $type = 'fixed'): void
+    {
+        if ($type === 'percentage') {
+            $this->discount = ($this->subtotal * $amount) / 100;
+        } else {
+            $this->discount = $amount;
+        }
+
+        $this->recalculateTotals();
+    }
+
+    /**
+     * Obtiene los pagos asociados a la orden.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Registra un nuevo pago para la orden.
+     *
+     * @param string $paymentMethod Método de pago
+     * @param float $amount Monto del pago
+     * @param string|null $reference Referencia del pago (número de transacción, etc.)
+     * @return Payment
+     * @throws \Exception Si no hay una caja abierta para pagos en efectivo
+     */
+    public function registerPayment(string $paymentMethod, float $amount, ?string $reference = null): Payment
+    {
+        // Verificar si hay una caja abierta
+        $activeCashRegister = CashRegister::where('is_active', true)->first();
+
+        if (!$activeCashRegister && $paymentMethod === 'cash') {
+            throw new \Exception('No hay una caja abierta para registrar pagos en efectivo');
+        }
+
+        $payment = new Payment([
+            'order_id' => $this->id,
+            'cash_register_id' => $paymentMethod === 'cash' ? $activeCashRegister->id : null,
+            'payment_method' => $paymentMethod,
+            'amount' => $amount,
+            'reference_number' => $reference,
+            'payment_datetime' => now(),
+            'received_by' => \Illuminate\Support\Facades\Auth::id(),
+        ]);
+
+        $payment->save();
+
+        // Actualizar los totales de la caja según el método de pago
+        if ($activeCashRegister) {
+            if ($paymentMethod === 'cash') {
+                $activeCashRegister->cash_sales = $activeCashRegister->cash_sales + $amount;
+            } elseif (in_array($paymentMethod, ['credit_card', 'debit_card'])) {
+                $activeCashRegister->card_sales = $activeCashRegister->card_sales + $amount;
+            } else {
+                $activeCashRegister->other_sales = $activeCashRegister->other_sales + $amount;
+            }
+
+            $activeCashRegister->total_sales = $activeCashRegister->total_sales + $amount;
+            $activeCashRegister->save();
+        }
+
+        return $payment;
+    }
+
+    /**
+     * Obtiene el total pagado de la orden.
+     *
+     * @return float
+     */
+    public function getTotalPaid(): float
+    {
+        return $this->payments()->sum('amount');
+    }
+
+    /**
+     * Obtiene el saldo pendiente de la orden.
+     *
+     * @return float
+     */
+    public function getRemainingBalance(): float
+    {
+        return $this->total - $this->getTotalPaid();
+    }
+
+    /**
+     * Verifica si la orden está completamente pagada.
+     *
+     * @return bool
+     */
+    public function isFullyPaid(): bool
+    {
+        return $this->getRemainingBalance() <= 0;
+    }
+
+    /**
+     * Obtiene las facturas asociadas a la orden.
+     */
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
+    /**
+     * Genera una factura para la orden.
+     *
+     * @param string $invoiceType Tipo de factura ('receipt', 'invoice', etc.)
+     * @param string $series Serie del comprobante
+     * @param int|null $customerId ID del cliente (opcional, si no se proporciona se usa el cliente de la orden)
+     * @return Invoice|null
+     */
+    public function generateInvoice(string $invoiceType, string $series, ?int $customerId = null): ?Invoice
+    {
+        // Verificar si la orden está pagada completamente
+        if (!$this->isFullyPaid()) {
+            return null; // No se puede facturar si no está pagada completamente
+        }
+
+        // Verificar si ya está facturada
+        if ($this->billed) {
+            return null; // Ya está facturada
+        }
+
+        // Obtener el siguiente número de factura para la serie
+        $lastInvoice = Invoice::where('series', $series)->latest('number')->first();
+        $nextNumber = $lastInvoice ? (int)$lastInvoice->number + 1 : 1;
+        $formattedNumber = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+
+        // Usar el cliente de la orden o el cliente genérico si no hay cliente
+        $finalCustomerId = $customerId ?? $this->customer_id ?? 1; // Cliente genérico si no hay cliente
+
+        // Obtener el cliente
+        $customer = \App\Models\Customer::find($finalCustomerId);
+
+        // Obtener el método de pago de la última transacción
+        $lastPayment = $this->payments()->latest()->first();
+        $paymentMethod = $lastPayment ? $lastPayment->payment_method : 'cash';
+        $paymentAmount = $lastPayment ? $lastPayment->amount : $this->total;
+
+        $invoice = new Invoice([
+            'invoice_type' => $invoiceType,
+            'series' => $series,
+            'number' => $formattedNumber,
+            'issue_date' => now()->format('Y-m-d'),
+            'customer_id' => $finalCustomerId,
+            'taxable_amount' => $this->subtotal,
+            'tax' => $this->tax,
+            'total' => $this->total,
+            'tax_authority_status' => Invoice::STATUS_PENDING,
+            'order_id' => $this->id,
+            'payment_method' => $paymentMethod,
+            'payment_amount' => $paymentAmount,
+            'client_name' => $customer ? $customer->name : 'Cliente General',
+            'client_document' => $customer ? $customer->document_number : '00000000',
+            'client_address' => $customer ? $customer->address : 'Sin dirección',
+        ]);
+
+        $invoice->save();
+
+        // Crear los detalles de la factura
+        foreach ($this->orderDetails as $detail) {
+            $invoice->details()->create([
+                'product_id' => $detail->product_id,
+                'description' => $detail->product->name,
+                'quantity' => $detail->quantity,
+                'unit_price' => $detail->unit_price,
+                'subtotal' => $detail->subtotal,
+            ]);
+        }
+
+        // Marcar la orden como facturada
+        $this->billed = true;
+        $this->save();
+
+        // Enviar a la autoridad tributaria (SUNAT)
+        $invoice->sendToTaxAuthority();
+
+        return $invoice;
+    }
+
+    /**
+     * Imprime la factura de la orden.
+     *
+     * @param int $invoiceId ID de la factura a imprimir
+     * @return string|null URL del PDF de la factura
+     */
+    public function printInvoice(int $invoiceId): ?string
+    {
+        $invoice = $this->invoices()->findOrFail($invoiceId);
+
+        // En una implementación real, aquí se generaría el PDF de la factura
+        // y se enviaría a la impresora o se devolvería la URL del PDF
+
+        // Por ahora, devolvemos una URL de ejemplo
+        return route('invoices.print', $invoice->id);
     }
 
     /**
@@ -158,7 +718,10 @@ class Order extends Model
         static::updating(function ($order) {
             // Si el estado cambió a 'in_preparation', procesar las recetas
             if ($order->isDirty('status') && $order->status === self::STATUS_IN_PREPARATION) {
-                $order->processRecipes();
+                $result = $order->processRecipes();
+
+                // Registrar el resultado del procesamiento
+                \Illuminate\Support\Facades\Log::info('Procesamiento de recetas para orden #' . $order->id, $result);
             }
         });
     }

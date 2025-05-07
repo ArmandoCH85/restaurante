@@ -93,6 +93,14 @@ class Table extends Model
     }
 
     /**
+     * Get the orders for the table.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    /**
      * Get active reservations for the table.
      */
     public function activeReservations(): HasMany
@@ -142,5 +150,107 @@ class Table extends Model
 
         // If it's already a DateTime object
         return $time->format('H') * 60 + $time->format('i');
+    }
+
+    /**
+     * Get the active order for this table.
+     * An active order is one that is not completed, cancelled, or billed.
+     */
+    public function activeOrder()
+    {
+        return $this->hasOne(Order::class)
+            ->where(function($query) {
+                $query->where('status', '!=', Order::STATUS_COMPLETED)
+                      ->where('status', '!=', Order::STATUS_CANCELLED);
+            })
+            ->where('billed', false)
+            ->latest();
+    }
+
+    /**
+     * Check if the table has an active order.
+     */
+    public function hasActiveOrder(): bool
+    {
+        return $this->activeOrder()->exists();
+    }
+
+    /**
+     * Get the time elapsed since the table was occupied.
+     * Returns a formatted string like "2h 15m" or null if the table is not occupied.
+     */
+    public function getOccupationTime()
+    {
+        if (!$this->isOccupied()) {
+            return null;
+        }
+
+        $activeOrder = $this->activeOrder()->first();
+
+        if (!$activeOrder) {
+            return null;
+        }
+
+        $start = $activeOrder->created_at;
+        $now = now();
+        $diffInMinutes = $start->diffInMinutes($now);
+
+        $hours = floor($diffInMinutes / 60);
+        $minutes = $diffInMinutes % 60;
+
+        if ($hours > 0) {
+            return "{$hours}h {$minutes}m";
+        }
+
+        return "{$minutes}m";
+    }
+
+    /**
+     * Mark the table as occupied and create a new order if needed.
+     * Note: This method no longer changes the table status automatically.
+     * The status should be changed explicitly by the caller if needed.
+     */
+    public function occupy($employeeId = null): Order
+    {
+        if ($this->isOccupied() && $this->hasActiveOrder()) {
+            return $this->activeOrder()->first();
+        }
+
+        // Create a new order for this table without changing the table status
+        $order = new Order([
+            'service_type' => 'dine_in',
+            'table_id' => $this->id,
+            'employee_id' => $employeeId ?? 1, // Default to ID 1 if no employee ID provided
+            'order_datetime' => now(),
+            'status' => Order::STATUS_OPEN,
+            'subtotal' => 0,
+            'tax' => 0,
+            'total' => 0,
+            'billed' => false
+        ]);
+
+        $order->save();
+
+        return $order;
+    }
+
+    /**
+     * Release the table, marking it as available.
+     * This should only be called after the order is completed and billed.
+     */
+    public function release(): bool
+    {
+        if ($this->hasActiveOrder()) {
+            $activeOrder = $this->activeOrder()->first();
+
+            if (!$activeOrder->billed) {
+                return false; // Cannot release if there's an active order that's not billed
+            }
+        }
+
+        $this->status = self::STATUS_AVAILABLE;
+        $this->save();
+
+        return true;
     }
 }

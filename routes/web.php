@@ -6,13 +6,32 @@ use App\Livewire\TableMap\TableMapView;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ComprobanteController;
 
 Route::get('/', function () {
+    // Verificar si el usuario está autenticado
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        $user = \Illuminate\Support\Facades\Auth::user();
+
+        // Si el usuario tiene rol Delivery, redirigir directamente a /tables
+        if ($user && $user->roles->where('name', 'Delivery')->count() > 0) {
+            return redirect('/tables');
+        }
+
+        // Para otros usuarios, usar el controlador de redirección
+        return redirect('/admin');
+    }
+
+    // Si no está autenticado, mostrar la página de bienvenida
     return view('welcome');
 });
 
+// Ruta para redirigir a los usuarios según su rol
+Route::get('/delivery-redirect', [\App\Http\Controllers\DeliveryRedirectController::class, 'redirectBasedOnRole'])
+    ->name('delivery.redirect')
+    ->middleware(['auth']);
+
 // Rutas del sistema POS
-// Check if there's a route like this:
 Route::get('/pos', [App\Http\Controllers\PosController::class, 'index'])->name('pos.index');
 Route::get('/pos/table/{table}', [PosController::class, 'showTable'])->name('pos.table');
 
@@ -28,12 +47,30 @@ Route::get('/pos/invoice/generate', [PosController::class, 'createAndShowInvoice
 // Ruta para crear orden desde JavaScript
 Route::post('/pos/create-order', [PosController::class, 'createOrderFromJS'])->name('pos.create-order');
 
-// Rutas para facturación
-Route::get('/pos/invoice/form/{order}', [PosController::class, 'invoiceForm'])->name('pos.invoice.form');
-Route::post('/pos/invoice/generate/{order}', [PosController::class, 'generateInvoice'])->name('pos.invoice.generate');
-Route::get('/pos/invoice/pdf/{invoice}', [PosController::class, 'downloadInvoicePdf'])->name('pos.invoice.pdf');
+// Rutas para pagos
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pos/payment/form/{order}', [\App\Http\Controllers\PaymentController::class, 'showPaymentForm'])->name('pos.payment.form');
+    Route::post('/pos/payment/process/{order}', [\App\Http\Controllers\PaymentController::class, 'processPayment'])->name('pos.payment.process');
+    Route::get('/pos/payment/history/{order}', [\App\Http\Controllers\PaymentController::class, 'showPaymentHistory'])->name('pos.payment.history');
+    Route::post('/pos/payment/void/{payment}', [\App\Http\Controllers\PaymentController::class, 'voidPayment'])->name('pos.payment.void');
+});
 
-// Rutas para anulación de comprobantes
+// Rutas para facturación
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pos/invoice/form/{order}', [\App\Http\Controllers\InvoiceController::class, 'showInvoiceForm'])->name('pos.invoice.form');
+    Route::post('/pos/invoice/generate/{order}', [\App\Http\Controllers\InvoiceController::class, 'generateInvoice'])->name('pos.invoice.generate');
+    Route::get('/invoices/print/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'printInvoice'])->name('invoices.print');
+    Route::get('/pos/invoice/pdf/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'generatePdf'])->name('pos.invoice.pdf');
+    Route::post('/invoices/void/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'voidInvoice'])->name('invoices.void');
+});
+
+// Rutas para el proceso unificado de pago y facturación
+Route::middleware(['auth'])->group(function () {
+    Route::get('/pos/unified/{order}', [\App\Http\Controllers\UnifiedPaymentController::class, 'showUnifiedForm'])->name('pos.unified.form');
+    Route::post('/pos/unified/process/{order}', [\App\Http\Controllers\UnifiedPaymentController::class, 'processUnified'])->name('pos.unified.process');
+});
+
+// Rutas para anulación de comprobantes (legacy)
 Route::get('/pos/invoices', [PosController::class, 'invoicesList'])->name('pos.invoices.list');
 Route::get('/pos/invoice/void/{invoice}', [PosController::class, 'showVoidForm'])->name('pos.void.form');
 Route::post('/pos/invoice/void/{invoice}', [PosController::class, 'processVoid'])->name('pos.void.process');
@@ -55,8 +92,28 @@ Route::get('/image-test', function() {
     return view('image-test', ['products' => $products]);
 });
 
-// Ruta del mapa de mesas
+// Ruta del mapa de mesas y delivery
 Route::get('/tables', TableMapView::class)->name('tables.map');
+
+// Rutas para pedidos de delivery
+Route::get('/delivery/order/{orderId}', [\App\Http\Controllers\DeliveryOrderDetailsController::class, 'show'])->name('delivery.order.details');
+Route::put('/delivery/order/{deliveryOrderId}/update-status', [\App\Http\Controllers\DeliveryOrderDetailsController::class, 'updateStatus'])->name('delivery.update-status');
+
+// Nuevas rutas para gestión de delivery
+Route::middleware(['auth'])->group(function () {
+    // Delivery - Administradores
+    Route::get('/delivery/manage', \App\Livewire\Delivery\DeliveryManager::class)
+        ->name('delivery.manage')
+        ->middleware('role:super_admin|admin');
+
+    // Delivery - Repartidores
+    Route::get('/delivery/my-orders', \App\Livewire\Delivery\DeliveryDriver::class)
+        ->name('delivery.my-orders')
+        ->middleware('role:delivery');
+});
+
+// Ruta para resetear el estado de todas las mesas a disponible
+Route::get('/tables/reset-status', [\App\Http\Controllers\TableResetController::class, 'resetAllTables'])->name('tables.reset-status');
 
 // Rutas para cierre de caja
 Route::get('/admin/cash-register/{cashRegister}/print', [CashRegisterController::class, 'print'])
@@ -72,7 +129,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');
     Route::patch('/tables/{table}/update-status', [TableController::class, 'updateStatus'])->name('tables.update-status');
     Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
-
+    Route::post('/admin/facturacion/comprobantes', [ComprobanteController::class, 'store'])->name('comprobantes.store');
     // Ruta para el dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 });
+
+

@@ -272,6 +272,42 @@
     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
+/* Contador de tiempo de ocupación */
+.occupation-time-container {
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.occupation-time {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.occupation-time .time-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.25rem;
+}
+
+.occupation-time-short {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #047857; /* Verde oscuro */
+}
+
+.occupation-time-medium {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #b45309; /* Naranja oscuro */
+}
+
+.occupation-time-long {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #b91c1c; /* Rojo oscuro */
+}
+
 /* Animaciones */
 @keyframes pulse {
     0%, 100% {
@@ -297,11 +333,11 @@
         z-index: 50;
         transition: left 0.3s ease;
     }
-    
+
     .table-map-sidebar.open {
         left: 0;
     }
-    
+
     .sidebar-backdrop {
         position: fixed;
         inset: 0;
@@ -311,7 +347,7 @@
         pointer-events: none;
         transition: opacity 0.3s ease;
     }
-    
+
     .sidebar-backdrop.open {
         opacity: 1;
         pointer-events: auto;

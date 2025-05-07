@@ -21,6 +21,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Establecer la zona horaria para toda la aplicación
+        date_default_timezone_set('America/Lima');
+        \Carbon\Carbon::setTestNow();
+
         // Definir el gate para permisos de administrador
         Gate::define('admin', function (User $user) {
             // Aquí definimos quién es administrador

@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sistema POS - Restaurante</title>
 
     <!-- Fonts -->
@@ -29,6 +30,10 @@
     <!-- CSS personalizado para correcciones -->
     <link href="{{ asset('css/pos-fix.css') }}" rel="stylesheet">
     <link href="{{ asset('css/product-images.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/pos-cart-improvements.css') }}?v={{ time() }}" rel="stylesheet">
+
+    <!-- SweetAlert2 para notificaciones mejoradas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Estilos inline -->
     <style>
@@ -56,6 +61,7 @@
 
     @livewireScripts
     <script src="{{ asset('js/pos-modals.js') }}"></script>
+    <script src="{{ asset('js/pos-refresh.js') }}?v={{ time() }}"></script>
     <script>
         // Detectar preferencia de modo oscuro
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -68,34 +74,51 @@
         document.addEventListener('livewire:init', () => {
             // Escuchar eventos de notificación emitidos por Livewire
             Livewire.on('notification', (data) => {
-                // Mostrar notificación con el mensaje recibido
-                const notification = document.createElement('div');
-                notification.className = `fixed top-4 right-4 p-4 rounded-md shadow-lg max-w-sm z-50 transform transition-all duration-500 ${data.type === 'success' ? 'bg-green-500' : data.type === 'error' ? 'bg-red-500' : 'bg-blue-500'} text-white`;
+                // Usar SweetAlert2 para notificaciones mejoradas
+                const timeout = data.timeout || 3000; // Tiempo predeterminado: 3 segundos
 
-                notification.innerHTML = `
-                    <div class="flex items-center">
-                        <span class="mr-2">
-                            ${data.type === 'success'
-                                ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>'
-                                : data.type === 'error'
-                                ? '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>'
-                                : '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>'
-                            }
-                        </span>
-                        <div>
-                            <p class="font-medium">${data.title || ''}</p>
-                            <p class="text-sm">${data.message || ''}</p>
-                        </div>
-                    </div>
-                `;
+                // Configurar el icono según el tipo de notificación
+                const icon = data.type === 'success' ? 'success' :
+                             data.type === 'error' ? 'error' :
+                             data.type === 'warning' ? 'warning' : 'info';
 
-                document.body.appendChild(notification);
+                // Mostrar notificación con SweetAlert2
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: timeout,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
 
-                // Eliminar la notificación después de 3 segundos
-                setTimeout(() => {
-                    notification.classList.add('opacity-0', 'translate-x-full');
-                    setTimeout(() => notification.remove(), 500);
-                }, 3000);
+                Toast.fire({
+                    icon: icon,
+                    title: data.title || '',
+                    text: data.message || '',
+                    background: data.type === 'success' ? '#ecfdf5' :
+                                data.type === 'error' ? '#fef2f2' :
+                                data.type === 'warning' ? '#fffbeb' : '#eff6ff',
+                    color: '#374151'
+                });
+
+                // Para notificaciones importantes, también mostrar una alerta modal si se especifica
+                if (data.showModal) {
+                    setTimeout(() => {
+                        Swal.fire({
+                            icon: icon,
+                            title: data.title || '',
+                            text: data.message || '',
+                            confirmButtonText: 'Aceptar',
+                            confirmButtonColor: data.type === 'success' ? '#10b981' :
+                                              data.type === 'error' ? '#ef4444' :
+                                              data.type === 'warning' ? '#f59e0b' : '#3b82f6'
+                        });
+                    }, 500); // Pequeño retraso para que no se superpongan
+                }
             });
         });
     </script>

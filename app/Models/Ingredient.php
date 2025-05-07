@@ -100,4 +100,93 @@ class Ingredient extends Model
 
         return $this->save();
     }
+
+    /**
+     * Agregar stock utilizando el método FIFO.
+     *
+     * @param float $quantity Cantidad a agregar
+     * @param float $unitCost Costo unitario
+     * @param int|null $warehouseId ID del almacén
+     * @param string|null $expiryDate Fecha de vencimiento (formato Y-m-d)
+     * @param int|null $purchaseId ID de la compra relacionada
+     * @return IngredientStock El stock creado
+     */
+    public function addStock(float $quantity, float $unitCost, ?int $warehouseId = null, ?string $expiryDate = null, ?int $purchaseId = null): IngredientStock
+    {
+        // Crear un nuevo registro de stock
+        $stock = IngredientStock::create([
+            'ingredient_id' => $this->id,
+            'warehouse_id' => $warehouseId ?? Warehouse::where('is_default', true)->first()?->id,
+            'quantity' => $quantity,
+            'unit_cost' => $unitCost,
+            'expiry_date' => $expiryDate,
+            'status' => IngredientStock::STATUS_AVAILABLE,
+            'purchase_id' => $purchaseId
+        ]);
+
+        // Actualizar el stock total y el costo promedio del ingrediente
+        $this->updateStock($quantity, $unitCost);
+
+        return $stock;
+    }
+
+    /**
+     * Consumir stock utilizando el método FIFO.
+     *
+     * @param float $quantity Cantidad a consumir
+     * @param int|null $warehouseId ID del almacén
+     * @return array Detalles del consumo
+     */
+    public function consumeStock(float $quantity, ?int $warehouseId = null): array
+    {
+        // Consumir stock utilizando FIFO
+        $result = IngredientStock::consumeByFIFO($this->id, $quantity, $warehouseId);
+
+        // Actualizar el stock total del ingrediente
+        $this->current_stock -= $result['consumed_quantity'];
+        $this->save();
+
+        return $result;
+    }
+
+    /**
+     * Calcular el costo promedio ponderado del stock disponible.
+     *
+     * @param int|null $warehouseId ID del almacén
+     * @return float Costo promedio ponderado
+     */
+    public function calculateAverageCost(?int $warehouseId = null): float
+    {
+        $query = $this->stocks()
+            ->where('status', IngredientStock::STATUS_AVAILABLE)
+            ->where('quantity', '>', 0);
+
+        if ($warehouseId) {
+            $query->where('warehouse_id', $warehouseId);
+        }
+
+        $stocks = $query->get();
+
+        $totalQuantity = 0;
+        $totalCost = 0;
+
+        foreach ($stocks as $stock) {
+            $totalQuantity += $stock->quantity;
+            $totalCost += $stock->quantity * $stock->unit_cost;
+        }
+
+        return $totalQuantity > 0 ? $totalCost / $totalQuantity : $this->current_cost;
+    }
+
+    /**
+     * Actualizar el costo promedio del ingrediente basado en el stock disponible.
+     *
+     * @param int|null $warehouseId ID del almacén
+     * @return bool
+     */
+    public function updateAverageCost(?int $warehouseId = null): bool
+    {
+        $this->current_cost = $this->calculateAverageCost($warehouseId);
+        return $this->save();
+    }
 }

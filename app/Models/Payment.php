@@ -23,6 +23,9 @@ class Payment extends Model
         'reference_number',
         'payment_datetime',
         'received_by',
+        'voided_at',
+        'voided_by',
+        'void_reason',
     ];
 
     /**
@@ -33,6 +36,7 @@ class Payment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'payment_datetime' => 'datetime',
+        'voided_at' => 'datetime',
     ];
 
     /**
@@ -65,6 +69,16 @@ class Payment extends Model
      */
     public function getPaymentMethodNameAttribute(): string
     {
+        // Primero verificar si es una billetera digital y tiene un tipo específico
+        if ($this->payment_method === self::METHOD_DIGITAL_WALLET && $this->reference_number) {
+            if (strpos($this->reference_number, 'Tipo: yape') !== false) {
+                return 'Yape';
+            } elseif (strpos($this->reference_number, 'Tipo: plin') !== false) {
+                return 'Plin';
+            }
+        }
+
+        // Si no es un caso especial, usar el match normal
         return match($this->payment_method) {
             self::METHOD_CASH => 'Efectivo',
             self::METHOD_CREDIT_CARD => 'Tarjeta de Crédito',
@@ -73,6 +87,22 @@ class Payment extends Model
             self::METHOD_DIGITAL_WALLET => 'Billetera Digital',
             default => $this->payment_method,
         };
+    }
+
+    /**
+     * Obtiene el usuario que anuló el pago.
+     */
+    public function voidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'voided_by');
+    }
+
+    /**
+     * Verifica si el pago está anulado.
+     */
+    public function isVoided(): bool
+    {
+        return $this->voided_at !== null;
     }
 
     /**
