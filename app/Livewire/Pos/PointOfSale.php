@@ -32,9 +32,11 @@ class PointOfSale extends Component
     public bool $showCommandModal = false;
     public bool $showPreBillModal = false;
     public bool $showInvoiceModal = false;
+    public bool $showTransferModal = false;
     public ?string $commandUrl = null;
     public ?string $preBillUrl = null;
     public ?string $invoiceUrl = null;
+    public Collection $availableTables;
 
     protected $queryString = [
         'tableId' => ['except' => ''],
@@ -44,12 +46,87 @@ class PointOfSale extends Component
     {
         $this->tableId = $tableId;
         $this->products = collect(); // Inicializar como una colección vacía
+        $this->availableTables = collect(); // Inicializar como una colección vacía
 
         if ($this->tableId) {
             $this->table = Table::find($this->tableId);
+
+            // Intentar cargar el carrito desde la sesión primero
+            if (!$this->loadCartFromSession()) {
+                // Si no hay carrito en la sesión, cargar desde la orden existente
+                $this->loadExistingOrder();
+            }
         }
 
         $this->loadCategories();
+    }
+
+    /**
+     * Método que se ejecuta cuando el componente se hidrata (cuando Livewire lo reconstruye)
+     */
+    public function hydrate(): void
+    {
+        // Si hay una mesa seleccionada, asegurarse de cargar los productos
+        if ($this->tableId && empty($this->cart)) {
+            $this->loadExistingOrder();
+        }
+    }
+
+    /**
+     * Carga una orden existente para la mesa actual
+     */
+    protected function loadExistingOrder(): void
+    {
+        if (!$this->tableId) {
+            return;
+        }
+
+        // Buscar orden existente para la mesa que no esté facturada
+        $order = Order::where('table_id', $this->tableId)
+            ->where('status', '!=', 'billed') // Que no esté facturada
+            ->orderBy('created_at', 'desc')
+            ->with('orderDetails.product') // Cargar detalles y productos
+            ->first();
+
+        if (!$order) {
+            return;
+        }
+
+        // Guardar la orden actual
+        $this->currentOrder = $order;
+
+        // Limpiar el carrito antes de cargar los productos
+        $this->cart = [];
+
+        // Cargar los productos de la orden al carrito
+        foreach ($order->orderDetails as $detail) {
+            $product = $detail->product;
+
+            if (!$product) {
+                continue;
+            }
+
+            // Agregar al carrito
+            $this->cart[$product->id] = [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => (float) $detail->unit_price,
+                'quantity' => $detail->quantity,
+                'subtotal' => (float) $detail->subtotal,
+                'notes' => $detail->notes ?? '',
+            ];
+        }
+
+        // Actualizar el total del carrito
+        $this->updateCartTotal();
+
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('Carrito cargado desde orden existente', [
+            'table_id' => $this->tableId,
+            'order_id' => $order->id,
+            'cart_count' => count($this->cart),
+            'cart_total' => $this->cartTotal
+        ]);
     }
 
     public function loadCategories(): void
@@ -127,7 +204,24 @@ class PointOfSale extends Component
             ];
         }
 
+        // Si hay una mesa seleccionada y está disponible, cambiarla a ocupada
+        if ($this->table && $this->table->status === 'available') {
+            $this->table->status = 'occupied';
+            $this->table->occupied_at = now();
+            $this->table->save();
+
+            // Notificar al usuario
+            $this->dispatch('notification', [
+                'type' => 'info',
+                'title' => 'Mesa Ocupada',
+                'message' => "La mesa {$this->table->number} ahora está ocupada"
+            ]);
+        }
+
         $this->updateCartTotal();
+
+        // Guardar el carrito en la sesión
+        $this->saveCartToSession();
     }
 
     public function removeFromCart(string $productId): void
@@ -135,6 +229,9 @@ class PointOfSale extends Component
         if (isset($this->cart[$productId])) {
             unset($this->cart[$productId]);
             $this->updateCartTotal();
+
+            // Guardar el carrito en la sesión
+            $this->saveCartToSession();
         }
     }
 
@@ -148,6 +245,9 @@ class PointOfSale extends Component
             $this->cart[$productId]['subtotal'] = $quantity * $this->cart[$productId]['price'];
 
             $this->updateCartTotal();
+
+            // Guardar el carrito en la sesión
+            $this->saveCartToSession();
         }
     }
 
@@ -198,6 +298,9 @@ class PointOfSale extends Component
                 'title' => 'Precio actualizado',
                 'message' => 'El precio ha sido actualizado correctamente'
             ]);
+
+            // Guardar el carrito en la sesión
+            $this->saveCartToSession();
         }
 
         // Cerrar modal
@@ -217,6 +320,9 @@ class PointOfSale extends Component
     {
         if (isset($this->cart[$productId])) {
             $this->cart[$productId]['notes'] = $note;
+
+            // Guardar el carrito en la sesión
+            $this->saveCartToSession();
         }
     }
 
@@ -228,6 +334,9 @@ class PointOfSale extends Component
         if (!empty($this->cart)) {
             try {
                 $this->currentOrder = $this->createOrder();
+
+                // Guardar el carrito en la sesión después de actualizar la orden
+                $this->saveCartToSession();
             } catch (\Exception $e) {
                 Log::error('Error creating order: ' . $e->getMessage());
             }
@@ -239,6 +348,11 @@ class PointOfSale extends Component
         $this->cart = [];
         $this->cartTotal = 0;
         $this->customerNote = null;
+
+        // Limpiar el carrito de la sesión
+        if ($this->tableId) {
+            session()->forget('cart_' . $this->tableId);
+        }
     }
 
     public function createOrder(): ?Order
@@ -409,6 +523,47 @@ class PointOfSale extends Component
     }
 
     /**
+     * Generar factura y mostrarla en ventana flotante
+     */
+    public function generateInvoice()
+    {
+        if (empty($this->cart)) {
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'El carrito está vacío. Añade productos para generar una factura.'
+            ]);
+            return;
+        }
+
+        try {
+            $order = $this->createOrder();
+            if (!$order) {
+                Log::warning('generateInvoice: createOrder returned null or false.');
+                return;
+            }
+
+            // Notificar éxito
+            $this->dispatch('notification', [
+                'type' => 'success',
+                'title' => 'Factura Preparada',
+                'message' => 'El formulario de facturación se abrirá en una nueva ventana'
+            ]);
+
+            // Abrir ventana directamente con JavaScript
+            $url = route('pos.invoice.form', ['order' => $order->id]);
+            $this->js("window.open('$url', '_blank', 'width=1000,height=700')");
+
+        } catch (\Exception $e) {
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'Error al generar la factura: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
      * Generar comprobante de venta y mostrarlo en ventana flotante
      */
     public function confirmSale()
@@ -462,6 +617,11 @@ class PointOfSale extends Component
 
     public function render()
     {
+        // Si hay una mesa seleccionada y el carrito está vacío, intentar cargar los productos
+        if ($this->tableId && empty($this->cart)) {
+            $this->loadExistingOrder();
+        }
+
         return view('livewire.pos.point-of-sale');
     }
 
@@ -488,21 +648,262 @@ class PointOfSale extends Component
     }
 
     /**
+     * Método para cancelar el pedido actual
+     * @return \Illuminate\Http\RedirectResponse|void
+     */
+    public function cancelOrder()
+    {
+        // Verificar si hay productos en el carrito
+        if (empty($this->cart)) {
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'No hay productos en el carrito para cancelar.'
+            ]);
+            return;
+        }
+
+        // La confirmación se maneja en la vista
+
+        // Si hay una orden existente, marcarla como cancelada
+        if ($this->currentOrder) {
+            try {
+                $this->currentOrder->status = 'cancelled';
+                $this->currentOrder->save();
+
+                // Registrar en el log
+                \Illuminate\Support\Facades\Log::info('Orden cancelada', [
+                    'order_id' => $this->currentOrder->id,
+                    'table_id' => $this->tableId
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error al cancelar la orden', [
+                    'error' => $e->getMessage(),
+                    'order_id' => $this->currentOrder->id ?? null
+                ]);
+            }
+        }
+
+        // Limpiar el carrito
+        $this->clearCart();
+
+        // Si hay una mesa seleccionada, cambiar su estado a disponible
+        if ($this->table) {
+            $this->table->status = 'available';
+            $this->table->occupied_at = null;
+            $this->table->save();
+        }
+
+        // Mostrar mensaje de éxito
+        $this->dispatch('notification', [
+            'type' => 'success',
+            'title' => 'Pedido Cancelado',
+            'message' => 'El pedido ha sido cancelado correctamente.'
+        ]);
+
+        // Redireccionar al mapa de mesas
+        return redirect()->route('tables.map');
+    }
+
+    /**
      * Métodos para controlar modales
      */
-    public function openCommandModal(): void
+
+    public function openTransferModal(): void
     {
-        $this->showCommandModal = true;
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('Abriendo modal de transferencia', [
+            'table_id' => $this->table ? $this->table->id : null,
+            'cart_count' => count($this->cart),
+            'tableId' => $this->tableId
+        ]);
+
+        // Verificar si hay una mesa seleccionada y productos en el carrito
+        if (!$this->table && !$this->tableId) {
+            \Illuminate\Support\Facades\Log::warning('No hay mesa seleccionada para transferir');
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'No hay una mesa seleccionada para transferir.'
+            ]);
+            return;
+        }
+
+        // Si tenemos tableId pero no table, intentar cargar la mesa
+        if (!$this->table && $this->tableId) {
+            $this->table = Table::find($this->tableId);
+            \Illuminate\Support\Facades\Log::info('Mesa cargada desde tableId', [
+                'tableId' => $this->tableId,
+                'table_loaded' => $this->table ? true : false
+            ]);
+        }
+
+        if (empty($this->cart)) {
+            \Illuminate\Support\Facades\Log::warning('Carrito vacío, no se puede transferir', [
+                'table_id' => $this->table ? $this->table->id : null
+            ]);
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'No hay productos en el carrito para transferir.'
+            ]);
+            return;
+        }
+
+        // Cargar las mesas disponibles
+        $this->loadAvailableTables();
+
+        // Mostrar el modal
+        $this->showTransferModal = true;
+        \Illuminate\Support\Facades\Log::info('Modal de transferencia abierto', [
+            'showTransferModal' => $this->showTransferModal,
+            'availableTables_count' => $this->availableTables->count()
+        ]);
     }
 
-    public function openPreBillModal(): void
+    public function loadAvailableTables(): void
     {
-        $this->showPreBillModal = true;
+        // Verificar si hay una mesa seleccionada
+        if (!$this->table) {
+            \Illuminate\Support\Facades\Log::warning('Intentando cargar mesas disponibles sin una mesa seleccionada');
+            $this->availableTables = collect(); // Inicializar como colección vacía
+            return;
+        }
+
+        // Obtener todas las mesas disponibles excepto la mesa actual
+        $this->availableTables = Table::where('status', 'available')
+            ->where('id', '!=', $this->table->id)
+            ->orderBy('number')
+            ->get();
+
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('Mesas disponibles cargadas', [
+            'count' => $this->availableTables->count(),
+            'table_ids' => $this->availableTables->pluck('id'),
+            'current_table_id' => $this->table->id
+        ]);
     }
 
-    public function openInvoiceModal(): void
+    public function transferTable(int $destinationTableId): void
     {
-        $this->showInvoiceModal = true;
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('Iniciando transferencia de mesa', [
+            'destination_table_id' => $destinationTableId,
+            'current_table_id' => $this->table ? $this->table->id : null,
+            'cart_count' => count($this->cart)
+        ]);
+
+        // Verificar si hay una mesa seleccionada y productos en el carrito
+        if (!$this->table || empty($this->cart)) {
+            \Illuminate\Support\Facades\Log::warning('No se puede realizar la transferencia', [
+                'table' => $this->table ? $this->table->id : null,
+                'cart_empty' => empty($this->cart)
+            ]);
+
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'No se puede realizar la transferencia.'
+            ]);
+            return;
+        }
+
+        // Obtener la mesa destino
+        $destinationTable = Table::find($destinationTableId);
+
+        if (!$destinationTable) {
+            \Illuminate\Support\Facades\Log::warning('Mesa destino no existe', [
+                'destination_table_id' => $destinationTableId
+            ]);
+
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'La mesa destino no existe.'
+            ]);
+            return;
+        }
+
+        if ($destinationTable->status !== 'available') {
+            \Illuminate\Support\Facades\Log::warning('Mesa destino no disponible', [
+                'destination_table_id' => $destinationTableId,
+                'status' => $destinationTable->status
+            ]);
+
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'La mesa destino no está disponible.'
+            ]);
+            return;
+        }
+
+        // Guardar la información de la mesa origen
+        $sourceTable = $this->table;
+        $sourceTableNumber = $sourceTable->number;
+
+        try {
+            \Illuminate\Support\Facades\Log::info('Realizando transferencia', [
+                'source_table' => $sourceTable->id,
+                'destination_table' => $destinationTable->id,
+                'current_order' => $this->currentOrder ? $this->currentOrder->id : null
+            ]);
+
+            // Cambiar el estado de la mesa destino a ocupada
+            $destinationTable->status = 'occupied';
+            $destinationTable->occupied_at = now();
+            $destinationTable->save();
+
+            // Cambiar el estado de la mesa origen a disponible
+            $sourceTable->status = 'available';
+            $sourceTable->occupied_at = null;
+            $sourceTable->save();
+
+            // Si hay una orden asociada a la mesa origen, actualizarla
+            if ($this->currentOrder) {
+                $this->currentOrder->table_id = $destinationTable->id;
+                $this->currentOrder->save();
+
+                \Illuminate\Support\Facades\Log::info('Orden actualizada', [
+                    'order_id' => $this->currentOrder->id,
+                    'new_table_id' => $destinationTable->id
+                ]);
+            }
+
+            // Actualizar la mesa actual en el componente
+            $this->table = $destinationTable;
+            $this->tableId = $destinationTable->id;
+
+            // Cerrar el modal
+            $this->showTransferModal = false;
+
+            // Notificar al usuario
+            $this->dispatch('notification', [
+                'type' => 'success',
+                'title' => 'Transferencia Exitosa',
+                'message' => "Los productos se han transferido de la mesa {$sourceTableNumber} a la mesa {$destinationTable->number}."
+            ]);
+
+            \Illuminate\Support\Facades\Log::info('Transferencia completada, redirigiendo', [
+                'redirect_url' => route('pos.table', ['table' => $destinationTable->id])
+            ]);
+
+            // Redirigir a la nueva mesa
+            $this->redirect(route('pos.table', ['table' => $destinationTable->id]));
+
+        } catch (\Exception $e) {
+            // En caso de error, notificar al usuario
+            \Illuminate\Support\Facades\Log::error('Error al transferir mesa', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'Error al transferir la mesa: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function closeModals(): void
@@ -510,11 +911,164 @@ class PointOfSale extends Component
         $this->showCommandModal = false;
         $this->showPreBillModal = false;
         $this->showInvoiceModal = false;
+        $this->showTransferModal = false;
+    }
+
+    #[\Livewire\Attributes\On('setCommandUrl')]
+    public function setCommandUrl($params): void
+    {
+        if (isset($params['url'])) {
+            $this->commandUrl = $params['url'];
+        }
+    }
+
+    #[\Livewire\Attributes\On('openCommandModal')]
+    public function openCommandModal(): void
+    {
+        $this->showCommandModal = true;
+    }
+
+    #[\Livewire\Attributes\On('setPreBillUrl')]
+    public function setPreBillUrl($params): void
+    {
+        if (isset($params['url'])) {
+            $this->preBillUrl = $params['url'];
+        }
+    }
+
+    #[\Livewire\Attributes\On('openPreBillModal')]
+    public function openPreBillModal(): void
+    {
+        $this->showPreBillModal = true;
     }
 
     #[\Livewire\Attributes\On('closeInvoiceModal')]
     public function closeInvoiceModal(): void
     {
         $this->showInvoiceModal = false;
+    }
+
+    #[\Livewire\Attributes\On('openInvoiceModal')]
+    public function openInvoiceModal(): void
+    {
+        $this->showInvoiceModal = true;
+    }
+
+    #[\Livewire\Attributes\On('openTransferModal')]
+    public function openTransferModalEvent(): void
+    {
+        $this->openTransferModal();
+    }
+
+    /**
+     * Cambiar el estado de una mesa
+     */
+    public function changeTableStatus($params): void
+    {
+        if (!isset($params['tableId']) || !isset($params['status'])) {
+            return;
+        }
+
+        $tableId = $params['tableId'];
+        $status = $params['status'];
+
+        $table = Table::find($tableId);
+        if ($table) {
+            // Si la mesa se está ocupando, registramos el tiempo de inicio
+            if ($status === 'occupied') {
+                $table->occupied_at = now();
+            } else if ($table->status === 'occupied' && $status !== 'occupied') {
+                // Si la mesa estaba ocupada y ahora cambia a otro estado, limpiamos el tiempo
+                $table->occupied_at = null;
+            }
+
+            $table->status = $status;
+            $table->save();
+
+            // Si es la mesa actual, actualizarla
+            if ($this->table && $this->table->id === $table->id) {
+                $this->table = $table;
+            }
+
+            // Notificar al usuario
+            $this->dispatch('notification', [
+                'type' => 'success',
+                'title' => 'Mesa Actualizada',
+                'message' => "La mesa {$table->number} ahora está " . $this->getStatusName($status)
+            ]);
+        }
+    }
+
+    /**
+     * Obtener el nombre del estado en español
+     */
+    private function getStatusName($status): string
+    {
+        $statusNames = [
+            'available' => 'disponible',
+            'occupied' => 'ocupada',
+            'reserved' => 'reservada',
+            'maintenance' => 'en mantenimiento'
+        ];
+
+        return $statusNames[$status] ?? $status;
+    }
+
+    /**
+     * Guarda el carrito en la sesión
+     */
+    protected function saveCartToSession(): void
+    {
+        if (!$this->tableId) {
+            return;
+        }
+
+        // Guardar el carrito en la sesión con una clave única para cada mesa
+        session()->put('cart_' . $this->tableId, [
+            'cart' => $this->cart,
+            'cartTotal' => $this->cartTotal,
+            'customerNote' => $this->customerNote,
+            'timestamp' => now()->timestamp
+        ]);
+
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('Carrito guardado en sesión', [
+            'table_id' => $this->tableId,
+            'cart_count' => count($this->cart),
+            'cart_total' => $this->cartTotal
+        ]);
+    }
+
+    /**
+     * Carga el carrito desde la sesión
+     * @return bool True si se cargó el carrito, false si no había carrito en la sesión
+     */
+    protected function loadCartFromSession(): bool
+    {
+        if (!$this->tableId) {
+            return false;
+        }
+
+        // Intentar cargar el carrito desde la sesión
+        $sessionCart = session('cart_' . $this->tableId);
+
+        if (!$sessionCart || empty($sessionCart['cart'])) {
+            return false;
+        }
+
+        // Cargar los datos del carrito desde la sesión
+        $this->cart = $sessionCart['cart'];
+        $this->cartTotal = $sessionCart['cartTotal'];
+        $this->customerNote = $sessionCart['customerNote'] ?? null;
+
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('Carrito cargado desde sesión', [
+            'table_id' => $this->tableId,
+            'cart_count' => count($this->cart),
+            'cart_total' => $this->cartTotal,
+            'timestamp' => $sessionCart['timestamp'] ?? 'unknown'
+        ]);
+
+        return true;
     }
 }

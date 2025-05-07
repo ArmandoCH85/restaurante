@@ -1,0 +1,353 @@
+/* Estilos para el mapa de mesas */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f9fafb;
+}
+
+.dark body {
+    background-color: #111827;
+}
+
+/* Layout principal */
+.table-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Header */
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    background-color: white;
+}
+
+.dark .table-header {
+    background-color: #1f2937;
+    border-bottom: 1px solid #374151;
+}
+
+.table-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.dark .table-title {
+    color: #f9fafb;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.header-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    border-radius: 0.375rem;
+    background-color: transparent;
+    color: #4b5563;
+    transition: all 0.2s;
+}
+
+.header-button:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+.dark .header-button {
+    color: #d1d5db;
+}
+
+.dark .header-button:hover {
+    background-color: #374151;
+    color: #f9fafb;
+}
+
+.header-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+/* Contenido principal */
+.table-content {
+    display: flex;
+    flex: 1;
+}
+
+/* Sidebar */
+.table-sidebar {
+    width: 240px;
+    border-right: 1px solid #e5e7eb;
+    background-color: white;
+    padding: 1rem;
+}
+
+.dark .table-sidebar {
+    background-color: #1f2937;
+    border-right: 1px solid #374151;
+}
+
+.sidebar-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #111827;
+}
+
+.dark .sidebar-title {
+    color: #f9fafb;
+}
+
+.sidebar-section {
+    margin-bottom: 1.5rem;
+}
+
+.sidebar-section-title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: #4b5563;
+}
+
+.dark .sidebar-section-title {
+    color: #9ca3af;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem;
+    padding-left: 2rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+}
+
+.dark .search-input {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: #f9fafb;
+}
+
+.search-icon {
+    position: absolute;
+    left: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.search-icon svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    padding: 0.375rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filter-option:hover {
+    background-color: #f3f4f6;
+}
+
+.dark .filter-option:hover {
+    background-color: #374151;
+}
+
+.filter-option.active {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+}
+
+.dark .filter-option.active {
+    background-color: #312e81;
+    color: #a5b4fc;
+}
+
+.status-indicator {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+    margin-right: 0.5rem;
+}
+
+.status-available {
+    background-color: #10b981;
+}
+
+.status-occupied {
+    background-color: #ef4444;
+}
+
+.status-reserved {
+    background-color: #f59e0b;
+}
+
+.status-maintenance {
+    background-color: #6b7280;
+}
+
+/* Área principal */
+.table-main {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* Grid de mesas */
+.table-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+/* Tarjeta de mesa */
+.table-item {
+    background-color: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+}
+
+.dark .table-item {
+    background-color: #1f2937;
+}
+
+.table-item:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+
+.table-item-header {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dark .table-item-header {
+    border-bottom: 1px solid #374151;
+}
+
+.table-number {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+.dark .table-number {
+    color: #f9fafb;
+}
+
+.table-status {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+}
+
+.table-status-available {
+    background-color: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.table-status-occupied {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.table-status-reserved {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.table-status-maintenance {
+    background-color: rgba(107, 114, 128, 0.1);
+    color: #6b7280;
+}
+
+.table-item-body {
+    padding: 0.75rem;
+}
+
+.table-item-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 0.5rem;
+    color: #111827;
+}
+
+.dark .table-item-number {
+    color: #f9fafb;
+}
+
+.table-info {
+    display: flex;
+    align-items: center;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: #4b5563;
+}
+
+.dark .table-info {
+    color: #9ca3af;
+}
+
+.table-info svg {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.375rem;
+}
+
+.table-shape {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.375rem;
+    border: 1px solid currentColor;
+}
+
+.table-shape-square {
+    border-radius: 0.125rem;
+}
+
+.table-shape-round {
+    border-radius: 9999px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .table-content {
+        flex-direction: column;
+    }
+    
+    .table-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .dark .table-sidebar {
+        border-bottom: 1px solid #374151;
+    }
+}

@@ -5,55 +5,102 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generar Comprobante</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f9fafb;
+            font-size: 16px;
+            color: #1f2937;
         }
         .print-button {
             padding: 10px 20px;
             background-color: #1a56db;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             display: flex;
             align-items: center;
             gap: 5px;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
         }
         .print-button:hover {
             background-color: #1e429f;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .payment-method {
             cursor: pointer;
             transition: all 0.2s;
+            border-width: 2px;
         }
         .payment-method:hover {
             transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .payment-method.selected {
             border-color: #1a56db;
             background-color: #eef2ff;
+            box-shadow: 0 0 0 2px rgba(26, 86, 219, 0.3);
         }
         .amount-suggestion {
             cursor: pointer;
             transition: all 0.2s;
+            font-weight: 500;
         }
         .amount-suggestion:hover {
             background-color: #eef2ff;
+            transform: translateY(-1px);
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+        h2 {
+            font-size: 22px;
+        }
+        input, select, textarea {
+            font-size: 16px;
+            padding: 10px;
+        }
+        button {
+            font-size: 16px;
+            padding: 12px 20px;
         }
     </style>
 </head>
-<body class="p-6">
-    <div class="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
-        <h1 class="text-2xl font-bold mb-6 text-center">Generar Comprobante de Venta</h1>
+<body class="p-4">
+    <div class="max-w-6xl mx-auto bg-white shadow-md rounded-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Generar Comprobante de Venta</h1>
+            <div class="flex space-x-3">
+                <a href="{{ url('/pos') }}" class="flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-all duration-200 font-medium text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Volver al POS
+                </a>
+                <a href="{{ url('/admin') }}" class="flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-all duration-200 font-medium text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Ir al Escritorio
+                </a>
+            </div>
+        </div>
 
         <form action="{{ route('pos.invoice.generate', $order->id) }}" method="post">
             @csrf
             <input type="hidden" name="customer_id" id="customer_id" value="">
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <!-- Panel izquierdo: Tipo de comprobante y datos del cliente -->
                 <div>
                     <div class="mb-4">

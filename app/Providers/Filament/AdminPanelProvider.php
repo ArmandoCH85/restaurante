@@ -42,31 +42,64 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\IngredientResource::class,
                 \App\Filament\Resources\RecipeResource::class,
                 \App\Filament\Resources\PurchaseResource::class,
+                \App\Filament\Resources\ReservationResource::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 Pages\Dashboard::class,
+                \App\Filament\Pages\ReservationCalendar::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class
+                Widgets\AccountWidget::class,
+                \App\Filament\Widgets\ReservationStats::class
             ])
             ->navigationItems([
+                // Grupo: Ventas
+                NavigationItem::make('Venta Directa')
+                    ->url('/pos')
+                    ->icon('heroicon-o-shopping-cart')
+                    ->group('Ventas')
+                    ->sort(1),
                 NavigationItem::make('Mapa de Mesas')
                     ->url('/tables')
                     ->icon('heroicon-o-map')
-                    ->group('Operaciones')
-                    ->sort(1),
-                NavigationItem::make('Punto de Venta (POS)')
-                    ->url('/pos')
-                    ->icon('heroicon-o-shopping-cart')
-                    ->group('Operaciones')
+                    ->group('Ventas')
                     ->sort(2),
-                NavigationItem::make('Roles y Permisos')
-                    ->url(fn (): string => '/admin/shield/roles')
-                    ->icon('heroicon-o-shield-check')
-                    ->group('Configuración')
+                NavigationItem::make('Dashboard')
+                    ->url('/dashboard')
+                    ->icon('heroicon-o-chart-bar')
+                    ->group('Facturación')
                     ->sort(1),
+                NavigationItem::make('Apertura de Caja')
+                    ->url('/admin/resources/cash-registers')
+                    ->icon('heroicon-o-calculator')
+                    ->group('Facturación')
+                    ->sort(2),
+
+                // Grupo: Inventario
+                NavigationItem::make('Ingredientes')
+                    ->url('/admin/resources/ingredients')
+                    ->icon('heroicon-o-cube')
+                    ->group('Inventario')
+                    ->sort(1),
+                NavigationItem::make('Recetas')
+                    ->url('/admin/resources/recipes')
+                    ->icon('heroicon-o-beaker')
+                    ->group('Inventario')
+                    ->sort(2),
+                NavigationItem::make('Compras')
+                    ->url('/admin/resources/purchases')
+                    ->icon('heroicon-o-shopping-bag')
+                    ->group('Inventario')
+                    ->sort(3),
+                NavigationItem::make('Almacén')
+                    ->url('/admin/resources/warehouses')
+                    ->icon('heroicon-o-building-storefront')
+                    ->group('Inventario')
+                    ->sort(4),
+
+
             ])
             ->middleware([
                 EncryptCookies::class,

@@ -136,4 +136,82 @@ class Invoice extends Model
 
         return $this->save();
     }
+
+    /**
+     * Genera el hash para el comprobante.
+     *
+     * @return string El hash generado
+     */
+    public function generateHash(): string
+    {
+        // En una implementación real, este hash se generaría con los datos del comprobante
+        // y la clave privada del emisor según las especificaciones de SUNAT
+        $data = [
+            'ruc' => config('company.ruc', '20123456789'),
+            'tipo_documento' => $this->getSunatDocumentType(),
+            'serie' => $this->series,
+            'numero' => $this->number,
+            'fecha_emision' => $this->issue_date->format('Y-m-d'),
+            'total' => $this->total
+        ];
+
+        return hash('sha256', json_encode($data));
+    }
+
+    /**
+     * Genera el código QR para el comprobante.
+     *
+     * @return string El código QR en formato base64
+     */
+    public function generateQRCode(): string
+    {
+        // En una implementación real, se generaría un código QR con los datos del comprobante
+        // según las especificaciones de SUNAT
+        $data = [
+            'ruc' => config('company.ruc', '20123456789'),
+            'tipo_documento' => $this->getSunatDocumentType(),
+            'serie' => $this->series,
+            'numero' => $this->number,
+            'monto_total' => $this->total,
+            'fecha_emision' => $this->issue_date->format('Y-m-d')
+        ];
+
+        // Aquí se usaría una librería para generar el QR
+        // Por ahora, devolvemos un placeholder
+        return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    }
+
+    /**
+     * Obtiene el tipo de documento según la codificación de SUNAT.
+     *
+     * @return string El código de tipo de documento SUNAT
+     */
+    public function getSunatDocumentType(): string
+    {
+        return match($this->invoice_type) {
+            'invoice' => '01', // Factura
+            'receipt' => '03', // Boleta
+            'credit_note' => '07', // Nota de Crédito
+            'debit_note' => '08', // Nota de Débito
+            default => '00', // Otros
+        };
+    }
+
+    /**
+     * Envía el comprobante a SUNAT para su validación.
+     *
+     * @return bool Si el envío fue exitoso
+     */
+    public function sendToTaxAuthority(): bool
+    {
+        // En una implementación real, aquí se usaría una librería como greenter o nubefact
+        // para enviar el comprobante a SUNAT
+
+        // Por ahora, simulamos una respuesta exitosa
+        $this->hash = $this->generateHash();
+        $this->qr_code = $this->generateQRCode();
+        $this->tax_authority_status = self::STATUS_ACCEPTED;
+
+        return $this->save();
+    }
 }

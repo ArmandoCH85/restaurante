@@ -355,11 +355,24 @@ class PosController extends Controller
             'email' => 'nullable|email|max:255',
         ]);
 
+        // Crear el cliente
         $customer = \App\Models\Customer::create($validated);
+
+        // Validar con SUNAT/RENIEC si corresponde
+        $sunatService = new \App\Services\SunatService();
+
+        if ($validated['document_type'] === 'RUC') {
+            $validated = $sunatService->validateRuc($customer);
+        } elseif ($validated['document_type'] === 'DNI') {
+            $validated = $sunatService->validateDni($customer);
+        }
+
+        // Recargar el cliente para obtener los datos actualizados
+        $customer->refresh();
 
         return response()->json([
             'success' => true,
-            'message' => 'Cliente creado correctamente',
+            'message' => 'Cliente creado correctamente' . ($customer->tax_validated ? ' y validado con SUNAT/RENIEC' : ''),
             'customer' => $customer
         ]);
     }
@@ -530,10 +543,15 @@ class PosController extends Controller
                 $invoiceDetail->save();
             }
 
-            // Generar código QR para el comprobante
-            $qrCode = $this->generateQRCode($invoice);
-            $invoice->qr_code = $qrCode;
-            $invoice->save();
+            // Enviar el comprobante a SUNAT si es factura o boleta electrónica
+            if (in_array($validated['invoice_type'], ['invoice', 'receipt'])) {
+                $sunatService = new \App\Services\SunatService();
+                $sunatService->sendInvoice($invoice);
+            } else {
+                // Para notas de venta, solo generar código QR
+                $invoice->qr_code = $invoice->generateQRCode();
+                $invoice->save();
+            }
 
             // Devolver la vista
             $view = $this->getInvoiceTemplateByType($validated['invoice_type']);
@@ -551,7 +569,7 @@ class PosController extends Controller
             return view($view, [
                 'invoice' => $invoice,
                 'date' => now()->format('d/m/Y H:i:s'),
-                'qr_code' => $qrCode,
+                'qr_code' => $invoice->qr_code,
                 'split_payment' => true,
                 'payment_methods' => implode(', ', $validated['split_methods']),
                 'change_amount' => 0,

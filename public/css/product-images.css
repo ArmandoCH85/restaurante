@@ -1,0 +1,42 @@
+/* Estilos para las imágenes de productos */
+.product-image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.product-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.product-image:hover {
+    transform: scale(1.05);
+}
+
+.product-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+.product-initials {
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+}
+
+.product-category {
+    font-size: 0.75rem;
+    color: white;
+    margin-top: 0.25rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}

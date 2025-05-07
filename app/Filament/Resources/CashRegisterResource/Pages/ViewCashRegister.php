@@ -17,8 +17,11 @@ class ViewCashRegister extends ViewRecord
                 ->label('Imprimir')
                 ->icon('heroicon-o-printer')
                 ->color('success')
-                ->url(fn () => route('admin.cash-register.print', ['cashRegister' => $this->record]))
-                ->openUrlInNewTab(),
+                ->url(fn (): string => route('admin.cash-register.print', ['cashRegister' => $this->record]))
+                ->openUrlInNewTab(false)
+                ->extraAttributes([
+                    'onclick' => "event.preventDefault(); window.showCashRegisterModal(this.href); return false;"
+                ]),
 
             Actions\EditAction::make()
                 ->visible(fn () => $this->record->status === 'open'),

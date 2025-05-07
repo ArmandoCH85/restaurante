@@ -26,6 +26,10 @@
     <!-- Incluir assets compilados por Vite -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <!-- CSS personalizado para correcciones -->
+    <link href="{{ asset('css/pos-fix.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/product-images.css') }}" rel="stylesheet">
+
     <!-- Estilos inline -->
     <style>
         [x-cloak] { display: none !important; }
@@ -51,6 +55,7 @@
     </div>
 
     @livewireScripts
+    <script src="{{ asset('js/pos-modals.js') }}"></script>
     <script>
         // Detectar preferencia de modo oscuro
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {

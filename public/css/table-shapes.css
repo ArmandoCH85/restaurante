@@ -1,0 +1,18 @@
+.table-visual {
+    width: 60px !important;
+    height: 60px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 2px solid black !important;
+    background-color: white !important;
+    margin: 0 auto !important;
+}
+
+.table-square {
+    border-radius: 4px !important;
+}
+
+.table-round {
+    border-radius: 50% !important;
+}

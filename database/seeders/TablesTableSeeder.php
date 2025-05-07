@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
+use App\Models\Floor;
 use App\Models\Table;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class TablesTableSeeder extends Seeder
 {
@@ -20,45 +19,49 @@ class TablesTableSeeder extends Seeder
         Table::query()->delete();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
-        // Ubicaciones para las mesas
-        $locations = ['interior', 'terraza', 'vip', 'barra'];
+        // Obtener los pisos disponibles
+        $floors = Floor::all();
 
-        // Mesas en el interior
+        if ($floors->isEmpty()) {
+            $this->command->info('No hay pisos disponibles. Ejecuta el seeder de pisos primero.');
+            return;
+        }
+
+        // Primer piso - Mesas interiores (1-12)
+        $firstFloor = $floors->where('name', 'Primer Piso')->first();
         for ($i = 1; $i <= 12; $i++) {
             Table::create([
+                'floor_id' => $firstFloor->id,
                 'number' => $i,
+                'shape' => $this->getRandomShape(),
                 'capacity' => rand(2, 6),
                 'location' => 'interior',
                 'status' => $this->getRandomStatus(),
             ]);
         }
 
-        // Mesas en la terraza
+        // Segundo piso - Mesas VIP (13-20)
+        $secondFloor = $floors->where('name', 'Segundo Piso')->first();
         for ($i = 13; $i <= 20; $i++) {
             Table::create([
+                'floor_id' => $secondFloor->id,
                 'number' => $i,
-                'capacity' => rand(2, 8),
-                'location' => 'terraza',
-                'status' => $this->getRandomStatus(),
-            ]);
-        }
-
-        // Mesas VIP
-        for ($i = 21; $i <= 24; $i++) {
-            Table::create([
-                'number' => $i,
+                'shape' => $this->getRandomShape(),
                 'capacity' => rand(4, 10),
                 'location' => 'vip',
                 'status' => $this->getRandomStatus(),
             ]);
         }
 
-        // Mesas de barra
-        for ($i = 25; $i <= 30; $i++) {
+        // Terraza - Mesas al aire libre (21-30)
+        $terrace = $floors->where('name', 'Terraza')->first();
+        for ($i = 21; $i <= 30; $i++) {
             Table::create([
+                'floor_id' => $terrace->id,
                 'number' => $i,
-                'capacity' => 2,
-                'location' => 'barra',
+                'shape' => $this->getRandomShape(),
+                'capacity' => rand(2, 8),
+                'location' => 'terraza',
                 'status' => $this->getRandomStatus(),
             ]);
         }
@@ -87,5 +90,13 @@ class TablesTableSeeder extends Seeder
         }
 
         return Table::STATUS_AVAILABLE;
+    }
+
+    /**
+     * Obtener una forma aleatoria para la mesa
+     */
+    private function getRandomShape(): string
+    {
+        return rand(0, 1) ? Table::SHAPE_SQUARE : Table::SHAPE_ROUND;
     }
 }

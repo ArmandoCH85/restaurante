@@ -10,6 +10,17 @@ class PurchaseDetail extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->subtotal = $model->quantity * $model->unit_cost;
+        });
+
+        static::updating(function ($model) {
+            $model->subtotal = $model->quantity * $model->unit_cost;
+        });
+    }
+
     /**
      * Los atributos que son asignables masivamente.
      *

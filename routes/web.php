@@ -5,6 +5,7 @@ use App\Http\Controllers\PosController;
 use App\Livewire\TableMap\TableMapView;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\TableController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -42,6 +43,18 @@ Route::get('/pos/invoice/void-success/{invoice}', [PosController::class, 'voidSu
 Route::get('/pos/customers/find', [PosController::class, 'findCustomer'])->name('pos.customers.find');
 Route::post('/pos/customers/store', [PosController::class, 'storeCustomer'])->name('pos.customers.store');
 
+// Ruta de prueba para imágenes
+Route::get('/test-images', function() {
+    $products = \App\Models\Product::whereNotNull('image_path')->limit(5)->get();
+    return view('test-images', ['products' => $products]);
+});
+
+// Nueva ruta de prueba para imágenes
+Route::get('/image-test', function() {
+    $products = \App\Models\Product::whereNotNull('image_path')->limit(10)->get();
+    return view('image-test', ['products' => $products]);
+});
+
 // Ruta del mapa de mesas
 Route::get('/tables', TableMapView::class)->name('tables.map');
 
@@ -59,4 +72,7 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');
     Route::patch('/tables/{table}/update-status', [TableController::class, 'updateStatus'])->name('tables.update-status');
     Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
+
+    // Ruta para el dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 });

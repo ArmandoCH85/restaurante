@@ -9,6 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Order extends Model
 {
     /**
+     * Estados disponibles para las órdenes.
+     */
+    const STATUS_OPEN = 'open';
+    const STATUS_IN_PREPARATION = 'in_preparation';
+    const STATUS_READY = 'ready';
+    const STATUS_DELIVERED = 'delivered';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+
+    /**
      * Los atributos que son asignables masivamente.
      *
      * @var array
@@ -90,5 +100,66 @@ class Order extends Model
     public function isBilled(): bool
     {
         return $this->billed;
+    }
+
+    /**
+     * Procesa las recetas de los productos en la orden y registra los movimientos de inventario.
+     *
+     * @return bool Si el procesamiento fue exitoso
+     */
+    public function processRecipes(): bool
+    {
+        // Solo procesar si la orden está en preparación
+        if ($this->status !== self::STATUS_IN_PREPARATION) {
+            return false;
+        }
+
+        // Recorrer todos los detalles de la orden
+        foreach ($this->orderDetails as $detail) {
+            // Obtener el producto
+            $product = Product::find($detail->product_id);
+
+            // Si el producto no existe o no es un artículo de venta, continuar
+            if (!$product || !$product->isSaleItem()) {
+                continue;
+            }
+
+            // Si el producto tiene receta, procesar los ingredientes
+            if ($product->has_recipe && $product->recipe) {
+                $recipe = $product->recipe;
+
+                // Recorrer todos los detalles de la receta
+                foreach ($recipe->recipeDetails as $recipeDetail) {
+                    // Calcular la cantidad necesaria del ingrediente
+                    $ingredientQuantity = $recipeDetail->quantity * $detail->quantity;
+
+                    // Registrar el movimiento de inventario (salida)
+                    InventoryMovement::createSaleMovement(
+                        $recipeDetail->ingredient_id,
+                        $ingredientQuantity,
+                        $this->id,
+                        'Orden #' . $this->id,
+                        null, // No hay usuario autenticado en este contexto
+                        'Consumo por orden #' . $this->id . ' - Producto: ' . $product->name
+                    );
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Eventos del modelo.
+     */
+    protected static function booted()
+    {
+        // Cuando se actualiza una orden
+        static::updating(function ($order) {
+            // Si el estado cambió a 'in_preparation', procesar las recetas
+            if ($order->isDirty('status') && $order->status === self::STATUS_IN_PREPARATION) {
+                $order->processRecipes();
+            }
+        });
     }
 }

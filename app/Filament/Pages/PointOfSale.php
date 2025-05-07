@@ -6,10 +6,8 @@ use Filament\Pages\Page;
 
 class PointOfSale extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
-    protected static ?string $navigationLabel = 'Punto de Venta';
-    protected static ?int $navigationSort = 1;
-    protected static ?string $navigationGroup = 'Ventas';
+    // Ocultar esta página del menú de navegación
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static string $view = 'filament.pages.point-of-sale';
 

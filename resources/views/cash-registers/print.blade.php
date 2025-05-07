@@ -66,23 +66,7 @@
         .mt-3 {
             margin-top: 15px;
         }
-        .print-button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            display: block;
-        }
         @media print {
-            .print-button {
-                display: none;
-            }
             body {
                 padding: 0;
             }
@@ -90,7 +74,7 @@
     </style>
 </head>
 <body>
-    <button onclick="window.print()" class="print-button">Imprimir</button>
+    <!-- El botón de impresión ahora está en el modal -->
 
     <div class="header">
         <div class="logo">
@@ -107,11 +91,11 @@
             </tr>
             <tr>
                 <td width="50%"><strong>Fecha de Apertura:</strong></td>
-                <td>{{ $cashRegister->opened_at->format('d/m/Y H:i:s') }}</td>
+                <td>{{ $cashRegister->opened_at ? $cashRegister->opened_at->format('d/m/Y H:i:s') : 'No registrado' }}</td>
             </tr>
             <tr>
                 <td><strong>Apertura realizada por:</strong></td>
-                <td>{{ $cashRegister->openedBy->name }}</td>
+                <td>{{ $cashRegister->openedBy ? $cashRegister->openedBy->name : 'No registrado' }}</td>
             </tr>
             <tr>
                 <td><strong>Monto Inicial:</strong></td>
@@ -201,10 +185,10 @@
             <tbody>
                 @foreach($payments as $payment)
                 <tr>
-                    <td>{{ $payment->payment_datetime->format('H:i:s') }}</td>
+                    <td>{{ $payment->payment_datetime ? $payment->payment_datetime->format('H:i:s') : 'No registrado' }}</td>
                     <td>{{ $payment->getPaymentMethodNameAttribute() }}</td>
                     <td>{{ $payment->order->id ?? 'N/A' }}</td>
-                    <td>{{ $payment->receiver->name }}</td>
+                    <td>{{ $payment->receiver ? $payment->receiver->name : 'No registrado' }}</td>
                     <td class="text-right">S/ {{ number_format($payment->amount, 2) }}</td>
                 </tr>
                 @endforeach
@@ -224,7 +208,7 @@
             <tbody>
                 @foreach($paymentsByMethod as $method => $methodPayments)
                 <tr>
-                    <td>{{ (new App\Models\Payment())->getPaymentMethodNameAttribute() }}</td>
+                    <td>{{ $method }}</td>
                     <td class="text-right">S/ {{ number_format($totalsByMethod[$method], 2) }}</td>
                 </tr>
                 @endforeach
@@ -242,13 +226,6 @@
         <p class="text-center">Generado el {{ now()->format('d/m/Y H:i:s') }}</p>
     </div>
 
-    <script>
-        // Imprimir automáticamente después de 1 segundo
-        window.onload = function() {
-            setTimeout(function() {
-                window.print();
-            }, 1000);
-        };
-    </script>
+    <!-- El script de impresión automática se ha eliminado ya que ahora se maneja desde el modal -->
 </body>
 </html>

@@ -61,10 +61,18 @@ class PurchaseResource extends Resource
                                 'invoice' => 'Factura',
                                 'receipt' => 'Boleta',
                                 'ticket' => 'Ticket',
+                                'dispatch_guide' => 'Guía de Remisión',
                                 'other' => 'Otro',
                             ])
                             ->required()
-                            ->default('invoice'),
+                            ->default('invoice')
+                            ->reactive()
+                            ->afterStateUpdated(function (callable $set, $state) {
+                                // Si es guía de remisión, sugerir formato
+                                if ($state === 'dispatch_guide') {
+                                    $set('document_number', 'T001-');
+                                }
+                            }),
 
                         Forms\Components\Select::make('status')
                             ->label('Estado')
@@ -89,16 +97,16 @@ class PurchaseResource extends Resource
                             ->relationship()
                             ->schema([
                                 Forms\Components\Select::make('product_id')
-                                    ->label('Ingrediente')
-                                    ->options(Ingredient::all()->pluck('name', 'id'))
+                                    ->label('Producto')
+                                    ->options(\App\Models\Product::all()->pluck('name', 'id'))
                                     ->required()
                                     ->searchable()
                                     ->reactive()
                                     ->afterStateUpdated(function (callable $set, $state) {
                                         if ($state) {
-                                            $ingredient = Ingredient::find($state);
-                                            if ($ingredient) {
-                                                $set('unit_cost', $ingredient->current_cost);
+                                            $product = \App\Models\Product::find($state);
+                                            if ($product) {
+                                                $set('unit_cost', $product->current_cost ?? 0);
                                             }
                                         }
                                     }),
@@ -111,9 +119,10 @@ class PurchaseResource extends Resource
                                     ->step(0.001)
                                     ->default(1)
                                     ->reactive()
-                                    ->afterStateUpdated(fn ($state, $get, callable $set) =>
-                                        $set('subtotal', $state * $get('unit_cost'))
-                                    ),
+                                    ->afterStateUpdated(function ($state, $get, callable $set) {
+                                        $set('subtotal', $state * $get('unit_cost'));
+                                        $set('../../subtotal', collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0));
+                                    }),
 
                                 Forms\Components\TextInput::make('unit_cost')
                                     ->label('Costo Unitario')
@@ -122,9 +131,10 @@ class PurchaseResource extends Resource
                                     ->prefix('S/')
                                     ->default(0)
                                     ->reactive()
-                                    ->afterStateUpdated(fn ($state, $get, callable $set) =>
-                                        $set('subtotal', $get('quantity') * $state)
-                                    ),
+                                    ->afterStateUpdated(function ($state, $get, callable $set) {
+                                        $set('subtotal', $get('quantity') * $state);
+                                        $set('../../subtotal', collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0));
+                                    }),
 
                                 Forms\Components\TextInput::make('subtotal')
                                     ->label('Subtotal')
@@ -142,35 +152,38 @@ class PurchaseResource extends Resource
                                 $state['product_id']
                                     ? Ingredient::find($state['product_id'])?->name . ' - ' . ($state['quantity'] ?? '?') . ' x S/' . ($state['unit_cost'] ?? '0')
                                     : null
-                            ),
+                            )
+                            ->afterStateUpdated(function (callable $get, callable $set) {
+                                $set('subtotal', collect($get('details'))->sum(fn($item) => $item['subtotal'] ?? 0));
+                            }),
                     ]),
 
                 Forms\Components\Section::make('Totales')
                     ->schema([
                         Forms\Components\TextInput::make('subtotal')
                             ->label('Subtotal')
-                            ->required()
-                            ->numeric()
-                            ->prefix('S/')
-                            ->default(0),
-
-                        Forms\Components\TextInput::make('tax')
-                            ->label('Impuestos')
-                            ->required()
                             ->numeric()
                             ->prefix('S/')
                             ->default(0)
-                            ->reactive()
-                            ->afterStateUpdated(fn ($state, $get, callable $set) =>
-                                $set('total', $get('subtotal') + $state)
-                            ),
+                            ->disabled()
+                            ->dehydrated(),
+
+                        Forms\Components\TextInput::make('tax')
+                            ->label('IGV (%)')
+                            ->numeric()
+                            ->prefix('S/')
+                            ->default(18)
+                            ->minValue(0)
+                            ->maxValue(100)
+                            ->suffix('%'),
 
                         Forms\Components\TextInput::make('total')
                             ->label('Total')
-                            ->required()
                             ->numeric()
                             ->prefix('S/')
-                            ->default(0),
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated(),
                     ])
                     ->columns(3),
             ]);
@@ -271,25 +284,29 @@ class PurchaseResource extends Resource
 
                 Tables\Actions\Action::make('register_stock')
                     ->label('Registrar Stock')
-                    ->icon('heroicon-o-clipboard-check')
+                    ->icon('heroicon-o-clipboard-document-check')
                     ->color('success')
                     ->requiresConfirmation()
                     ->visible(fn (Purchase $purchase) => $purchase->status === 'completed')
                     ->action(function (Purchase $purchase) {
                         // Recorrer todos los detalles de la compra
                         foreach ($purchase->details as $detail) {
-                            // Solo procesar si es un ingrediente
-                            $ingredient = Ingredient::find($detail->product_id);
-                            if ($ingredient) {
+                            // Buscar el producto (puede ser ingrediente u otro tipo de producto)
+                            $product = \App\Models\Product::find($detail->product_id);
+
+                            if ($product) {
                                 // Crear movimiento de inventario
-                                InventoryMovement::createPurchaseMovement(
-                                    $ingredient->id,
-                                    $detail->quantity,
-                                    $detail->unit_cost,
-                                    $purchase->id,
-                                    $purchase->document_number,
-                                    $purchase->created_by
-                                );
+                                InventoryMovement::create([
+                                    'product_id' => $product->id,
+                                    'quantity' => $detail->quantity,
+                                    'unit_cost' => $detail->unit_cost,
+                                    'movement_type' => 'purchase',
+                                    'reference_id' => $purchase->id,
+                                    'reference_type' => Purchase::class,
+                                    'reference_document' => $purchase->document_number,
+                                    'created_by' => $purchase->created_by,
+                                    'notes' => "Compra: {$purchase->document_type} {$purchase->document_number}",
+                                ]);
                             }
                         }
                     }),
@@ -300,7 +317,8 @@ class PurchaseResource extends Resource
                 ]),
             ])
             ->emptyStateActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->icon('heroicon-o-clipboard-document-check'),
             ]);
     }
 

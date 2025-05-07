@@ -6,10 +6,23 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Purchase extends Model
 {
     use HasFactory;
+
+    protected static function booted()
+    {
+        static::creating(function ($model) {
+            $model->created_by = Auth::id();
+            $model->total = $model->subtotal * (1 + ($model->tax/100));
+        });
+
+        static::updating(function ($model) {
+            $model->total = $model->subtotal * (1 + ($model->tax/100));
+        });
+    }
 
     /**
      * Los estados disponibles para las compras.
@@ -17,6 +30,15 @@ class Purchase extends Model
     const STATUS_PENDING = 'pending';
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
+
+    /**
+     * Los tipos de documentos disponibles para las compras.
+     */
+    const DOCUMENT_TYPE_INVOICE = 'invoice';
+    const DOCUMENT_TYPE_RECEIPT = 'receipt';
+    const DOCUMENT_TYPE_TICKET = 'ticket';
+    const DOCUMENT_TYPE_DISPATCH_GUIDE = 'dispatch_guide';
+    const DOCUMENT_TYPE_OTHER = 'other';
 
     /**
      * Los atributos que son asignables masivamente.

@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\TableResource\Pages;
 use App\Filament\Resources\TableResource\RelationManagers;
 use App\Models\Table as TableModel;
+use App\Models\Floor;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -41,6 +42,27 @@ class TableResource extends Resource
                             ->description('Datos básicos de la mesa')
                             ->icon('heroicon-o-information-circle')
                             ->schema([
+                                Forms\Components\Select::make('floor_id')
+                                    ->label('Piso')
+                                    ->options(Floor::pluck('name', 'id'))
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
+                                        Forms\Components\TextInput::make('name')
+                                            ->label('Nombre')
+                                            ->required()
+                                            ->maxLength(50),
+                                        Forms\Components\Textarea::make('description')
+                                            ->label('Descripción')
+                                            ->nullable(),
+                                    ])
+                                    ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                        return $action
+                                            ->modalHeading('Crear nuevo piso')
+                                            ->modalWidth('md');
+                                    })
+                                    ->helperText('Seleccione el piso donde se encuentra la mesa'),
+
                                 Forms\Components\TextInput::make('number')
                                     ->label('Número de Mesa')
                                     ->required()
@@ -52,6 +74,22 @@ class TableResource extends Resource
                                     ->prefix('#')
                                     ->helperText('Identificador único de la mesa')
                                     ->autofocus(),
+
+                                Forms\Components\Radio::make('shape')
+                                    ->label('Forma de la mesa')
+                                    ->options([
+                                        'square' => '⬜ Cuadrada',
+                                        'round' => '⭕ Redonda',
+                                    ])
+                                    ->descriptions([
+                                        'square' => 'Mesa con forma cuadrada o rectangular',
+                                        'round' => 'Mesa con forma circular u ovalada',
+                                    ])
+                                    ->inline()
+                                    ->default('square')
+                                    ->required()
+                                    ->helperText('Seleccione la forma de la mesa'),
+
                                 Forms\Components\TextInput::make('capacity')
                                     ->label('Capacidad')
                                     ->required()
@@ -119,6 +157,22 @@ class TableResource extends Resource
                 '2xl' => 4,
             ])
             ->columns([
+                Tables\Columns\TextColumn::make('floor.name')
+                    ->label('Piso')
+                    ->alignCenter()
+                    ->sortable()
+                    ->searchable(),
+
+                Tables\Columns\TextColumn::make('shape')
+                    ->label('Forma')
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'square' => '⬜ Cuadrada',
+                        'round' => '⭕ Redonda',
+                        default => $state,
+                    })
+                    ->alignCenter()
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('number')
                     ->label('Mesa #')
                     ->formatStateUsing(fn ($state) => "#{$state}")
@@ -191,6 +245,21 @@ class TableResource extends Resource
                         'maintenance' => 'En Mantenimiento',
                     ])
                     ->indicator('Estado'),
+                Tables\Filters\SelectFilter::make('floor_id')
+                    ->label('Piso')
+                    ->relationship('floor', 'name')
+                    ->preload()
+                    ->searchable()
+                    ->indicator('Piso'),
+
+                Tables\Filters\SelectFilter::make('shape')
+                    ->label('Forma')
+                    ->options([
+                        'square' => 'Cuadrada',
+                        'round' => 'Redonda',
+                    ])
+                    ->indicator('Forma'),
+
                 Tables\Filters\SelectFilter::make('location')
                     ->label('Ubicación')
                     ->multiple()

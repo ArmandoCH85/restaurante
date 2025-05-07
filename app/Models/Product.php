@@ -28,6 +28,7 @@ class Product extends Model
         'description',
         'sale_price',
         'current_cost',
+        'current_stock',
         'product_type',
         'category_id',
         'active',
@@ -44,6 +45,7 @@ class Product extends Model
     protected $casts = [
         'sale_price' => 'decimal:2',
         'current_cost' => 'decimal:2',
+        'current_stock' => 'decimal:3',
         'active' => 'boolean',
         'has_recipe' => 'boolean',
         'available' => 'boolean',
@@ -82,5 +84,73 @@ class Product extends Model
     public function isSaleItem(): bool
     {
         return in_array($this->product_type, [self::TYPE_SALE_ITEM, self::TYPE_BOTH]);
+    }
+
+    /**
+     * Obtiene los movimientos de inventario asociados a este producto.
+     */
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class, 'product_id');
+    }
+
+    /**
+     * Calcula el stock actual basado en los movimientos de inventario.
+     *
+     * @return float El stock actual calculado
+     */
+    public function calculateCurrentStock(): float
+    {
+        return $this->inventoryMovements()->sum('quantity') ?? 0;
+    }
+
+    /**
+     * Actualiza el stock actual basado en los movimientos de inventario.
+     *
+     * @return bool Si la actualización fue exitosa
+     */
+    public function updateCurrentStock(): bool
+    {
+        $this->current_stock = $this->calculateCurrentStock();
+        return $this->save();
+    }
+
+    /**
+     * Calcula el costo promedio basado en los movimientos de inventario de compra.
+     *
+     * @return float El costo promedio calculado
+     */
+    public function calculateAverageCost(): float
+    {
+        // Obtener solo movimientos de compra con cantidad positiva
+        $purchaseMovements = $this->inventoryMovements()
+            ->where('movement_type', InventoryMovement::TYPE_PURCHASE)
+            ->where('quantity', '>', 0)
+            ->get();
+
+        if ($purchaseMovements->isEmpty()) {
+            return $this->current_cost ?? 0;
+        }
+
+        $totalCost = 0;
+        $totalQuantity = 0;
+
+        foreach ($purchaseMovements as $movement) {
+            $totalCost += $movement->quantity * $movement->unit_cost;
+            $totalQuantity += $movement->quantity;
+        }
+
+        return $totalQuantity > 0 ? $totalCost / $totalQuantity : 0;
+    }
+
+    /**
+     * Actualiza el costo promedio basado en los movimientos de inventario.
+     *
+     * @return bool Si la actualización fue exitosa
+     */
+    public function updateAverageCost(): bool
+    {
+        $this->current_cost = $this->calculateAverageCost();
+        return $this->save();
     }
 }

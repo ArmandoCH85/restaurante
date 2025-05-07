@@ -1,0 +1,22 @@
+/* Corrección para imágenes en el POS */
+.product-image {
+    background-color: transparent !important;
+    background-size: cover !important;
+    background-position: center !important;
+    transition: transform 0.5s ease-in-out;
+}
+
+/* Efecto hover para las imágenes */
+.group:hover .product-image {
+    transform: scale(1.1);
+}
+
+/* Asegurar que el contenedor de la imagen tenga un fondo */
+.h-36.relative.overflow-hidden {
+    background-color: #f3f4f6;
+}
+
+/* Modo oscuro */
+.dark .h-36.relative.overflow-hidden {
+    background-color: #374151;
+}

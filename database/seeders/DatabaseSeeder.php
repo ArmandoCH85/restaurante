@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
+            FloorSeeder::class,
             TablesTableSeeder::class,
             CustomerSeeder::class,
             RoleSeeder::class,

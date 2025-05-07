@@ -19,7 +19,7 @@ class DocumentSeriesResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Configuración';
+    protected static ?string $navigationGroup = 'Mantenimiento';
 
     protected static ?string $navigationLabel = 'Series de Comprobantes';
 

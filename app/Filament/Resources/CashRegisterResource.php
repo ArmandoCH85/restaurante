@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 class CashRegisterResource extends Resource
 {
+    // Los scripts se cargan directamente en el layout
     protected static ?string $model = CashRegister::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
@@ -211,7 +212,10 @@ class CashRegisterResource extends Resource
                     ->icon('heroicon-o-printer')
                     ->color('success')
                     ->url(fn (CashRegister $record): string => route('admin.cash-register.print', $record))
-                    ->openUrlInNewTab(),
+                    ->openUrlInNewTab(false)
+                    ->extraAttributes([
+                        'onclick' => "event.preventDefault(); window.showCashRegisterModal(this.href); return false;"
+                    ]),
                 Action::make('close')
                     ->label('Cerrar Caja')
                     ->icon('heroicon-o-lock-closed')

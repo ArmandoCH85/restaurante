@@ -12,6 +12,7 @@
 
     <!-- Styles -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- No CSS externo -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -27,39 +28,6 @@
             background-color: #1E3A8A;
             color: #EBF5FF;
             border-color: #1E40AF;
-        }
-
-        /* Animaciones para las mesas */
-        .table-card {
-            transition: all 0.3s ease;
-        }
-
-        .table-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Para el estado ocupado */
-        @keyframes pulse-subtle {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.8;
-            }
-        }
-
-        .occupied {
-            animation: pulse-subtle 2s infinite;
-        }
-
-        /* Para el modo oscuro */
-        .dark .bg-white {
-            background-color: #1F2937;
-        }
-
-        .dark .text-gray-800 {
-            color: #E5E7EB;
         }
     </style>
 

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Customer extends Model
 {
@@ -112,5 +113,21 @@ class Customer extends Model
     public function scopeTaxValidated($query)
     {
         return $query->where('tax_validated', true);
+    }
+
+    /**
+     * Obtiene las reservas del cliente.
+     */
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    /**
+     * Obtiene las reservas activas del cliente (pendientes o confirmadas).
+     */
+    public function activeReservations(): HasMany
+    {
+        return $this->reservations()->whereIn('status', ['pending', 'confirmed']);
     }
 }
