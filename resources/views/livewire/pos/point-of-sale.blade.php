@@ -1246,14 +1246,23 @@
         // Función para vaciar el carrito después de generar un comprobante
         // Esta función SOLO debe llamarse cuando se emite un comprobante final (factura/boleta)
         function vaciarCarrito() {
-            // Obtener el botón de vaciar carrito y hacer clic en él
-            const botonVaciar = document.querySelector('button[wire\\:click="clearCart"]');
-            if (botonVaciar) {
-                botonVaciar.click();
+            console.log('Ejecutando vaciarCarrito() - Limpiando carrito y liberando mesa');
+
+            // Llamar al método clearSale del componente Livewire que limpia el carrito y libera la mesa
+            if (window.Livewire) {
+                // Usar dispatch para llamar al método clearSale
+                Livewire.dispatch('clearSale');
+                console.log('Evento clearSale enviado correctamente');
+
+                // Redirigir al mapa de mesas después de un breve retraso
+                setTimeout(function() {
+                    console.log('Redirigiendo al mapa de mesas...');
+                    window.location.href = '{{ url("/tables") }}';
+                }, 500);
             } else {
-                console.error('No se encontró el botón para vaciar el carrito');
-                // Intentar refrescar la página como plan B
-                window.location.reload();
+                console.error('Livewire no está disponible');
+                // Plan B: Recargar la página
+                window.location.href = '{{ url("/tables") }}';
             }
         }
 
@@ -1576,7 +1585,21 @@
 
         // Función para ir a mesas
         function irAMesas() {
-            window.location.href = '{{ url("/tables") }}';
+            // Mostrar mensaje de carga
+            Swal.fire({
+                title: 'Guardando...',
+                text: 'Guardando carrito y actualizando mesa',
+                icon: 'info',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Llamar al método de Livewire para guardar el carrito
+            Livewire.dispatch('guardarCarritoYRedirigir');
         }
     </script>
 </div>
