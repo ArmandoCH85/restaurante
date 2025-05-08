@@ -8,7 +8,7 @@
     <div class="hidden lg:block flex-1 bg-white text-black relative">
         <!-- Imagen PNG de restaurante -->
         <img src="{{ asset('images/restaurante.png') }}" alt="Restaurante" class="w-full h-full object-cover">
-        <h2 class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-2xl font-bold text-gray-800 bg-white/80 px-4 py-2 rounded">RESTAURANTE</h2>
+        <h2 class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-2xl font-bold text-gray-800 bg-white/80 px-4 py-2 rounded"></h2>
     </div>
     <!-- Right Pane -->
     <div class=" bg-gray-100 lg:w-1/2 flex items-center justify-center">
