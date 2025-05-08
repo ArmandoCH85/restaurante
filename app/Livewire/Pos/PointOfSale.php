@@ -208,15 +208,29 @@ class PointOfSale extends Component
         // Guardar la orden actual
         $this->currentOrder = $order;
 
-        // No cambiar el estado de la mesa automáticamente al cargar una orden existente
-        // La mesa solo debe cambiar a ocupada cuando se haga clic en el botón "Iniciar Mesa"
+        // Verificar si hay productos en la orden
+        $productCount = $order->orderDetails()->count();
+
+        // Si hay productos, asegurarse de que la mesa esté marcada como ocupada
+        if ($productCount > 0 && $this->table && $this->table->status !== Table::STATUS_OCCUPIED) {
+            $this->table->status = Table::STATUS_OCCUPIED;
+            $this->table->occupied_at = now();
+            $this->table->save();
+
+            Log::info('Mesa marcada como ocupada al cargar orden existente', [
+                'table_id' => $this->tableId,
+                'table_number' => $this->table ? $this->table->number : null,
+                'previous_status' => $this->table ? $this->table->getOriginal('status') : null,
+                'product_count' => $productCount
+            ]);
+        }
 
         Log::info('Cargando orden existente sin cambiar estado de la mesa', [
             'table_id' => $this->tableId,
             'table_number' => $this->table ? $this->table->number : null,
             'table_status' => $this->table ? $this->table->status : null,
             'order_id' => $order->id,
-            'product_count' => $order->orderDetails()->count()
+            'product_count' => $productCount
         ]);
 
         // Limpiar el carrito antes de cargar los productos
@@ -328,8 +342,7 @@ class PointOfSale extends Component
             ];
         }
 
-        // No cambiar el estado de la mesa automáticamente al agregar productos
-        // Solo actualizar la mesa y crear una orden si es necesario
+        // Si hay una mesa seleccionada, verificar si necesitamos crear una orden
         if ($this->tableId) {
             // Obtener la mesa directamente de la base de datos para asegurar datos actualizados
             $table = Table::find($this->tableId);
@@ -338,13 +351,26 @@ class PointOfSale extends Component
                 // Actualizar la propiedad table con los datos más recientes
                 $this->table = $table;
 
-                // Si la mesa ya está ocupada, verificar si necesitamos crear una orden
-                if ($table->status === Table::STATUS_OCCUPIED && !$this->currentOrder) {
-                    // Crear una orden sin cambiar el estado de la mesa
+                // Siempre marcar la mesa como ocupada cuando se agregan productos
+                if ($table->status !== Table::STATUS_OCCUPIED) {
+                    $table->status = Table::STATUS_OCCUPIED;
+                    $table->occupied_at = now();
+                    $table->save();
+
+                    Log::info('Mesa marcada como ocupada al agregar productos', [
+                        'table_id' => $this->tableId,
+                        'table_number' => $table->number,
+                        'previous_status' => $table->getOriginal('status')
+                    ]);
+                }
+
+                // Si no hay una orden activa, crear una
+                if (!$this->currentOrder) {
+                    // Crear una orden
                     $order = $table->occupy(Auth::id());
                     $this->currentOrder = $order;
 
-                    Log::info('Orden creada para mesa ocupada desde addToCart', [
+                    Log::info('Orden creada para mesa desde addToCart', [
                         'table_id' => $this->tableId,
                         'table_number' => $table->number,
                         'order_id' => $order->id
@@ -943,8 +969,51 @@ class PointOfSale extends Component
     #[\Livewire\Attributes\On('clearSale')]
     public function clearSale(): void
     {
+        // Registrar información detallada para depuración
+        \Illuminate\Support\Facades\Log::info('Ejecutando clearSale', [
+            'table_id' => $this->tableId,
+            'table_status' => $this->table ? $this->table->status : 'null',
+            'cart_count' => count($this->cart),
+            'current_order_id' => $this->currentOrder ? $this->currentOrder->id : null
+        ]);
+
+        // Si hay una orden actual, marcarla como completada
+        if ($this->currentOrder) {
+            try {
+                // Marcar la orden como completada
+                $this->currentOrder->status = Order::STATUS_COMPLETED;
+                $this->currentOrder->save();
+
+                // Registrar en el log
+                \Illuminate\Support\Facades\Log::info('Orden marcada como completada', [
+                    'order_id' => $this->currentOrder->id
+                ]);
+
+                // Eliminar los detalles de la orden (productos)
+                $this->currentOrder->orderDetails()->delete();
+
+                // Registrar en el log
+                \Illuminate\Support\Facades\Log::info('Productos de la orden eliminados', [
+                    'order_id' => $this->currentOrder->id
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Error al completar la orden', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'order_id' => $this->currentOrder->id
+                ]);
+            }
+        }
+
         // Limpiar el carrito
-        $this->clearCart();
+        $this->cart = [];
+        $this->cartTotal = 0;
+        $this->customerNote = null;
+
+        // Limpiar la sesión
+        if ($this->tableId) {
+            session()->forget('cart_' . $this->tableId);
+        }
 
         // Si hay una mesa seleccionada, cambiarla a disponible
         if ($this->table) {
@@ -1813,22 +1882,27 @@ class PointOfSale extends Component
         Log::info('Modal de delivery abierto después de renderizar');
     }
 
+    /**
+     * Método que recibe el evento changeTableStatus
+     */
     #[\Livewire\Attributes\On('changeTableStatus')]
-    public function changeTableStatusFromEvent($params): void
+    public function changeTableStatusFromEvent(): void
     {
-        $this->changeTableStatus($params);
+        // No hacer nada, solo evitar el error
+        Log::info('Evento changeTableStatus recibido pero ignorado para evitar errores');
     }
 
     #[\Livewire\Attributes\On('guardarCarritoYRedirigir')]
     public function guardarCarritoYRedirigir(): void
     {
         try {
-            // Si hay una mesa seleccionada y está disponible, cambiarla a ocupada SOLO si hay productos
-            if ($this->table && $this->table->status === 'available' && !empty($this->cart)) {
+            // Si hay una mesa seleccionada, cambiarla a ocupada SOLO si hay productos
+            if ($this->table && !empty($this->cart)) {
                 // Verificar que realmente hay productos en el carrito
                 $productCount = count($this->cart);
 
                 if ($productCount > 0) {
+                    // Siempre marcar la mesa como ocupada si hay productos, sin importar su estado actual
                     $this->table->status = 'occupied';
                     $this->table->occupied_at = now();
                     $this->table->save();
@@ -1836,7 +1910,8 @@ class PointOfSale extends Component
                     \Illuminate\Support\Facades\Log::info('Mesa marcada como ocupada antes de redirigir', [
                         'table_id' => $this->tableId,
                         'table_number' => $this->table->number,
-                        'product_count' => $productCount
+                        'product_count' => $productCount,
+                        'previous_status' => $this->table->getOriginal('status')
                     ]);
                 } else {
                     \Illuminate\Support\Facades\Log::info('No se cambió el estado de la mesa porque no hay productos', [
@@ -1903,15 +1978,33 @@ class PointOfSale extends Component
 
     /**
      * Cambiar el estado de una mesa
+     *
+     * @param array|string|int $params Puede ser un array con tableId y status, o directamente el tableId
+     * @param string|null $status Si $params es el tableId, este parámetro debe ser el status
      */
-    public function changeTableStatus($params): void
+    public function changeTableStatus($params, ?string $status = null): void
     {
-        if (!isset($params['tableId']) || !isset($params['status'])) {
-            return;
+        // Manejar diferentes formas de llamar a esta función
+        $tableId = null;
+
+        // Si $params es un array (llamada desde evento)
+        if (is_array($params) && isset($params['tableId']) && isset($params['status'])) {
+            $tableId = $params['tableId'];
+            $status = $params['status'];
+        }
+        // Si $params es el tableId y $status está definido (llamada directa)
+        else if (($params && is_string($params) || is_numeric($params)) && $status) {
+            $tableId = $params;
         }
 
-        $tableId = $params['tableId'];
-        $status = $params['status'];
+        // Si no tenemos los parámetros necesarios, salir
+        if (!$tableId || !$status) {
+            Log::warning('changeTableStatus: Parámetros incompletos', [
+                'params' => $params,
+                'status' => $status
+            ]);
+            return;
+        }
 
         $table = Table::find($tableId);
         if ($table) {
@@ -1936,6 +2029,16 @@ class PointOfSale extends Component
                 'type' => 'success',
                 'title' => 'Mesa Actualizada',
                 'message' => "La mesa {$table->number} ahora está " . $this->getStatusName($status)
+            ]);
+
+            Log::info('Estado de mesa actualizado correctamente', [
+                'table_id' => $tableId,
+                'table_number' => $table->number,
+                'status' => $status
+            ]);
+        } else {
+            Log::warning('changeTableStatus: Mesa no encontrada', [
+                'table_id' => $tableId
             ]);
         }
     }
@@ -1969,11 +2072,28 @@ class PointOfSale extends Component
         }
 
         try {
+            // Obtener la mesa actual
+            $table = Table::find($this->tableId);
+
+            // Verificar si hay productos en el carrito
+            if ($table && !empty($this->cart)) {
+                // Siempre marcar la mesa como ocupada si hay productos en el carrito
+                if ($table->status !== Table::STATUS_OCCUPIED) {
+                    $table->status = Table::STATUS_OCCUPIED;
+                    $table->occupied_at = now();
+                    $table->save();
+
+                    Log::info('Mesa marcada como ocupada en saveCartToSession', [
+                        'table_id' => $this->tableId,
+                        'table_number' => $table->number,
+                        'previous_status' => $table->getOriginal('status')
+                    ]);
+                }
+            }
+
             // SOLUCIÓN DIRECTA: Verificar si hay una orden activa para esta mesa
             if (!$this->currentOrder) {
                 // Buscar una orden activa para esta mesa
-                $table = Table::find($this->tableId);
-
                 if ($table && $table->hasActiveOrder()) {
                     $this->currentOrder = $table->activeOrder()->first();
                     Log::info('Orden activa encontrada para la mesa en saveCartToSession', [
@@ -1982,8 +2102,7 @@ class PointOfSale extends Component
                     ]);
                 } else if ($table && !empty($this->cart)) {
                     // Si no hay orden activa pero hay productos en el carrito, crear una nueva orden
-                    // Solo si la mesa ya está ocupada o si hay productos en el carrito
-                    if ($table->status === Table::STATUS_OCCUPIED || count($this->cart) > 0) {
+                    if (count($this->cart) > 0) {
                         $this->currentOrder = $table->occupy(Auth::id());
                         Log::info('Nueva orden creada para la mesa en saveCartToSession', [
                             'table_id' => $this->tableId,
@@ -2120,6 +2239,20 @@ class PointOfSale extends Component
 
                     $this->customerNote = $order->notes;
 
+                    // Asegurarse de que la mesa esté marcada como ocupada si hay productos
+                    if (count($this->cart) > 0 && $this->table->status !== Table::STATUS_OCCUPIED) {
+                        $this->table->status = Table::STATUS_OCCUPIED;
+                        $this->table->occupied_at = now();
+                        $this->table->save();
+
+                        Log::info('Mesa marcada como ocupada al cargar carrito desde base de datos', [
+                            'table_id' => $this->tableId,
+                            'table_number' => $this->table->number,
+                            'previous_status' => $this->table->getOriginal('status'),
+                            'cart_count' => count($this->cart)
+                        ]);
+                    }
+
                     Log::info('Carrito cargado desde la base de datos', [
                         'order_id' => $order->id,
                         'cart_count' => count($this->cart),
@@ -2162,6 +2295,20 @@ class PointOfSale extends Component
                     'cart_count' => count($this->cart)
                 ]);
             }
+        }
+
+        // Asegurarse de que la mesa esté marcada como ocupada si hay productos
+        if (count($this->cart) > 0 && $this->table && $this->table->status !== Table::STATUS_OCCUPIED) {
+            $this->table->status = Table::STATUS_OCCUPIED;
+            $this->table->occupied_at = now();
+            $this->table->save();
+
+            Log::info('Mesa marcada como ocupada al cargar carrito desde sesión', [
+                'table_id' => $this->tableId,
+                'table_number' => $this->table->number,
+                'previous_status' => $this->table->getOriginal('status'),
+                'cart_count' => count($this->cart)
+            ]);
         }
 
         // Registrar en el log para depuración
