@@ -20,6 +20,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'pos.access' => \App\Http\Middleware\CheckPosAccess::class,
+            'tables.access' => \App\Http\Middleware\CheckTablesAccess::class,
+            'delivery.access' => \App\Http\Middleware\CheckDeliveryAccess::class,
+            'tables.maintenance.access' => \App\Http\Middleware\CheckTablesMaintenanceAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

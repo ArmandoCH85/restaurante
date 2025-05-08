@@ -23,7 +23,7 @@ class CashRegisterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
-    protected static ?string $navigationGroup = 'Operaciones';
+    protected static ?string $navigationGroup = 'Facturación';
 
     protected static ?string $navigationLabel = 'Cierre de Caja';
 

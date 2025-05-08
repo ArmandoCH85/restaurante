@@ -8,12 +8,14 @@ class Dashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
 
+    protected static ?string $navigationGroup = 'Ventas';
+
     protected static string $view = 'filament.pages.dashboard';
 
     protected function getHeaderWidgets(): array
     {
         return [
-            Widgets\SuppliersCountWidget::class,
+            // Widgets\SuppliersCountWidget::class,
         ];
     }
 }
