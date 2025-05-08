@@ -9,21 +9,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ComprobanteController;
 
 Route::get('/', function () {
-    // Verificar si el usuario está autenticado
-    if (\Illuminate\Support\Facades\Auth::check()) {
-        $user = \Illuminate\Support\Facades\Auth::user();
-
-        // Si el usuario tiene rol Delivery, redirigir directamente a /tables
-        if ($user && $user->roles->where('name', 'Delivery')->count() > 0) {
-            return redirect('/tables');
-        }
-
-        // Para otros usuarios, usar el controlador de redirección
-        return redirect('/admin');
-    }
-
-    // Si no está autenticado, mostrar la página de bienvenida
-    return view('welcome');
+    // Redirección automática a /admin
+    return redirect('/admin');
 });
 
 // Ruta para redirigir a los usuarios según su rol
