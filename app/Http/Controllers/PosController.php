@@ -12,6 +12,8 @@ use App\Models\InvoiceDetail;
 
 class PosController extends Controller
 {
+
+
     /**
      * Mostrar la interfaz POS principal
      */

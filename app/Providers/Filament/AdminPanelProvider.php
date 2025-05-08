@@ -18,6 +18,8 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\NavigationItem;
 use Solutionforest\FilamentLoginScreen\Filament\Pages\Auth\Themes\Theme1\LoginScreenPage as LoginScreenPage;
+use Illuminate\Support\Facades\Auth;
+use App\Helpers\PermissionHelper;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -30,7 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(LoginScreenPage::class)
             ->homeUrl(function () {
-                $user = \Illuminate\Support\Facades\Auth::user();
+                $user = Auth::user();
 
                 // Si el usuario tiene rol delivery, redirigir directamente a /tables
                 if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
@@ -57,7 +59,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\PurchaseResource::class,
                 \App\Filament\Resources\ReservationResource::class,
             ])
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
+            // Registrar páginas explícitamente en lugar de descubrirlas automáticamente
             ->pages([
                 Pages\Dashboard::class,
                 \App\Filament\Pages\ReservationCalendar::class,
@@ -75,8 +77,13 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Ventas')
                     ->sort(1)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                        $user = Auth::user();
+                        // Ocultar para usuarios con rol delivery
+                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                            return false;
+                        }
+                        // Verificar si el usuario tiene el permiso específico
+                        return PermissionHelper::hasCustomAccess('access_pos');
                     }),
                 NavigationItem::make('Mapa de Mesas y Delivery')
                     ->url('/tables')
@@ -84,26 +91,30 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Ventas')
                     ->sort(2)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                        $user = Auth::user();
+                        // Ocultar para usuarios con rol delivery
+                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                            return false;
+                        }
+
+                        // Verificar si el usuario tiene el permiso específico
+                        return PermissionHelper::hasCustomAccess('access_tables');
                     }),
-                NavigationItem::make('Dashboard')
-                    ->url('/dashboard')
-                    ->icon('heroicon-o-chart-bar')
-                    ->group('Facturación')
-                    ->sort(1)
-                    ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
-                    }),
+
                 NavigationItem::make('Apertura de Caja')
                     ->url('/admin/resources/cash-registers')
                     ->icon('heroicon-o-calculator')
                     ->group('Facturación')
                     ->sort(2)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                        $user = Auth::user();
+                        // Ocultar para usuarios con rol delivery
+                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                            return false;
+                        }
+
+                        // Verificar si el usuario tiene el permiso específico
+                        return PermissionHelper::hasPermission('view_any_cash::register');
                     }),
 
                 // Grupo: Inventario
@@ -113,8 +124,14 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Inventario')
                     ->sort(1)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                        $user = Auth::user();
+                        // Ocultar para usuarios con rol delivery
+                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                            return false;
+                        }
+
+                        // Verificar si el usuario tiene el permiso específico
+                        return PermissionHelper::hasPermission('view_any_ingredient');
                     }),
                 NavigationItem::make('Recetas')
                     ->url('/admin/resources/recipes')
@@ -122,8 +139,14 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Inventario')
                     ->sort(2)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                        $user = Auth::user();
+                        // Ocultar para usuarios con rol delivery
+                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                            return false;
+                        }
+
+                        // Verificar si el usuario tiene el permiso específico
+                        return PermissionHelper::hasPermission('view_any_recipe');
                     }),
                 NavigationItem::make('Compras')
                     ->url('/admin/resources/purchases')
@@ -131,8 +154,14 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Inventario')
                     ->sort(3)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                        $user = Auth::user();
+                        // Ocultar para usuarios con rol delivery
+                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                            return false;
+                        }
+
+                        // Verificar si el usuario tiene el permiso específico
+                        return PermissionHelper::hasPermission('view_any_purchase');
                     }),
 
                 // Grupo: Delivery (solo para usuarios con rol delivery)
@@ -142,7 +171,7 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Delivery')
                     ->sort(1)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
+                        $user = Auth::user();
                         return $user && $user->roles->where('name', 'delivery')->count() > 0;
                     }),
                 NavigationItem::make('Mapa de Pedidos')
@@ -151,7 +180,7 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Delivery')
                     ->sort(2)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
+                        $user = Auth::user();
                         return $user && $user->roles->where('name', 'delivery')->count() > 0;
                     }),
 
@@ -162,8 +191,14 @@ class AdminPanelProvider extends PanelProvider
                     ->group('Ventas')
                     ->sort(3)
                     ->visible(function() {
-                        $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'delivery')->count() > 0);
+                        $user = Auth::user();
+                        // Ocultar para usuarios con rol delivery
+                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                            return false;
+                        }
+
+                        // Verificar si el usuario tiene el permiso específico
+                        return PermissionHelper::hasCustomAccess('access_delivery');
                     }),
             ])
             ->middleware([

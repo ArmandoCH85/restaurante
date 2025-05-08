@@ -48,4 +48,21 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Verificar si el usuario tiene un permiso específico
+     *
+     * @param string $permission
+     * @return bool
+     */
+    public function hasCustomPermission(string $permission): bool
+    {
+        // Si el usuario es super_admin, siempre tiene permiso
+        if ($this->hasRole('super_admin')) {
+            return true;
+        }
+
+        // Verificar si el usuario tiene el permiso
+        return $this->hasPermissionTo($permission);
+    }
 }

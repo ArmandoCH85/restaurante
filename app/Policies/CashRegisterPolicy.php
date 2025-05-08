@@ -3,10 +3,10 @@
 namespace App\Policies;
 
 use App\Models\User;
-use App\Models\DeliveryOrder;
+use App\Models\CashRegister;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class DeliveryOrderPolicy
+class CashRegisterPolicy
 {
     use HandlesAuthorization;
 
@@ -15,15 +15,15 @@ class DeliveryOrderPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_delivery::order');
+        return $user->can('view_any_cash::register');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, DeliveryOrder $deliveryOrder): bool
+    public function view(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('view_delivery::order');
+        return $user->can('view_cash::register');
     }
 
     /**
@@ -31,23 +31,23 @@ class DeliveryOrderPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_delivery::order');
+        return $user->can('create_cash::register');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, DeliveryOrder $deliveryOrder): bool
+    public function update(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('update_delivery::order');
+        return $user->can('update_cash::register');
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, DeliveryOrder $deliveryOrder): bool
+    public function delete(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('delete_delivery::order');
+        return $user->can('delete_cash::register');
     }
 
     /**
@@ -55,15 +55,15 @@ class DeliveryOrderPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_delivery::order');
+        return $user->can('delete_any_cash::register');
     }
 
     /**
      * Determine whether the user can permanently delete.
      */
-    public function forceDelete(User $user, DeliveryOrder $deliveryOrder): bool
+    public function forceDelete(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('force_delete_delivery::order');
+        return $user->can('force_delete_cash::register');
     }
 
     /**
@@ -71,15 +71,15 @@ class DeliveryOrderPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_delivery::order');
+        return $user->can('force_delete_any_cash::register');
     }
 
     /**
      * Determine whether the user can restore.
      */
-    public function restore(User $user, DeliveryOrder $deliveryOrder): bool
+    public function restore(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('restore_delivery::order');
+        return $user->can('restore_cash::register');
     }
 
     /**
@@ -87,15 +87,15 @@ class DeliveryOrderPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_delivery::order');
+        return $user->can('restore_any_cash::register');
     }
 
     /**
      * Determine whether the user can replicate.
      */
-    public function replicate(User $user, DeliveryOrder $deliveryOrder): bool
+    public function replicate(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('replicate_delivery::order');
+        return $user->can('replicate_cash::register');
     }
 
     /**
@@ -103,6 +103,6 @@ class DeliveryOrderPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_delivery::order');
+        return $user->can('reorder_cash::register');
     }
 }

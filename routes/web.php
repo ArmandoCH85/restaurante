@@ -6,7 +6,6 @@ use App\Livewire\TableMap\TableMapView;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ComprobanteController;
 
 Route::get('/', function () {
     // Redirección automática a /admin
@@ -19,20 +18,23 @@ Route::get('/delivery-redirect', [\App\Http\Controllers\DeliveryRedirectControll
     ->middleware(['auth']);
 
 // Rutas del sistema POS
-Route::get('/pos', [App\Http\Controllers\PosController::class, 'index'])->name('pos.index');
-Route::get('/pos/table/{table}', [PosController::class, 'showTable'])->name('pos.table');
+// Usar el middleware personalizado para verificar el permiso 'access_pos'
+Route::middleware(['auth', 'pos.access'])->group(function () {
+    Route::get('/pos', [App\Http\Controllers\PosController::class, 'index'])->name('pos.index');
+    Route::get('/pos/table/{table}', [PosController::class, 'showTable'])->name('pos.table');
 
-// Rutas para PDFs
-Route::get('/pos/command-pdf/{order}', [PosController::class, 'generateCommandPdf'])->name('pos.command.pdf');
-Route::get('/pos/prebill-pdf/{order}', [PosController::class, 'generatePreBillPdf'])->name('pos.prebill.pdf');
+    // Rutas para PDFs
+    Route::get('/pos/command-pdf/{order}', [PosController::class, 'generateCommandPdf'])->name('pos.command.pdf');
+    Route::get('/pos/prebill-pdf/{order}', [PosController::class, 'generatePreBillPdf'])->name('pos.prebill.pdf');
 
-// Nuevas rutas directas para generar y mostrar documentos
-Route::get('/pos/command/generate', [PosController::class, 'createAndShowCommand'])->name('pos.command.generate');
-Route::get('/pos/prebill/generate', [PosController::class, 'createAndShowPreBill'])->name('pos.prebill.generate');
-Route::get('/pos/invoice/generate', [PosController::class, 'createAndShowInvoiceForm'])->name('pos.invoice.create');
+    // Nuevas rutas directas para generar y mostrar documentos
+    Route::get('/pos/command/generate', [PosController::class, 'createAndShowCommand'])->name('pos.command.generate');
+    Route::get('/pos/prebill/generate', [PosController::class, 'createAndShowPreBill'])->name('pos.prebill.generate');
+    Route::get('/pos/invoice/generate', [PosController::class, 'createAndShowInvoiceForm'])->name('pos.invoice.create');
 
-// Ruta para crear orden desde JavaScript
-Route::post('/pos/create-order', [PosController::class, 'createOrderFromJS'])->name('pos.create-order');
+    // Ruta para crear orden desde JavaScript
+    Route::post('/pos/create-order', [PosController::class, 'createOrderFromJS'])->name('pos.create-order');
+});
 
 // Rutas para pagos
 Route::middleware(['auth'])->group(function () {
@@ -57,15 +59,18 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pos/unified/process/{order}', [\App\Http\Controllers\UnifiedPaymentController::class, 'processUnified'])->name('pos.unified.process');
 });
 
-// Rutas para anulación de comprobantes (legacy)
-Route::get('/pos/invoices', [PosController::class, 'invoicesList'])->name('pos.invoices.list');
-Route::get('/pos/invoice/void/{invoice}', [PosController::class, 'showVoidForm'])->name('pos.void.form');
-Route::post('/pos/invoice/void/{invoice}', [PosController::class, 'processVoid'])->name('pos.void.process');
-Route::get('/pos/invoice/void-success/{invoice}', [PosController::class, 'voidSuccess'])->name('pos.void.success');
+// Rutas para anulación de comprobantes (legacy) y gestión de clientes
+Route::middleware(['auth', 'pos.access'])->group(function () {
+    // Rutas para anulación de comprobantes
+    Route::get('/pos/invoices', [PosController::class, 'invoicesList'])->name('pos.invoices.list');
+    Route::get('/pos/invoice/void/{invoice}', [PosController::class, 'showVoidForm'])->name('pos.void.form');
+    Route::post('/pos/invoice/void/{invoice}', [PosController::class, 'processVoid'])->name('pos.void.process');
+    Route::get('/pos/invoice/void-success/{invoice}', [PosController::class, 'voidSuccess'])->name('pos.void.success');
 
-// Rutas para gestión de clientes
-Route::get('/pos/customers/find', [PosController::class, 'findCustomer'])->name('pos.customers.find');
-Route::post('/pos/customers/store', [PosController::class, 'storeCustomer'])->name('pos.customers.store');
+    // Rutas para gestión de clientes
+    Route::get('/pos/customers/find', [PosController::class, 'findCustomer'])->name('pos.customers.find');
+    Route::post('/pos/customers/store', [PosController::class, 'storeCustomer'])->name('pos.customers.store');
+});
 
 // Ruta de prueba para imágenes
 Route::get('/test-images', function() {
@@ -80,11 +85,15 @@ Route::get('/image-test', function() {
 });
 
 // Ruta del mapa de mesas y delivery
-Route::get('/tables', TableMapView::class)->name('tables.map');
+Route::get('/tables', TableMapView::class)
+    ->name('tables.map')
+    ->middleware(['auth', 'tables.access']);
 
 // Rutas para pedidos de delivery
-Route::get('/delivery/order/{orderId}', [\App\Http\Controllers\DeliveryOrderDetailsController::class, 'show'])->name('delivery.order.details');
-Route::put('/delivery/order/{deliveryOrderId}/update-status', [\App\Http\Controllers\DeliveryOrderDetailsController::class, 'updateStatus'])->name('delivery.update-status');
+Route::middleware(['auth', 'delivery.access'])->group(function () {
+    Route::get('/delivery/order/{orderId}', [\App\Http\Controllers\DeliveryOrderDetailsController::class, 'show'])->name('delivery.order.details');
+    Route::put('/delivery/order/{deliveryOrderId}/update-status', [\App\Http\Controllers\DeliveryOrderDetailsController::class, 'updateStatus'])->name('delivery.update-status');
+});
 
 // Nuevas rutas para gestión de delivery
 Route::middleware(['auth'])->group(function () {
@@ -108,7 +117,7 @@ Route::get('/admin/cash-register/{cashRegister}/print', [CashRegisterController:
     ->middleware(['auth']);
 
 // Rutas para mantenimiento de mesas
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'tables.maintenance.access'])->group(function () {
     Route::get('/tables/maintenance', [TableController::class, 'index'])->name('tables.maintenance');
     Route::get('/tables/create', [TableController::class, 'create'])->name('tables.create');
     Route::post('/tables', [TableController::class, 'store'])->name('tables.store');
@@ -116,7 +125,8 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/tables/{table}', [TableController::class, 'update'])->name('tables.update');
     Route::patch('/tables/{table}/update-status', [TableController::class, 'updateStatus'])->name('tables.update-status');
     Route::delete('/tables/{table}', [TableController::class, 'destroy'])->name('tables.destroy');
-    Route::post('/admin/facturacion/comprobantes', [ComprobanteController::class, 'store'])->name('comprobantes.store');
+    // Ruta para comprobantes (comentada hasta resolver el controlador)
+    // Route::post('/admin/facturacion/comprobantes', [ComprobanteController::class, 'store'])->name('comprobantes.store');
     // Ruta para el dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 });
