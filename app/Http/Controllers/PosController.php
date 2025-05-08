@@ -35,9 +35,7 @@ class PosController extends Controller
             $table = \App\Models\Table::find($tableId);
 
             if ($table) {
-                // No cambiar el estado de la mesa automáticamente
-                // La mesa solo debe cambiar a ocupada cuando tenga productos en el carrito
-
+                // Registrar información sobre la mesa que estamos cargando
                 Log::info('Cargando mesa desde el controlador sin cambiar estado', [
                     'table_id' => $tableId,
                     'table_number' => $table->number,
