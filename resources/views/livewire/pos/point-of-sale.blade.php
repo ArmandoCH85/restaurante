@@ -312,8 +312,8 @@
                 </div>
 
                 <!-- Botones principales con diseño compacto -->
-                <div class="grid grid-cols-3 gap-1 mb-2">
-                    <!-- Botón Comanda -->
+                <div class="grid {{ Auth::user()->hasRole('waiter') ? 'grid-cols-1' : 'grid-cols-3' }} gap-1 mb-2">
+                    <!-- Botón Comanda (siempre visible) -->
                     <button
                         onclick="abrirComanda()"
                         type="button"
@@ -324,7 +324,8 @@
                         <span class="text-xs font-medium">Comanda</span>
                     </button>
 
-                    <!-- Botón Pre-Cuenta -->
+                    @if(!Auth::user()->hasRole('waiter'))
+                    <!-- Botón Pre-Cuenta (no visible para meseros) -->
                     <button
                         onclick="abrirPreCuenta()"
                         type="button"
@@ -335,7 +336,7 @@
                         <span class="text-xs font-medium">Pre-Cuenta</span>
                     </button>
 
-                    <!-- Botón Facturar -->
+                    <!-- Botón Facturar (no visible para meseros) -->
                     <button
                         onclick="abrirFactura()"
                         type="button"
@@ -345,6 +346,7 @@
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /> </svg>
                         <span class="text-xs font-medium">Facturar</span>
                     </button>
+                    @endif
                 </div>
 
                 <!-- Botones de acciones adicionales (compactos) -->
@@ -375,7 +377,8 @@
                         </button>
                     @endif
 
-                    <!-- Botón Cancelar Pedido -->
+                    @if(!Auth::user()->hasRole('waiter'))
+                    <!-- Botón Cancelar Pedido (no visible para meseros) -->
                     <button
                         @if(count($cart) > 0)
                         onclick="if(confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.')) { @this.cancelOrder(); }"
@@ -387,9 +390,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /> </svg>
                         <span class="text-xs font-medium">Cancelar</span>
                     </button>
+                    @endif
 
-                    <!-- Botón Liberar Mesa (solo para consumo en tienda) -->
-                    @if($table && ($serviceType === 'dine_in' || !$serviceType))
+                    <!-- Botón Liberar Mesa (solo para consumo en tienda y no visible para meseros) -->
+                    @if($table && ($serviceType === 'dine_in' || !$serviceType) && !Auth::user()->hasRole('waiter'))
                     <button
                         onclick="if(confirm('¿Estás seguro de que deseas liberar esta mesa? Esta acción cambiará el estado de la mesa a disponible y cancelará cualquier orden asociada. Esta acción es solo para casos excepcionales cuando un cliente se va sin consumir.')) { @this.releaseTable(); }"
                         class="px-1 py-1.5 bg-orange-600 hover:bg-orange-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs"
