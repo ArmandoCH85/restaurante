@@ -17,6 +17,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\NavigationItem;
+use Solutionforest\FilamentLoginScreen\Filament\Pages\Auth\Themes\Theme1\LoginScreenPage as LoginScreenPage;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -27,7 +28,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(LoginScreenPage::class)
             ->homeUrl(function () {
                 $user = \Illuminate\Support\Facades\Auth::user();
 
@@ -40,6 +41,7 @@ class AdminPanelProvider extends PanelProvider
                 return '/admin';
             })
             ->sidebarFullyCollapsibleOnDesktop()
+            ->brandName('') // Ocultar el nombre de la aplicación
             ->colors([
                 'primary' => Color::Amber,
             ])
