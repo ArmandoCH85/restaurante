@@ -541,56 +541,73 @@ class Order extends Model
      */
     public function registerPayment(string $paymentMethod, float $amount, ?string $reference = null): Payment
     {
-        // Verificar si hay una caja abierta
-        $activeCashRegister = CashRegister::getOpenRegister();
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($paymentMethod, $amount, $reference) {
+            // Verificar si hay una caja abierta
+            $activeCashRegister = CashRegister::getOpenRegister();
 
-        // Validar requisitos según el método de pago
-        if ($paymentMethod === Payment::METHOD_CASH) {
-            // Para pagos en efectivo, es obligatorio tener una caja abierta
-            if (!$activeCashRegister) {
+            // Validar requisitos según el método de pago
+            if ($paymentMethod === Payment::METHOD_CASH && !$activeCashRegister) {
                 throw new \Exception('No hay una caja abierta para registrar pagos en efectivo. Por favor, abra una caja primero.');
             }
-        } elseif (in_array($paymentMethod, [Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])) {
-            // Para pagos con tarjeta, intentar asociar a la caja si existe
-            // pero no es obligatorio tener una caja abierta
-            \Illuminate\Support\Facades\Log::info('Pago con tarjeta registrado', [
-                'order_id' => $this->id,
-                'payment_method' => $paymentMethod,
-                'amount' => $amount,
-                'has_active_register' => $activeCashRegister ? 'Sí' : 'No'
-            ]);
-        } else {
-            // Para otros métodos (transferencias, billeteras digitales), mismo comportamiento
-            \Illuminate\Support\Facades\Log::info('Pago con otro método registrado', [
-                'order_id' => $this->id,
-                'payment_method' => $paymentMethod,
-                'amount' => $amount,
-                'has_active_register' => $activeCashRegister ? 'Sí' : 'No'
-            ]);
-        }
 
-        // Crear el registro de pago
-        $payment = new Payment([
+            // Crear el registro de pago
+            $payment = new Payment([
+                'order_id' => $this->id,
+                'cash_register_id' => $activeCashRegister ? $activeCashRegister->id : null,
+                'payment_method' => $paymentMethod,
+                'amount' => $amount,
+                'reference_number' => $reference,
+                'payment_datetime' => now(),
+                'received_by' => \Illuminate\Support\Facades\Auth::id(),
+            ]);
+
+            $payment->save();
+
+            // Actualizar los totales de la caja según el método de pago
+            if ($activeCashRegister) {
+                $activeCashRegister->registerSale($paymentMethod, $amount);
+            }
+
+            // Registrar en el log según el método de pago
+            $this->logPaymentRegistration($payment, $activeCashRegister);
+
+            // Emitir evento para que los listeners puedan actualizar otros componentes
+            event(new \App\Events\PaymentRegistered($payment));
+
+            return $payment;
+        });
+    }
+
+    /**
+     * Registra en el log la información del pago.
+     *
+     * @param Payment $payment El pago registrado
+     * @param CashRegister|null $cashRegister La caja registradora asociada
+     * @return void
+     */
+    private function logPaymentRegistration(Payment $payment, ?CashRegister $cashRegister): void
+    {
+        $logContext = [
             'order_id' => $this->id,
-            'cash_register_id' => $activeCashRegister ? $activeCashRegister->id : null,
-            'payment_method' => $paymentMethod,
-            'amount' => $amount,
-            'reference_number' => $reference,
-            'payment_datetime' => now(),
-            'received_by' => \Illuminate\Support\Facades\Auth::id(),
-        ]);
+            'payment_id' => $payment->id,
+            'payment_method' => $payment->payment_method,
+            'amount' => $payment->amount,
+            'has_active_register' => $cashRegister ? 'Sí' : 'No'
+        ];
 
-        $payment->save();
-
-        // Actualizar los totales de la caja según el método de pago
-        if ($activeCashRegister) {
-            $activeCashRegister->registerSale($paymentMethod, $amount);
+        if ($cashRegister) {
+            $logContext['cash_register_id'] = $cashRegister->id;
         }
 
-        // Emitir evento para que los listeners puedan actualizar otros componentes
-        event(new \App\Events\PaymentRegistered($payment));
+        $methodName = match($payment->payment_method) {
+            Payment::METHOD_CASH => 'efectivo',
+            Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD => 'tarjeta',
+            Payment::METHOD_DIGITAL_WALLET => 'billetera digital',
+            Payment::METHOD_BANK_TRANSFER => 'transferencia bancaria',
+            default => $payment->payment_method
+        };
 
-        return $payment;
+        \Illuminate\Support\Facades\Log::info("Pago con {$methodName} registrado", $logContext);
     }
 
     /**

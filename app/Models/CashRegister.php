@@ -292,16 +292,23 @@ class CashRegister extends Model
      */
     public function registerSale(string $paymentMethod, float $amount): bool
     {
-        $this->updateSalesByPaymentMethod($paymentMethod, $amount);
-        $this->updateTotalSales();
+        return DB::transaction(function () use ($paymentMethod, $amount) {
+            // Actualizar los totales según el método de pago
+            $this->updateSalesByPaymentMethod($paymentMethod, $amount);
 
-        $saved = $this->save();
+            // Actualizar el total general
+            $this->updateTotalSales();
 
-        if ($saved) {
-            $this->logSaleRegistration($paymentMethod, $amount);
-        }
+            // Guardar los cambios
+            $saved = $this->save();
 
-        return $saved;
+            // Registrar en el log si se guardó correctamente
+            if ($saved) {
+                $this->logSaleRegistration($paymentMethod, $amount);
+            }
+
+            return $saved;
+        });
     }
 
     /**
@@ -313,13 +320,12 @@ class CashRegister extends Model
      */
     private function updateSalesByPaymentMethod(string $paymentMethod, float $amount): void
     {
-        if ($paymentMethod === Payment::METHOD_CASH) {
-            $this->cash_sales = $this->cash_sales + $amount;
-        } elseif (in_array($paymentMethod, [Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])) {
-            $this->card_sales = $this->card_sales + $amount;
-        } else {
-            $this->other_sales = $this->other_sales + $amount;
-        }
+        // Usar match para un código más limpio y mantenible
+        match($paymentMethod) {
+            Payment::METHOD_CASH => $this->cash_sales += $amount,
+            Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD => $this->card_sales += $amount,
+            default => $this->other_sales += $amount
+        };
     }
 
     /**
@@ -341,11 +347,23 @@ class CashRegister extends Model
      */
     private function logSaleRegistration(string $paymentMethod, float $amount): void
     {
-        Log::info('Venta registrada en caja', [
+        $methodName = match($paymentMethod) {
+            Payment::METHOD_CASH => 'efectivo',
+            Payment::METHOD_CREDIT_CARD => 'tarjeta de crédito',
+            Payment::METHOD_DEBIT_CARD => 'tarjeta de débito',
+            Payment::METHOD_DIGITAL_WALLET => 'billetera digital',
+            Payment::METHOD_BANK_TRANSFER => 'transferencia bancaria',
+            default => $paymentMethod
+        };
+
+        Log::info("Venta de S/ {$amount} registrada en caja con {$methodName}", [
             'cash_register_id' => $this->id,
             'payment_method' => $paymentMethod,
             'amount' => $amount,
             'user_id' => Auth::id(),
+            'cash_sales' => $this->cash_sales,
+            'card_sales' => $this->card_sales,
+            'other_sales' => $this->other_sales,
             'total_sales' => $this->total_sales
         ]);
     }
