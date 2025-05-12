@@ -28,6 +28,7 @@ class FloorResource extends Resource
     protected static ?string $pluralModelLabel = 'Pisos';
 
     protected static ?int $navigationSort = 0;
+    #Comentario agregado
 
     public static function form(Form $form): Form
     {
