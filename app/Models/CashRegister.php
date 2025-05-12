@@ -6,7 +6,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
+/**
+ * Modelo CashRegister para gestión de cajas registradoras
+ *
+ * Este modelo gestiona la apertura y cierre de cajas registradoras,
+ * así como el registro de ventas por método de pago.
+ */
 class CashRegister extends Model
 {
     use HasFactory;
@@ -19,14 +28,18 @@ class CashRegister extends Model
     protected $fillable = [
         'opened_by',
         'closed_by',
+        'approved_by',
         'opening_amount',
         'expected_amount',
         'actual_amount',
         'difference',
         'opening_datetime',
         'closing_datetime',
+        'approval_datetime',
         'observations',
         'is_active',
+        'is_approved',
+        'approval_notes',
         'cash_sales',
         'card_sales',
         'other_sales',
@@ -49,14 +62,14 @@ class CashRegister extends Model
         'total_sales' => 'decimal:2',
         'opening_datetime' => 'datetime',
         'closing_datetime' => 'datetime',
+        'approval_datetime' => 'datetime',
         'is_active' => 'boolean',
+        'is_approved' => 'boolean',
     ];
 
-    /**
-     * Estados de la caja
-     */
-    const STATUS_OPEN = 1; // is_active = true
-    const STATUS_CLOSED = 0; // is_active = false
+    // Constantes para estados de caja
+    const STATUS_OPEN = 1;
+    const STATUS_CLOSED = 0;
 
     /**
      * Obtiene el usuario que abrió la caja.
@@ -75,7 +88,15 @@ class CashRegister extends Model
     }
 
     /**
-     * Obtiene los pagos asociados a este cierre de caja.
+     * Obtiene el usuario que aprobó el cierre de caja.
+     */
+    public function approvedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    /**
+     * Obtiene los pagos asociados a esta caja.
      */
     public function payments(): HasMany
     {
@@ -83,40 +104,401 @@ class CashRegister extends Model
     }
 
     /**
-     * Verifica si la caja está abierta.
+     * Verifica si existe una caja abierta.
+     *
+     * @return CashRegister|null
      */
-    public function isOpen(): bool
+    public static function getOpenRegister(): ?CashRegister
     {
-        return $this->is_active === self::STATUS_OPEN;
+        // Usar una transacción para evitar condiciones de carrera
+        return DB::transaction(function () {
+            return self::where('is_active', self::STATUS_OPEN)
+                ->first();
+        });
     }
 
     /**
-     * Verifica si la caja está cerrada.
+     * Verifica si existe una caja abierta.
+     *
+     * @return bool
      */
-    public function isClosed(): bool
+    public static function hasOpenRegister(): bool
     {
-        return $this->is_active === self::STATUS_CLOSED;
+        // Usar una transacción para evitar condiciones de carrera
+        return DB::transaction(function () {
+            return self::where('is_active', self::STATUS_OPEN)
+                ->exists();
+        });
+    }
+
+    /**
+     * Abre una nueva caja registradora.
+     *
+     * @param float $openingAmount Monto inicial
+     * @param string|null $observations Observaciones
+     * @return CashRegister
+     * @throws \Exception Si ya existe una caja abierta
+     */
+    public static function openRegister(float $openingAmount, ?string $observations = null): CashRegister
+    {
+        return DB::transaction(function () use ($openingAmount, $observations) {
+            // Verificar si ya existe una caja abierta (doble verificación)
+            self::validateNoOpenRegisters($openingAmount);
+
+            // Crear la caja
+            $cashRegister = self::createNewRegister($openingAmount, $observations);
+
+            // Registrar en el log
+            self::logRegisterOpening($cashRegister, $openingAmount);
+
+            return $cashRegister;
+        });
+    }
+
+    /**
+     * Valida que no existan cajas abiertas.
+     *
+     * @param float $openingAmount Para registro en log
+     * @throws \Exception Si ya existe una caja abierta
+     * @return void
+     */
+    private static function validateNoOpenRegisters(float $openingAmount): void
+    {
+        if (self::where('is_active', self::STATUS_OPEN)->exists()) {
+            Log::warning('Intento de abrir una caja cuando ya existe una abierta', [
+                'user_id' => Auth::id(),
+                'user_name' => Auth::user()->name,
+                'opening_amount' => $openingAmount
+            ]);
+            throw new \Exception('Ya existe una caja abierta. No se puede abrir otra.');
+        }
+    }
+
+    /**
+     * Crea un nuevo registro de caja.
+     *
+     * @param float $openingAmount Monto inicial
+     * @param string|null $observations Observaciones
+     * @return CashRegister
+     */
+    private static function createNewRegister(float $openingAmount, ?string $observations): CashRegister
+    {
+        return self::create([
+            'opened_by' => Auth::id(),
+            'opening_amount' => $openingAmount,
+            'opening_datetime' => now(),
+            'observations' => $observations,
+            'is_active' => self::STATUS_OPEN,
+            'cash_sales' => 0,
+            'card_sales' => 0,
+            'other_sales' => 0,
+            'total_sales' => 0,
+        ]);
+    }
+
+    /**
+     * Registra en el log la apertura de caja.
+     *
+     * @param CashRegister $cashRegister Caja registradora
+     * @param float $openingAmount Monto inicial
+     * @return void
+     */
+    private static function logRegisterOpening(CashRegister $cashRegister, float $openingAmount): void
+    {
+        Log::info('Caja registradora abierta', [
+            'cash_register_id' => $cashRegister->id,
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()->name,
+            'opening_amount' => $openingAmount,
+            'opening_datetime' => $cashRegister->opening_datetime
+        ]);
     }
 
     /**
      * Cierra la caja registradora.
+     *
+     * @param array $data Datos del cierre
+     * @return bool
      */
     public function close(array $data): bool
     {
-        $this->closed_by = $data['closed_by'];
-        $this->actual_amount = $data['actual_cash'];
-        $this->expected_amount = $data['expected_cash'];
-        $this->difference = $data['difference'];
-        $this->closing_datetime = now();
-        $this->observations = $data['notes'] ?? null;
+        $this->setClosingData($data);
+        $this->updateObservations($data);
         $this->is_active = self::STATUS_CLOSED;
 
-        // Agregar nuevos campos de ventas
-        $this->cash_sales = $data['cash_sales'] ?? 0;
-        $this->card_sales = $data['card_sales'] ?? 0;
-        $this->other_sales = $data['other_sales'] ?? 0;
-        $this->total_sales = $data['total_sales'] ?? 0;
+        $saved = $this->save();
 
-        return $this->save();
+        if ($saved) {
+            $this->logRegisterClosing();
+        }
+
+        return $saved;
+    }
+
+    /**
+     * Establece los datos de cierre.
+     *
+     * @param array $data Datos del cierre
+     * @return void
+     */
+    private function setClosingData(array $data): void
+    {
+        $this->closed_by = Auth::id();
+        $this->actual_amount = $data['actual_cash'] ?? 0;
+        $this->expected_amount = $data['expected_cash'] ?? 0;
+        $this->difference = $data['difference'] ?? 0;
+        $this->closing_datetime = now();
+    }
+
+    /**
+     * Actualiza las observaciones con las notas de cierre.
+     *
+     * @param array $data Datos del cierre
+     * @return void
+     */
+    private function updateObservations(array $data): void
+    {
+        if (isset($data['notes'])) {
+            $this->observations = $this->observations
+                ? $this->observations . "\n" . $data['notes']
+                : $data['notes'];
+        }
+    }
+
+    /**
+     * Registra en el log el cierre de caja.
+     *
+     * @return void
+     */
+    private function logRegisterClosing(): void
+    {
+        Log::info('Caja registradora cerrada', [
+            'cash_register_id' => $this->id,
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()->name,
+            'actual_amount' => $this->actual_amount,
+            'expected_amount' => $this->expected_amount,
+            'difference' => $this->difference,
+            'closing_datetime' => $this->closing_datetime
+        ]);
+    }
+
+    /**
+     * Registra una venta en la caja según el método de pago.
+     *
+     * @param string $paymentMethod Método de pago
+     * @param float $amount Monto
+     * @return bool
+     */
+    public function registerSale(string $paymentMethod, float $amount): bool
+    {
+        $this->updateSalesByPaymentMethod($paymentMethod, $amount);
+        $this->updateTotalSales();
+
+        $saved = $this->save();
+
+        if ($saved) {
+            $this->logSaleRegistration($paymentMethod, $amount);
+        }
+
+        return $saved;
+    }
+
+    /**
+     * Actualiza los totales de ventas según el método de pago.
+     *
+     * @param string $paymentMethod Método de pago
+     * @param float $amount Monto
+     * @return void
+     */
+    private function updateSalesByPaymentMethod(string $paymentMethod, float $amount): void
+    {
+        if ($paymentMethod === Payment::METHOD_CASH) {
+            $this->cash_sales = $this->cash_sales + $amount;
+        } elseif (in_array($paymentMethod, [Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])) {
+            $this->card_sales = $this->card_sales + $amount;
+        } else {
+            $this->other_sales = $this->other_sales + $amount;
+        }
+    }
+
+    /**
+     * Actualiza el total de ventas.
+     *
+     * @return void
+     */
+    private function updateTotalSales(): void
+    {
+        $this->total_sales = $this->cash_sales + $this->card_sales + $this->other_sales;
+    }
+
+    /**
+     * Registra en el log la venta.
+     *
+     * @param string $paymentMethod Método de pago
+     * @param float $amount Monto
+     * @return void
+     */
+    private function logSaleRegistration(string $paymentMethod, float $amount): void
+    {
+        Log::info('Venta registrada en caja', [
+            'cash_register_id' => $this->id,
+            'payment_method' => $paymentMethod,
+            'amount' => $amount,
+            'user_id' => Auth::id(),
+            'total_sales' => $this->total_sales
+        ]);
+    }
+
+    /**
+     * Calcula el monto esperado en efectivo al cierre.
+     *
+     * @return float
+     */
+    public function calculateExpectedCash(): float
+    {
+        return $this->opening_amount + $this->cash_sales;
+    }
+
+    /**
+     * Realiza la reconciliación final de la caja.
+     *
+     * @param bool $isApproved Si la caja es aprobada
+     * @param string|null $notes Notas de aprobación
+     * @param int|null $approvedBy ID del usuario que aprueba (si no se proporciona, se usa el usuario autenticado)
+     * @return bool
+     * @throws \Exception Si la caja está abierta o ya está aprobada
+     */
+    public function reconcile(bool $isApproved, ?string $notes = null, ?int $approvedBy = null): bool
+    {
+        $this->validateCanBeReconciled();
+        $this->setReconciliationData($isApproved, $notes, $approvedBy);
+
+        $saved = $this->save();
+
+        if ($saved) {
+            $this->logReconciliation($isApproved, $notes);
+        }
+
+        return $saved;
+    }
+
+    /**
+     * Valida que la caja pueda ser reconciliada.
+     *
+     * @throws \Exception Si la caja no puede ser reconciliada
+     * @return void
+     */
+    private function validateCanBeReconciled(): void
+    {
+        // Verificar que la caja esté cerrada
+        if ($this->is_active) {
+            throw new \Exception('No se puede reconciliar una caja abierta. Cierre la caja primero.');
+        }
+
+        // Verificar que la caja no esté ya aprobada
+        if ($this->is_approved) {
+            throw new \Exception('Esta caja ya ha sido reconciliada y aprobada.');
+        }
+    }
+
+    /**
+     * Establece los datos de reconciliación.
+     *
+     * @param bool $isApproved Si la caja es aprobada
+     * @param string|null $notes Notas de aprobación
+     * @param int|null $approvedBy ID del usuario que aprueba
+     * @return void
+     */
+    private function setReconciliationData(bool $isApproved, ?string $notes, ?int $approvedBy): void
+    {
+        $this->is_approved = $isApproved;
+        $this->approval_notes = $notes;
+        $this->approved_by = $approvedBy ?? Auth::id();
+        $this->approval_datetime = now();
+    }
+
+    /**
+     * Registra en el log la reconciliación.
+     *
+     * @param bool $isApproved Si la caja fue aprobada
+     * @param string|null $notes Notas de aprobación
+     * @return void
+     */
+    private function logReconciliation(bool $isApproved, ?string $notes): void
+    {
+        Log::info('Caja reconciliada', [
+            'cash_register_id' => $this->id,
+            'approved' => $isApproved,
+            'difference' => $this->difference,
+            'approved_by' => $this->approved_by,
+            'notes' => $notes
+        ]);
+    }
+
+    /**
+     * Obtiene el estado de la caja en formato legible.
+     *
+     * @return string
+     */
+    public function getStatusAttribute(): string
+    {
+        return $this->is_active ? 'Abierta' : 'Cerrada';
+    }
+
+    /**
+     * Obtiene el color del estado para mostrar en la interfaz.
+     *
+     * @return string
+     */
+    public function getStatusColorAttribute(): string
+    {
+        return $this->is_active ? 'success' : 'danger';
+    }
+
+    /**
+     * Obtiene el estado de reconciliación en formato legible.
+     *
+     * @return string
+     */
+    public function getReconciliationStatusAttribute(): string
+    {
+        if ($this->is_active) {
+            return 'Pendiente de cierre';
+        }
+
+        if ($this->is_approved) {
+            return 'Aprobada';
+        }
+
+        // Si tiene notas de aprobación pero no está aprobada, fue rechazada
+        if (!$this->is_approved && $this->approval_notes && $this->approval_datetime) {
+            return 'Rechazada';
+        }
+
+        return 'Pendiente de reconciliación';
+    }
+
+    /**
+     * Obtiene el color del estado de reconciliación para mostrar en la interfaz.
+     *
+     * @return string
+     */
+    public function getReconciliationStatusColorAttribute(): string
+    {
+        if ($this->is_active) {
+            return 'info';
+        }
+
+        if ($this->is_approved) {
+            return 'success';
+        }
+
+        // Si tiene notas de aprobación pero no está aprobada, fue rechazada
+        if (!$this->is_approved && $this->approval_notes && $this->approval_datetime) {
+            return 'danger';
+        }
+
+        return 'warning';
     }
 }

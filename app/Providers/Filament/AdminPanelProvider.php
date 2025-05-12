@@ -52,7 +52,6 @@ class AdminPanelProvider extends PanelProvider
             ->resources([
                 \App\Filament\Resources\DocumentSeriesResource::class,
                 \App\Filament\Resources\InvoiceResource::class,
-                \App\Filament\Resources\CashRegisterResource::class,
                 \App\Filament\Resources\TableResource::class,
                 \App\Filament\Resources\IngredientResource::class,
                 \App\Filament\Resources\RecipeResource::class,
@@ -101,21 +100,7 @@ class AdminPanelProvider extends PanelProvider
                         return PermissionHelper::hasCustomAccess('access_tables');
                     }),
 
-                NavigationItem::make('Apertura de Caja')
-                    ->url('/admin/resources/cash-registers')
-                    ->icon('heroicon-o-calculator')
-                    ->group('Facturación')
-                    ->sort(2)
-                    ->visible(function() {
-                        $user = Auth::user();
-                        // Ocultar para usuarios con rol delivery
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
 
-                        // Verificar si el usuario tiene el permiso específico
-                        return PermissionHelper::hasPermission('view_any_cash::register');
-                    }),
 
                 // Grupo: Inventario
                 NavigationItem::make('Ingredientes')
@@ -200,6 +185,8 @@ class AdminPanelProvider extends PanelProvider
                         // Verificar si el usuario tiene el permiso específico
                         return PermissionHelper::hasCustomAccess('access_delivery');
                     }),
+
+
             ])
             ->middleware([
                 EncryptCookies::class,

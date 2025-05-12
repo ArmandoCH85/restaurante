@@ -1,5 +1,5 @@
 Route::middleware('auth:sanctum')->get('/current-cash-register', function () {
-    $cashRegister = \App\Models\CashRegister::where('status', 'open')->first();
+    $cashRegister = \App\Models\CashRegister::getOpenRegister();
 
     if ($cashRegister) {
         return response()->json([

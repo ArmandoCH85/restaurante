@@ -23,9 +23,6 @@ class Payment extends Model
         'reference_number',
         'payment_datetime',
         'received_by',
-        'voided_at',
-        'voided_by',
-        'void_reason',
     ];
 
     /**
@@ -36,7 +33,6 @@ class Payment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'payment_datetime' => 'datetime',
-        'voided_at' => 'datetime',
     ];
 
     /**
@@ -90,26 +86,12 @@ class Payment extends Model
     }
 
     /**
-     * Obtiene el usuario que anuló el pago.
-     */
-    public function voidedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'voided_by');
-    }
-
-    /**
-     * Verifica si el pago está anulado.
-     */
-    public function isVoided(): bool
-    {
-        return $this->voided_at !== null;
-    }
-
-    /**
      * Obtiene la caja registradora asociada al pago.
      */
     public function cashRegister(): BelongsTo
     {
         return $this->belongsTo(CashRegister::class);
     }
+
+
 }
