@@ -10,7 +10,7 @@
         <img src="{{ asset('images/restaurantefinal.png') }}" alt="Restaurante" class="w-full h-full object-cover object-center">
         <h2 class="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-2xl font-bold text-gray-800 bg-white/80 px-4 py-2 rounded"></h2>
     </div>
-    <!-- Right Pane - Formulario varios de ancho -->
+    <!-- Right Pane - Formulario varios de ancho y varios -->
     <div class="bg-gray-100 w-full lg:w-1/2 flex items-center justify-center h-full">
         <div class="w-full max-w-2xl px-10 py-8">
             <section class="grid auto-cols-fr gap-y-6">
