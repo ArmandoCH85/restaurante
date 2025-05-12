@@ -1,5 +1,5 @@
 <div>
-    <!-- Cargar el CSS mejorado -->
+    <!-- Cargar el CSS mejorado  -->
     <link rel="stylesheet" href="{{ asset('css/table-map-improved.css') }}?v={{ time() }}">
 
     <div class="table-map-container">
