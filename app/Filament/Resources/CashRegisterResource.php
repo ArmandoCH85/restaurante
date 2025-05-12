@@ -1,7 +1,4 @@
-<<<<<<< HEAD
-=======
 
->>>>>>> fdc74c3 (fix cashier)
 <?php
 
 namespace App\Filament\Resources;
