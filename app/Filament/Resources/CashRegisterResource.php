@@ -1,5 +1,4 @@
-
-q<?php
+<?php
 
 namespace App\Filament\Resources;
 
