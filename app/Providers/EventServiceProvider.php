@@ -3,7 +3,11 @@
 namespace App\Providers;
 
 use App\Events\DeliveryStatusChanged;
+use App\Events\PaymentRegistered;
+use App\Events\PaymentVoided;
 use App\Listeners\SendDeliveryStatusNotification;
+use App\Listeners\UpdateCashRegisterTotals;
+use App\Listeners\UpdateCashRegisterForVoidedPayment;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -22,6 +26,12 @@ class EventServiceProvider extends ServiceProvider
         ],
         DeliveryStatusChanged::class => [
             SendDeliveryStatusNotification::class,
+        ],
+        PaymentRegistered::class => [
+            UpdateCashRegisterTotals::class,
+        ],
+        PaymentVoided::class => [
+            UpdateCashRegisterForVoidedPayment::class,
         ],
     ];
 

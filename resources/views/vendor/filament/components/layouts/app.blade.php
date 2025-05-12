@@ -113,7 +113,6 @@
 
         @stack('scripts')
 
-        <!-- Scripts personalizados -->
-        <script src="{{ asset('js/cash-register-modal.js') }}"></script>
+
     </body>
 </html>

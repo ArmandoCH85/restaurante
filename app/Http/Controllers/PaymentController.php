@@ -74,17 +74,34 @@ class PaymentController extends Controller
 
             // Anular el pago
             $payment->void_reason = 'Anulado por ' . Auth::user()->name;
-            $payment->voided_at = now();
-            $payment->voided_by = Auth::id();
+            // Nota: Los campos voided_at y voided_by no existen en la tabla
+            // $payment->voided_at = now();
+            // $payment->voided_by = Auth::id();
             $payment->save();
 
-            // Si el pago era en efectivo, actualizar la caja
-            if ($payment->payment_method === Payment::METHOD_CASH && $payment->cash_register_id) {
+            // Actualizar la caja según el método de pago
+            if ($payment->cash_register_id) {
                 $cashRegister = CashRegister::find($payment->cash_register_id);
-                if ($cashRegister) {
-                    $cashRegister->cash_sales -= $payment->amount;
-                    $cashRegister->total_sales -= $payment->amount;
+                if ($cashRegister && $cashRegister->is_active) {
+                    // Restar el monto según el método de pago
+                    if ($payment->payment_method === Payment::METHOD_CASH) {
+                        $cashRegister->cash_sales -= $payment->amount;
+                    } elseif (in_array($payment->payment_method, [Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])) {
+                        $cashRegister->card_sales -= $payment->amount;
+                    } else {
+                        $cashRegister->other_sales -= $payment->amount;
+                    }
+
+                    // Actualizar el total de ventas
+                    $cashRegister->total_sales = $cashRegister->cash_sales + $cashRegister->card_sales + $cashRegister->other_sales;
                     $cashRegister->save();
+
+                    Log::info('Caja actualizada por anulación de pago', [
+                        'payment_id' => $payment->id,
+                        'cash_register_id' => $cashRegister->id,
+                        'amount' => $payment->amount,
+                        'payment_method' => $payment->payment_method
+                    ]);
                 }
             }
 
