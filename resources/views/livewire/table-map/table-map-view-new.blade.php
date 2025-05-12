@@ -234,160 +234,6 @@
                         $groupedTables = $this->getGroupedTables();
                     @endphp
 
-                    <!-- Pedidos de Delivery -->
-                    @if(true) {{-- Forzar visualización de la sección de delivery --}}
-                        <div class="delivery-section">
-                            <div class="delivery-header">
-                                <h2 class="delivery-title">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                                    </svg>
-                                    Pedidos de Delivery ({{ $deliveryOrders->count() }})
-                                </h2>
-
-                                <div class="flex items-center space-x-2">
-                                    <span class="delivery-status-badge pending">
-                                        {{ $deliveryOrders->where('status', 'pending')->count() }} Pendientes
-                                    </span>
-                                    <span class="delivery-status-badge assigned">
-                                        {{ $deliveryOrders->where('status', 'assigned')->count() }} Asignados
-                                    </span>
-                                    <span class="delivery-status-badge in-transit">
-                                        {{ $deliveryOrders->where('status', 'in_transit')->count() }} En tránsito
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="location-section">
-                                <div class="location-header">
-                                    <div class="flex items-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        Pedidos Activos
-                                    </div>
-                                    <a href="{{ route('pos.index', ['serviceType' => 'delivery']) }}" class="delivery-action-button">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="delivery-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                        </svg>
-                                        Nuevo Pedido Delivery
-                                    </a>
-                                </div>
-
-                                <div class="delivery-grid">
-                                    @if($deliveryOrders->isEmpty())
-                                        <div class="p-8 text-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                                            </svg>
-                                            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No hay pedidos de delivery activos</h3>
-                                            <p class="text-gray-500 dark:text-gray-400 mb-4">Crea un nuevo pedido de delivery para que aparezca aquí.</p>
-                                            <a href="{{ route('pos.index', ['serviceType' => 'delivery']) }}" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                                </svg>
-                                                Crear Pedido de Delivery
-                                            </a>
-                                        </div>
-                                    @else
-                                        @foreach($deliveryOrders as $delivery)
-                                        @php
-                                            $statusInfo = $this->getDeliveryStatusInfo($delivery->status);
-                                        @endphp
-                                        <div class="table-container">
-                                            <div class="delivery-card {{ $delivery->status }}">
-                                                <!-- Cabecera con número y estado -->
-                                                <div class="delivery-header-container">
-                                                    <div class="delivery-header-content">
-                                                        <h3 class="flex items-center">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                                                            </svg>
-                                                            Pedido #{{ $delivery->order_id }}
-                                                        </h3>
-                                                        <span class="delivery-status-badge {{ $delivery->status }}">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="status-icon">
-                                                                <circle cx="12" cy="12" r="4" fill="currentColor" />
-                                                            </svg>
-                                                            {{ $statusInfo['text'] }}
-                                                        </span>
-                                                    </div>
-                                                    <p class="delivery-time">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                                        </svg>
-                                                        {{ $delivery->order->customer->name ?? 'Sin cliente' }}
-                                                    </p>
-                                                </div>
-
-                                                <!-- Contenido del pedido -->
-                                                <div class="delivery-content">
-                                                    <div class="delivery-info">
-                                                        <div class="delivery-info-item">
-                                                            <span class="delivery-info-label">Dirección:</span>
-                                                            <span class="delivery-info-value">{{ $delivery->delivery_address }}</span>
-                                                        </div>
-
-                                                        @if($delivery->deliveryPerson)
-                                                            <div class="delivery-info-item">
-                                                                <span class="delivery-info-label">Repartidor:</span>
-                                                                <span class="delivery-info-value">{{ $delivery->deliveryPerson->full_name }}</span>
-                                                            </div>
-                                                        @endif
-
-                                                        @if($delivery->estimated_delivery_time)
-                                                            <div class="delivery-info-item">
-                                                                <span class="delivery-info-label">Entrega est.:</span>
-                                                                <span class="delivery-info-value">{{ $delivery->estimated_delivery_time->format('H:i') }}</span>
-                                                            </div>
-                                                        @endif
-
-                                                        <div class="delivery-info-item">
-                                                            <span class="delivery-info-label">Creado:</span>
-                                                            <span class="delivery-info-value">{{ $delivery->created_at->diffForHumans() }}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mt-2">
-                                                        <a href="{{ route('pos.index', ['order_id' => $delivery->order_id, 'preserve_cart' => 'true']) }}" class="delivery-action-button">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="delivery-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                            </svg>
-                                                            Ver Detalles
-                                                        </a>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Acciones de delivery -->
-                                                <div class="delivery-actions">
-                                                    <select class="delivery-status-select" wire:change="updateDeliveryStatus({{ $delivery->id }}, $event.target.value)">
-                                                        <option value="" disabled selected>Cambiar estado</option>
-                                                        @if($delivery->status === 'pending')
-                                                            <option value="assigned">Asignar repartidor</option>
-                                                            <option value="cancelled">Cancelar pedido</option>
-                                                        @elseif($delivery->status === 'assigned')
-                                                            <option value="in_transit">Marcar en tránsito</option>
-                                                            <option value="cancelled">Cancelar pedido</option>
-                                                        @elseif($delivery->status === 'in_transit')
-                                                            <option value="delivered">Marcar como entregado</option>
-                                                            <option value="cancelled">Cancelar pedido</option>
-                                                        @endif
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                    @endif
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
                     <!-- Mesas Físicas -->
                     @foreach($groupedTables as $floorId => $floorTables)
                         <div class="floor-section">
@@ -565,6 +411,160 @@
                             @endforeach
                         </div>
                     @endforeach
+
+                    <!-- Pedidos de Delivery -->
+                    @if(true) {{-- Forzar visualización de la sección de delivery --}}
+                        <div class="delivery-section">
+                            <div class="delivery-header">
+                                <h2 class="delivery-title">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                    </svg>
+                                    Pedidos de Delivery ({{ $deliveryOrders->count() }})
+                                </h2>
+
+                                <div class="flex items-center space-x-2">
+                                    <span class="delivery-status-badge pending">
+                                        {{ $deliveryOrders->where('status', 'pending')->count() }} Pendientes
+                                    </span>
+                                    <span class="delivery-status-badge assigned">
+                                        {{ $deliveryOrders->where('status', 'assigned')->count() }} Asignados
+                                    </span>
+                                    <span class="delivery-status-badge in-transit">
+                                        {{ $deliveryOrders->where('status', 'in_transit')->count() }} En tránsito
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="location-section">
+                                <div class="location-header">
+                                    <div class="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        Pedidos Activos
+                                    </div>
+                                    <a href="{{ route('pos.index', ['serviceType' => 'delivery']) }}" class="delivery-action-button">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="delivery-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                        </svg>
+                                        Nuevo Pedido Delivery
+                                    </a>
+                                </div>
+
+                                <div class="delivery-grid">
+                                    @if($deliveryOrders->isEmpty())
+                                        <div class="p-8 text-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                            </svg>
+                                            <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">No hay pedidos de delivery activos</h3>
+                                            <p class="text-gray-500 dark:text-gray-400 mb-4">Crea un nuevo pedido de delivery para que aparezca aquí.</p>
+                                            <a href="{{ route('pos.index', ['serviceType' => 'delivery']) }}" class="inline-flex items-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                                </svg>
+                                                Crear Pedido de Delivery
+                                            </a>
+                                        </div>
+                                    @else
+                                        @foreach($deliveryOrders as $delivery)
+                                        @php
+                                            $statusInfo = $this->getDeliveryStatusInfo($delivery->status);
+                                        @endphp
+                                        <div class="table-container">
+                                            <div class="delivery-card {{ $delivery->status }}">
+                                                <!-- Cabecera con número y estado -->
+                                                <div class="delivery-header-container">
+                                                    <div class="delivery-header-content">
+                                                        <h3 class="flex items-center">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                                            </svg>
+                                                            Pedido #{{ $delivery->order_id }}
+                                                        </h3>
+                                                        <span class="delivery-status-badge {{ $delivery->status }}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="status-icon">
+                                                                <circle cx="12" cy="12" r="4" fill="currentColor" />
+                                                            </svg>
+                                                            {{ $statusInfo['text'] }}
+                                                        </span>
+                                                    </div>
+                                                    <p class="delivery-time">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                        {{ $delivery->order->customer->name ?? 'Sin cliente' }}
+                                                    </p>
+                                                </div>
+
+                                                <!-- Contenido del pedido -->
+                                                <div class="delivery-content">
+                                                    <div class="delivery-info">
+                                                        <div class="delivery-info-item">
+                                                            <span class="delivery-info-label">Dirección:</span>
+                                                            <span class="delivery-info-value">{{ $delivery->delivery_address }}</span>
+                                                        </div>
+
+                                                        @if($delivery->deliveryPerson)
+                                                            <div class="delivery-info-item">
+                                                                <span class="delivery-info-label">Repartidor:</span>
+                                                                <span class="delivery-info-value">{{ $delivery->deliveryPerson->full_name }}</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($delivery->estimated_delivery_time)
+                                                            <div class="delivery-info-item">
+                                                                <span class="delivery-info-label">Entrega est.:</span>
+                                                                <span class="delivery-info-value">{{ $delivery->estimated_delivery_time->format('H:i') }}</span>
+                                                            </div>
+                                                        @endif
+
+                                                        <div class="delivery-info-item">
+                                                            <span class="delivery-info-label">Creado:</span>
+                                                            <span class="delivery-info-value">{{ $delivery->created_at->diffForHumans() }}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="mt-2">
+                                                        <a href="{{ route('pos.index', ['order_id' => $delivery->order_id, 'preserve_cart' => 'true']) }}" class="delivery-action-button">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="delivery-action-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                            </svg>
+                                                            Ver Detalles
+                                                        </a>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Acciones de delivery -->
+                                                <div class="delivery-actions">
+                                                    <select class="delivery-status-select" wire:change="updateDeliveryStatus({{ $delivery->id }}, $event.target.value)">
+                                                        <option value="" disabled selected>Cambiar estado</option>
+                                                        @if($delivery->status === 'pending')
+                                                            <option value="assigned">Asignar repartidor</option>
+                                                            <option value="cancelled">Cancelar pedido</option>
+                                                        @elseif($delivery->status === 'assigned')
+                                                            <option value="in_transit">Marcar en tránsito</option>
+                                                            <option value="cancelled">Cancelar pedido</option>
+                                                        @elseif($delivery->status === 'in_transit')
+                                                            <option value="delivered">Marcar como entregado</option>
+                                                            <option value="cancelled">Cancelar pedido</option>
+                                                        @endif
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 @endif
             </div>
         </div>
