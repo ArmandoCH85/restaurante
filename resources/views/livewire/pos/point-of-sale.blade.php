@@ -1342,6 +1342,95 @@
                 }
             @endif
 
+            // Obtener el tipo de servicio actual directamente del DOM
+            // Esto asegura que obtenemos el valor más actualizado, incluso si el usuario cambió el tipo de servicio
+            let currentServiceType = '';
+
+            // Verificar qué botón de tipo de servicio está activo (tiene la clase de fondo específica)
+            if (document.querySelector('button[wire\\:click="setServiceType(\'takeout\')"].bg-green-100') ||
+                document.querySelector('button[wire\\:click="setServiceType(\'takeout\')"].bg-green-900\\/50')) {
+                currentServiceType = 'takeout';
+            } else if (document.querySelector('button[wire\\:click="setServiceType(\'dine_in\')"].bg-blue-100') ||
+                       document.querySelector('button[wire\\:click="setServiceType(\'dine_in\')"].bg-blue-900\\/50')) {
+                currentServiceType = 'dine_in';
+            } else if (document.querySelector('button[wire\\:click="setServiceType(\'delivery\')"].bg-red-100') ||
+                       document.querySelector('button[wire\\:click="setServiceType(\'delivery\')"].bg-red-900\\/50')) {
+                currentServiceType = 'delivery';
+            } else {
+                // Si no podemos determinar por el DOM, usar el valor de Livewire como respaldo
+                currentServiceType = '{{ $serviceType }}'.trim();
+            }
+
+            console.log('Tipo de servicio detectado:', currentServiceType);
+
+            // Si el tipo de servicio es "takeout" (Para Llevar), solicitar el nombre del cliente
+            if (currentServiceType === 'takeout') {
+                console.log('Solicitando nombre del cliente para pedido Para Llevar');
+                // Mostrar un modal para solicitar el nombre del cliente
+                Swal.fire({
+                    title: 'Nombre del Cliente',
+                    input: 'text',
+                    inputLabel: 'Por favor, ingrese el nombre del cliente para el pedido Para Llevar',
+                    inputPlaceholder: 'Nombre del cliente',
+                    showCancelButton: true,
+                    confirmButtonText: 'Continuar',
+                    cancelButtonText: 'Cancelar',
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Debe ingresar un nombre para el cliente';
+                        }
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        console.log('Nombre del cliente ingresado:', result.value);
+                        // Continuar con la creación de la orden incluyendo el nombre del cliente
+                        crearOrdenComanda(productos, result.value, currentServiceType);
+                    }
+                });
+            } else {
+                console.log('Tipo de servicio no es takeout, continuando sin solicitar nombre');
+                // Para otros tipos de servicio, continuar sin solicitar nombre
+                crearOrdenComanda(productos, null, currentServiceType);
+            }
+        }
+
+        // Función auxiliar para crear la orden de comanda
+        function crearOrdenComanda(productos, customerName = null, serviceType = null) {
+            // Si no se proporciona un tipo de servicio, intentar detectarlo
+            if (!serviceType) {
+                // Verificar qué botón de tipo de servicio está activo
+                if (document.querySelector('button[wire\\:click="setServiceType(\'takeout\')"].bg-green-100') ||
+                    document.querySelector('button[wire\\:click="setServiceType(\'takeout\')"].bg-green-900\\/50')) {
+                    serviceType = 'takeout';
+                } else if (document.querySelector('button[wire\\:click="setServiceType(\'dine_in\')"].bg-blue-100') ||
+                           document.querySelector('button[wire\\:click="setServiceType(\'dine_in\')"].bg-blue-900\\/50')) {
+                    serviceType = 'dine_in';
+                } else if (document.querySelector('button[wire\\:click="setServiceType(\'delivery\')"].bg-red-100') ||
+                           document.querySelector('button[wire\\:click="setServiceType(\'delivery\')"].bg-red-900\\/50')) {
+                    serviceType = 'delivery';
+                } else {
+                    // Si no podemos determinar por el DOM, usar el valor de Livewire como respaldo
+                    serviceType = '{{ $serviceType }}'.trim();
+                }
+            }
+
+            console.log('Tipo de servicio en crearOrdenComanda:', serviceType);
+
+            // Crear el objeto de datos para la solicitud
+            const requestData = {
+                has_products: true,
+                cart_items: productos,
+                service_type: serviceType // Enviar el tipo de servicio detectado o proporcionado
+            };
+
+            // Si se proporcionó un nombre de cliente, agregarlo a la solicitud
+            if (customerName) {
+                requestData.customer_name = customerName;
+                console.log('Enviando nombre de cliente:', customerName);
+            }
+
+            console.log('Datos de la solicitud:', requestData);
+
             // Crear la orden con los productos capturados directamente
             fetch('{{ route("pos.create-order") }}', {
                 method: 'POST',
@@ -1349,10 +1438,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({
-                    has_products: true,
-                    cart_items: productos
-                })
+                body: JSON.stringify(requestData)
             })
             .then(procesarRespuesta)
             .then(orderId => {

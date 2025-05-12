@@ -264,8 +264,27 @@ class PosController extends Controller
                 // Log para depuración
                 Log::info('Productos recibidos:', ['productos' => $request->cart_items]);
 
+                // Obtener el nombre del cliente si se proporcionó (para pedidos para llevar)
+                $customerName = $request->customer_name ?? null;
+
+                // Obtener el tipo de servicio si se proporcionó
+                $serviceType = $request->service_type ?? null;
+
+                // Log para depuración del nombre del cliente y tipo de servicio
+                if ($customerName) {
+                    Log::info('Nombre del cliente recibido:', ['customer_name' => $customerName]);
+                }
+                if ($serviceType) {
+                    Log::info('Tipo de servicio recibido:', ['service_type' => $serviceType]);
+                }
+
+                // Verificar si es un pedido para llevar sin nombre de cliente
+                if ($serviceType === 'takeout' && !$customerName) {
+                    Log::warning('Pedido para llevar sin nombre de cliente');
+                }
+
                 // Crear la orden usando los datos de la solicitud
-                $order = $this->createOrderFromCartItems($request->cart_items, $request->table_id ?? null);
+                $order = $this->createOrderFromCartItems($request->cart_items, $request->table_id ?? null, $customerName, $serviceType);
 
                 if ($order) {
                     Log::info('Orden creada correctamente', ['orderId' => $order->id]);
@@ -321,7 +340,7 @@ class PosController extends Controller
     /**
      * Crea una orden a partir de los elementos del carrito recibidos
      */
-    private function createOrderFromCartItems($cartItems, $tableId = null)
+    private function createOrderFromCartItems($cartItems, $tableId = null, $customerName = null, $serviceType = null)
     {
         // Verificar que hay productos
         if (empty($cartItems)) {
@@ -344,8 +363,13 @@ class PosController extends Controller
             $order->employee_id = $firstEmployee ? $firstEmployee->id : 1;
         }
 
-        // También necesitamos asignar service_type que es obligatorio
-        $order->service_type = 'dine_in'; // Valor predeterminado
+        // Si se proporcionó un nombre de cliente, guardarlo en las notas de la orden
+        if ($customerName) {
+            $order->notes = "Cliente: " . $customerName;
+        }
+
+        // Asignar el tipo de servicio
+        $order->service_type = $serviceType ?: 'dine_in'; // Valor predeterminado es 'dine_in'
 
         $order->save();
 
