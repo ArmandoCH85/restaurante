@@ -135,6 +135,21 @@
         <div class="info-row">
             <span class="label">Mesero:</span> {{ $order->employee->name ?? 'No asignado' }}
         </div>
+        <div class="info-row">
+            <span class="label">Tipo:</span> {{ $order->service_type === 'takeout' ? 'Para Llevar' : ($order->service_type === 'delivery' ? 'Delivery' : 'En Local') }}
+        </div>
+        @php
+            // Extraer el nombre del cliente de las notas si existe
+            $customerName = null;
+            if ($order->notes && strpos($order->notes, 'Cliente:') === 0) {
+                $customerName = trim(str_replace('Cliente:', '', $order->notes));
+            }
+        @endphp
+        @if($customerName)
+        <div class="info-row">
+            <span class="label">Cliente:</span> {{ $customerName }}
+        </div>
+        @endif
     </div>
 
     <table>
@@ -159,10 +174,22 @@
         </tbody>
     </table>
 
-    @if($order->notes)
+    @php
+        // Extraer el nombre del cliente de las notas si existe
+        $customerName = null;
+        $kitchenNotes = $order->notes;
+
+        if ($order->notes && strpos($order->notes, 'Cliente:') === 0) {
+            // Si las notas empiezan con "Cliente:", extraer el nombre y quitar esa parte de las notas
+            $customerName = trim(str_replace('Cliente:', '', $order->notes));
+            $kitchenNotes = null; // No mostrar las notas de cliente como notas de cocina
+        }
+    @endphp
+
+    @if($kitchenNotes)
         <div class="info">
             <div class="label">Notas para la cocina:</div>
-            <div>{{ $order->notes }}</div>
+            <div>{{ $kitchenNotes }}</div>
         </div>
     @endif
 
