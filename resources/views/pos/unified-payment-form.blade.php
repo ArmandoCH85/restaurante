@@ -221,7 +221,14 @@
 
                     <div class="mb-3">
                         <label for="amount" class="form-label">Monto</label>
-                        <input type="number" step="0.01" min="0.01" class="form-control" id="amount" name="amount" value="{{ $remainingBalance }}" required>
+                        <input type="number" step="0.01" min="0.01" class="form-control" id="amount" name="amount" value="{{ $remainingBalance }}" required oninput="calculateChange()">
+                    </div>
+
+                    <div id="change_container" class="mb-3 p-3 rounded-md" style="display: none; background-color: #d1e7dd;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-bold">Cambio a devolver:</span>
+                            <span class="fs-5 fw-bold text-success">S/ <span id="change_amount">0.00</span></span>
+                        </div>
                     </div>
 
                     <div id="additional_payments" class="mb-3">
@@ -410,6 +417,9 @@
             } else {
                 document.getElementById('reference_container').style.display = 'block';
             }
+
+            // Recalcular el cambio cuando cambia el método de pago
+            calculateChange();
         }
 
         function selectInvoiceType(element, type) {
@@ -441,6 +451,33 @@
 
         function setAmount(amount) {
             document.getElementById('amount').value = amount.toFixed(2);
+            calculateChange();
+        }
+
+        function calculateChange() {
+            const amountInput = document.getElementById('amount');
+            const remainingBalance = {{ $remainingBalance }};
+            const paymentMethod = document.getElementById('payment_method').value;
+
+            // Solo calcular cambio si el método de pago es efectivo
+            if (paymentMethod === 'cash') {
+                const receivedAmount = parseFloat(amountInput.value) || 0;
+                const changeAmount = Math.max(0, receivedAmount - remainingBalance).toFixed(2);
+
+                // Mostrar u ocultar el contenedor de cambio según corresponda
+                const changeContainer = document.getElementById('change_container');
+                const changeAmountElement = document.getElementById('change_amount');
+
+                if (receivedAmount > remainingBalance) {
+                    changeAmountElement.textContent = changeAmount;
+                    changeContainer.style.display = 'block';
+                } else {
+                    changeContainer.style.display = 'none';
+                }
+            } else {
+                // Si no es efectivo, ocultar el contenedor de cambio
+                document.getElementById('change_container').style.display = 'none';
+            }
         }
 
         function updateCustomerDetails() {
@@ -555,6 +592,9 @@
         if (document.getElementById('invoice_type').value !== 'sales_note') {
             updateCustomerDetails();
         }
+
+        // Inicializar el cálculo del cambio
+        calculateChange();
     </script>
 </body>
 </html>
