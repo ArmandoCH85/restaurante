@@ -1,0 +1,171 @@
+/* Estilos para las formas de mesas */
+
+/* Estilos básicos para todas las mesas */
+.table-visual {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #333;
+    background-color: white;
+    margin: 0 auto;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+/* Formas específicas de mesas */
+.table-square {
+    border-radius: 4px;
+}
+
+.table-round {
+    border-radius: 50%;
+}
+
+.table-rectangular {
+    width: 80px;
+    height: 60px;
+    border-radius: 4px;
+}
+
+.table-oval {
+    width: 80px;
+    height: 60px;
+    border-radius: 50% / 70%;
+}
+
+/* Estados de las mesas */
+.table-visual.available {
+    background-color: #d1fae5;
+    border-color: #10b981;
+}
+
+.table-visual.occupied {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+}
+
+.table-visual.reserved {
+    background-color: #fef3c7;
+    border-color: #f59e0b;
+}
+
+.table-visual.inactive {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+    opacity: 0.7;
+}
+
+/* Sillas alrededor de las mesas */
+.chair-left,
+.chair-right,
+.chair-top-left,
+.chair-top-right,
+.chair-bottom-left,
+.chair-bottom-right,
+.chair-left-top,
+.chair-left-bottom,
+.chair-right-top,
+.chair-right-bottom {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background-color: #6b7280;
+    border-radius: 4px;
+}
+
+/* Posiciones de las sillas */
+.chair-left {
+    left: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.chair-right {
+    right: -15px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.chair-top-left {
+    left: -10px;
+    top: -10px;
+}
+
+.chair-top-right {
+    right: -10px;
+    top: -10px;
+}
+
+.chair-bottom-left {
+    left: -10px;
+    bottom: -10px;
+}
+
+.chair-bottom-right {
+    right: -10px;
+    bottom: -10px;
+}
+
+.chair-left-top {
+    left: -15px;
+    top: 25%;
+    transform: translateY(-50%);
+}
+
+.chair-left-bottom {
+    left: -15px;
+    top: 75%;
+    transform: translateY(-50%);
+}
+
+.chair-right-top {
+    right: -15px;
+    top: 25%;
+    transform: translateY(-50%);
+}
+
+.chair-right-bottom {
+    right: -15px;
+    top: 75%;
+    transform: translateY(-50%);
+}
+
+/* Modo oscuro */
+.dark .table-visual {
+    border-color: #6b7280;
+}
+
+.dark .table-visual.available {
+    background-color: #065f46;
+    border-color: #10b981;
+}
+
+.dark .table-visual.occupied {
+    background-color: #991b1b;
+    border-color: #ef4444;
+}
+
+.dark .table-visual.reserved {
+    background-color: #92400e;
+    border-color: #f59e0b;
+}
+
+.dark .table-visual.inactive {
+    background-color: #374151;
+    border-color: #6b7280;
+}
+
+.dark .chair-left,
+.dark .chair-right,
+.dark .chair-top-left,
+.dark .chair-top-right,
+.dark .chair-bottom-left,
+.dark .chair-bottom-right,
+.dark .chair-left-top,
+.dark .chair-left-bottom,
+.dark .chair-right-top,
+.dark .chair-right-bottom {
+    background-color: #9ca3af;
+}
