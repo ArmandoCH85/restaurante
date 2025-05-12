@@ -111,10 +111,7 @@ Route::middleware(['auth'])->group(function () {
 // Ruta para resetear el estado de todas las mesas a disponible
 Route::get('/tables/reset-status', [\App\Http\Controllers\TableResetController::class, 'resetAllTables'])->name('tables.reset-status');
 
-// Rutas para cierre de caja
-Route::get('/admin/cash-register/{cashRegister}/print', [CashRegisterController::class, 'print'])
-    ->name('admin.cash-register.print')
-    ->middleware(['auth']);
+
 
 // Rutas para mantenimiento de mesas
 Route::middleware(['auth', 'tables.maintenance.access'])->group(function () {
@@ -130,5 +127,12 @@ Route::middleware(['auth', 'tables.maintenance.access'])->group(function () {
     // Ruta para el dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard.index');
 });
+
+// Ruta para impresión de cierre de caja (dentro del panel de Filament)
+Route::get('/admin/print-cash-register/{id}', \App\Http\Controllers\Filament\PrintCashRegisterController::class)
+    ->middleware(['web', 'auth'])
+    ->name('filament.admin.print-cash-register');
+
+
 
 
