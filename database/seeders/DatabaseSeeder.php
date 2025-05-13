@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             RoleSeeder::class,
             EmployeeSeeder::class,
+            AppSettingsSeeder::class,
         ]);
     }
 }
