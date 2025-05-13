@@ -1,4 +1,8 @@
 <div class="flex flex-col h-screen overflow-hidden bg-gray-100 dark:bg-gray-900 font-sans">
+    <!-- Incluir Leaflet CSS y JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         /* Estilos para las representaciones visuales de las mesas */
         .table-visual {
@@ -996,13 +1000,26 @@
                         <div class="space-y-4">
                             <div>
                                 <label for="deliveryAddress" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dirección de Entrega</label>
-                                <input
-                                    type="text"
-                                    id="deliveryAddress"
-                                    wire:model="deliveryAddress"
-                                    placeholder="Dirección completa"
-                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
-                                />
+                                <div class="flex space-x-2">
+                                    <input
+                                        type="text"
+                                        id="deliveryAddress"
+                                        wire:model="deliveryAddress"
+                                        placeholder="Dirección completa"
+                                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                    />
+                                    <button
+                                        type="button"
+                                        onclick="openMapModal(); console.log('ok te elegfi');"
+                                        class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                        Ubica en Mapa
+                                    </button>
+                                </div>
                             </div>
 
                             <div>
@@ -1687,5 +1704,200 @@
             // Llamar al método de Livewire para guardar el carrito
             Livewire.dispatch('guardarCarritoYRedirigir');
         }
+
+        // Variables para el mapa
+        let map;
+        let marker;
+        const defaultLat = -11.9865603;
+        const defaultLng = -77.0679584;
+
+        // Función para buscar dirección usando Nominatim
+        function searchAddress() {
+            const address = document.getElementById('searchAddress').value.trim();
+            if (!address) {
+                alert('Por favor ingresa una dirección para buscar');
+                return;
+            }
+
+            // Mostrar indicador de carga
+            const searchButton = document.querySelector('button[onclick="searchAddress();"]');
+            const originalText = searchButton.innerHTML;
+            searchButton.innerHTML = '<span class="inline-block animate-spin mr-2">↻</span> Buscando...';
+            searchButton.disabled = true;
+
+            // Realizar la búsqueda con Nominatim
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`)
+                .then(response => response.json())
+                .then(data => {
+                    // Restaurar el botón
+                    searchButton.innerHTML = originalText;
+                    searchButton.disabled = false;
+
+                    if (data && data.length > 0) {
+                        // Encontró la ubicación
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+
+                        // Actualizar el mapa
+                        map.setView([lat, lon], 16);
+                        marker.setLatLng([lat, lon]);
+
+                        // Actualizar los campos de latitud y longitud
+                        document.getElementById('latitude').value = lat.toFixed(7);
+                        document.getElementById('longitude').value = lon.toFixed(7);
+                    } else {
+                        // No encontró la ubicación
+                        alert('No se encontró la dirección. Por favor, ubica manualmente en el mapa.');
+                    }
+                })
+                .catch(error => {
+                    // Error en la búsqueda
+                    console.error('Error al buscar la dirección:', error);
+                    searchButton.innerHTML = originalText;
+                    searchButton.disabled = false;
+                    alert('Error al buscar la dirección. Por favor, ubica manualmente en el mapa.');
+                });
+        }
+
+        // Función para inicializar el mapa
+        function initMap() {
+            // Crear el mapa centrado en la ubicación por defecto
+            map = L.map('map').setView([defaultLat, defaultLng], 13);
+
+            // Agregar capa de OpenStreetMap
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Agregar marcador en la ubicación por defecto
+            marker = L.marker([defaultLat, defaultLng], {
+                draggable: true
+            }).addTo(map);
+
+            // Actualizar campos de latitud y longitud al mover el marcador
+            marker.on('dragend', function(event) {
+                const position = marker.getLatLng();
+                document.getElementById('latitude').value = position.lat.toFixed(7);
+                document.getElementById('longitude').value = position.lng.toFixed(7);
+            });
+
+            // Inicializar campos de latitud y longitud
+            document.getElementById('latitude').value = defaultLat;
+            document.getElementById('longitude').value = defaultLng;
+
+            // Permitir hacer clic en el mapa para mover el marcador
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                document.getElementById('latitude').value = e.latlng.lat.toFixed(7);
+                document.getElementById('longitude').value = e.latlng.lng.toFixed(7);
+            });
+        }
+
+        // Función para abrir el modal del mapa
+        function openMapModal() {
+            document.getElementById('mapModal').style.display = 'flex';
+            // Inicializar el mapa después de que el modal sea visible
+            setTimeout(function() {
+                if (!map) {
+                    initMap();
+                } else {
+                    // Si el mapa ya existe, actualizar su tamaño
+                    map.invalidateSize();
+                }
+            }, 100);
+        }
+
+        // Función para cerrar el modal del mapa
+        function closeMapModal() {
+            document.getElementById('mapModal').style.display = 'none';
+        }
     </script>
+
+<!-- Modal del Mapa -->
+<div id="mapModal" class="fixed inset-0 bg-gray-600/75 dark:bg-gray-900/80 flex items-center justify-center z-50 p-0 hidden" style="padding: 0 !important;">
+  <div style="width: 95vw !important; height: 95vh !important; max-width: none !important; max-height: none !important;" class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl">
+    <div class="flex justify-between items-center px-6 py-3 border-b border-gray-200 dark:border-gray-700">
+      <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+        Ubicar Dirección en el Mapa
+      </h3>
+      <button onclick="closeMapModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="flex flex-col" style="height: calc(95vh - 64px) !important;">
+      <!-- Campo de búsqueda en una barra fija en la parte superior -->
+      <div class="px-6 py-2 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex space-x-2">
+          <input
+            type="text"
+            id="searchAddress"
+            placeholder="Ej: Av. Principal 123, Ciudad"
+            class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+            onkeypress="if(event.key === 'Enter') { searchAddress(); return false; }"
+          />
+          <button
+            type="button"
+            onclick="searchAddress();"
+            class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200 whitespace-nowrap"
+          >
+            Buscar
+          </button>
+        </div>
+      </div>
+
+      <!-- Área del mapa - Ocupa todo el espacio disponible -->
+      <div class="flex-grow overflow-hidden" style="flex: 1 !important; min-height: 70vh !important;">
+        <div id="map" class="w-full h-full"></div>
+      </div>
+
+      <!-- Controles en la parte inferior -->
+      <div class="px-6 py-3 border-t border-gray-200 dark:border-gray-700">
+        <!-- Campos de coordenadas -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label for="latitude" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Latitud:
+            </label>
+            <input
+              type="text"
+              id="latitude"
+              class="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+              readonly
+            />
+          </div>
+          <div>
+            <label for="longitude" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Longitud:
+            </label>
+            <input
+              type="text"
+              id="longitude"
+              class="w-full px-3 py-1.5 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+              readonly
+            />
+          </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="flex justify-between space-x-4">
+          <button
+            type="button"
+            onclick="closeMapModal()"
+            class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg transition-colors duration-200 font-medium w-1/2"
+          >
+            Volver
+          </button>
+          <button
+            type="button"
+            onclick="console.log('Ubicación confirmada'); closeMapModal();"
+            class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 font-medium w-1/2"
+          >
+            Confirmar Ubicación
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
