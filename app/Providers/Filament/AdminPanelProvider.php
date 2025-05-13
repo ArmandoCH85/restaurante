@@ -57,6 +57,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\RecipeResource::class,
                 \App\Filament\Resources\PurchaseResource::class,
                 \App\Filament\Resources\ReservationResource::class,
+                \App\Filament\Resources\CompanyConfigResource::class,
+                \App\Filament\Resources\ElectronicBillingConfigResource::class,
             ])
             // Registrar páginas explícitamente en lugar de descubrirlas automáticamente
             ->pages([
@@ -186,6 +188,23 @@ class AdminPanelProvider extends PanelProvider
                         return PermissionHelper::hasCustomAccess('access_delivery');
                     }),
 
+                // Grupo: Configuración
+                NavigationItem::make('Datos de la Empresa')
+                    ->url('/admin/configuracion/empresa')
+                    ->icon('heroicon-o-building-office')
+                    ->group('Configuración')
+                    ->sort(1)
+                    ->visible(function() {
+                        return PermissionHelper::hasPermission('view_any_company::config');
+                    }),
+                NavigationItem::make('Facturación Electrónica')
+                    ->url('/admin/configuracion/facturacion-electronica')
+                    ->icon('heroicon-o-document-text')
+                    ->group('Configuración')
+                    ->sort(2)
+                    ->visible(function() {
+                        return PermissionHelper::hasPermission('view_any_electronic::billing::config');
+                    }),
 
             ])
             ->middleware([
