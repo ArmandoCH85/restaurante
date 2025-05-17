@@ -3,6 +3,9 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+    <!-- Incluir SweetAlert2 directamente en esta vista -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
         /* Estilos para las representaciones visuales de las mesas */
         .table-visual {
@@ -66,6 +69,23 @@
                             Venta Rápida
                         @endif
                     </span>
+
+                    <!-- Botón para cambiar entre modo claro/oscuro -->
+                    <button
+                        type="button"
+                        class="ml-3 p-1.5 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
+                        title="Cambiar tema"
+                        onclick="toggleDarkMode()"
+                    >
+                        <!-- Ícono sol (visible en modo oscuro) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <!-- Ícono luna (visible en modo claro) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
                 </div>
                 <div class="flex items-center gap-2 overflow-x-auto py-1 px-1 -mx-1 pb-2 sm:pb-0 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
                     <!-- Botón para ir al mapa de mesas -->
@@ -121,6 +141,74 @@
                             <span class="hidden sm:inline">Compras</span>
                         </span>
                     </a>
+
+                    <!-- Botón para probar notificaciones -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button
+                            @click="open = !open"
+                            class="flex-shrink-0 p-2 rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 text-sm font-medium shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                            title="Probar Notificaciones"
+                        >
+                            <span class="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                </svg>
+                                <span class="hidden sm:inline">Notificaciones</span>
+                            </span>
+                        </button>
+
+                        <!-- Menú desplegable para tipos de notificaciones -->
+                        <div
+                            x-show="open"
+                            @click.away="open = false"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border border-gray-200 dark:border-gray-700"
+                        >
+                            <div class="py-1">
+                                <button
+                                    onclick="testNotification('success')"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                                >
+                                    <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                                    Éxito
+                                </button>
+                                <button
+                                    onclick="testNotification('error')"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                                >
+                                    <span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                                    Error
+                                </button>
+                                <button
+                                    onclick="testNotification('warning')"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                                >
+                                    <span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
+                                    Advertencia
+                                </button>
+                                <button
+                                    onclick="testNotification('info')"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                                >
+                                    <span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                                    Información
+                                </button>
+                                <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+                                <button
+                                    onclick="testModalNotification()"
+                                    class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center"
+                                >
+                                    <span class="w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
+                                    Modal
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -850,7 +938,7 @@
                         <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                     </svg>
-                    Pedido de Delivery
+                    Pedido Delivery
                 </h3>
                 <button
                     wire:click="closeDeliveryModal"
@@ -867,15 +955,16 @@
                     <p class="text-gray-700 dark:text-gray-300 mb-2">
                         Ingresa los datos del cliente y la dirección de entrega para el pedido de delivery.
                     </p>
+                    <!-- Mensaje de alerta principal - Exactamente como en la imagen -->
                     <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 mb-4">
-                        <div class="flex">
+                        <div class="flex items-center">
                             <div class="flex-shrink-0">
                                 <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <p class="text-sm text-yellow-700 dark:text-yellow-200">
+                                <p class="text-sm font-medium text-yellow-700 dark:text-yellow-200">
                                     Los pedidos de delivery requieren un cliente registrado y una dirección de entrega.
                                 </p>
                             </div>
@@ -894,39 +983,67 @@
                         </h4>
 
                         <div class="space-y-4">
-                            <!-- Búsqueda de cliente -->
-                            <div class="flex space-x-2">
-                                <div class="w-1/3">
-                                    <label for="customerDocumentType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
-                                    <select
-                                        id="customerDocumentType"
-                                        wire:model="customerDocumentType"
-                                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                            <!-- Búsqueda de cliente por teléfono -->
+                            <div>
+                                <label for="customerPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
+                                <div class="flex">
+                                    <input
+                                        type="text"
+                                        id="customerPhone"
+                                        wire:model="customerPhone"
+                                        placeholder="Número de teléfono"
+                                        class="w-full px-3 py-2 text-sm rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                        onkeypress="if(event.keyCode === 13) { event.preventDefault(); buscarClientePorTelefono(); }"
+                                    />
+                                    <button
+                                        onclick="buscarClientePorTelefono()"
+                                        id="search-customer-btn"
+                                        class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg transition-colors duration-200 flex items-center justify-center min-w-[40px]"
                                     >
-                                        <option value="DNI">DNI</option>
-                                        <option value="RUC">RUC</option>
-                                        <option value="CE">CE</option>
-                                        <option value="Pasaporte">Pasaporte</option>
-                                    </select>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 search-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 animate-spin loading-icon hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                    </button>
                                 </div>
-                                <div class="w-2/3">
-                                    <label for="customerDocument" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Documento</label>
-                                    <div class="flex">
-                                        <input
-                                            type="text"
-                                            id="customerDocument"
-                                            wire:model="customerDocument"
-                                            placeholder="Ingrese número de documento"
-                                            class="w-full px-3 py-2 text-sm rounded-l-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
-                                        />
-                                        <button
-                                            wire:click="searchCustomer"
-                                            class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-r-lg transition-colors duration-200"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Busque clientes por su número de teléfono</p>
+
+                                <!-- Mensaje de cliente no encontrado (inicialmente oculto) -->
+                                <div id="customer-not-found" class="hidden mt-2 p-3 bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 rounded-r-md">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                             </svg>
-                                        </button>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">Cliente no encontrado</h3>
+                                            <div class="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+                                                <p>No se encontró ningún cliente con el teléfono <span id="not-found-phone" class="font-semibold"></span>.</p>
+                                                <p class="mt-1">Por favor, complete los datos para registrar un nuevo cliente.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                                <!-- Mensaje de cliente encontrado (inicialmente oculto) -->
+                                <div id="customer-found" class="hidden mt-2 p-3 bg-green-50 dark:bg-green-900/30 border-l-4 border-green-400 rounded-r-md">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div class="ml-3">
+                                            <h3 class="text-sm font-medium text-green-800 dark:text-green-200">Cliente encontrado</h3>
+                                            <div class="mt-1 text-sm text-green-700 dark:text-green-300">
+                                                <p>Se ha cargado la información de <span id="found-name" class="font-semibold"></span>.</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -943,21 +1060,38 @@
                                 />
                             </div>
 
-                            <div>
-                                <label for="customerPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
-                                <input
-                                    type="text"
-                                    id="customerPhone"
-                                    wire:model="customerPhone"
-                                    placeholder="Número de teléfono"
-                                    class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
-                                />
+                            <!-- Documento (opcional) -->
+                            <div class="flex space-x-2">
+                                <div class="w-1/3">
+                                    <label for="customerDocumentType" class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Tipo (opcional)</label>
+                                    <select
+                                        id="customerDocumentType"
+                                        wire:model="customerDocumentType"
+                                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                    >
+                                        <option value="DNI">DNI</option>
+                                        <option value="RUC">RUC</option>
+                                        <option value="CE">CE</option>
+                                        <option value="Pasaporte">Pasaporte</option>
+                                    </select>
+                                </div>
+                                <div class="w-2/3">
+                                    <label for="customerDocument" class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Documento (opcional)</label>
+                                    <input
+                                        type="text"
+                                        id="customerDocument"
+                                        wire:model="customerDocument"
+                                        placeholder="Número de documento"
+                                        class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
+                                    />
+                                </div>
                             </div>
 
                             <div>
                                 <button
                                     wire:click="saveCustomer"
-                                    class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center"
+                                    id="save-customer-btn"
+                                    class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 flex items-center justify-center font-medium shadow-md hover:shadow-lg hover:-translate-y-0.5"
                                     x-data="{
                                         isDisabled: function() {
                                             // Verificar si falta información del cliente
@@ -978,11 +1112,14 @@
                                     x-bind:class="{ 'opacity-50 cursor-not-allowed': isDisabled() }"
                                     x-bind:disabled="isDisabled()"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    Guardar Cliente
+                                    Guardar Información del Cliente
                                 </button>
+                                <p class="text-xs text-center text-gray-500 dark:text-gray-400 mt-1">
+                                    Solo se requiere nombre y teléfono para registrar un cliente
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -1010,8 +1147,8 @@
                                     />
                                     <button
                                         type="button"
-                                        onclick="openMapModal(); console.log('ok te elegfi');"
-                                        class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center"
+                                        onclick="openMapModal();"
+                                        class="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-all duration-200 flex items-center shadow-md hover:shadow-lg hover:-translate-y-0.5"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -1020,6 +1157,9 @@
                                         Ubica en Mapa
                                     </button>
                                 </div>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Ingrese la dirección o use el mapa para ubicar la posición exacta
+                                </p>
                             </div>
 
                             <div>
@@ -1027,10 +1167,13 @@
                                 <textarea
                                     id="deliveryReferences"
                                     wire:model="deliveryReferences"
-                                    placeholder="Referencias para ubicar la dirección"
+                                    placeholder="Referencias para ubicar la dirección (color de casa, puntos de referencia, etc.)"
                                     class="w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition"
                                     rows="3"
                                 ></textarea>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Agregue referencias que ayuden al repartidor a encontrar la dirección
+                                </p>
                             </div>
 
                             <div class="pt-4 space-y-3">
@@ -1060,54 +1203,9 @@
                                 <!-- Botón para procesar pedido - Mejorado y más visible -->
                                 <button
                                     wire:click="processDeliveryOrder"
-                                    class="w-full px-4 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center font-bold text-lg shadow-md"
-                                    x-data="{
-                                        isDisabled: function() {
-                                            // Verificar si el carrito está vacío
-                                            const cartEmpty = Object.keys($wire.cart).length === 0;
-
-                                            // Verificar si falta información del cliente
-                                            const customerInfoMissing = !$wire.customerName || !$wire.customerPhone;
-
-                                            // Verificar si falta dirección de entrega
-                                            const addressMissing = !$wire.deliveryAddress;
-
-                                            return cartEmpty || customerInfoMissing || addressMissing;
-                                        }
-                                    }"
-                                    x-on:click="
-                                        if (Object.keys($wire.cart).length === 0) {
-                                            $wire.dispatch('notification', {
-                                                type: 'error',
-                                                title: 'Error',
-                                                message: 'No hay productos en el carrito. Añade productos para procesar el pedido.',
-                                                showModal: true
-                                            });
-                                            return false;
-                                        }
-                                        if (!$wire.customerName || !$wire.customerPhone) {
-                                            $wire.dispatch('notification', {
-                                                type: 'error',
-                                                title: 'Error',
-                                                message: 'Debes ingresar el nombre y teléfono del cliente.',
-                                                showModal: true
-                                            });
-                                            return false;
-                                        }
-                                        if (!$wire.deliveryAddress) {
-                                            $wire.dispatch('notification', {
-                                                type: 'error',
-                                                title: 'Error',
-                                                message: 'Debes ingresar la dirección de entrega.',
-                                                showModal: true
-                                            });
-                                            return false;
-                                        }
-                                    "
-                                    x-bind:class="{ 'opacity-50 cursor-not-allowed': isDisabled() }"
-                                    x-bind:disabled="isDisabled()"
+                                    class="w-full px-4 py-4 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all duration-300 flex items-center justify-center font-bold text-lg shadow-lg hover:shadow-xl hover:-translate-y-1 transform"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                         <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                                     </svg>
@@ -1115,13 +1213,18 @@
                                 </button>
 
                                 <!-- Mensaje informativo sobre el proceso -->
-                                <div class="mt-3 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                                    <p class="flex items-center">
+                                <div class="mt-3 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+                                    <h5 class="font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        Al procesar el pedido, se registrará la información y se mostrará una notificación de confirmación.
-                                    </p>
+                                        Información del Proceso
+                                    </h5>
+                                    <ul class="space-y-1 list-disc list-inside pl-1">
+                                        <li>Al procesar el pedido, se registrará la información del cliente y la dirección.</li>
+                                        <li>Se generará una comanda para la cocina con los productos solicitados.</li>
+                                        <li>El pedido quedará registrado en el sistema para su seguimiento.</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
@@ -1132,7 +1235,6 @@
                 <button
                     type="button"
                     wire:click="closeDeliveryModal"
-                    onclick="console.log('Botón Cancelar clickeado'); $wire.closeDeliveryModal();"
                     class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-500 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                 >
                     Cancelar
@@ -1143,6 +1245,78 @@
 
     <!-- Script para comunicación entre iframes -->
     <script>
+        // Función para cambiar entre modo claro y oscuro
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                // Cambiar a modo claro
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+
+                // Mostrar notificación
+                Livewire.dispatch('notification', {
+                    type: 'info',
+                    title: 'Modo Claro Activado',
+                    message: 'Se ha cambiado al tema claro',
+                    timeout: 2000
+                });
+            } else {
+                // Cambiar a modo oscuro
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+
+                // Mostrar notificación
+                Livewire.dispatch('notification', {
+                    type: 'info',
+                    title: 'Modo Oscuro Activado',
+                    message: 'Se ha cambiado al tema oscuro',
+                    timeout: 2000
+                });
+            }
+        }
+
+        // Función simplificada para probar notificaciones
+        function testNotification(type) {
+            const notifications = {
+                success: {
+                    title: 'Operación Exitosa',
+                    message: 'La acción se completó correctamente. Todo funcionó como se esperaba.'
+                },
+                error: {
+                    title: 'Error',
+                    message: 'Ha ocurrido un error. No se pudo procesar la solicitud.'
+                },
+                warning: {
+                    title: 'Advertencia',
+                    message: 'Hay un problema que requiere tu atención.'
+                },
+                info: {
+                    title: 'Información',
+                    message: 'Aquí tienes información importante sobre el sistema.'
+                }
+            };
+
+            const notification = notifications[type] || notifications.info;
+
+            // Usar dispatch para enviar la notificación
+            Livewire.dispatch('notification', {
+                type: type,
+                title: notification.title,
+                message: notification.message,
+                timeout: 5000
+            });
+        }
+
+        // Función para probar notificaciones modales
+        function testModalNotification() {
+            Livewire.dispatch('notification', {
+                type: 'warning',
+                title: 'Notificación Modal',
+                message: 'Esta es una notificación importante que requiere tu atención y se muestra como un modal para asegurar que la veas.',
+                timeout: 5000,
+                showModal: true
+            });
+        }
+
         // Escuchar eventos de Livewire
         document.addEventListener('livewire:initialized', function() {
             // Escuchar el evento para abrir el modal de delivery después de la renderización
@@ -1155,6 +1329,79 @@
                         console.log('Modal de delivery forzado a abrir desde JavaScript');
                     }
                 }, 300);
+            });
+
+            // Escuchar el evento de búsqueda de cliente en progreso
+            Livewire.on('search-customer-loading', function(params) {
+                console.log('Buscando cliente con teléfono:', params.phone);
+
+                // Mostrar indicador de carga
+                const searchButton = document.getElementById('search-customer-btn');
+                if (searchButton) {
+                    searchButton.querySelector('.search-icon').classList.add('hidden');
+                    searchButton.querySelector('.loading-icon').classList.remove('hidden');
+                    searchButton.disabled = true;
+                }
+
+                // Ocultar mensajes previos
+                document.getElementById('customer-not-found').classList.add('hidden');
+                document.getElementById('customer-found').classList.add('hidden');
+            });
+
+            // Escuchar el evento de resultado de búsqueda de cliente
+            Livewire.on('search-customer-result', function(params) {
+                console.log('Resultado de búsqueda de cliente:', params);
+
+                // Restaurar botón de búsqueda
+                const searchButton = document.getElementById('search-customer-btn');
+                if (searchButton) {
+                    searchButton.querySelector('.search-icon').classList.remove('hidden');
+                    searchButton.querySelector('.loading-icon').classList.add('hidden');
+                    searchButton.disabled = false;
+                }
+
+                if (params.found) {
+                    // Cliente encontrado
+                    document.getElementById('customer-not-found').classList.add('hidden');
+
+                    // Mostrar mensaje de cliente encontrado
+                    const foundMessage = document.getElementById('customer-found');
+                    const foundName = document.getElementById('found-name');
+
+                    if (foundMessage && foundName) {
+                        foundName.textContent = params.name;
+                        foundMessage.classList.remove('hidden');
+
+                        // Ocultar el mensaje después de 5 segundos
+                        setTimeout(() => {
+                            foundMessage.classList.add('hidden');
+                        }, 5000);
+                    }
+                } else {
+                    // Cliente no encontrado
+                    document.getElementById('customer-found').classList.add('hidden');
+
+                    // Mostrar mensaje de cliente no encontrado
+                    const notFoundMessage = document.getElementById('customer-not-found');
+                    const notFoundPhone = document.getElementById('not-found-phone');
+
+                    if (notFoundMessage && notFoundPhone) {
+                        notFoundPhone.textContent = params.phone;
+                        notFoundMessage.classList.remove('hidden');
+
+                        // Habilitar el botón de guardar cliente
+                        const saveButton = document.querySelector('button[wire\\:click="saveCustomer"]');
+                        if (saveButton) {
+                            saveButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                            saveButton.disabled = false;
+                        }
+
+                        // Hacer que el campo de nombre reciba el foco
+                        setTimeout(() => {
+                            document.getElementById('customerName')?.focus();
+                        }, 500);
+                    }
+                }
             });
 
             // Escuchar el evento para cerrar el modal de delivery
@@ -1215,6 +1462,8 @@
             } else {
                 console.error('Botón de cancelar pedido NO encontrado');
             }
+
+
         });
 
         // Escuchar el evento personalizado de factura completada
@@ -1245,6 +1494,45 @@
 
     <!-- Scripts para abrir ventanas -->
     <script>
+        // Función para procesar pedido de delivery
+        function procesarPedidoDelivery() {
+            // Verificar si hay productos en el carrito
+            if (Object.keys(window.Livewire.find('point-of-sale').cart).length === 0) {
+                Livewire.dispatch('notification', {
+                    type: 'error',
+                    title: 'Error',
+                    message: 'No hay productos en el carrito. Añade productos para procesar el pedido.',
+                    showModal: true
+                });
+                return;
+            }
+
+            // Verificar si falta información del cliente
+            if (!window.Livewire.find('point-of-sale').customerName || !window.Livewire.find('point-of-sale').customerPhone) {
+                Livewire.dispatch('notification', {
+                    type: 'error',
+                    title: 'Error',
+                    message: 'Debes ingresar el nombre y teléfono del cliente.',
+                    showModal: true
+                });
+                return;
+            }
+
+            // Verificar si falta dirección de entrega
+            if (!window.Livewire.find('point-of-sale').deliveryAddress) {
+                Livewire.dispatch('notification', {
+                    type: 'error',
+                    title: 'Error',
+                    message: 'Debes ingresar la dirección de entrega.',
+                    showModal: true
+                });
+                return;
+            }
+
+            // Si todas las validaciones pasan, llamar al método de Livewire
+            window.Livewire.find('point-of-sale').processDeliveryOrder();
+        }
+
         function procesarRespuesta(response) {
             if (!response.ok) {
                 return response.json().then(data => {
@@ -1308,6 +1596,77 @@
 
             // Llamar al método de Livewire para guardar el carrito
             Livewire.dispatch('guardarCarritoYRedirigir');
+        }
+
+        // Función para buscar cliente por teléfono - Versión KISS mejorada
+        function buscarClientePorTelefono() {
+            console.log('Iniciando búsqueda de cliente por teléfono');
+
+            // Mostrar indicador de carga
+            const searchButton = document.getElementById('search-customer-btn');
+            if (searchButton) {
+                searchButton.querySelector('.search-icon').classList.add('hidden');
+                searchButton.querySelector('.loading-icon').classList.remove('hidden');
+                searchButton.disabled = true;
+            }
+
+            // Ocultar mensajes previos
+            document.getElementById('customer-not-found')?.classList.add('hidden');
+            document.getElementById('customer-found')?.classList.add('hidden');
+
+            // Obtener el teléfono
+            const phone = document.getElementById('customerPhone').value;
+
+            if (!phone) {
+                alert('Ingrese un número de teléfono para buscar el cliente');
+
+                // Restaurar botón
+                if (searchButton) {
+                    searchButton.querySelector('.search-icon').classList.remove('hidden');
+                    searchButton.querySelector('.loading-icon').classList.add('hidden');
+                    searchButton.disabled = false;
+                }
+
+                return;
+            }
+
+            // Llamar directamente al método del componente Livewire
+            @this.set('customerPhone', phone);
+            @this.searchCustomerByPhone();
+
+            // Verificar el resultado después de un breve retraso
+            setTimeout(() => {
+                // Restaurar botón
+                if (searchButton) {
+                    searchButton.querySelector('.search-icon').classList.remove('hidden');
+                    searchButton.querySelector('.loading-icon').classList.add('hidden');
+                    searchButton.disabled = false;
+                }
+
+                // Verificar si el cliente existe en la base de datos
+                const customerExists = @this.get('customerId');
+
+                if (!customerExists) {
+                    // Cliente no encontrado - mostrar mensaje manualmente
+                    const notFoundMessage = document.getElementById('customer-not-found');
+                    const notFoundPhone = document.getElementById('not-found-phone');
+
+                    if (notFoundMessage && notFoundPhone) {
+                        notFoundPhone.textContent = phone;
+                        notFoundMessage.classList.remove('hidden');
+
+                        // Habilitar el botón de guardar cliente
+                        const saveButton = document.querySelector('button[wire\\:click="saveCustomer"]');
+                        if (saveButton) {
+                            saveButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                            saveButton.disabled = false;
+                        }
+
+                        // Hacer que el campo de nombre reciba el foco
+                        document.getElementById('customerName')?.focus();
+                    }
+                }
+            }, 500);
         }
 
         // Funciones para mostrar modales
