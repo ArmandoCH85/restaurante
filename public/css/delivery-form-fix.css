@@ -1,0 +1,35 @@
+/* Estilos para corregir la visualización de placeholders en el formulario de delivery */
+
+/* Asegurar que los placeholders sean visibles en modo claro */
+::placeholder {
+    color: #6b7280 !important; /* Gris medio para buena visibilidad */
+    opacity: 1 !important;
+}
+
+/* Asegurar que los placeholders sean visibles en modo oscuro */
+.dark ::placeholder {
+    color: #9ca3af !important; /* Gris claro para buena visibilidad en modo oscuro */
+    opacity: 1 !important;
+}
+
+/* Mejorar la visibilidad de los campos de texto */
+input[type="text"], textarea {
+    color: #111827 !important; /* Texto oscuro para modo claro */
+}
+
+/* Mejorar la visibilidad de los campos de texto en modo oscuro */
+.dark input[type="text"], .dark textarea {
+    color: #f3f4f6 !important; /* Texto claro para modo oscuro */
+}
+
+/* Asegurar que el fondo de los campos sea visible */
+input[type="text"], textarea {
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+}
+
+/* Asegurar que el fondo de los campos sea visible en modo oscuro */
+.dark input[type="text"], .dark textarea {
+    background-color: #374151 !important;
+    border: 1px solid #4b5563 !important;
+}

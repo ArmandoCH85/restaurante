@@ -1591,29 +1591,106 @@ class PointOfSale extends Component
         }
     }
 
-    public function saveCustomer(): void
+    public function searchCustomerByPhone(): void
     {
-        // Validar campos requeridos
-        if (empty($this->customerName) || empty($this->customerDocument) || empty($this->deliveryAddress)) {
+        if (empty($this->customerPhone)) {
             $this->dispatch('notification', [
                 'type' => 'error',
                 'title' => 'Error',
-                'message' => 'Nombre, documento y dirección son campos obligatorios'
+                'message' => 'Ingrese un número de teléfono para buscar el cliente'
+            ]);
+            return;
+        }
+
+        // Mostrar indicador de carga
+        $this->dispatch('search-customer-loading', ['phone' => $this->customerPhone]);
+
+        $customer = \App\Models\Customer::where('phone', $this->customerPhone)->first();
+
+        if ($customer) {
+            $this->customerId = $customer->id;
+            $this->customerName = $customer->name;
+            $this->customerDocument = $customer->document_number;
+            $this->customerDocumentType = $customer->document_type;
+            $this->deliveryAddress = $customer->address;
+            $this->deliveryReferences = $customer->address_references;
+
+            // Mostrar notificación de cliente encontrado
+            $this->dispatch('notification', [
+                'type' => 'success',
+                'title' => 'Cliente encontrado',
+                'message' => 'Se ha cargado la información de ' . $customer->name
+            ]);
+
+            // Notificar que se encontró el cliente
+            $this->dispatch('search-customer-result', [
+                'found' => true,
+                'phone' => $this->customerPhone,
+                'name' => $this->customerName
+            ]);
+        } else {
+            // Mostrar notificación de cliente no encontrado
+            $this->dispatch('notification', [
+                'type' => 'info',
+                'title' => 'Cliente no encontrado',
+                'message' => 'No se encontró ningún cliente con el teléfono ' . $this->customerPhone . '. Complete los datos para registrarlo.'
+            ]);
+
+            // Notificar que no se encontró el cliente con un mensaje más detallado
+            $this->dispatch('search-customer-result', [
+                'found' => false,
+                'phone' => $this->customerPhone
+            ]);
+
+            // Limpiar campos excepto teléfono
+            $this->customerId = null;
+            $this->customerName = null;
+            $this->customerDocument = null;
+            $this->deliveryAddress = null;
+            $this->deliveryReferences = null;
+        }
+    }
+
+    public function saveCustomer(): void
+    {
+        // Validar campos requeridos
+        if (empty($this->customerName) || empty($this->customerPhone)) {
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'Nombre y teléfono son campos obligatorios'
             ]);
             return;
         }
 
         try {
-            // Si ya existe un cliente con ese documento, actualizarlo
-            $customer = \App\Models\Customer::where('document_number', $this->customerDocument)
-                ->where('document_type', $this->customerDocumentType)
-                ->first();
+            // Primero intentar buscar por teléfono
+            $customer = \App\Models\Customer::where('phone', $this->customerPhone)->first();
+
+            // Si no se encuentra por teléfono y hay documento, buscar por documento
+            if (!$customer && !empty($this->customerDocument)) {
+                $customer = \App\Models\Customer::where('document_number', $this->customerDocument)
+                    ->where('document_type', $this->customerDocumentType)
+                    ->first();
+            }
+
+            $isNewCustomer = !$customer;
 
             if (!$customer) {
                 // Crear nuevo cliente
                 $customer = new \App\Models\Customer();
-                $customer->document_type = $this->customerDocumentType;
-                $customer->document_number = $this->customerDocument;
+
+                // Asignar documento solo si está presente
+                if (!empty($this->customerDocument)) {
+                    $customer->document_type = $this->customerDocumentType;
+                    $customer->document_number = $this->customerDocument;
+                }
+            } else {
+                // Si se encontró un cliente existente y hay documento nuevo, actualizarlo
+                if (!empty($this->customerDocument)) {
+                    $customer->document_type = $this->customerDocumentType;
+                    $customer->document_number = $this->customerDocument;
+                }
             }
 
             $customer->name = $this->customerName;
@@ -1625,12 +1702,23 @@ class PointOfSale extends Component
             $this->customerId = $customer->id;
 
             // Notificación más visible y detallada
+            $title = $isNewCustomer ? '¡Cliente Registrado!' : '¡Cliente Actualizado!';
+            $message = $isNewCustomer
+                ? 'Se ha registrado el cliente ' . $this->customerName . ' con teléfono ' . $this->customerPhone
+                : 'Se ha actualizado la información del cliente ' . $this->customerName;
+
             $this->dispatch('notification', [
                 'type' => 'success',
-                'title' => '¡Cliente Guardado!',
-                'message' => 'Cliente: ' . $this->customerName . ' (' . $this->customerDocumentType . ': ' . $this->customerDocument . ') guardado correctamente.',
-                'timeout' => 5000, // Mostrar por 5 segundos
-                'showModal' => true // Mostrar también como modal
+                'title' => $title,
+                'message' => $message,
+                'timeout' => 5000 // Mostrar por 5 segundos
+            ]);
+
+            // Notificar que se encontró/guardó el cliente para actualizar la UI
+            $this->dispatch('search-customer-result', [
+                'found' => true,
+                'phone' => $this->customerPhone,
+                'name' => $this->customerName
             ]);
 
         } catch (\Exception $e) {
@@ -1682,6 +1770,20 @@ class PointOfSale extends Component
                 'type' => 'error',
                 'title' => 'Error',
                 'message' => 'La dirección de entrega es obligatoria'
+            ]);
+            return;
+        }
+
+        // Validar que se haya ingresado el teléfono del cliente
+        if (empty($this->customerPhone)) {
+            $logPath = storage_path('logs/delivery_process.log');
+            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] ERROR: Teléfono del cliente vacío';
+            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+
+            $this->dispatch('notification', [
+                'type' => 'error',
+                'title' => 'Error',
+                'message' => 'El teléfono del cliente es obligatorio para pedidos de delivery'
             ]);
             return;
         }
