@@ -69,6 +69,7 @@ Route::middleware(['auth', 'pos.access'])->group(function () {
 
     // Rutas para gestión de clientes
     Route::get('/pos/customers/find', [PosController::class, 'findCustomer'])->name('pos.customers.find');
+    Route::get('/pos/customers/search', [PosController::class, 'searchCustomers'])->name('pos.customers.search');
     Route::post('/pos/customers/store', [PosController::class, 'storeCustomer'])->name('pos.customers.store');
 });
 
