@@ -35,6 +35,9 @@ class PointOfSale extends Component
     public bool $showTransferModal = false;
     public bool $showDeliveryModal = false;
     public ?string $commandUrl = null;
+    // Propiedades para la transferencia selectiva de productos
+    public array $selectedProductsForTransfer = [];
+    public bool $selectAllProductsForTransfer = false;
     public ?string $preBillUrl = null;
     public ?string $invoiceUrl = null;
     public Collection $availableTables;
@@ -1293,11 +1296,16 @@ class PointOfSale extends Component
         // Cargar las mesas disponibles
         $this->loadAvailableTables();
 
+        // Inicializar con ningún producto seleccionado
+        $this->selectedProductsForTransfer = [];
+        $this->selectAllProductsForTransfer = false;
+
         // Mostrar el modal
         $this->showTransferModal = true;
         \Illuminate\Support\Facades\Log::info('Modal de transferencia abierto', [
             'showTransferModal' => $this->showTransferModal,
-            'availableTables_count' => $this->availableTables->count()
+            'availableTables_count' => $this->availableTables->count(),
+            'selectedProductsForTransfer_count' => count($this->selectedProductsForTransfer)
         ]);
     }
 
@@ -1330,20 +1338,21 @@ class PointOfSale extends Component
         \Illuminate\Support\Facades\Log::info('Iniciando transferencia de mesa', [
             'destination_table_id' => $destinationTableId,
             'current_table_id' => $this->table ? $this->table->id : null,
-            'cart_count' => count($this->cart)
+            'cart_count' => count($this->cart),
+            'selected_products_count' => count($this->selectedProductsForTransfer)
         ]);
 
-        // Verificar si hay una mesa seleccionada y productos en el carrito
-        if (!$this->table || empty($this->cart)) {
+        // Verificar si hay una mesa seleccionada y productos seleccionados para transferir
+        if (!$this->table || empty($this->selectedProductsForTransfer)) {
             \Illuminate\Support\Facades\Log::warning('No se puede realizar la transferencia', [
                 'table' => $this->table ? $this->table->id : null,
-                'cart_empty' => empty($this->cart)
+                'selected_products_empty' => empty($this->selectedProductsForTransfer)
             ]);
 
             $this->dispatch('notification', [
                 'type' => 'error',
                 'title' => 'Error',
-                'message' => 'No se puede realizar la transferencia.'
+                'message' => 'No hay productos seleccionados para transferir.'
             ]);
             return;
         }
@@ -1383,64 +1392,227 @@ class PointOfSale extends Component
         $sourceTableNumber = $sourceTable->number;
 
         try {
-            \Illuminate\Support\Facades\Log::info('Realizando transferencia', [
+            \Illuminate\Support\Facades\Log::info('Realizando transferencia selectiva de productos', [
                 'source_table' => $sourceTable->id,
                 'destination_table' => $destinationTable->id,
-                'current_order' => $this->currentOrder ? $this->currentOrder->id : null
+                'current_order' => $this->currentOrder ? $this->currentOrder->id : null,
+                'selected_products' => $this->selectedProductsForTransfer
             ]);
 
-            // Cambiar el estado de la mesa destino a ocupada solo si hay productos
-            if (!empty($this->cart)) {
+            // Crear un nuevo carrito para la mesa destino con los productos seleccionados
+            $destinationCart = [];
+            $sourceCart = $this->cart;
+
+            // Transferir solo los productos seleccionados
+            foreach ($this->selectedProductsForTransfer as $productId) {
+                if (isset($sourceCart[$productId])) {
+                    $destinationCart[$productId] = $sourceCart[$productId];
+                    // Eliminar el producto del carrito de la mesa origen
+                    unset($sourceCart[$productId]);
+                }
+            }
+
+            // Cambiar el estado de la mesa destino a ocupada si hay productos seleccionados
+            if (!empty($destinationCart)) {
                 $destinationTable->status = 'occupied';
                 $destinationTable->occupied_at = now();
                 $destinationTable->save();
 
-                \Illuminate\Support\Facades\Log::info('Mesa destino marcada como ocupada con productos', [
+                \Illuminate\Support\Facades\Log::info('Mesa destino marcada como ocupada con productos seleccionados', [
                     'destination_table_id' => $destinationTable->id,
                     'destination_table_number' => $destinationTable->number,
-                    'product_count' => count($this->cart)
-                ]);
-            } else {
-                \Illuminate\Support\Facades\Log::info('No se cambió el estado de la mesa destino porque no hay productos', [
-                    'destination_table_id' => $destinationTable->id,
-                    'destination_table_number' => $destinationTable->number
+                    'product_count' => count($destinationCart)
                 ]);
             }
 
-            // No cambiamos el estado de la mesa origen a disponible
-            // Solo se debe cambiar a disponible cuando se emite un comprobante
-
-            // Si hay una orden asociada a la mesa origen, actualizarla
-            if ($this->currentOrder) {
+            // Si hay una orden asociada a la mesa origen y todos los productos se transfieren
+            // entonces actualizamos la orden para que apunte a la mesa destino
+            if ($this->currentOrder && empty($sourceCart)) {
                 $this->currentOrder->table_id = $destinationTable->id;
                 $this->currentOrder->save();
 
-                \Illuminate\Support\Facades\Log::info('Orden actualizada', [
+                \Illuminate\Support\Facades\Log::info('Orden actualizada a nueva mesa (todos los productos transferidos)', [
                     'order_id' => $this->currentOrder->id,
                     'new_table_id' => $destinationTable->id
                 ]);
-            }
 
-            // Actualizar la mesa actual en el componente
-            $this->table = $destinationTable;
-            $this->tableId = $destinationTable->id;
+                // Guardar el carrito de la mesa destino en la sesión
+                $destinationCartTotal = array_sum(array_map(function($item) {
+                    return $item['subtotal'];
+                }, $destinationCart));
+
+                session()->put('cart_' . $destinationTable->id, [
+                    'cart' => $destinationCart,
+                    'cartTotal' => $destinationCartTotal,
+                    'customerNote' => $this->customerNote,
+                    'timestamp' => now()->timestamp,
+                    'order_id' => $this->currentOrder->id
+                ]);
+
+                // Actualizar los detalles de la orden en la base de datos
+                // Primero eliminar los detalles existentes
+                $this->currentOrder->orderDetails()->delete();
+
+                // Luego agregar los nuevos detalles
+                foreach ($destinationCart as $productId => $item) {
+                    $orderDetail = new \App\Models\OrderDetail();
+                    $orderDetail->order_id = $this->currentOrder->id;
+                    $orderDetail->product_id = $productId;
+                    $orderDetail->quantity = $item['quantity'];
+                    $orderDetail->unit_price = $item['price'];
+                    $orderDetail->subtotal = $item['subtotal'];
+                    $orderDetail->notes = $item['notes'] ?? null;
+                    $orderDetail->status = 'pending';
+                    $orderDetail->save();
+                }
+
+                // Actualizar los totales de la orden
+                $this->currentOrder->subtotal = $destinationCartTotal;
+                $this->currentOrder->tax = $destinationCartTotal * 0.18;
+                $this->currentOrder->total = $destinationCartTotal * 1.18;
+                $this->currentOrder->notes = $this->customerNote;
+                $this->currentOrder->save();
+
+                \Illuminate\Support\Facades\Log::info('Carrito de mesa destino guardado correctamente en sesión y base de datos (transferencia completa)', [
+                    'destination_table_id' => $destinationTable->id,
+                    'destination_cart_count' => count($destinationCart),
+                    'destination_cart_total' => $destinationCartTotal,
+                    'order_id' => $this->currentOrder->id
+                ]);
+
+                // Limpiar el carrito de la mesa origen
+                session()->forget('cart_' . $sourceTable->id);
+
+                // Actualizar el estado de la mesa origen a disponible si no quedan productos
+                if ($sourceTable->status === 'occupied') {
+                    $sourceTable->status = 'available';
+                    $sourceTable->occupied_at = null;
+                    $sourceTable->save();
+
+                    \Illuminate\Support\Facades\Log::info('Mesa origen marcada como disponible (todos los productos transferidos)', [
+                        'source_table_id' => $sourceTable->id
+                    ]);
+                }
+            }
+            // Si hay una orden asociada pero solo se transfieren algunos productos
+            // entonces necesitamos crear una nueva orden para la mesa destino
+            else if ($this->currentOrder && !empty($destinationCart)) {
+                // Crear una nueva orden para la mesa destino
+                $newOrder = new Order();
+                $newOrder->service_type = 'dine_in';
+                $newOrder->table_id = $destinationTable->id;
+                $newOrder->employee_id = Auth::id();
+                $newOrder->order_datetime = now();
+                $newOrder->status = Order::STATUS_OPEN;
+                $newOrder->save();
+
+                \Illuminate\Support\Facades\Log::info('Nueva orden creada para mesa destino (transferencia parcial)', [
+                    'new_order_id' => $newOrder->id,
+                    'destination_table_id' => $destinationTable->id
+                ]);
+
+                // Guardar el carrito de la mesa origen actualizado (sin los productos transferidos)
+                $this->cart = $sourceCart;
+                $this->updateCartTotal();
+                $this->saveCartToSession();
+
+                // Guardar el carrito de la mesa destino en la sesión con el formato correcto
+                $destinationCartTotal = array_sum(array_map(function($item) {
+                    return $item['subtotal'];
+                }, $destinationCart));
+
+                session()->put('cart_' . $destinationTable->id, [
+                    'cart' => $destinationCart,
+                    'cartTotal' => $destinationCartTotal,
+                    'customerNote' => $this->customerNote,
+                    'timestamp' => now()->timestamp,
+                    'order_id' => $newOrder->id
+                ]);
+
+                // Guardar los productos en la base de datos (tabla order_details)
+                foreach ($destinationCart as $productId => $item) {
+                    $orderDetail = new \App\Models\OrderDetail();
+                    $orderDetail->order_id = $newOrder->id;
+                    $orderDetail->product_id = $productId;
+                    $orderDetail->quantity = $item['quantity'];
+                    $orderDetail->unit_price = $item['price'];
+                    $orderDetail->subtotal = $item['subtotal'];
+                    $orderDetail->notes = $item['notes'] ?? null;
+                    $orderDetail->status = 'pending';
+                    $orderDetail->save();
+                }
+
+                // Actualizar los totales de la orden
+                $newOrder->subtotal = $destinationCartTotal;
+                $newOrder->tax = $destinationCartTotal * 0.18;
+                $newOrder->total = $destinationCartTotal * 1.18;
+                $newOrder->notes = $this->customerNote;
+                $newOrder->save();
+
+                \Illuminate\Support\Facades\Log::info('Carrito de mesa destino guardado correctamente en sesión y base de datos', [
+                    'destination_table_id' => $destinationTable->id,
+                    'destination_cart_count' => count($destinationCart),
+                    'destination_cart_total' => $destinationCartTotal,
+                    'order_id' => $newOrder->id
+                ]);
+
+                \Illuminate\Support\Facades\Log::info('Carritos guardados correctamente', [
+                    'source_cart_count' => count($sourceCart),
+                    'destination_cart_count' => count($destinationCart),
+                    'source_table_id' => $sourceTable->id,
+                    'destination_table_id' => $destinationTable->id
+                ]);
+            }
 
             // Cerrar el modal
             $this->showTransferModal = false;
+
+            // Limpiar la selección de productos
+            $this->selectedProductsForTransfer = [];
+            $this->selectAllProductsForTransfer = false;
 
             // Notificar al usuario
             $this->dispatch('notification', [
                 'type' => 'success',
                 'title' => 'Transferencia Exitosa',
-                'message' => "Los productos se han transferido de la mesa {$sourceTableNumber} a la mesa {$destinationTable->number}."
+                'message' => "Los productos seleccionados se han transferido de la mesa {$sourceTableNumber} a la mesa {$destinationTable->number}."
             ]);
 
             \Illuminate\Support\Facades\Log::info('Transferencia completada, redirigiendo', [
-                'redirect_url' => route('pos.table', ['table' => $destinationTable->id])
+                'redirect_url' => route('pos.table', ['table' => $destinationTable->id]),
+                'source_table_id' => $sourceTable->id,
+                'source_cart_count' => count($sourceCart),
+                'destination_table_id' => $destinationTable->id,
+                'destination_cart_count' => count($destinationCart)
             ]);
 
-            // Redirigir a la nueva mesa
-            $this->redirect(route('pos.table', ['table' => $destinationTable->id]));
+            // Si estamos transfiriendo productos individuales y quedan productos en la mesa origen,
+            // nos quedamos en la mesa origen
+            if (!empty($sourceCart)) {
+                // Mostrar notificación con botón para ir a la mesa destino
+                $this->js('
+                    Swal.fire({
+                        icon: "success",
+                        title: "Transferencia Exitosa",
+                        html: "Los productos seleccionados se han transferido a la mesa ' . $destinationTable->number . '.<br>Los productos restantes permanecen en esta mesa.",
+                        showCancelButton: true,
+                        confirmButtonText: "Ir a Mesa ' . $destinationTable->number . '",
+                        cancelButtonText: "Quedarse en esta Mesa",
+                        confirmButtonColor: "#10b981",
+                        cancelButtonColor: "#6b7280"
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "' . route('pos.table', ['table' => $destinationTable->id]) . '";
+                        }
+                    });
+                ');
+
+                // Recargar la página actual para refrescar el carrito
+                $this->redirect(route('pos.table', ['table' => $sourceTable->id]));
+            } else {
+                // Si transferimos todos los productos, redirigir a la mesa destino
+                $this->redirect(route('pos.table', ['table' => $destinationTable->id]));
+            }
 
         } catch (\Exception $e) {
             // En caso de error, notificar al usuario
@@ -1464,6 +1636,73 @@ class PointOfSale extends Component
         $this->showInvoiceModal = false;
         $this->showTransferModal = false;
         $this->showDeliveryModal = false;
+
+        // Limpiar la selección de productos al cerrar modales
+        $this->selectedProductsForTransfer = [];
+        $this->selectAllProductsForTransfer = false;
+    }
+
+    /**
+     * Método para seleccionar/deseleccionar todos los productos
+     * Este método se llama cuando cambia el estado del checkbox "Seleccionar todos"
+     */
+    public function toggleSelectAllProducts(): void
+    {
+        // Si el checkbox está marcado, seleccionar todos los productos
+        if ($this->selectAllProductsForTransfer) {
+            $this->selectedProductsForTransfer = array_keys($this->cart);
+        }
+        // Si el checkbox está desmarcado, deseleccionar todos los productos
+        else {
+            $this->selectedProductsForTransfer = [];
+        }
+
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('toggleSelectAllProducts ejecutado', [
+            'selectAllProductsForTransfer' => $this->selectAllProductsForTransfer,
+            'selectedProductsForTransfer_count' => count($this->selectedProductsForTransfer)
+        ]);
+    }
+
+    /**
+     * Este método se llama automáticamente cuando cambia la propiedad selectedProductsForTransfer
+     * y actualiza el estado del checkbox "Seleccionar todos" según corresponda
+     */
+    public function updatedSelectedProductsForTransfer(): void
+    {
+        // Verificar si todos los productos están seleccionados
+        $this->selectAllProductsForTransfer = (count($this->selectedProductsForTransfer) === count($this->cart)) && !empty($this->cart);
+
+        // Registrar en el log para depuración
+        \Illuminate\Support\Facades\Log::info('updatedSelectedProductsForTransfer ejecutado', [
+            'selectAllProductsForTransfer' => $this->selectAllProductsForTransfer,
+            'selectedProductsForTransfer' => $this->selectedProductsForTransfer,
+            'selectedProductsForTransfer_count' => count($this->selectedProductsForTransfer),
+            'cart_count' => count($this->cart)
+        ]);
+
+        // Forzar la actualización de la UI
+        $this->dispatch('selectedProductsUpdated', [
+            'count' => count($this->selectedProductsForTransfer),
+            'ids' => $this->selectedProductsForTransfer
+        ]);
+    }
+
+    /**
+     * Método para forzar la actualización de la selección de productos
+     */
+    public function refreshSelectedProducts(): void
+    {
+        \Illuminate\Support\Facades\Log::info('refreshSelectedProducts ejecutado', [
+            'selectedProductsForTransfer' => $this->selectedProductsForTransfer,
+            'count' => count($this->selectedProductsForTransfer)
+        ]);
+
+        $this->dispatch('notification', [
+            'type' => 'info',
+            'title' => 'Depuración',
+            'message' => 'Productos seleccionados: ' . count($this->selectedProductsForTransfer)
+        ]);
     }
 
     public function openDeliveryModal(): void

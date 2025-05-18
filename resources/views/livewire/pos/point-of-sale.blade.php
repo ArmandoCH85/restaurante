@@ -9,8 +9,8 @@
     <style>
         /* Estilos para las representaciones visuales de las mesas */
         .table-visual {
-            width: 60px;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -24,6 +24,45 @@
 
         .table-round {
             border-radius: 50%;
+        }
+
+        /* Estilos específicos para el modal de transferencia */
+        #modal-transferir-mesa .table-visual {
+            width: 32px;
+            height: 32px;
+            font-size: 0.75rem;
+        }
+
+        /* Estilos para barras de desplazamiento personalizadas */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .dark .scrollbar-thin::-webkit-scrollbar-track {
+            background: #2d3748;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 3px;
+        }
+
+        .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #4a5568;
+        }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+
+        .dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #718096;
         }
     </style>
     <!-- Barra superior (Simplificada para enfoque POS) -->
@@ -838,72 +877,177 @@
             });
          "
     >
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full overflow-hidden" @click.away="cerrarModalTransferencia()">
-            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full overflow-hidden" @click.away="cerrarModalTransferencia()">
+            <div class="flex justify-between items-center px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
+                <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 mr-1.5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                     </svg>
                     Transferir Mesa
                 </h3>
                 <button onclick="cerrarModalTransferencia()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-full p-1 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
-            <div class="px-6 py-4">
-                <div class="mb-4">
-                    <p class="text-gray-700 dark:text-gray-300 mb-2">
-                        Selecciona la mesa a la que deseas transferir los productos de la mesa <span class="font-semibold">{{ $table ? $table->number : '' }}</span>.
+            <div class="flex flex-col h-[400px] overflow-hidden">
+                <div class="px-3 py-2 flex-shrink-0">
+                    <p class="text-xs text-gray-700 dark:text-gray-300 mb-1">
+                        Selecciona los productos que deseas transferir de la mesa <span class="font-semibold">{{ $table ? $table->number : '' }}</span>.
                     </p>
-                    <div class="bg-yellow-50 dark:bg-yellow-900/30 border-l-4 border-yellow-400 p-4 mb-4">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                </svg>
+                </div>
+
+                <!-- Lista de productos con checkboxes -->
+                <div class="px-3 flex-shrink-0">
+                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                        <div class="bg-gray-50 dark:bg-gray-800 px-2 py-1 border-b border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center">
+                                <input
+                                    type="checkbox"
+                                    id="select-all-products"
+                                    wire:model="selectAllProductsForTransfer"
+                                    wire:change="toggleSelectAllProducts"
+                                    class="w-3.5 h-3.5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                >
+                                <label for="select-all-products" class="ml-1.5 text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    Seleccionar todos los productos
+                                </label>
                             </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-yellow-700 dark:text-yellow-200">
-                                    La mesa origen quedará disponible y todos los productos se transferirán a la mesa seleccionada.
-                                </p>
-                            </div>
+                        </div>
+                        <div class="h-[120px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
+                                    <tr>
+                                        <th scope="col" class="px-1.5 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-8">
+                                            Sel.
+                                        </th>
+                                        <th scope="col" class="px-1.5 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Producto
+                                        </th>
+                                        <th scope="col" class="px-1.5 py-1.5 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-12">
+                                            Cant.
+                                        </th>
+                                        <th scope="col" class="px-1.5 py-1.5 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-16">
+                                            Precio
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
+                                    @forelse($cart as $productId => $item)
+                                        <tr class="hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-150">
+                                            <td class="px-1.5 py-1.5 whitespace-nowrap">
+                                                <input
+                                                    type="checkbox"
+                                                    id="product-{{ $productId }}"
+                                                    wire:model="selectedProductsForTransfer"
+                                                    value="{{ $productId }}"
+                                                    wire:change="$refresh"
+                                                    onclick="console.log('Checkbox clicked: {{ $productId }}', this.checked); if(this.checked) { window.livewire.find('point-of-sale').set('selectedProductsForTransfer', [...window.livewire.find('point-of-sale').get('selectedProductsForTransfer'), '{{ $productId }}']); } else { window.livewire.find('point-of-sale').set('selectedProductsForTransfer', window.livewire.find('point-of-sale').get('selectedProductsForTransfer').filter(id => id !== '{{ $productId }}')); }"
+                                                    class="w-3.5 h-3.5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 dark:focus:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                                                >
+                                            </td>
+                                            <td class="px-1.5 py-1.5 whitespace-nowrap">
+                                                <div class="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[120px]">{{ $item['name'] }}</div>
+                                            </td>
+                                            <td class="px-1.5 py-1.5 whitespace-nowrap text-right text-xs text-gray-900 dark:text-white">
+                                                {{ $item['quantity'] }}
+                                            </td>
+                                            <td class="px-1.5 py-1.5 whitespace-nowrap text-right text-xs text-gray-900 dark:text-white">
+                                                S/ {{ number_format($item['price'], 2) }}
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="px-1.5 py-1.5 text-center text-xs text-gray-500 dark:text-gray-400">
+                                                No hay productos en el carrito
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
-                    @foreach($availableTables as $availableTable)
+                <!-- Resumen de selección -->
+                <div class="px-3 py-1 flex-shrink-0 flex justify-between items-center">
+                    <div class="text-xs text-gray-600 dark:text-gray-400">
+                        <span class="font-medium">{{ count($selectedProductsForTransfer) }}</span> de <span class="font-medium">{{ count($cart) }}</span> productos seleccionados
                         <button
-                            onclick="transferirMesa({{ $availableTable->id }})"
-                            class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 flex flex-col items-center"
+                            wire:click="refreshSelectedProducts"
+                            class="ml-1 text-xs text-blue-500 hover:text-blue-700"
+                            title="Actualizar selección"
                         >
-                            <div class="table-visual {{ $availableTable->shape === 'square' ? 'table-square' : 'table-round' }} bg-green-100 dark:bg-green-900 border-green-500 mb-2">
-                                <span class="text-lg font-bold">{{ $availableTable->number }}</span>
-                            </div>
-                            <div class="text-center">
-                                <p class="font-medium text-gray-800 dark:text-gray-200">Mesa {{ $availableTable->number }}</p>
-                                <p class="text-sm text-gray-500 dark:text-gray-400">{{ ucfirst($availableTable->location) }} - {{ $availableTable->capacity }} personas</p>
-                            </div>
-                        </button>
-                    @endforeach
-
-                    @if(count($availableTables) === 0)
-                        <div class="col-span-full flex flex-col items-center justify-center py-8 text-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
-                            <p class="text-gray-500 dark:text-gray-400">No hay mesas disponibles para transferir.</p>
+                        </button>
+                    </div>
+                    @if(!empty($selectedProductsForTransfer))
+                        <div class="text-xs text-green-600 dark:text-green-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 inline-block mr-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                            Listo para transferir
                         </div>
                     @endif
                 </div>
+
+                <!-- Selección de mesa destino -->
+                <div class="px-3 flex-shrink-0">
+                    <h3 class="text-xs font-medium text-gray-800 dark:text-gray-200 mb-1">Selecciona la mesa destino:</h3>
+                </div>
+
+                <div class="px-3 pb-2 flex-grow overflow-hidden">
+                    <div class="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 p-0.5">
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
+                            @foreach($availableTables as $availableTable)
+                                <button
+                                    onclick="transferirMesa({{ $availableTable->id }})"
+                                    class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-1.5 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors duration-200 flex flex-col items-center {{ empty($selectedProductsForTransfer) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                    {{ empty($selectedProductsForTransfer) ? 'disabled' : '' }}
+                                    x-data="{}"
+                                    x-init="
+                                        $wire.on('selectedProductsUpdated', (event) => {
+                                            console.log('Productos seleccionados actualizados:', event);
+                                            if (event.count > 0) {
+                                                $el.disabled = false;
+                                                $el.classList.remove('opacity-50', 'cursor-not-allowed');
+                                            } else {
+                                                $el.disabled = true;
+                                                $el.classList.add('opacity-50', 'cursor-not-allowed');
+                                            }
+                                        });
+                                    "
+                                >
+                                    <div class="table-visual {{ $availableTable->shape === 'square' ? 'table-square' : 'table-round' }} bg-green-100 dark:bg-green-900 border-green-500 mb-0.5" style="width: 32px; height: 32px;">
+                                        <span class="text-xs font-bold">{{ $availableTable->number }}</span>
+                                    </div>
+                                    <div class="text-center">
+                                        <p class="text-xs font-medium text-gray-800 dark:text-gray-200">Mesa {{ $availableTable->number }}</p>
+                                        <p class="text-[10px] text-gray-500 dark:text-gray-400 truncate">{{ ucfirst($availableTable->location) }}</p>
+                                    </div>
+                                </button>
+                            @endforeach
+
+                            @if(count($availableTables) === 0)
+                                <div class="col-span-full flex flex-col items-center justify-center py-4 text-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">No hay mesas disponibles para transferir.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="bg-gray-50 dark:bg-gray-700/50 px-6 py-3 flex justify-end gap-3 border-t border-gray-200 dark:border-gray-700">
+            <div class="bg-gray-50 dark:bg-gray-700/50 px-3 py-1.5 flex justify-end gap-2 border-t border-gray-200 dark:border-gray-700">
                 <button
                     type="button"
                     onclick="cerrarModalTransferencia()"
-                    class="inline-flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-500 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
+                    class="inline-flex justify-center py-1 px-2.5 border border-gray-300 dark:border-gray-500 shadow-sm text-xs font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 transition-colors duration-200 focus:outline-none focus:ring-1 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
                 >
                     Cancelar
                 </button>
@@ -2021,8 +2165,29 @@
 
         // Función para abrir el modal de transferencia
         function abrirModalTransferencia() {
-            @this.loadAvailableTables();
-            @this.showTransferModal = true;
+            console.log('Abriendo modal de transferencia...');
+
+            // Verificar si hay productos en el carrito
+            if ({{ count($cart) }} === 0) {
+                alert('No hay productos en el carrito para transferir. Primero debes añadir productos al carrito.');
+                return;
+            }
+
+            try {
+                // Llamar al método del componente Livewire para abrir el modal
+                @this.openTransferModal();
+                console.log('Modal abierto:', @this.showTransferModal);
+
+                // Esperar a que el modal se abra completamente
+                setTimeout(() => {
+                    // Forzar la actualización de la UI después de que el modal esté visible
+                    @this.refreshSelectedProducts();
+                    console.log('Estado de selección actualizado');
+                }, 300);
+            } catch (error) {
+                console.error('Error al abrir modal de transferencia:', error);
+                alert('Error al abrir el modal de transferencia: ' + (error.message || 'Error desconocido'));
+            }
         }
 
         // Función para cerrar el modal de transferencia
