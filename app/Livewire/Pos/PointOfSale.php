@@ -1781,6 +1781,18 @@ class PointOfSale extends Component
     {
         $this->serviceType = $type;
 
+        // Si cambia a dine_in (En Local), redirigir al mapa de mesas
+        if ($type === 'dine_in') {
+            // Guardar el carrito en la sesión antes de redirigir (por si hay productos)
+            if (!empty($this->cart)) {
+                $this->saveCartToSession();
+            }
+
+            // Redirigir al mapa de mesas sin usar return
+            $this->redirect(route('tables.map'));
+            return; // Solo salimos del método, sin devolver valor
+        }
+
         // Si cambia a delivery, mostrar el formulario de delivery
         if ($type === 'delivery') {
             $this->openDeliveryModal();
