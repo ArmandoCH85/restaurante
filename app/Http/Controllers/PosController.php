@@ -134,8 +134,11 @@ class PosController extends Controller
             ]);
         }
 
-        // Vista normal sin parámetros
-        return view('pos.index');
+        // Vista normal sin parámetros - seleccionar automáticamente "Para Llevar"
+        // ya que al no tener mesa seleccionada, se interpreta como un pedido para llevar
+        return view('pos.index', [
+            'serviceType' => 'takeout'
+        ]);
     }
 
     /**
