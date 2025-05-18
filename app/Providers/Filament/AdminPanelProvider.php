@@ -64,6 +64,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 Pages\Dashboard::class,
                 \App\Filament\Pages\ReservationCalendar::class,
+                \App\Filament\Pages\ReportesPage::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
@@ -186,6 +187,17 @@ class AdminPanelProvider extends PanelProvider
 
                         // Verificar si el usuario tiene el permiso específico
                         return PermissionHelper::hasCustomAccess('access_delivery');
+                    }),
+
+                NavigationItem::make('Reportes')
+                    ->url('/admin/reportes')
+                    ->icon('heroicon-o-document-chart-bar')
+                    ->group('Ventas')
+                    ->sort(4)
+                    ->visible(function() {
+                        $user = Auth::user();
+                        // Solo visible para super_admin y admin
+                        return $user && ($user->hasRole('super_admin') || $user->hasRole('admin'));
                     }),
 
                 // Grupo: Configuración
