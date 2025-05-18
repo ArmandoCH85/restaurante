@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pago y Facturación - Orden #{{ $order->id }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -302,17 +303,38 @@
 
                     <div class="client-data mt-3">
                         <h5>3. Datos del Cliente</h5>
-                        <div class="mb-3">
-                            <label for="customer_id" class="form-label">Cliente</label>
-                            <select class="form-select" id="customer_id" name="customer_id">
-                                @foreach($customers as $customer)
-                                    <option value="{{ $customer->id }}" {{ ($customer->id == $genericCustomer->id) ? 'selected' : '' }}>
-                                        {{ $customer->name }} - {{ $customer->document_number }}
-                                    </option>
-                                @endforeach
-                            </select>
+
+                        <!-- Campo oculto para el ID del cliente -->
+                        <input type="hidden" id="customer_id" name="customer_id" value="{{ $genericCustomer->id }}">
+
+                        <!-- Cliente genérico para Nota de Venta -->
+                        <div id="generic_customer" class="mb-3" style="display: block;">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6 class="card-title">Cliente Genérico</h6>
+                                    <p class="card-text">{{ $genericCustomer->name }}</p>
+                                    <p class="card-text">Documento: {{ $genericCustomer->document_number }}</p>
+                                    <p class="small text-muted">Para Nota de Venta se utiliza el cliente genérico por defecto</p>
+                                </div>
+                            </div>
                         </div>
 
+                        <!-- Búsqueda de cliente (solo para Boleta y Factura) -->
+                        <div id="customer_search_container" class="mb-3" style="display: none;">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="customer_search" placeholder="Buscar por nombre o documento" autocomplete="off">
+                                <button class="btn btn-outline-secondary" type="button" id="search_customer_btn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <button class="btn btn-outline-primary" type="button" id="new_customer_btn">
+                                    <i class="fas fa-plus"></i> Nuevo
+                                </button>
+                            </div>
+                            <div id="search_results" class="mt-2" style="display: none; max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.25rem;"></div>
+                            <div id="search_message" class="mt-1 small" style="display: none;"></div>
+                        </div>
+
+                        <!-- Detalles del cliente seleccionado -->
                         <div id="customer_details" class="mb-3" style="display: none;">
                             <div class="card">
                                 <div class="card-body">
@@ -320,6 +342,52 @@
                                     <p class="card-text" id="customer_name"></p>
                                     <p class="card-text" id="customer_document"></p>
                                     <p class="card-text" id="customer_address"></p>
+                                    <p class="card-text" id="customer_phone"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal para nuevo cliente -->
+                    <div class="modal fade" id="newCustomerModal" tabindex="-1" aria-labelledby="newCustomerModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="newCustomerModalLabel">Nuevo Cliente</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label for="new_document_type" class="form-label">Tipo de Documento</label>
+                                        <select class="form-select" id="new_document_type">
+                                            <option value="DNI">DNI</option>
+                                            <option value="RUC">RUC</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_document_number" class="form-label">Número de Documento</label>
+                                        <input type="text" class="form-control" id="new_document_number" maxlength="15">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_name" class="form-label">Nombre / Razón Social</label>
+                                        <input type="text" class="form-control" id="new_name" maxlength="255">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_phone" class="form-label">Teléfono</label>
+                                        <input type="text" class="form-control" id="new_phone" maxlength="20">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_address" class="form-label">Dirección</label>
+                                        <input type="text" class="form-control" id="new_address" maxlength="255">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="new_email" class="form-label">Email</label>
+                                        <input type="email" class="form-control" id="new_email" maxlength="255">
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="button" class="btn btn-primary" id="save_customer_btn">Guardar</button>
                                 </div>
                             </div>
                         </div>
@@ -437,15 +505,33 @@
             // Actualizar el número de documento mostrado
             document.getElementById('next-document-number').textContent = nextNumbers[type];
 
-            // Mostrar/ocultar detalles del cliente según el tipo
+            // Mostrar/ocultar opciones según el tipo de comprobante
             if (type === 'sales_note') {
-                // Para nota de venta, seleccionar cliente genérico
+                // Para nota de venta, seleccionar cliente genérico y ocultar búsqueda
                 document.getElementById('customer_id').value = {{ $genericCustomer->id }};
+                document.getElementById('generic_customer').style.display = 'block';
+                document.getElementById('customer_search_container').style.display = 'none';
                 document.getElementById('customer_details').style.display = 'none';
+
+                // Limpiar campo de búsqueda
+                document.getElementById('customer_search').value = '';
+                document.getElementById('search_results').style.display = 'none';
+                document.getElementById('search_message').style.display = 'none';
             } else {
-                // Para boleta o factura, mostrar detalles del cliente
-                updateCustomerDetails();
-                document.getElementById('customer_details').style.display = 'block';
+                // Para boleta o factura, mostrar opciones de búsqueda
+                document.getElementById('generic_customer').style.display = 'none';
+                document.getElementById('customer_search_container').style.display = 'block';
+
+                // Si ya hay un cliente seleccionado que no es el genérico, mostrar sus detalles
+                const customerId = document.getElementById('customer_id').value;
+                if (customerId != {{ $genericCustomer->id }}) {
+                    updateCustomerDetails();
+                    document.getElementById('customer_details').style.display = 'block';
+                } else {
+                    // Si no hay cliente seleccionado o es el genérico, limpiar y ocultar detalles
+                    document.getElementById('customer_details').style.display = 'none';
+                    document.getElementById('customer_search').value = '';
+                }
             }
         }
 
@@ -585,16 +671,198 @@
 
 
 
-        // Event listener para cambios en el select de cliente
-        document.getElementById('customer_id').addEventListener('change', updateCustomerDetails);
+        // Búsqueda de clientes
+        document.getElementById('search_customer_btn').addEventListener('click', searchCustomers);
+        document.getElementById('customer_search').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                searchCustomers();
+            }
+        });
 
-        // Inicializar detalles del cliente si no es nota de venta
-        if (document.getElementById('invoice_type').value !== 'sales_note') {
-            updateCustomerDetails();
+        // Abrir modal para nuevo cliente
+        document.getElementById('new_customer_btn').addEventListener('click', function() {
+            // Limpiar campos del formulario
+            document.getElementById('new_document_type').value = 'DNI';
+            document.getElementById('new_document_number').value = '';
+            document.getElementById('new_name').value = '';
+            document.getElementById('new_phone').value = '';
+            document.getElementById('new_address').value = '';
+            document.getElementById('new_email').value = '';
+
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('newCustomerModal'));
+            modal.show();
+        });
+
+        // Guardar nuevo cliente
+        document.getElementById('save_customer_btn').addEventListener('click', saveNewCustomer);
+
+        // Inicializar la interfaz según el tipo de comprobante seleccionado
+        const initialInvoiceType = document.getElementById('invoice_type').value;
+        if (initialInvoiceType === 'sales_note') {
+            // Para nota de venta, mostrar cliente genérico y ocultar búsqueda
+            document.getElementById('generic_customer').style.display = 'block';
+            document.getElementById('customer_search_container').style.display = 'none';
+            document.getElementById('customer_details').style.display = 'none';
+        } else {
+            // Para boleta o factura, mostrar opciones de búsqueda
+            document.getElementById('generic_customer').style.display = 'none';
+            document.getElementById('customer_search_container').style.display = 'block';
+
+            // Si hay un cliente seleccionado que no es el genérico, mostrar sus detalles
+            const customerId = document.getElementById('customer_id').value;
+            if (customerId != {{ $genericCustomer->id }}) {
+                updateCustomerDetails();
+                document.getElementById('customer_details').style.display = 'block';
+            }
         }
 
         // Inicializar el cálculo del cambio
         calculateChange();
+
+        // Función para buscar clientes
+        function searchCustomers() {
+            const searchTerm = document.getElementById('customer_search').value.trim();
+            const searchResults = document.getElementById('search_results');
+            const searchMessage = document.getElementById('search_message');
+
+            if (searchTerm.length < 3) {
+                searchMessage.textContent = 'Ingrese al menos 3 caracteres para buscar';
+                searchMessage.style.display = 'block';
+                searchMessage.style.color = '#dc3545';
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            // Mostrar indicador de carga
+            searchMessage.textContent = 'Buscando...';
+            searchMessage.style.display = 'block';
+            searchMessage.style.color = '#0d6efd';
+
+            // Realizar búsqueda
+            fetch(`/pos/customers/search?term=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.customers.length > 0) {
+                        // Mostrar resultados
+                        searchResults.innerHTML = '';
+                        data.customers.forEach(customer => {
+                            const customerElement = document.createElement('div');
+                            customerElement.className = 'p-2 border-bottom customer-result';
+                            customerElement.style.cursor = 'pointer';
+                            customerElement.innerHTML = `
+                                <div><strong>${customer.name}</strong></div>
+                                <div class="small text-muted">${customer.document_type}: ${customer.document_number}</div>
+                            `;
+                            customerElement.addEventListener('click', function() {
+                                selectCustomer(customer);
+                            });
+                            searchResults.appendChild(customerElement);
+                        });
+
+                        searchResults.style.display = 'block';
+                        searchMessage.style.display = 'none';
+                    } else {
+                        // No se encontraron resultados
+                        searchResults.style.display = 'none';
+                        searchMessage.textContent = 'No se encontraron clientes. Puede crear uno nuevo.';
+                        searchMessage.style.display = 'block';
+                        searchMessage.style.color = '#dc3545';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al buscar clientes:', error);
+                    searchResults.style.display = 'none';
+                    searchMessage.textContent = 'Error al buscar clientes. Intente nuevamente.';
+                    searchMessage.style.display = 'block';
+                    searchMessage.style.color = '#dc3545';
+                });
+        }
+
+        // Función para seleccionar un cliente
+        function selectCustomer(customer) {
+            // Actualizar campo oculto con el ID del cliente
+            document.getElementById('customer_id').value = customer.id;
+
+            // Actualizar campo de búsqueda
+            document.getElementById('customer_search').value = customer.name;
+
+            // Ocultar resultados y mensaje
+            document.getElementById('search_results').style.display = 'none';
+            document.getElementById('search_message').style.display = 'none';
+
+            // Actualizar detalles del cliente
+            document.getElementById('customer_name').textContent = 'Nombre: ' + customer.name;
+            document.getElementById('customer_document').textContent = 'Documento: ' + customer.document_type + ' ' + customer.document_number;
+            document.getElementById('customer_address').textContent = 'Dirección: ' + (customer.address || 'No especificada');
+            document.getElementById('customer_phone').textContent = 'Teléfono: ' + (customer.phone || 'No especificado');
+
+            // Mostrar detalles
+            document.getElementById('customer_details').style.display = 'block';
+        }
+
+        // Función para guardar un nuevo cliente
+        function saveNewCustomer() {
+            const documentType = document.getElementById('new_document_type').value;
+            const documentNumber = document.getElementById('new_document_number').value;
+            const name = document.getElementById('new_name').value;
+            const phone = document.getElementById('new_phone').value;
+            const address = document.getElementById('new_address').value;
+            const email = document.getElementById('new_email').value;
+
+            // Validar campos requeridos
+            if (!documentNumber || !name) {
+                alert('El número de documento y el nombre son obligatorios');
+                return;
+            }
+
+            // Deshabilitar botón para evitar múltiples envíos
+            const saveButton = document.getElementById('save_customer_btn');
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Guardando...';
+
+            // Enviar datos al servidor
+            fetch('/pos/customers/store', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    document_type: documentType,
+                    document_number: documentNumber,
+                    name: name,
+                    phone: phone,
+                    address: address,
+                    email: email
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Cerrar modal
+                    bootstrap.Modal.getInstance(document.getElementById('newCustomerModal')).hide();
+
+                    // Seleccionar el cliente recién creado
+                    selectCustomer(data.customer);
+
+                    // Mostrar mensaje de éxito
+                    alert('Cliente guardado correctamente');
+                } else {
+                    // Mostrar mensaje de error
+                    alert('Error al guardar el cliente: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error al guardar el cliente:', error);
+                alert('Error al guardar el cliente. Intente nuevamente.');
+            })
+            .finally(() => {
+                // Restaurar botón
+                saveButton.disabled = false;
+                saveButton.innerHTML = 'Guardar';
+            });
+        }
     </script>
 </body>
 </html>

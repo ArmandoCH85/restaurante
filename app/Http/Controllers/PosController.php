@@ -484,39 +484,86 @@ class PosController extends Controller
     }
 
     /**
+     * Buscar clientes por nombre o número de documento
+     */
+    public function searchCustomers(Request $request)
+    {
+        $term = $request->input('term');
+
+        if (empty($term) || strlen($term) < 3) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ingrese al menos 3 caracteres para buscar'
+            ]);
+        }
+
+        // Buscar por nombre o número de documento
+        $customers = \App\Models\Customer::where('name', 'like', "%{$term}%")
+            ->orWhere('document_number', 'like', "%{$term}%")
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'customers' => $customers
+        ]);
+    }
+
+    /**
      * Crear nuevo cliente
      */
     public function storeCustomer(Request $request)
     {
-        $validated = $request->validate([
-            'document_type' => 'required|string|max:10',
-            'document_number' => 'required|string|max:15|unique:customers,document_number',
-            'name' => 'required|string|max:255',
-            'address' => 'nullable|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-        ]);
-
-        // Crear el cliente
-        $customer = \App\Models\Customer::create($validated);
-
-        // Validar con SUNAT/RENIEC si corresponde
-        $sunatService = new \App\Services\SunatService();
-
-        if ($validated['document_type'] === 'RUC') {
-            $validated = $sunatService->validateRuc($customer);
-        } elseif ($validated['document_type'] === 'DNI') {
-            $validated = $sunatService->validateDni($customer);
+        // Verificar si la solicitud es JSON
+        if ($request->isJson()) {
+            $data = $request->json()->all();
+        } else {
+            $data = $request->all();
         }
 
-        // Recargar el cliente para obtener los datos actualizados
-        $customer->refresh();
+        try {
+            $validated = $request->validate([
+                'document_type' => 'required|string|max:10',
+                'document_number' => 'required|string|max:15|unique:customers,document_number',
+                'name' => 'required|string|max:255',
+                'address' => 'nullable|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'email' => 'nullable|email|max:255',
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Cliente creado correctamente' . ($customer->tax_validated ? ' y validado con SUNAT/RENIEC' : ''),
-            'customer' => $customer
-        ]);
+            // Crear el cliente
+            $customer = \App\Models\Customer::create($validated);
+
+            // Validar con SUNAT/RENIEC si corresponde
+            $sunatService = new \App\Services\SunatService();
+
+            if ($validated['document_type'] === 'RUC') {
+                $validated = $sunatService->validateRuc($customer);
+            } elseif ($validated['document_type'] === 'DNI') {
+                $validated = $sunatService->validateDni($customer);
+            }
+
+            // Recargar el cliente para obtener los datos actualizados
+            $customer->refresh();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Cliente creado correctamente' . ($customer->tax_validated ? ' y validado con SUNAT/RENIEC' : ''),
+                'customer' => $customer
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Error al crear cliente: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al crear el cliente: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
