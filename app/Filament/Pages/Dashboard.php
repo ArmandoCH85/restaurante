@@ -2,20 +2,26 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static ?string $navigationLabel = 'Escritorio';
+    protected static ?string $title = 'Escritorio';
+    protected static ?int $navigationSort = -1;
 
-    protected static ?string $navigationGroup = 'Ventas';
-
-    protected static string $view = 'filament.pages.dashboard';
-
-    protected function getHeaderWidgets(): array
+    public static function getWidgets(): array
     {
         return [
-            // Widgets\SuppliersCountWidget::class,
+            \App\Filament\Widgets\ReservationStats::class,
+            \App\Filament\Widgets\SuppliersCountWidget::class,
         ];
+    }
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole(['super_admin', 'admin']);
     }
 }
