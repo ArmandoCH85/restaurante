@@ -552,7 +552,9 @@
                                                             <option value="in_transit">Marcar en tránsito</option>
                                                             <option value="cancelled">Cancelar pedido</option>
                                                         @elseif($delivery->status === 'in_transit')
-                                                            <option value="delivered">Marcar como entregado</option>
+                                                            @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('cashier'))
+                                                                <option value="delivered">Marcar como entregado</option>
+                                                            @endif
                                                             <option value="cancelled">Cancelar pedido</option>
                                                         @endif
                                                     </select>

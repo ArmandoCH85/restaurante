@@ -130,24 +130,35 @@ class DeliveryOrderDetails extends Component
             return;
         }
 
-        // Verificar si el usuario tiene permiso para actualizar este pedido
+        // Verificar el rol del usuario
         $user = Auth::user();
-        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+        $isDeliveryPerson = $user && $user->hasRole('delivery');
+        $isAdmin = $user && ($user->hasRole('admin') || $user->hasRole('super_admin') || $user->hasRole('cashier'));
         $employee = $isDeliveryPerson ? \App\Models\Employee::where('user_id', $user->id)->first() : null;
 
-        // Para estados "in_transit" y "delivered", solo el repartidor asignado puede actualizar
-        if (in_array($newStatus, ['in_transit', 'delivered'])) {
-            if (!$isDeliveryPerson) {
+        // Restricciones según el rol y el estado solicitado
+        if ($newStatus === 'in_transit') {
+            // Solo el repartidor asignado puede marcar como en tránsito
+            if ($isDeliveryPerson) {
+                if (!$employee || $deliveryOrder->delivery_person_id !== $employee->id) {
+                    $this->dispatch('notification', [
+                        'message' => "Solo el repartidor asignado puede actualizar este pedido",
+                        'type' => 'error'
+                    ]);
+                    return;
+                }
+            } else if (!$isAdmin) {
                 $this->dispatch('notification', [
-                    'message' => "Solo los repartidores pueden actualizar el estado de entrega",
+                    'message' => "No tienes permiso para cambiar el estado a En Tránsito",
                     'type' => 'error'
                 ]);
                 return;
             }
-
-            if (!$employee || $deliveryOrder->delivery_person_id !== $employee->id) {
+        } else if ($newStatus === 'delivered') {
+            // Solo Admin, Super Admin o Cashier pueden marcar como entregado
+            if (!$isAdmin) {
                 $this->dispatch('notification', [
-                    'message' => "Solo el repartidor asignado puede actualizar este pedido",
+                    'message' => "Solo administradores y cajeros pueden finalizar pedidos de delivery",
                     'type' => 'error'
                 ]);
                 return;
@@ -164,7 +175,7 @@ class DeliveryOrderDetails extends Component
                 break;
 
             case 'delivered':
-                // Solo el repartidor asignado puede marcar como entregado
+                // Solo Admin, Super Admin o Cashier pueden marcar como entregado
                 $success = $deliveryOrder->markAsDelivered();
                 break;
 

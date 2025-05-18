@@ -15,7 +15,7 @@
                 />
                 Mis Pedidos de Delivery
             </h1>
-            
+
             <!-- Estadísticas rápidas -->
             <div class="delivery-stats">
                 <div class="stat-card assigned">
@@ -32,7 +32,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Filtros y búsqueda -->
         <div class="delivery-filters">
             <div class="filter-group">
@@ -44,7 +44,7 @@
                     />
                 </x-filament::input.wrapper>
             </div>
-            
+
             <div class="filter-group">
                 <x-filament::input.wrapper>
                     <x-filament::input.select
@@ -59,7 +59,7 @@
                 </x-filament::input.wrapper>
             </div>
         </div>
-        
+
         <!-- Contenedor de pedidos -->
         <div class="delivery-orders-container">
             @if($this->records->isEmpty())
@@ -110,7 +110,7 @@
                                     </span>
                                 </div>
                             </div>
-                            
+
                             <!-- Contenido del pedido -->
                             <div class="delivery-card-content">
                                 <!-- Información del cliente -->
@@ -124,7 +124,7 @@
                                         <span class="info-value">{{ $record->order->customer->phone ?? 'Sin teléfono' }}</span>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Dirección de entrega -->
                                 <div class="address-info">
                                     <div class="info-group">
@@ -138,7 +138,7 @@
                                         </div>
                                     @endif
                                 </div>
-                                
+
                                 <!-- Tiempo estimado -->
                                 @if($record->estimated_delivery_time)
                                     <div class="time-info">
@@ -149,11 +149,11 @@
                                     </div>
                                 @endif
                             </div>
-                            
+
                             <!-- Acciones del pedido -->
                             <div class="delivery-card-actions">
                                 @if($record->status === 'assigned')
-                                    <button 
+                                    <button
                                         type="button"
                                         wire:click="updateDeliveryStatus({{ $record->id }}, 'in_transit')"
                                         class="action-button transit-action"
@@ -164,8 +164,8 @@
                                         />
                                         Iniciar Entrega
                                     </button>
-                                @elseif($record->status === 'in_transit')
-                                    <button 
+                                @elseif($record->status === 'in_transit' && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('cashier')))
+                                    <button
                                         type="button"
                                         wire:click="updateDeliveryStatus({{ $record->id }}, 'delivered')"
                                         class="action-button deliver-action"
@@ -177,9 +177,9 @@
                                         Marcar Entregado
                                     </button>
                                 @endif
-                                
+
                                 @if(!in_array($record->status, ['delivered', 'cancelled']))
-                                    <button 
+                                    <button
                                         type="button"
                                         wire:click="openCancelModal({{ $record->id }})"
                                         class="action-button cancel-action"
@@ -191,8 +191,8 @@
                                         Cancelar
                                     </button>
                                 @endif
-                                
-                                <a 
+
+                                <a
                                     href="{{ route('pos.index', ['order_id' => $record->order_id, 'preserve_cart' => 'true']) }}"
                                     class="action-button view-action"
                                     target="_blank"
@@ -210,7 +210,7 @@
             @endif
         </div>
     </div>
-    
+
     <!-- Modal de cancelación -->
     <x-filament::modal
         id="cancel-delivery-modal"
@@ -225,7 +225,7 @@
                 <x-filament::input.label for="cancellation_reason">
                     {{ __('Motivo de Cancelación') }}
                 </x-filament::input.label>
-                
+
                 <x-filament::input.textarea
                     id="cancellation_reason"
                     wire:model="cancellationReason"
@@ -234,7 +234,7 @@
                 />
             </x-filament::input.wrapper>
         </div>
-        
+
         <x-slot name="footer">
             <div class="flex justify-end gap-3">
                 <x-filament::button
@@ -243,7 +243,7 @@
                 >
                     {{ __('Cancelar') }}
                 </x-filament::button>
-                
+
                 <x-filament::button
                     color="danger"
                     wire:click="confirmCancel"
@@ -262,7 +262,7 @@
         flex-direction: column;
         gap: 1.5rem;
     }
-    
+
     /* Cabecera */
     .delivery-header {
         display: flex;
@@ -273,7 +273,7 @@
         padding-bottom: 1rem;
         border-bottom: 1px solid rgb(229, 231, 235);
     }
-    
+
     .delivery-title {
         display: flex;
         align-items: center;
@@ -282,17 +282,17 @@
         font-weight: 700;
         color: rgb(17, 24, 39);
     }
-    
+
     .dark .delivery-title {
         color: rgb(243, 244, 246);
     }
-    
+
     /* Estadísticas */
     .delivery-stats {
         display: flex;
         gap: 1rem;
     }
-    
+
     .stat-card {
         display: flex;
         flex-direction: column;
@@ -304,47 +304,47 @@
         min-width: 100px;
         border-top: 3px solid transparent;
     }
-    
+
     .dark .stat-card {
         background-color: rgb(31, 41, 55);
     }
-    
+
     .stat-card.assigned {
         border-top-color: rgb(79, 70, 229);
     }
-    
+
     .stat-card.in-transit {
         border-top-color: rgb(245, 158, 11);
     }
-    
+
     .stat-card.delivered {
         border-top-color: rgb(16, 185, 129);
     }
-    
+
     .stat-value {
         font-size: 1.5rem;
         font-weight: 700;
         line-height: 1;
     }
-    
+
     .stat-card.assigned .stat-value {
         color: rgb(79, 70, 229);
     }
-    
+
     .stat-card.in-transit .stat-value {
         color: rgb(245, 158, 11);
     }
-    
+
     .stat-card.delivered .stat-value {
         color: rgb(16, 185, 129);
     }
-    
+
     .stat-label {
         font-size: 0.75rem;
         color: rgb(107, 114, 128);
         margin-top: 0.25rem;
     }
-    
+
     /* Filtros */
     .delivery-filters {
         display: flex;
@@ -352,19 +352,19 @@
         gap: 1rem;
         padding-bottom: 1rem;
     }
-    
+
     .filter-group {
         min-width: 200px;
         flex: 1;
     }
-    
+
     /* Contenedor de pedidos */
     .delivery-orders-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 1rem;
     }
-    
+
     /* Tarjeta de pedido */
     .delivery-card {
         display: flex;
@@ -376,32 +376,32 @@
         transition: all 0.2s ease;
         border-left: 4px solid rgb(107, 114, 128);
     }
-    
+
     .dark .delivery-card {
         background-color: rgb(31, 41, 55);
     }
-    
+
     .delivery-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    
+
     .delivery-card.assigned {
         border-left-color: rgb(79, 70, 229);
     }
-    
+
     .delivery-card.in_transit {
         border-left-color: rgb(245, 158, 11);
     }
-    
+
     .delivery-card.delivered {
         border-left-color: rgb(16, 185, 129);
     }
-    
+
     .delivery-card.cancelled {
         border-left-color: rgb(239, 68, 68);
     }
-    
+
     /* Cabecera de la tarjeta */
     .delivery-card-header {
         display: flex;
@@ -410,32 +410,32 @@
         padding: 0.75rem 1rem;
         border-bottom: 1px solid rgb(243, 244, 246);
     }
-    
+
     .dark .delivery-card-header {
         border-bottom-color: rgb(55, 65, 81);
     }
-    
+
     .order-info {
         display: flex;
         flex-direction: column;
     }
-    
+
     .order-number {
         font-weight: 600;
         font-size: 0.875rem;
         color: rgb(17, 24, 39);
         margin: 0;
     }
-    
+
     .dark .order-number {
         color: rgb(243, 244, 246);
     }
-    
+
     .order-time {
         font-size: 0.75rem;
         color: rgb(107, 114, 128);
     }
-    
+
     /* Badge de estado */
     .status-badge {
         display: inline-flex;
@@ -448,27 +448,27 @@
         background-color: rgb(243, 244, 246);
         color: rgb(55, 65, 81);
     }
-    
+
     .status-badge.assigned {
         background-color: rgba(79, 70, 229, 0.1);
         color: rgb(79, 70, 229);
     }
-    
+
     .status-badge.in_transit {
         background-color: rgba(245, 158, 11, 0.1);
         color: rgb(245, 158, 11);
     }
-    
+
     .status-badge.delivered {
         background-color: rgba(16, 185, 129, 0.1);
         color: rgb(16, 185, 129);
     }
-    
+
     .status-badge.cancelled {
         background-color: rgba(239, 68, 68, 0.1);
         color: rgb(239, 68, 68);
     }
-    
+
     /* Contenido de la tarjeta */
     .delivery-card-content {
         padding: 1rem;
@@ -477,33 +477,33 @@
         gap: 0.75rem;
         flex: 1;
     }
-    
+
     .customer-info, .address-info, .time-info {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .info-group {
         display: flex;
         flex-direction: column;
     }
-    
+
     .info-label {
         font-size: 0.75rem;
         font-weight: 500;
         color: rgb(107, 114, 128);
     }
-    
+
     .info-value {
         font-size: 0.875rem;
         color: rgb(17, 24, 39);
     }
-    
+
     .dark .info-value {
         color: rgb(243, 244, 246);
     }
-    
+
     /* Acciones de la tarjeta */
     .delivery-card-actions {
         display: flex;
@@ -513,12 +513,12 @@
         border-top: 1px solid rgb(243, 244, 246);
         background-color: rgb(249, 250, 251);
     }
-    
+
     .dark .delivery-card-actions {
         border-top-color: rgb(55, 65, 81);
         background-color: rgb(17, 24, 39);
     }
-    
+
     .action-button {
         display: inline-flex;
         align-items: center;
@@ -534,48 +534,48 @@
         border: none;
         cursor: pointer;
     }
-    
+
     .action-button:hover {
         transform: translateY(-1px);
     }
-    
+
     .transit-action {
         background-color: rgb(79, 70, 229);
         color: white;
     }
-    
+
     .transit-action:hover {
         background-color: rgb(67, 56, 202);
     }
-    
+
     .deliver-action {
         background-color: rgb(16, 185, 129);
         color: white;
     }
-    
+
     .deliver-action:hover {
         background-color: rgb(5, 150, 105);
     }
-    
+
     .cancel-action {
         background-color: rgb(239, 68, 68);
         color: white;
     }
-    
+
     .cancel-action:hover {
         background-color: rgb(220, 38, 38);
     }
-    
+
     .view-action {
         background-color: rgb(107, 114, 128);
         color: white;
         text-decoration: none;
     }
-    
+
     .view-action:hover {
         background-color: rgb(75, 85, 99);
     }
-    
+
     /* Estado vacío */
     .empty-state {
         display: flex;
@@ -585,45 +585,45 @@
         padding: 3rem 1.5rem;
         text-align: center;
     }
-    
+
     .empty-state-icon {
         margin-bottom: 1rem;
     }
-    
+
     .empty-state-heading {
         font-size: 1.125rem;
         font-weight: 600;
         color: rgb(17, 24, 39);
         margin-bottom: 0.5rem;
     }
-    
+
     .dark .empty-state-heading {
         color: rgb(243, 244, 246);
     }
-    
+
     .empty-state-description {
         font-size: 0.875rem;
         color: rgb(107, 114, 128);
         max-width: 20rem;
         margin: 0 auto;
     }
-    
+
     /* Responsive */
     @media (max-width: 640px) {
         .delivery-header {
             flex-direction: column;
             align-items: flex-start;
         }
-        
+
         .delivery-stats {
             width: 100%;
             justify-content: space-between;
         }
-        
+
         .stat-card {
             min-width: 80px;
         }
-        
+
         .delivery-orders-grid {
             grid-template-columns: 1fr;
         }

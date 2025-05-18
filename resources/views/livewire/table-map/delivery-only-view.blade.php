@@ -150,7 +150,7 @@
                                     </svg>
                                     Iniciar Entrega
                                 </button>
-                            @elseif($delivery->status === 'in_transit' && $isAssignedDeliveryPerson)
+                            @elseif($delivery->status === 'in_transit' && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('cashier')))
                                 <button wire:click="updateDeliveryStatus({{ $delivery->id }}, 'delivered')" class="action-button deliver-button">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

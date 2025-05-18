@@ -1,8 +1,8 @@
 <div class="p-6 bg-white dark:bg-gray-800 shadow-md rounded-lg">
     <div class="flex justify-between items-center mb-6">
         <h2 class="text-xl font-semibold text-gray-800 dark:text-gray-200">Mis Pedidos de Delivery</h2>
-        <button 
-            wire:click="$refresh" 
+        <button
+            wire:click="$refresh"
             class="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full hover:bg-blue-100 dark:hover:bg-blue-800/50 transition-colors"
             title="Actualizar"
         >
@@ -11,7 +11,7 @@
             </svg>
         </button>
     </div>
-    
+
     <!-- Tarjetas de estadísticas -->
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
@@ -27,7 +27,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-lg p-4 border border-indigo-100 dark:border-indigo-800">
             <div class="flex items-center">
                 <div class="p-3 bg-indigo-100 dark:bg-indigo-800 rounded-full mr-4">
@@ -42,7 +42,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-100 dark:border-green-800">
             <div class="flex items-center">
                 <div class="p-3 bg-green-100 dark:bg-green-800 rounded-full mr-4">
@@ -57,11 +57,11 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Lista de pedidos asignados -->
     <div class="space-y-4">
         <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-3">Pedidos Asignados</h3>
-        
+
         @forelse($assignedOrders as $order)
         <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-600">
             <div class="bg-gray-50 dark:bg-gray-600 px-4 py-3 border-b border-gray-200 dark:border-gray-500 flex justify-between items-center">
@@ -78,67 +78,67 @@
                     {{ $order->created_at->format('d/m/Y H:i') }}
                 </div>
             </div>
-            
+
             <div class="p-4">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Cliente</h4>
                         <div class="space-y-1">
                             <p class="text-sm text-gray-600 dark:text-gray-300">
-                                <span class="font-medium">Nombre:</span> 
+                                <span class="font-medium">Nombre:</span>
                                 {{ $order->customer->name ?? $order->deliveryOrder->customer_name ?? 'N/A' }}
                             </p>
                             <p class="text-sm text-gray-600 dark:text-gray-300">
-                                <span class="font-medium">Teléfono:</span> 
+                                <span class="font-medium">Teléfono:</span>
                                 {{ $order->customer->phone ?? $order->deliveryOrder->customer_phone ?? 'N/A' }}
                             </p>
                         </div>
                     </div>
-                    
+
                     <div>
                         <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Entrega</h4>
                         <div class="space-y-1">
                             <p class="text-sm text-gray-600 dark:text-gray-300">
-                                <span class="font-medium">Dirección:</span> 
+                                <span class="font-medium">Dirección:</span>
                                 {{ $order->deliveryOrder->delivery_address ?? 'N/A' }}
                             </p>
                             @if($order->deliveryOrder->delivery_references)
                             <p class="text-sm text-gray-600 dark:text-gray-300">
-                                <span class="font-medium">Referencias:</span> 
+                                <span class="font-medium">Referencias:</span>
                                 {{ $order->deliveryOrder->delivery_references }}
                             </p>
                             @endif
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
                     <div class="flex justify-between items-center">
                         <div>
                             <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Total:</span>
                             <span class="text-lg font-bold text-gray-900 dark:text-white">S/ {{ number_format($order->total, 2) }}</span>
                         </div>
-                        
+
                         <div class="flex space-x-2">
-                            <button 
-                                wire:click="viewOrderDetails({{ $order->id }})" 
+                            <button
+                                wire:click="viewOrderDetails({{ $order->id }})"
                                 class="px-3 py-1.5 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 rounded-md text-sm font-medium hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
                             >
                                 Ver Detalles
                             </button>
-                            
+
                             @if($order->deliveryOrder->status == 'ready')
-                            <button 
-                                wire:click="updateStatus({{ $order->id }}, 'in_transit')" 
+                            <button
+                                wire:click="updateStatus({{ $order->id }}, 'in_transit')"
                                 class="px-3 py-1.5 bg-indigo-600 text-white rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors"
                             >
                                 Iniciar Entrega
                             </button>
                             @endif
-                            
-                            @if($order->deliveryOrder->status == 'in_transit')
-                            <button 
-                                wire:click="updateStatus({{ $order->id }}, 'delivered')" 
+
+                            @if($order->deliveryOrder->status == 'in_transit' && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('cashier')))
+                            <button
+                                wire:click="updateStatus({{ $order->id }}, 'delivered')"
                                 class="px-3 py-1.5 bg-green-600 text-white rounded-md text-sm font-medium hover:bg-green-700 transition-colors"
                             >
                                 Marcar como Entregado
@@ -162,7 +162,7 @@
         </div>
         @endforelse
     </div>
-    
+
     <!-- Modal para ver detalles del pedido -->
     @if($showOrderDetailsModal && $viewingOrder)
     <div class="fixed inset-0 bg-gray-600/75 dark:bg-gray-900/80 flex items-center justify-center z-50 p-4">
@@ -175,7 +175,7 @@
                     </svg>
                 </button>
             </div>
-            
+
             <div class="p-6 overflow-y-auto max-h-[calc(100vh-200px)]">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Información del cliente -->
@@ -186,7 +186,7 @@
                             </svg>
                             Información del Cliente
                         </h4>
-                        
+
                         <div class="space-y-2">
                             <div>
                                 <span class="text-xs text-gray-500 dark:text-gray-400">Nombre:</span>
@@ -209,7 +209,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Información de entrega -->
                     <div class="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
                         <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
@@ -219,7 +219,7 @@
                             </svg>
                             Información de Entrega
                         </h4>
-                        
+
                         <div class="space-y-2">
                             <div>
                                 <span class="text-xs text-gray-500 dark:text-gray-400">Dirección:</span>
@@ -246,7 +246,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Productos del pedido -->
                 <div class="mt-6">
                     <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
@@ -255,7 +255,7 @@
                         </svg>
                         Productos
                     </h4>
-                    
+
                     <div class="bg-white dark:bg-gray-800 shadow overflow-hidden rounded-lg">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                             <thead class="bg-gray-50 dark:bg-gray-700">
@@ -298,27 +298,27 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700/30 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-3">
-                <button 
-                    wire:click="closeOrderDetailsModal" 
+                <button
+                    wire:click="closeOrderDetailsModal"
                     class="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                     Cerrar
                 </button>
-                
+
                 @if($viewingOrder->deliveryOrder && $viewingOrder->deliveryOrder->status == 'ready')
-                <button 
-                    wire:click="updateStatus({{ $viewingOrder->id }}, 'in_transit')" 
+                <button
+                    wire:click="updateStatus({{ $viewingOrder->id }}, 'in_transit')"
                     class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
                     Iniciar Entrega
                 </button>
                 @endif
-                
-                @if($viewingOrder->deliveryOrder && $viewingOrder->deliveryOrder->status == 'in_transit')
-                <button 
-                    wire:click="updateStatus({{ $viewingOrder->id }}, 'delivered')" 
+
+                @if($viewingOrder->deliveryOrder && $viewingOrder->deliveryOrder->status == 'in_transit' && (auth()->user()->hasRole('admin') || auth()->user()->hasRole('super_admin') || auth()->user()->hasRole('cashier')))
+                <button
+                    wire:click="updateStatus({{ $viewingOrder->id }}, 'delivered')"
                     class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                 >
                     Marcar como Entregado

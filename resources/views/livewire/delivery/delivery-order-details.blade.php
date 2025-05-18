@@ -192,12 +192,15 @@
         <!-- Botones de acción -->
         <div class="flex flex-col sm:flex-row gap-3 mt-8">
             @php
-                // Verificar si el usuario actual es el repartidor asignado a este pedido
+                // Verificar roles y permisos
                 $user = \Illuminate\Support\Facades\Auth::user();
                 $employee = \App\Models\Employee::where('user_id', $user->id)->first();
                 $isAssignedDeliveryPerson = $employee && $deliveryOrder->delivery_person_id === $employee->id;
+                $isDeliveryPerson = $user && $user->hasRole('delivery');
+                $isAdmin = $user && ($user->hasRole('admin') || $user->hasRole('super_admin') || $user->hasRole('cashier'));
             @endphp
 
+            <!-- Botón para iniciar entrega (En Tránsito) - Solo para repartidores asignados -->
             @if($deliveryOrder->status === 'assigned' && $isAssignedDeliveryPerson)
                 <button wire:click="updateDeliveryStatus({{ $deliveryOrder->id }}, 'in_transit')" class="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -206,15 +209,19 @@
                     </svg>
                     Iniciar Entrega
                 </button>
-            @elseif($deliveryOrder->status === 'in_transit' && $isAssignedDeliveryPerson)
+            @endif
+
+            <!-- Botón para marcar como entregado - Solo para administradores y cajeros -->
+            @if($deliveryOrder->status === 'in_transit' && $isAdmin)
                 <button wire:click="updateDeliveryStatus({{ $deliveryOrder->id }}, 'delivered')" class="w-full sm:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                     </svg>
-                    Marcar Entregado
+                    Finalizar Pedido
                 </button>
             @endif
 
+            <!-- Botón para cancelar pedido - Solo para repartidores asignados -->
             @if(!in_array($deliveryOrder->status, ['delivered', 'cancelled']) && $isAssignedDeliveryPerson)
                 <button wire:click="openCancelModal({{ $deliveryOrder->id }})" class="w-full sm:w-auto px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
