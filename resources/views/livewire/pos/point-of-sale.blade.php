@@ -2425,3 +2425,15 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Escuchar el evento para abrir el modal de facturación después de la renderización
+    window.addEventListener('open-invoice-modal-after-render', function() {
+      // Esperar un momento para asegurar que el componente esté completamente renderizado
+      setTimeout(function() {
+        abrirFactura();
+      }, 500);
+    });
+  });
+</script>

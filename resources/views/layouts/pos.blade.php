@@ -145,6 +145,20 @@
 </head>
 <body class="antialiased bg-gray-100 text-gray-900 h-full overflow-hidden dark:bg-gray-900 dark:text-gray-100">
     <div class="min-h-screen flex flex-col">
+        @if(session('error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 mx-4 mt-4 rounded shadow-md dark:bg-red-900 dark:text-red-100" role="alert">
+            <p class="font-bold">Error</p>
+            <p>{{ session('error') }}</p>
+        </div>
+        @endif
+
+        @if(session('success'))
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 mx-4 mt-4 rounded shadow-md dark:bg-green-900 dark:text-green-100" role="alert">
+            <p class="font-bold">Éxito</p>
+            <p>{{ session('success') }}</p>
+        </div>
+        @endif
+
         @yield('content')
     </div>
 

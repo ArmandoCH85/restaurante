@@ -59,6 +59,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Resources\ReservationResource::class,
                 \App\Filament\Resources\CompanyConfigResource::class,
                 \App\Filament\Resources\ElectronicBillingConfigResource::class,
+                \App\Filament\Resources\QuotationResource::class,
             ])
             // Registrar páginas explícitamente en lugar de descubrirlas automáticamente
             ->pages([
@@ -199,6 +200,9 @@ class AdminPanelProvider extends PanelProvider
                         // Solo visible para super_admin y admin
                         return $user && ($user->hasRole('super_admin') || $user->hasRole('admin'));
                     }),
+
+
+
 
                 // Grupo: Configuración
                 NavigationItem::make('Datos de la Empresa')

@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             EmployeeSeeder::class,
             AppSettingsSeeder::class,
+            QuotationPermissionsSeeder::class,
         ]);
     }
 }

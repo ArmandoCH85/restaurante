@@ -55,9 +55,10 @@ class PointOfSale extends Component
     protected $queryString = [
         'tableId' => ['except' => ''],
         'serviceType' => ['except' => 'dine_in'],
+        'invoice' => ['except' => false],
     ];
 
-    public function mount(?string $tableId = null, ?string $serviceType = null, ?string $orderId = null, bool $preserveCart = false): void
+    public function mount(?string $tableId = null, ?string $serviceType = null, ?string $orderId = null, bool $preserveCart = false, bool $invoice = false): void
     {
         // Inicializar propiedades
         $this->tableId = $tableId;
@@ -170,6 +171,18 @@ class PointOfSale extends Component
         }
 
         $this->loadCategories();
+
+        // Si se solicita abrir el modal de facturación automáticamente
+        if ($invoice && $this->currentOrder && $this->currentOrder->status === Order::STATUS_DELIVERED) {
+            $this->showInvoiceModal = true;
+            // Programar la apertura del modal después de la renderización
+            $this->dispatch('open-invoice-modal-after-render');
+
+            Log::info('Modal de facturación activado automáticamente', [
+                'order_id' => $this->currentOrder->id,
+                'status' => $this->currentOrder->status
+            ]);
+        }
     }
 
     /**

@@ -1,0 +1,338 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\DB;
+use App\Models\Table;
+
+class Quotation extends Model
+{
+    use HasFactory, SoftDeletes;
+
+    /**
+     * Estados disponibles para las cotizaciones.
+     */
+    const STATUS_DRAFT = 'draft';
+    const STATUS_SENT = 'sent';
+    const STATUS_APPROVED = 'approved';
+    const STATUS_REJECTED = 'rejected';
+    const STATUS_EXPIRED = 'expired';
+    const STATUS_CONVERTED = 'converted';
+
+    /**
+     * Términos de pago disponibles.
+     */
+    const PAYMENT_TERMS_CASH = 'cash';
+    const PAYMENT_TERMS_CREDIT_15 = 'credit_15';
+    const PAYMENT_TERMS_CREDIT_30 = 'credit_30';
+    const PAYMENT_TERMS_CREDIT_60 = 'credit_60';
+
+    /**
+     * Los atributos que son asignables masivamente.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'quotation_number',
+        'customer_id',
+        'user_id',
+        'issue_date',
+        'valid_until',
+        'status',
+        'subtotal',
+        'tax',
+        'discount',
+        'total',
+        'notes',
+        'terms_and_conditions',
+        'payment_terms',
+        'order_id'
+    ];
+
+    /**
+     * Los atributos que tienen valores predeterminados.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'subtotal' => 0,
+        'tax' => 0,
+        'discount' => 0,
+        'total' => 0,
+    ];
+
+    /**
+     * Los atributos que deben ser convertidos a tipos nativos.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'issue_date' => 'date',
+        'valid_until' => 'date',
+        'subtotal' => 'decimal:2',
+        'tax' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'total' => 'decimal:2',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'deleted_at' => 'datetime'
+    ];
+
+    /**
+     * Obtiene el cliente asociado a la cotización.
+     */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Obtiene el usuario que creó la cotización.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Obtiene los detalles de la cotización.
+     */
+    public function details(): HasMany
+    {
+        return $this->hasMany(QuotationDetail::class);
+    }
+
+    /**
+     * Obtiene el pedido generado a partir de esta cotización.
+     */
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Genera un número de cotización único.
+     */
+    public static function generateQuotationNumber(): string
+    {
+        $prefix = 'COT-';
+        $year = date('Y');
+        $month = date('m');
+
+        // Obtener la última cotización del mes actual
+        $lastQuotation = self::where('quotation_number', 'like', "{$prefix}{$year}{$month}%")
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($lastQuotation) {
+            // Extraer el número secuencial y aumentarlo en 1
+            $lastNumber = (int) substr($lastQuotation->quotation_number, -4);
+            $newNumber = $lastNumber + 1;
+        } else {
+            // Si no hay cotizaciones previas en este mes, comenzar desde 1
+            $newNumber = 1;
+        }
+
+        // Formatear el número con ceros a la izquierda (4 dígitos)
+        $formattedNumber = str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+
+        return "{$prefix}{$year}{$month}{$formattedNumber}";
+    }
+
+    /**
+     * Método auxiliar para verificar si la cotización tiene un pedido asociado.
+     */
+    public function hasOrder(): bool
+    {
+        return $this->order_id !== null;
+    }
+
+    /**
+     * Verifica si la cotización está en estado borrador.
+     */
+    public function isDraft(): bool
+    {
+        return $this->status === self::STATUS_DRAFT;
+    }
+
+    /**
+     * Verifica si la cotización ha sido enviada.
+     */
+    public function isSent(): bool
+    {
+        return $this->status === self::STATUS_SENT;
+    }
+
+    /**
+     * Verifica si la cotización ha sido aprobada.
+     */
+    public function isApproved(): bool
+    {
+        return $this->status === self::STATUS_APPROVED;
+    }
+
+    /**
+     * Verifica si la cotización ha sido rechazada.
+     */
+    public function isRejected(): bool
+    {
+        return $this->status === self::STATUS_REJECTED;
+    }
+
+    /**
+     * Verifica si la cotización ha expirado.
+     */
+    public function isExpired(): bool
+    {
+        return $this->status === self::STATUS_EXPIRED ||
+               ($this->valid_until < now() && !$this->isConverted());
+    }
+
+    /**
+     * Verifica si la cotización ha sido convertida a pedido.
+     */
+    public function isConverted(): bool
+    {
+        return $this->status === self::STATUS_CONVERTED;
+    }
+
+    /**
+     * Recalcula los totales de la cotización basado en sus detalles.
+     *
+     * @return void
+     */
+    public function recalculateTotals(): void
+    {
+        // Recargar la relación para asegurarnos de tener los datos más recientes
+        $this->load('details');
+
+        // Calcular el subtotal sumando todos los subtotales de los detalles
+        $subtotal = $this->details->sum('subtotal');
+
+        // Si no hay subtotal pero hay detalles, calcular basado en cantidad y precio
+        if ($subtotal == 0 && $this->details->count() > 0) {
+            $subtotal = $this->details->sum(function ($detail) {
+                return floatval($detail->quantity) * floatval($detail->unit_price);
+            });
+
+            // Actualizar los subtotales de los detalles
+            foreach ($this->details as $detail) {
+                if (floatval($detail->subtotal) == 0 && floatval($detail->quantity) > 0 && floatval($detail->unit_price) > 0) {
+                    $detail->subtotal = floatval($detail->quantity) * floatval($detail->unit_price);
+                    $detail->save();
+                }
+            }
+        }
+
+        // Calcular el IGV (18%)
+        $tax = $subtotal * 0.18;
+
+        // Calcular el total
+        $total = $subtotal + $tax - floatval($this->discount ?? 0);
+
+        // Actualizar los valores
+        $this->subtotal = $subtotal;
+        $this->tax = $tax;
+        $this->total = $total;
+
+        // Guardar los cambios sin disparar eventos para evitar recursión
+        $this->saveQuietly();
+
+        // Registrar para depuración
+        \Illuminate\Support\Facades\Log::info('Totales recalculados para cotización #' . $this->id, [
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'discount' => $this->discount,
+            'total' => $total,
+            'detalles_count' => $this->details->count()
+        ]);
+    }
+
+    /**
+     * Convierte la cotización en un pedido.
+     *
+     * @param string $serviceType Tipo de servicio ('dine_in', 'takeout', 'delivery', 'drive_thru')
+     * @param int|null $tableId ID de la mesa (solo para 'dine_in')
+     * @return Order|null El pedido creado o null si hubo un error
+     */
+    public function convertToOrder(string $serviceType = 'takeout', ?int $tableId = null): ?Order
+    {
+        // Verificar si la cotización ya fue convertida
+        if ($this->isConverted() || $this->order_id) {
+            return $this->order;
+        }
+
+        // Iniciar transacción para asegurar la integridad de los datos
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($serviceType, $tableId) {
+            try {
+                // Crear el pedido
+                $order = new Order([
+                    'service_type' => $serviceType,
+                    'table_id' => $tableId,
+                    'customer_id' => $this->customer_id,
+                    'employee_id' => $this->user_id, // Usar el usuario de la cotización como empleado
+                    'order_datetime' => now(),
+                    'status' => Order::STATUS_OPEN,
+                    'subtotal' => $this->subtotal,
+                    'tax' => $this->tax,
+                    'discount' => $this->discount,
+                    'total' => $this->total,
+                    'notes' => "Convertido desde cotización #{$this->quotation_number}. " . ($this->notes ? $this->notes : ''),
+                    'billed' => false
+                ]);
+
+                $order->save();
+
+                // Crear los detalles del pedido a partir de los detalles de la cotización
+                foreach ($this->details as $detail) {
+                    $orderDetail = new OrderDetail([
+                        'order_id' => $order->id,
+                        'product_id' => $detail->product_id,
+                        'quantity' => $detail->quantity,
+                        'unit_price' => $detail->unit_price,
+                        'subtotal' => $detail->subtotal,
+                        'notes' => $detail->notes,
+                        'status' => 'pending'
+                    ]);
+
+                    $orderDetail->save();
+                }
+
+                // Actualizar la cotización
+                $this->status = self::STATUS_CONVERTED;
+                $this->order_id = $order->id;
+                $this->save();
+
+                // Si es para consumo en local, actualizar el estado de la mesa
+                if ($serviceType === 'dine_in' && $tableId) {
+                    $table = Table::find($tableId);
+                    if ($table) {
+                        $table->status = Table::STATUS_OCCUPIED;
+                        $table->occupied_at = now();
+                        $table->save();
+                    }
+                }
+
+                return $order;
+            } catch (\Exception $e) {
+                // Registrar el error
+                \Illuminate\Support\Facades\Log::error('Error al convertir cotización a pedido', [
+                    'quotation_id' => $this->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+
+                // Revertir la transacción
+                \Illuminate\Support\Facades\DB::rollBack();
+
+                return null;
+            }
+        });
+    }
+}

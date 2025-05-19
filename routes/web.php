@@ -134,6 +134,19 @@ Route::get('/admin/print-cash-register/{id}', \App\Http\Controllers\Filament\Pri
     ->middleware(['web', 'auth'])
     ->name('filament.admin.print-cash-register');
 
+// Rutas para cotizaciones
+Route::middleware(['web', 'auth'])->group(function () {
+    // Ver PDF de cotización
+    Route::get('/admin/quotations/{quotation}/print', [\App\Http\Controllers\Filament\QuotationPdfController::class, 'show'])
+        ->name('filament.admin.resources.quotations.print');
 
+    // Descargar PDF de cotización
+    Route::get('/admin/quotations/{quotation}/download', [\App\Http\Controllers\Filament\QuotationPdfController::class, 'download'])
+        ->name('filament.admin.resources.quotations.download');
+
+    // Enviar cotización por correo electrónico
+    Route::post('/admin/quotations/{quotation}/email', [\App\Http\Controllers\Filament\QuotationPdfController::class, 'email'])
+        ->name('filament.admin.resources.quotations.email');
+});
 
 
