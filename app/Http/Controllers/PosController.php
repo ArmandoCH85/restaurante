@@ -83,6 +83,7 @@ class PosController extends Controller
         if ($request->has('order_id')) {
             $orderId = $request->input('order_id');
             $preserveCart = $request->input('preserve_cart', false);
+            $invoice = $request->input('invoice', false);
 
             // Verificar si el usuario tiene rol Delivery
             $user = \Illuminate\Support\Facades\Auth::user();
@@ -98,33 +99,55 @@ class PosController extends Controller
                 'has_delivery_role' => $hasDeliveryRole ? 'Sí' : 'No'
             ]);
 
-            // Obtener la orden
-            $order = \App\Models\Order::with(['orderDetails.product', 'table', 'deliveryOrder'])
-                ->findOrFail($orderId);
+            // Intentar obtener la orden
+            try {
+                $order = \App\Models\Order::with(['orderDetails.product', 'table', 'deliveryOrder'])
+                    ->findOrFail($orderId);
 
-            // Si es una orden de delivery, pasar el tipo de servicio
-            if ($order->service_type === 'delivery') {
+                // Registrar información para depuración
+                Log::info('Orden encontrada', [
+                    'order_id' => $orderId,
+                    'service_type' => $order->service_type,
+                    'table_id' => $order->table_id
+                ]);
+
+                // Si es una orden de delivery, pasar el tipo de servicio
+                if ($order->service_type === 'delivery') {
+                    return view('pos.index', [
+                        'orderId' => $orderId,
+                        'serviceType' => 'delivery',
+                        'preserveCart' => $preserveCart,
+                        'invoice' => $invoice
+                    ]);
+                }
+
+                // Si es una orden de mesa, pasar el ID de la mesa
+                if ($order->table_id) {
+                    return view('pos.index', [
+                        'tableId' => $order->table_id,
+                        'orderId' => $orderId,
+                        'preserveCart' => $preserveCart,
+                        'invoice' => $invoice
+                    ]);
+                }
+
+                // Si no tiene mesa ni es delivery, solo pasar el ID de la orden
                 return view('pos.index', [
                     'orderId' => $orderId,
-                    'serviceType' => 'delivery',
-                    'preserveCart' => $preserveCart
+                    'preserveCart' => $preserveCart,
+                    'invoice' => $invoice
                 ]);
-            }
-
-            // Si es una orden de mesa, pasar el ID de la mesa
-            if ($order->table_id) {
-                return view('pos.index', [
-                    'tableId' => $order->table_id,
-                    'orderId' => $orderId,
-                    'preserveCart' => $preserveCart
+            } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+                // Registrar el error
+                Log::error('Pedido no encontrado', [
+                    'order_id' => $orderId,
+                    'error' => $e->getMessage()
                 ]);
-            }
 
-            // Si no tiene mesa ni es delivery, solo pasar el ID de la orden
-            return view('pos.index', [
-                'orderId' => $orderId,
-                'preserveCart' => $preserveCart
-            ]);
+                // Redirigir a la página principal del POS con un mensaje de error
+                return redirect()->route('pos.index')
+                    ->with('error', "El pedido #{$orderId} no existe o ha sido eliminado.");
+            }
         }
 
         // Si se especifica un tipo de servicio (para nuevo pedido de delivery)
