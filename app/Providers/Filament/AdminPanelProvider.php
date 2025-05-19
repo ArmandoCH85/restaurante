@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(LoginScreenPage::class)
+            ->sidebarCollapsibleOnDesktop()
             ->homeUrl(function () {
                 $user = Auth::user();
 
