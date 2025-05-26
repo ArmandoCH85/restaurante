@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\InvoiceResource\Pages;
 use App\Models\Invoice;
+use App\Services\SunatService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -165,19 +166,69 @@ class InvoiceResource extends Resource
 
                 Tables\Columns\BadgeColumn::make('tax_authority_status')
                     ->label('Estado')
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Pendiente',
-                        'accepted' => 'Aceptado',
-                        'rejected' => 'Rechazado',
-                        'voided' => 'Anulado',
-                        default => $state,
+                    ->formatStateUsing(function ($record): string {
+                        // Para Notas de Venta, mostrar el estado interno
+                        if ($record->invoice_type === 'sales_note' || str_starts_with($record->series, 'NV')) {
+                            return match ($record->tax_authority_status) {
+                                'pending' => 'Registrado',
+                                'accepted' => 'Aceptado',
+                                'rejected' => 'Rechazado',
+                                'voided' => 'Anulado',
+                                default => 'Registrado',
+                            };
+                        }
+
+                        // Para Boletas y Facturas, mostrar el estado SUNAT
+                        return match ($record->sunat_status) {
+                            'PENDIENTE' => 'Registrado',
+                            'ENVIANDO' => 'Enviando',
+                            'ACEPTADO' => 'Aceptado',
+                            'RECHAZADO' => 'Rechazado',
+                            'ERROR' => 'Error',
+                            null => 'Registrado',
+                            default => 'Registrado',
+                        };
                     })
                     ->colors([
-                        'warning' => 'pending',
-                        'success' => 'accepted',
-                        'danger' => 'rejected',
-                        'gray' => 'voided',
+                        'warning' => fn ($record) =>
+                            ($record->invoice_type === 'sales_note' || str_starts_with($record->series, 'NV'))
+                                ? $record->tax_authority_status === 'pending'
+                                : in_array($record->sunat_status, ['PENDIENTE', null]),
+                        'info' => fn ($record) => $record->sunat_status === 'ENVIANDO',
+                        'success' => fn ($record) =>
+                            ($record->invoice_type === 'sales_note' || str_starts_with($record->series, 'NV'))
+                                ? $record->tax_authority_status === 'accepted'
+                                : $record->sunat_status === 'ACEPTADO',
+                        'danger' => fn ($record) =>
+                            ($record->invoice_type === 'sales_note' || str_starts_with($record->series, 'NV'))
+                                ? in_array($record->tax_authority_status, ['rejected'])
+                                : in_array($record->sunat_status, ['RECHAZADO', 'ERROR']),
+                        'gray' => fn ($record) => $record->tax_authority_status === 'voided',
                     ]),
+
+                Tables\Columns\BadgeColumn::make('sunat_status')
+                    ->label('Estado SUNAT')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'PENDIENTE' => 'Pendiente',
+                        'ENVIANDO' => 'Enviando',
+                        'ACEPTADO' => 'Aceptado',
+                        'RECHAZADO' => 'Rechazado',
+                        'ERROR' => 'Error',
+                        'NO_APLICA' => 'No aplica',
+                        default => 'Sin enviar',
+                    })
+                    ->colors([
+                        'gray' => fn (?string $state): bool => $state === null || $state === 'NO_APLICA',
+                        'warning' => 'PENDIENTE',
+                        'info' => 'ENVIANDO',
+                        'success' => 'ACEPTADO',
+                        'danger' => ['RECHAZADO', 'ERROR'],
+                    ])
+                    ->visible(fn ($livewire): bool =>
+                        // SOLO mostrar para Boletas y Facturas - NO Notas de Venta
+                        in_array($livewire->getTableFilterState('invoice_type'), ['invoice', 'receipt']) ||
+                        $livewire->getTableFilterState('invoice_type') === null
+                    ),
 
                 Tables\Columns\TextColumn::make('voided_date')
                     ->label('Fecha Anulación')
@@ -222,6 +273,47 @@ class InvoiceResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Action::make('send_to_sunat')
+                    ->label('Enviar a SUNAT')
+                    ->icon('heroicon-o-paper-airplane')
+                    ->color('info')
+                    ->visible(fn (Invoice $record): bool =>
+                        // SOLO Boletas y Facturas - NO Notas de Venta
+                        in_array($record->invoice_type, ['invoice', 'receipt']) &&
+                        ($record->sunat_status === 'PENDIENTE' || $record->sunat_status === null)
+                    )
+                    ->requiresConfirmation()
+                    ->modalHeading('Enviar Comprobante a SUNAT')
+                    ->modalDescription(fn (Invoice $record): string =>
+                        "¿Está seguro de enviar el comprobante {$record->series}-{$record->number} a SUNAT?"
+                    )
+                    ->modalSubmitActionLabel('Enviar a SUNAT')
+                    ->action(function (Invoice $record): void {
+                        try {
+                            $sunatService = new SunatService();
+                            $result = $sunatService->emitirFactura($record->id);
+
+                            if ($result['success']) {
+                                Notification::make()
+                                    ->title('Comprobante enviado exitosamente')
+                                    ->body('El comprobante ha sido enviado y aceptado por SUNAT')
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Error al enviar comprobante')
+                                    ->body($result['message'])
+                                    ->danger()
+                                    ->send();
+                            }
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Error inesperado')
+                                ->body('Error: ' . $e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
                 Action::make('void')
                     ->label('Anular')
                     ->icon('heroicon-o-x-mark')

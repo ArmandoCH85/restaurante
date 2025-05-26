@@ -114,8 +114,8 @@ class AppSettingsSeeder extends Seeder
             [
                 'tab' => 'FacturacionElectronica',
                 'key' => 'certificate_path',
-                'default' => '/storage/app/sunat/certificado_beta.pem',
-                'value' => '/storage/app/sunat/certificado_beta.pem', // Ruta de ejemplo al certificado digital
+                'default' => '',
+                'value' => '', // Se actualizará automáticamente al subir certificado
             ],
             [
                 'tab' => 'FacturacionElectronica',

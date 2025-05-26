@@ -41,6 +41,127 @@ class ElectronicBillingConfigResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Section::make('Control de Entorno SUNAT')
+                    ->description('Cambiar entre entorno de pruebas (Beta) y Producción')
+                    ->icon('heroicon-o-shield-check')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Toggle::make('environment_toggle')
+                                    ->label('Entorno de Producción')
+                                    ->helperText('Activar para usar el entorno de producción de SUNAT')
+                                    ->live()
+                                    ->afterStateUpdated(function ($state) {
+                                        $environment = $state ? 'production' : 'beta';
+                                        AppSetting::where('tab', 'FacturacionElectronica')
+                                            ->where('key', 'environment')
+                                            ->update(['value' => $environment]);
+
+                                        // Crear directorio si no existe
+                                        $directory = storage_path("app/private/sunat/certificates/{$environment}");
+                                        if (!file_exists($directory)) {
+                                            mkdir($directory, 0755, true);
+                                        }
+                                    })
+                                    ->default(function () {
+                                        $env = AppSetting::getSetting('FacturacionElectronica', 'environment');
+                                        return $env === 'production';
+                                    }),
+
+                                Forms\Components\Placeholder::make('current_environment')
+                                    ->label('Estado Actual')
+                                    ->content(function () {
+                                        $env = AppSetting::getSetting('FacturacionElectronica', 'environment');
+                                        $badge = match($env) {
+                                            'production' => '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">🟢 Producción</span>',
+                                            'beta' => '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">🔵 Beta/Pruebas</span>',
+                                            default => '<span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 border border-gray-200">⚪ No configurado</span>'
+                                        };
+                                        return new HtmlString($badge);
+                                    }),
+                            ]),
+                    ])
+                    ->columns(1),
+
+                Forms\Components\Section::make('Gestión de Certificados SUNAT')
+                    ->description('Cargar y gestionar certificados digitales para facturación electrónica')
+                    ->icon('heroicon-o-document-check')
+                    ->schema([
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\FileUpload::make('certificate_file')
+                                    ->label('Subir Certificado Digital')
+                                    ->helperText('Formatos aceptados: .p12, .pfx, .pem (máximo 5MB)')
+                                    ->maxSize(5120) // 5MB
+                                    ->disk('certificates')
+                                    ->directory(function () {
+                                        $environment = AppSetting::getSetting('FacturacionElectronica', 'environment') ?: 'beta';
+                                        return $environment;
+                                    })
+                                    ->visibility('private')
+                                    ->afterStateUpdated(function ($state) {
+                                        if ($state) {
+                                            $fileName = basename($state);
+                                            $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+                                            // Validar extensión
+                                            if (!in_array($extension, ['p12', 'pfx', 'pem'])) {
+                                                return; // No procesar si la extensión no es válida
+                                            }
+
+                                            $environment = AppSetting::getSetting('FacturacionElectronica', 'environment') ?: 'beta';
+                                            $fullPath = storage_path("app/private/sunat/certificates/{$environment}/" . $fileName);
+
+                                            // Crear directorio si no existe
+                                            $directory = dirname($fullPath);
+                                            if (!file_exists($directory)) {
+                                                mkdir($directory, 0755, true);
+                                            }
+
+                                            AppSetting::updateOrCreate(
+                                                ['tab' => 'FacturacionElectronica', 'key' => 'certificate_path'],
+                                                ['value' => $fullPath]
+                                            );
+                                        }
+                                    })
+                                    ->dehydrated(false),
+
+                                Forms\Components\Placeholder::make('certificate_status')
+                                    ->label('Estado del Certificado')
+                                    ->content(function () {
+                                        $path = AppSetting::getSetting('FacturacionElectronica', 'certificate_path');
+                                        if ($path && file_exists($path)) {
+                                            $filename = basename($path);
+                                            $size = round(filesize($path) / 1024, 2);
+                                            $env = AppSetting::getSetting('FacturacionElectronica', 'environment');
+                                            $envBadge = $env === 'production' ?
+                                                '<span class="text-green-600 font-medium">Producción</span>' :
+                                                '<span class="text-blue-600 font-medium">Beta</span>';
+                                            return new HtmlString("
+                                                <div class='space-y-2'>
+                                                    <div class='flex items-center space-x-2'>
+                                                        <span class='text-green-500'>✅</span>
+                                                        <span class='font-medium'>Certificado cargado</span>
+                                                    </div>
+                                                    <div class='text-sm text-gray-600'>
+                                                        <div>📄 {$filename}</div>
+                                                        <div>📊 {$size} KB</div>
+                                                        <div>🌐 Entorno: {$envBadge}</div>
+                                                    </div>
+                                                </div>
+                                            ");
+                                        }
+                                        return new HtmlString("
+                                            <div class='flex items-center space-x-2 text-amber-600'>
+                                                <span>⚠️</span>
+                                                <span>No hay certificado cargado</span>
+                                            </div>
+                                        ");
+                                    }),
+                            ]),
+                    ])
+                    ->columns(1),
+
                 Forms\Components\Section::make('Configuración de Facturación Electrónica')
                     ->description('Configuración para la conexión con SUNAT')
                     ->icon('heroicon-o-document-text')
@@ -63,10 +184,10 @@ class ElectronicBillingConfigResource extends Resource
                             ->helperText(function ($record) {
                                 return match ($record->key) {
                                     'soap_type' => 'Tipo de conexión SOAP (sunat o ose)',
-                                    'environment' => 'Entorno (beta, homologacion, produccion)',
+                                    'environment' => 'Entorno - Controlado automáticamente por el toggle superior',
                                     'sol_user' => 'Usuario secundario SOL',
                                     'sol_password' => 'Contraseña SOL (se guardará cifrada)',
-                                    'certificate_path' => 'Ruta al certificado digital',
+                                    'certificate_path' => 'Ruta al certificado - Se actualiza automáticamente al subir archivo',
                                     'certificate_password' => 'Contraseña del certificado (se guardará cifrada)',
                                     'send_automatically' => 'Si los comprobantes se envían automáticamente (true/false)',
                                     'generate_pdf' => 'Si se generan PDFs automáticamente (true/false)',
@@ -74,9 +195,16 @@ class ElectronicBillingConfigResource extends Resource
                                     default => null,
                                 };
                             })
-                            ->required()
+                            ->required(function ($record) {
+                                // No requerir campos que se manejan automáticamente
+                                return !in_array($record->key, ['environment', 'certificate_path']);
+                            })
                             ->maxLength(255)
                             ->columnSpanFull()
+                            ->disabled(function ($record) {
+                                // Deshabilitar campos que se manejan automáticamente
+                                return in_array($record->key, ['environment', 'certificate_path']);
+                            })
                             ->password(function ($record) {
                                 // Mostrar como contraseña para campos sensibles
                                 return in_array($record->key, ['sol_password', 'certificate_password']);

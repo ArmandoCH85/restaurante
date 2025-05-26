@@ -550,17 +550,32 @@ class PosController extends Controller
         try {
             $validated = $request->validate([
                 'document_type' => 'required|string|max:10',
-                'document_number' => 'required|string|max:15|unique:customers,document_number',
+                'document_number' => 'required|string|max:15',
                 'name' => 'required|string|max:255',
                 'address' => 'nullable|string|max:255',
                 'phone' => 'nullable|string|max:20',
                 'email' => 'nullable|email|max:255',
             ]);
 
+            // Verificar si ya existe un cliente con ese documento
+            $existingCustomer = \App\Models\Customer::where('document_number', $validated['document_number'])
+                ->where('document_type', $validated['document_type'])
+                ->first();
+
+            if ($existingCustomer) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Cliente ya existe en el sistema',
+                    'customer' => $existingCustomer
+                ]);
+            }
+
             // Crear el cliente
             $customer = \App\Models\Customer::create($validated);
 
-            // Validar con SUNAT/RENIEC si corresponde
+            // TODO: Implementar validación con SUNAT/RENIEC en el futuro
+            // Por ahora, solo crear el cliente sin validación externa
+            /*
             $sunatService = new \App\Services\SunatService();
 
             if ($validated['document_type'] === 'RUC') {
@@ -568,6 +583,7 @@ class PosController extends Controller
             } elseif ($validated['document_type'] === 'DNI') {
                 $validated = $sunatService->validateDni($customer);
             }
+            */
 
             // Recargar el cliente para obtener los datos actualizados
             $customer->refresh();
@@ -743,6 +759,14 @@ class PosController extends Controller
             $invoice->tax = $taxAmount;
             $invoice->total = $total;
             $invoice->tax_authority_status = 'pending';
+
+            // Establecer estado SUNAT según el tipo de comprobante
+            if (in_array($validated['invoice_type'], ['invoice', 'receipt'])) {
+                $invoice->sunat_status = 'PENDIENTE'; // Para Boletas y Facturas
+            } else {
+                $invoice->sunat_status = null; // Para Notas de Venta (no van a SUNAT)
+            }
+
             $invoice->order_id = $order->id;
             $invoice->save();
 
@@ -812,6 +836,14 @@ class PosController extends Controller
             $invoice->tax = $taxAmount;
             $invoice->total = $total;
             $invoice->tax_authority_status = 'pending';
+
+            // Establecer estado SUNAT según el tipo de comprobante
+            if (in_array($validated['invoice_type'], ['invoice', 'receipt'])) {
+                $invoice->sunat_status = 'PENDIENTE'; // Para Boletas y Facturas
+            } else {
+                $invoice->sunat_status = null; // Para Notas de Venta (no van a SUNAT)
+            }
+
             $invoice->order_id = $order->id;
             $invoice->save();
 

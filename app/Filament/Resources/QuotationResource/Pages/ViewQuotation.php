@@ -147,6 +147,32 @@ class ViewQuotation extends ViewRecord
                     ])
                     ->columns(4),
 
+                Infolists\Components\Section::make('Información de Anticipo')
+                    ->schema([
+                        Infolists\Components\TextEntry::make('advance_payment')
+                            ->label('Anticipo Recibido')
+                            ->money('PEN')
+                            ->color(fn ($state) => $state > 0 ? 'success' : 'gray')
+                            ->size('lg')
+                            ->weight('bold'),
+
+                        Infolists\Components\TextEntry::make('pending_balance')
+                            ->label('Saldo Pendiente')
+                            ->state(fn (Quotation $record) => $record->getPendingBalance())
+                            ->money('PEN')
+                            ->color('primary')
+                            ->size('lg')
+                            ->weight('bold'),
+
+                        Infolists\Components\TextEntry::make('advance_payment_notes')
+                            ->label('Notas del Anticipo')
+                            ->columnSpan(2)
+                            ->placeholder('Sin observaciones'),
+                    ])
+                    ->columns(2)
+                    ->visible(fn (Quotation $record) => $record->hasAdvancePayment())
+                    ->collapsible(),
+
                 Infolists\Components\Section::make('Notas y Condiciones')
                     ->schema([
                         Infolists\Components\TextEntry::make('notes')

@@ -22,6 +22,7 @@ class Invoice extends Model
         'number',
         'issue_date',
         'customer_id',
+        'employee_id',
         'taxable_amount',
         'tax',
         'total',
@@ -33,9 +34,21 @@ class Invoice extends Model
         'voided_date',
         'payment_method',
         'payment_amount',
+        'advance_payment_received',
+        'advance_payment_notes',
+        'pending_balance',
         'client_name',
         'client_document',
         'client_address',
+        // Campos SUNAT
+        'xml_path',
+        'pdf_path',
+        'cdr_path',
+        'sunat_status',
+        'sunat_code',
+        'sunat_description',
+        'hash_sign',
+        'sent_at',
     ];
 
     /**
@@ -48,6 +61,8 @@ class Invoice extends Model
         'taxable_amount' => 'decimal:2',
         'tax' => 'decimal:2',
         'total' => 'decimal:2',
+        'advance_payment_received' => 'decimal:2',
+        'pending_balance' => 'decimal:2',
         'voided_date' => 'date',
     ];
 
@@ -73,6 +88,51 @@ class Invoice extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
+    }
+
+    /**
+     * Obtiene el empleado que emitió la factura.
+     */
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    // Helper methods for testing
+    public function isInvoice(): bool
+    {
+        return $this->invoice_type === 'invoice';
+    }
+
+    public function isReceipt(): bool
+    {
+        return $this->invoice_type === 'receipt';
+    }
+
+    public function isSalesNote(): bool
+    {
+        return $this->invoice_type === 'sales_note';
+    }
+
+    public function isPendingSunat(): bool
+    {
+        return $this->sunat_status === null || $this->sunat_status === 'PENDIENTE';
+    }
+
+    public function isAcceptedBySunat(): bool
+    {
+        return $this->sunat_status === 'ACEPTADO';
+    }
+
+    public function isRejectedBySunat(): bool
+    {
+        return $this->sunat_status === 'RECHAZADO';
+    }
+
+    // Scopes
+    public function scopeSunatEligible($query)
+    {
+        return $query->whereIn('invoice_type', ['invoice', 'receipt']);
     }
 
     /**

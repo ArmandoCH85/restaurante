@@ -226,6 +226,7 @@ class Table extends Model
             'subtotal' => 0,
             'tax' => 0,
             'total' => 0,
+            'discount' => 0,
             'billed' => false
         ]);
 

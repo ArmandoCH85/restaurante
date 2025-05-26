@@ -416,6 +416,9 @@ class Order extends Model
         // Recalcular totales de la orden
         $this->recalculateTotals();
 
+        // Refrescar el modelo para asegurar que los cambios se reflejen
+        $this->refresh();
+
         return $orderDetail;
     }
 
@@ -490,18 +493,33 @@ class Order extends Model
      */
     public function recalculateTotals(): void
     {
-        $subtotal = $this->orderDetails()->sum('subtotal');
+        // Recargar la relación para asegurar datos actualizados
+        $this->load('orderDetails');
+
+        $subtotal = $this->orderDetails->sum('subtotal');
 
         // Calcular impuestos (18% IGV)
-        $tax = $subtotal * 0.18;
+        $tax = round($subtotal * 0.18, 2);
 
         // Calcular total
-        $total = $subtotal + $tax - ($this->discount ?? 0);
+        $total = round($subtotal + $tax - ($this->discount ?? 0), 2);
 
+        // Actualizar los valores
         $this->subtotal = $subtotal;
         $this->tax = $tax;
         $this->total = $total;
+
+        // Guardar los cambios
         $this->save();
+
+        // Log para depuración
+        \Illuminate\Support\Facades\Log::info('Totales recalculados para orden #' . $this->id, [
+            'subtotal' => $subtotal,
+            'tax' => $tax,
+            'discount' => $this->discount,
+            'total' => $total,
+            'details_count' => $this->orderDetails->count()
+        ]);
     }
 
     /**
@@ -649,6 +667,47 @@ class Order extends Model
     }
 
     /**
+     * Obtiene la cotización original si esta orden fue convertida desde una cotización.
+     */
+    public function quotation(): HasOne
+    {
+        return $this->hasOne(Quotation::class);
+    }
+
+    /**
+     * Verifica si esta orden proviene de una cotización con anticipo.
+     *
+     * @return bool
+     */
+    public function hasQuotationWithAdvance(): bool
+    {
+        $quotation = $this->quotation;
+        return $quotation && $quotation->hasAdvancePayment();
+    }
+
+    /**
+     * Obtiene el anticipo de la cotización original si existe.
+     *
+     * @return float
+     */
+    public function getQuotationAdvancePayment(): float
+    {
+        $quotation = $this->quotation;
+        return $quotation ? $quotation->advance_payment : 0;
+    }
+
+    /**
+     * Obtiene las notas del anticipo de la cotización original si existe.
+     *
+     * @return string|null
+     */
+    public function getQuotationAdvanceNotes(): ?string
+    {
+        $quotation = $this->quotation;
+        return $quotation ? $quotation->advance_payment_notes : null;
+    }
+
+    /**
      * Genera una factura para la orden.
      *
      * @param string $invoiceType Tipo de factura ('receipt', 'invoice', etc.)
@@ -684,6 +743,11 @@ class Order extends Model
         $paymentMethod = $lastPayment ? $lastPayment->payment_method : 'cash';
         $paymentAmount = $lastPayment ? $lastPayment->amount : $this->total;
 
+        // Obtener información del anticipo si existe
+        $advancePayment = $this->getQuotationAdvancePayment();
+        $advanceNotes = $this->getQuotationAdvanceNotes();
+        $pendingBalance = $this->total - $advancePayment;
+
         $invoice = new Invoice([
             'invoice_type' => $invoiceType,
             'series' => $series,
@@ -694,9 +758,13 @@ class Order extends Model
             'tax' => $this->tax,
             'total' => $this->total,
             'tax_authority_status' => Invoice::STATUS_PENDING,
+            'sunat_status' => in_array($invoiceType, ['invoice', 'receipt']) ? 'PENDIENTE' : 'NO_APLICA',
             'order_id' => $this->id,
             'payment_method' => $paymentMethod,
             'payment_amount' => $paymentAmount,
+            'advance_payment_received' => $advancePayment,
+            'advance_payment_notes' => $advanceNotes,
+            'pending_balance' => $pendingBalance,
             'client_name' => $customer ? $customer->name : 'Cliente General',
             'client_document' => $customer ? $customer->document_number : '00000000',
             'client_address' => $customer ? $customer->address : 'Sin dirección',
