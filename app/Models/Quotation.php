@@ -49,6 +49,8 @@ class Quotation extends Model
         'tax',
         'discount',
         'total',
+        'advance_payment',
+        'advance_payment_notes',
         'notes',
         'terms_and_conditions',
         'payment_terms',
@@ -65,6 +67,7 @@ class Quotation extends Model
         'tax' => 0,
         'discount' => 0,
         'total' => 0,
+        'advance_payment' => 0,
     ];
 
     /**
@@ -79,6 +82,7 @@ class Quotation extends Model
         'tax' => 'decimal:2',
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
+        'advance_payment' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'deleted_at' => 'datetime'
@@ -283,7 +287,7 @@ class Quotation extends Model
                     'tax' => $this->tax,
                     'discount' => $this->discount,
                     'total' => $this->total,
-                    'notes' => "Convertido desde cotización #{$this->quotation_number}. " . ($this->notes ? $this->notes : ''),
+                    'notes' => $this->buildOrderNotes(),
                     'billed' => false
                 ]);
 
@@ -334,5 +338,74 @@ class Quotation extends Model
                 return null;
             }
         });
+    }
+
+    /**
+     * Verifica si la cotización tiene un anticipo.
+     *
+     * @return bool
+     */
+    public function hasAdvancePayment(): bool
+    {
+        return $this->advance_payment > 0;
+    }
+
+    /**
+     * Obtiene el saldo pendiente después del anticipo.
+     *
+     * @return float
+     */
+    public function getPendingBalance(): float
+    {
+        return $this->total - $this->advance_payment;
+    }
+
+    /**
+     * Obtiene el porcentaje del anticipo respecto al total.
+     *
+     * @return float
+     */
+    public function getAdvancePaymentPercentage(): float
+    {
+        if ($this->total <= 0) {
+            return 0;
+        }
+
+        return ($this->advance_payment / $this->total) * 100;
+    }
+
+    /**
+     * Valida que el anticipo no sea mayor al total.
+     *
+     * @return bool
+     */
+    public function isAdvancePaymentValid(): bool
+    {
+        return $this->advance_payment <= $this->total;
+    }
+
+    /**
+     * Construye las notas para la orden cuando se convierte desde cotización.
+     *
+     * @return string
+     */
+    private function buildOrderNotes(): string
+    {
+        $notes = "Convertido desde cotización #{$this->quotation_number}.";
+
+        if ($this->hasAdvancePayment()) {
+            $notes .= " ANTICIPO RECIBIDO: S/ " . number_format($this->advance_payment, 2);
+            $notes .= " - SALDO PENDIENTE: S/ " . number_format($this->getPendingBalance(), 2);
+
+            if ($this->advance_payment_notes) {
+                $notes .= " - Notas del anticipo: " . $this->advance_payment_notes;
+            }
+        }
+
+        if ($this->notes) {
+            $notes .= " " . $this->notes;
+        }
+
+        return $notes;
     }
 }

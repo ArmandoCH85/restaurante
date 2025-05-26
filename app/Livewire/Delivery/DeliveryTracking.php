@@ -38,9 +38,9 @@ class DeliveryTracking extends Component
         $query = DeliveryOrder::with(['order.customer', 'deliveryPerson'])
             ->whereNotIn('status', ['delivered', 'cancelled']);
 
-        // Verificar si el usuario actual tiene rol de Delivery
+        // Verificar si el usuario actual tiene rol de delivery
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+        $isDeliveryPerson = $user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0);
 
         // Si el usuario es un repartidor, solo mostrar sus pedidos asignados
         if ($isDeliveryPerson) {

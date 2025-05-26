@@ -130,8 +130,12 @@ class UnifiedPaymentController extends Controller
                 $changeAmount = $totalPaid - $order->total;
             }
 
-            // 2. Generar el comprobante
+            // 2. Recalcular totales según el tipo de comprobante
+            $this->recalculateOrderTotalsForInvoiceType($order, $request->invoice_type);
+
+            // 3. Generar el comprobante
             // Determinar la serie según el tipo de comprobante
+            //se debe generar de la base de datos
             $series = '';
             switch ($request->invoice_type) {
                 case 'sales_note':
@@ -156,7 +160,7 @@ class UnifiedPaymentController extends Controller
                     ->with('error', 'No se pudo generar el comprobante. Verifique que la orden esté pagada y no facturada.');
             }
 
-            // 3. Redirigir a la impresión del comprobante
+            // 4. Redirigir a la impresión del comprobante
             return redirect()->route('invoices.print', ['invoice' => $invoice->id])
                 ->with('success', 'Pago registrado y comprobante generado correctamente.')
                 ->with('change_amount', $changeAmount);
@@ -184,5 +188,52 @@ class UnifiedPaymentController extends Controller
     {
         $lastInvoice = Invoice::where('invoice_type', $type)->latest('number')->first();
         return $lastInvoice ? (int)$lastInvoice->number + 1 : 1;
+    }
+
+    /**
+     * Recalcula los totales de la orden según el tipo de comprobante.
+     *
+     * @param Order $order La orden a recalcular
+     * @param string $invoiceType Tipo de comprobante (sales_note, receipt, invoice)
+     * @return void
+     */
+    private function recalculateOrderTotalsForInvoiceType(Order $order, string $invoiceType): void
+    {
+        // Recargar la relación para asegurar datos actualizados
+        $order->load('orderDetails');
+
+        // Calcular subtotal base
+        $subtotal = $order->orderDetails->sum('subtotal');
+
+        // Aplicar descuento si existe
+        $discountAmount = $order->discount ?? 0;
+        $subtotalAfterDiscount = $subtotal - $discountAmount;
+
+        // Calcular IGV según el tipo de comprobante
+        $tax = 0;
+        if (in_array($invoiceType, ['receipt', 'invoice'])) {
+            // Solo boletas y facturas tienen IGV (18%)
+            $tax = round($subtotalAfterDiscount * 0.18, 2);
+        }
+        // Las notas de venta no tienen IGV
+
+        // Calcular total
+        $total = round($subtotalAfterDiscount + $tax, 2);
+
+        // Actualizar los valores en la orden
+        $order->subtotal = $subtotal;
+        $order->tax = $tax;
+        $order->total = $total;
+        $order->save();
+
+        // Log para depuración
+        Log::info('Totales recalculados para facturación', [
+            'order_id' => $order->id,
+            'invoice_type' => $invoiceType,
+            'subtotal' => $subtotal,
+            'discount' => $discountAmount,
+            'tax' => $tax,
+            'total' => $total
+        ]);
     }
 }

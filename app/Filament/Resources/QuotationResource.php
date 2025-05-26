@@ -309,6 +309,50 @@ class QuotationResource extends Resource
                                     ]),
                             ]),
 
+                        Forms\Components\Section::make('Anticipo')
+                            ->description('Dinero a cuenta que deja el cliente')
+                            ->icon('heroicon-o-banknotes')
+                            ->collapsible()
+                            ->collapsed()
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('advance_payment')
+                                            ->label('Monto del Anticipo')
+                                            ->prefix('S/')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(function ($state, $set, $get) {
+                                                $total = floatval($get('total') ?? 0);
+                                                $advance = floatval($state ?? 0);
+
+                                                // Validar que el anticipo no sea mayor al total
+                                                if ($advance > $total) {
+                                                    $set('advance_payment', $total);
+                                                }
+                                            })
+                                            ->helperText('Monto que el cliente deja como anticipo o señal'),
+
+                                        Forms\Components\Placeholder::make('pending_balance')
+                                            ->label('Saldo Pendiente')
+                                            ->content(function ($get) {
+                                                $total = floatval($get('total') ?? 0);
+                                                $advance = floatval($get('advance_payment') ?? 0);
+                                                $pending = $total - $advance;
+                                                return 'S/ ' . number_format($pending, 2);
+                                            })
+                                            ->extraAttributes(['class' => 'text-lg font-semibold text-primary-600']),
+                                    ]),
+
+                                Forms\Components\Textarea::make('advance_payment_notes')
+                                    ->label('Notas del Anticipo')
+                                    ->placeholder('Observaciones sobre el anticipo (método de pago, fecha, etc.)')
+                                    ->maxLength(500)
+                                    ->columnSpan('full'),
+                            ]),
+
                         Forms\Components\Section::make('Notas y Condiciones')
                             ->description('Información adicional para la cotización')
                             ->icon('heroicon-o-document')
@@ -393,6 +437,13 @@ class QuotationResource extends Resource
                     ->label('Total')
                     ->money('PEN')
                     ->sortable(),
+
+                Tables\Columns\TextColumn::make('advance_payment')
+                    ->label('Anticipo')
+                    ->money('PEN')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->color(fn ($state) => $state > 0 ? 'success' : 'gray'),
 
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Usuario')

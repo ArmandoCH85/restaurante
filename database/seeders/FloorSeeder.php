@@ -12,7 +12,6 @@ class FloorSeeder extends Seeder
      */
     public function run(): void
     {
-        // Crear pisos predeterminados
         $floors = [
             [
                 'name' => 'Primer Piso',
@@ -31,8 +30,13 @@ class FloorSeeder extends Seeder
             ],
         ];
 
-        foreach ($floors as $floor) {
-            Floor::create($floor);
+        foreach ($floors as $floorData) {
+            Floor::firstOrCreate(
+                ['name' => $floorData['name']],
+                $floorData
+            );
         }
+
+        $this->command->info('Floors seeded successfully!');
     }
 }

@@ -225,7 +225,7 @@
                         <input type="number" step="0.01" min="0.01" class="form-control" id="amount" name="amount" value="{{ $remainingBalance }}" required oninput="calculateChange()">
                     </div>
 
-                    <div id="change_container" class="mb-3 p-3 rounded-md" style="display: none; background-color: #d1e7dd;">
+                    <div id="change_container" class="p-3 mb-3 rounded-md" style="display: none; background-color: #d1e7dd;">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="fw-bold">Cambio a devolver:</span>
                             <span class="fs-5 fw-bold text-success">S/ <span id="change_amount">0.00</span></span>
@@ -301,7 +301,7 @@
                         </div>
                     </div>
 
-                    <div class="client-data mt-3">
+                    <div class="mt-3 client-data">
                         <h5>3. Datos del Cliente</h5>
 
                         <!-- Campo oculto para el ID del cliente -->
@@ -312,8 +312,8 @@
                             <div class="card">
                                 <div class="card-body">
                                     <h6 class="card-title">Cliente Genérico</h6>
-                                    <p class="card-text">{{ $genericCustomer->name }}</p>
-                                    <p class="card-text">Documento: {{ $genericCustomer->document_number }}</p>
+                                    <p class="card-text">{{ $genericCustomer?->name ?? 'Cliente Genérico' }}</p>
+                                    <p class="card-text">Documento: {{ $genericCustomer?->document_number ?? '00000000' }}</p>
                                     <p class="small text-muted">Para Nota de Venta se utiliza el cliente genérico por defecto</p>
                                 </div>
                             </div>
@@ -400,7 +400,7 @@
             </div>
         </form>
 
-        <div class="order-details mt-4">
+        <div class="mt-4 order-details">
             <h4>Detalle de la Orden</h4>
             <div class="table-responsive">
                 <table class="table table-sm">
@@ -425,15 +425,15 @@
                     <tfoot>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                            <td class="text-end">S/ {{ number_format($order->subtotal, 2) }}</td>
+                            <td class="text-end" id="display-subtotal">S/ {{ number_format($order->subtotal, 2) }}</td>
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end"><strong>IGV (18%):</strong></td>
-                            <td class="text-end">S/ {{ number_format($order->tax, 2) }}</td>
+                            <td class="text-end" id="display-tax">S/ {{ number_format($order->subtotal * 0.18, 2) }}</td>
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                            <td class="text-end"><strong>S/ {{ number_format($order->total, 2) }}</strong></td>
+                            <td class="text-end" id="display-total"><strong>S/ {{ number_format($order->subtotal + ($order->subtotal * 0.18), 2) }}</strong></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -508,7 +508,7 @@
             // Mostrar/ocultar opciones según el tipo de comprobante
             if (type === 'sales_note') {
                 // Para nota de venta, seleccionar cliente genérico y ocultar búsqueda
-                document.getElementById('customer_id').value = {{ $genericCustomer->id }};
+                document.getElementById('customer_id').value = {{ $genericCustomer?->id ?? 0 }};
                 document.getElementById('generic_customer').style.display = 'block';
                 document.getElementById('customer_search_container').style.display = 'none';
                 document.getElementById('customer_details').style.display = 'none';
@@ -524,7 +524,7 @@
 
                 // Si ya hay un cliente seleccionado que no es el genérico, mostrar sus detalles
                 const customerId = document.getElementById('customer_id').value;
-                if (customerId != {{ $genericCustomer->id }}) {
+                if (customerId != {{ $genericCustomer?->id ?? 0 }}) {
                     updateCustomerDetails();
                     document.getElementById('customer_details').style.display = 'block';
                 } else {
@@ -592,7 +592,7 @@
 
             paymentDiv.innerHTML = `
                 <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
                         <h6 class="mb-0">Forma de pago adicional</h6>
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="removePayment(${paymentCounter})">
                             <i class="fas fa-times"></i>
@@ -711,7 +711,7 @@
 
             // Si hay un cliente seleccionado que no es el genérico, mostrar sus detalles
             const customerId = document.getElementById('customer_id').value;
-            if (customerId != {{ $genericCustomer->id }}) {
+            if (customerId != {{ $genericCustomer?->id ?? 0 }}) {
                 updateCustomerDetails();
                 document.getElementById('customer_details').style.display = 'block';
             }
@@ -816,6 +816,23 @@
                 return;
             }
 
+            // Validar formato del documento según el tipo
+            if (documentType === 'DNI' && documentNumber.length !== 8) {
+                alert('El DNI debe tener exactamente 8 dígitos');
+                return;
+            }
+
+            if (documentType === 'RUC' && documentNumber.length !== 11) {
+                alert('El RUC debe tener exactamente 11 dígitos');
+                return;
+            }
+
+            // Validar que solo contenga números
+            if (!/^\d+$/.test(documentNumber)) {
+                alert('El número de documento solo debe contener números');
+                return;
+            }
+
             // Deshabilitar botón para evitar múltiples envíos
             const saveButton = document.getElementById('save_customer_btn');
             saveButton.disabled = true;
@@ -843,19 +860,27 @@
                     // Cerrar modal
                     bootstrap.Modal.getInstance(document.getElementById('newCustomerModal')).hide();
 
-                    // Seleccionar el cliente recién creado
+                    // Seleccionar el cliente recién creado o existente
                     selectCustomer(data.customer);
 
                     // Mostrar mensaje de éxito
-                    alert('Cliente guardado correctamente');
+                    alert(data.message || 'Cliente guardado correctamente');
                 } else {
-                    // Mostrar mensaje de error
-                    alert('Error al guardar el cliente: ' + data.message);
+                    // Mostrar mensaje de error detallado
+                    let errorMessage = data.message || 'Error desconocido';
+
+                    // Si hay errores de validación específicos, mostrarlos
+                    if (data.errors) {
+                        const errorList = Object.values(data.errors).flat();
+                        errorMessage = errorList.join('\n');
+                    }
+
+                    alert('Error al guardar el cliente:\n' + errorMessage);
                 }
             })
             .catch(error => {
                 console.error('Error al guardar el cliente:', error);
-                alert('Error al guardar el cliente. Intente nuevamente.');
+                alert('Error de conexión. Intente nuevamente.');
             })
             .finally(() => {
                 // Restaurar botón

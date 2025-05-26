@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
 
 class AppSetting extends Model
 {
@@ -42,6 +43,20 @@ class AppSetting extends Model
         'default',
         'value',
     ];
+
+    /**
+     * Boot del modelo para generar UUID automáticamente.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * Obtiene un valor de configuración por tab y key.

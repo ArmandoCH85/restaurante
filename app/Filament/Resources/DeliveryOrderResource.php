@@ -47,8 +47,8 @@ class DeliveryOrderResource extends Resource
             ]);
         }
 
-        // Verificar si el usuario tiene el rol "Delivery" (con D mayúscula)
-        if ($user && $user->roles->where('name', 'Delivery')->count() > 0) {
+        // Verificar si el usuario tiene el rol "delivery" o "Delivery"
+        if ($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0)) {
             // Buscar el empleado asociado al usuario
             $employee = \App\Models\Employee::where('user_id', $user->id)->first();
 
@@ -223,7 +223,7 @@ class DeliveryOrderResource extends Resource
                     ->visible(function() {
                         // Ocultar el filtro si el usuario es un repartidor
                         $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && $user->roles->where('name', 'Delivery')->count() > 0);
+                        return !($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0));
                     }),
 
                 Tables\Filters\Filter::make('created_at')

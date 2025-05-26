@@ -340,9 +340,9 @@
                         <td class="quantity">{{ $detail->quantity }}</td>
                         <td class="quantity">UND</td>
                         <td>{{ $detail->description }}</td>
-                        <td class="price">{{ number_format($detail->unit_price / 1.18, 2) }}</td>
+                        <td class="price">{{ number_format($detail->unit_price, 2) }}</td>
                         <td class="price">0.00</td>
-                        <td class="subtotal">{{ number_format($detail->subtotal / 1.18, 2) }}</td>
+                        <td class="subtotal">{{ number_format($detail->subtotal, 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
