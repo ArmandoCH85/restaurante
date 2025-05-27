@@ -18,7 +18,7 @@ class DeliveryOrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
-    protected static ?string $navigationGroup = 'Ventas';
+    protected static ?string $navigationGroup = 'Operaciones';
 
     protected static ?string $navigationLabel = 'Delivery';
 
