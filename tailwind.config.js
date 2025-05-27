@@ -11,7 +11,63 @@ export default {
     ],
     darkMode: 'class',
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                primary: {
+                    50: '#eff6ff',
+                    100: '#dbeafe',
+                    200: '#bfdbfe',
+                    300: '#93c5fd',
+                    400: '#60a5fa',
+                    500: '#3C50E0',
+                    600: '#2563eb',
+                    700: '#1d4ed8',
+                    800: '#1e40af',
+                    900: '#1e3a8a',
+                    950: '#172554',
+                },
+                secondary: {
+                    50: '#f0f9ff',
+                    100: '#e0f2fe',
+                    200: '#bae6fd',
+                    300: '#7CD4FD',
+                    400: '#38bdf8',
+                    500: '#0ea5e9',
+                    600: '#0284c7',
+                    700: '#0369a1',
+                    800: '#075985',
+                    900: '#0c4a6e',
+                    950: '#082f49',
+                },
+                background: '#F2F7FF',
+                sidebar: '#1C2434',
+                hoverSidebar: '#313D4A',
+                textPrimary: '#1F2937',
+                textSecondary: '#6B7280',
+                border: 'rgba(0,0,0,0.06)',
+            },
+            fontFamily: {
+                sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
+            },
+            fontSize: {
+                'base': '15px',
+                'nav': '14px',
+            },
+            spacing: {
+                '18': '4.5rem',
+            },
+            boxShadow: {
+                'tailadmin': '0 1px 2px rgba(0,0,0,0.01)',
+                'tailadmin-card': '0 1px 3px rgba(0,0,0,0.04)',
+                'tailadmin-modal': '0 4px 6px rgba(0,0,0,0.08)',
+            },
+            borderRadius: {
+                'tailadmin': '8px',
+            },
+            transitionDuration: {
+                '150': '150ms',
+            },
+        },
     },
     plugins: [],
 };

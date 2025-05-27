@@ -22,7 +22,7 @@ class RecipeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-beaker';
 
-    protected static ?string $navigationGroup = 'Inventario';
+    protected static ?string $navigationGroup = 'Menú y Productos';
 
     protected static ?string $navigationLabel = 'Recetas';
 

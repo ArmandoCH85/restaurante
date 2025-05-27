@@ -22,7 +22,7 @@ class TableResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-table-cells';
 
-    protected static ?string $navigationGroup = 'Mantenimiento';
+    protected static ?string $navigationGroup = 'Configuración';
 
     protected static ?string $navigationLabel = 'Mesas';
 

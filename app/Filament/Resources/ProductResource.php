@@ -277,6 +277,6 @@ class ProductResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Gestión de Productos';
+        return 'Menú y Productos';
     }
 }
