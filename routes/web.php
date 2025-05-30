@@ -149,4 +149,19 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('filament.admin.resources.quotations.email');
 });
 
+// Rutas para descargas de comprobantes SUNAT
+Route::middleware(['web', 'auth'])->group(function () {
+    // Descargar XML del comprobante
+    Route::get('/admin/invoices/{invoice}/download-xml', [\App\Http\Controllers\InvoiceController::class, 'downloadXml'])
+        ->name('filament.admin.invoices.download-xml');
+
+    // Descargar CDR del comprobante
+    Route::get('/admin/invoices/{invoice}/download-cdr', [\App\Http\Controllers\InvoiceController::class, 'downloadCdr'])
+        ->name('filament.admin.invoices.download-cdr');
+
+    // Descargar PDF del comprobante
+    Route::get('/admin/invoices/{invoice}/download-pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])
+        ->name('filament.admin.invoices.download-pdf');
+});
+
 
