@@ -101,7 +101,7 @@ class EmployeeResource extends Resource
                             ->label('Salario Base')
                             ->required()
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('S/')
                             ->default(0.00)
                             ->placeholder('0.00'),
                     ]),
@@ -181,7 +181,7 @@ class EmployeeResource extends Resource
 
                 Tables\Columns\TextColumn::make('base_salary')
                     ->label('Salario Base')
-                    ->money('USD')
+                    ->money('PEN')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('user.name')

@@ -94,7 +94,7 @@ class ProductResource extends Resource
                             ->label('Precio de Venta')
                             ->required()
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('S/')
                             ->maxValue(99999999.99)
                             ->step(0.01),
 
@@ -102,7 +102,7 @@ class ProductResource extends Resource
                             ->label('Costo Actual')
                             ->required()
                             ->numeric()
-                            ->prefix('$')
+                            ->prefix('S/')
                             ->default(0.00)
                             ->maxValue(99999999.99)
                             ->step(0.01),
@@ -198,12 +198,12 @@ class ProductResource extends Resource
 
                 Tables\Columns\TextColumn::make('sale_price')
                     ->label('Precio')
-                    ->money('USD')
+                    ->money('PEN')
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('current_cost')
                     ->label('Costo')
-                    ->money('USD')
+                    ->money('PEN')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
