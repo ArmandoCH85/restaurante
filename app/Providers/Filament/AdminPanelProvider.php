@@ -63,18 +63,6 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->darkMode()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->resources([
-                \App\Filament\Resources\DocumentSeriesResource::class,
-                \App\Filament\Resources\InvoiceResource::class,
-                \App\Filament\Resources\TableResource::class,
-                \App\Filament\Resources\IngredientResource::class,
-                \App\Filament\Resources\RecipeResource::class,
-                \App\Filament\Resources\PurchaseResource::class,
-                \App\Filament\Resources\ReservationResource::class,
-                \App\Filament\Resources\CompanyConfigResource::class,
-                \App\Filament\Resources\ElectronicBillingConfigResource::class,
-                \App\Filament\Resources\QuotationResource::class,
-            ])
             // Registrar páginas explícitamente en lugar de descubrirlas automáticamente
             ->pages([
                 Pages\Dashboard::class,
