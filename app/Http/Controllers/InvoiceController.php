@@ -7,6 +7,8 @@ use App\Models\Invoice;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
+use Symfony\Component\HttpFoundation\Response;
 
 class InvoiceController extends Controller
 {
@@ -133,5 +135,54 @@ class InvoiceController extends Controller
     {
         $lastInvoice = Invoice::where('invoice_type', $type)->latest('number')->first();
         return $lastInvoice ? (int)$lastInvoice->number + 1 : 1;
+    }
+
+    /**
+     * Descargar XML del comprobante
+     */
+    public function downloadXml(Invoice $invoice)
+    {
+        if (!$invoice->xml_path || !File::exists($invoice->xml_path)) {
+            abort(404, 'Archivo XML no encontrado');
+        }
+
+        $filename = basename($invoice->xml_path);
+
+        return response()->download($invoice->xml_path, $filename, [
+            'Content-Type' => 'application/xml',
+        ]);
+    }
+
+    /**
+     * Descargar CDR del comprobante
+     */
+    public function downloadCdr(Invoice $invoice)
+    {
+        if (!$invoice->cdr_path || !File::exists($invoice->cdr_path)) {
+            abort(404, 'Archivo CDR no encontrado');
+        }
+
+        $filename = basename($invoice->cdr_path);
+
+        return response()->download($invoice->cdr_path, $filename, [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
+    /**
+     * Descargar PDF del comprobante
+     */
+    public function downloadPdf(Invoice $invoice)
+    {
+        // Si existe un PDF generado por SUNAT, descargarlo
+        if ($invoice->pdf_path && File::exists($invoice->pdf_path)) {
+            $filename = basename($invoice->pdf_path);
+            return response()->download($invoice->pdf_path, $filename, [
+                'Content-Type' => 'application/pdf',
+            ]);
+        }
+
+        // Si no existe PDF de SUNAT, generar uno usando la vista de impresión
+        return $this->generatePdf($invoice->id);
     }
 }

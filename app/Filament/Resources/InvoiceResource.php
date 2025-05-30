@@ -370,6 +370,32 @@ class InvoiceResource extends Resource
                     ->color('success')
                     ->url(fn (Invoice $record): string => route('pos.invoice.pdf', $record))
                     ->openUrlInNewTab(),
+                Action::make('download_xml')
+                    ->label('Descargar XML')
+                    ->icon('heroicon-o-document-text')
+                    ->color('info')
+                    ->visible(fn (Invoice $record): bool =>
+                        // Solo mostrar si el comprobante tiene XML generado
+                        !empty($record->xml_path) && file_exists($record->xml_path)
+                    )
+                    ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-xml', $record))
+                    ->openUrlInNewTab(),
+                Action::make('download_cdr')
+                    ->label('Descargar CDR')
+                    ->icon('heroicon-o-document-check')
+                    ->color('warning')
+                    ->visible(fn (Invoice $record): bool =>
+                        // Solo mostrar si el comprobante tiene CDR de SUNAT
+                        !empty($record->cdr_path) && file_exists($record->cdr_path)
+                    )
+                    ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-cdr', $record))
+                    ->openUrlInNewTab(),
+                Action::make('download_pdf')
+                    ->label('Descargar PDF')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('gray')
+                    ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-pdf', $record))
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
