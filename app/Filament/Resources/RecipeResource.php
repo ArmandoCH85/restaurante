@@ -30,7 +30,7 @@ class RecipeResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Recetas';
 
-    protected static ?string $slug = 'inventario/recetas';
+    protected static ?string $slug = 'resources/recipes';
 
     protected static ?int $navigationSort = 2;
 
