@@ -2,18 +2,14 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\FloorResource\Pages;
-use App\Filament\Resources\FloorResource\RelationManagers;
 use App\Models\Floor;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class FloorResource extends Resource
+class SimpleFloorResource extends Resource
 {
     protected static ?string $model = Floor::class;
 
@@ -27,39 +23,35 @@ class FloorResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Pisos';
 
-    protected static ?int $navigationSort = 0;
-    #Comentario agregado
+    protected static ?string $slug = 'floors';
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Información del Piso')
-                    ->description('Ingrese los detalles del piso')
-                    ->schema([
-                        Forms\Components\TextInput::make('name')
-                            ->label('Nombre')
-                            ->required()
-                            ->maxLength(50)
-                            ->placeholder('Ej: Primer Piso'),
+                Forms\Components\TextInput::make('name')
+                    ->label('Nombre')
+                    ->required()
+                    ->maxLength(50)
+                    ->placeholder('Ej: Primer Piso'),
 
-                        Forms\Components\Textarea::make('description')
-                            ->label('Descripción')
-                            ->nullable()
-                            ->maxLength(255)
-                            ->placeholder('Descripción del piso y sus características'),
+                Forms\Components\Textarea::make('description')
+                    ->label('Descripción')
+                    ->nullable()
+                    ->maxLength(255)
+                    ->placeholder('Descripción del piso y sus características'),
 
-                        Forms\Components\Select::make('status')
-                            ->label('Estado')
-                            ->options([
-                                'active' => 'Activo',
-                                'maintenance' => 'En Mantenimiento',
-                                'closed' => 'Cerrado',
-                            ])
-                            ->default('active')
-                            ->required(),
+                Forms\Components\Select::make('status')
+                    ->label('Estado')
+                    ->options([
+                        'active' => 'Activo',
+                        'maintenance' => 'En Mantenimiento',
+                        'closed' => 'Cerrado',
                     ])
-                    ->columns(1),
+                    ->default('active')
+                    ->required(),
             ]);
     }
 
@@ -94,19 +86,8 @@ class FloorResource extends Resource
                     })
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('tables_count')
-                    ->label('Mesas')
-                    ->counts('tables')
-                    ->sortable(),
-
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Creado')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('updated_at')
-                    ->label('Actualizado')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -121,10 +102,8 @@ class FloorResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label('Editar'),
-                Tables\Actions\DeleteAction::make()
-                    ->label('Eliminar'),
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -136,16 +115,16 @@ class FloorResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\TablesRelationManager::class,
+            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListFloors::route('/'),
-            'create' => Pages\CreateFloor::route('/create'),
-            'edit' => Pages\EditFloor::route('/{record}/edit'),
+            'index' => \App\Filament\Resources\SimpleFloorResource\Pages\ListSimpleFloors::route('/'),
+            'create' => \App\Filament\Resources\SimpleFloorResource\Pages\CreateSimpleFloor::route('/create'),
+            'edit' => \App\Filament\Resources\SimpleFloorResource\Pages\EditSimpleFloor::route('/{record}/edit'),
         ];
     }
 }
