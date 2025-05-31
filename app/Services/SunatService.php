@@ -17,6 +17,8 @@ use Greenter\Model\Sale\PaymentTerms;
 use Greenter\Model\Sale\Cuota;
 use Greenter\See;
 use Greenter\Ws\Services\SunatEndpoints;
+use Greenter\XMLSecLibs\Certificate\X509Certificate;
+use Greenter\XMLSecLibs\Certificate\X509ContentType;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -44,12 +46,63 @@ class SunatService
         $solUser = AppSetting::getSetting('FacturacionElectronica', 'sol_user');
         $solPassword = AppSetting::getDecryptedSetting('FacturacionElectronica', 'sol_password');
 
+        // Log de debugging para certificados
+        Log::info('Inicializando Greenter - Configuración de certificado', [
+            'certificate_path' => $certificatePath,
+            'certificate_exists' => $certificatePath ? file_exists($certificatePath) : false,
+            'certificate_password_set' => !empty($certificatePassword),
+            'sol_user' => $solUser,
+            'sol_password_set' => !empty($solPassword),
+            'environment' => $this->environment
+        ]);
+
         if (!$certificatePath || !file_exists($certificatePath)) {
-            throw new Exception('Certificado digital no encontrado');
+            throw new Exception('Certificado digital no encontrado en: ' . ($certificatePath ?: 'ruta no configurada'));
+        }
+
+        if (empty($certificatePassword)) {
+            throw new Exception('Contraseña del certificado digital no configurada');
         }
 
         $this->see = new See();
-        $this->see->setCertificate(file_get_contents($certificatePath));
+
+        // Para certificados .pfx/.p12, Greenter necesita la contraseña
+        $certificateContent = file_get_contents($certificatePath);
+
+        // Detectar el tipo de certificado por extensión
+        $extension = strtolower(pathinfo($certificatePath, PATHINFO_EXTENSION));
+
+        if (in_array($extension, ['pfx', 'p12'])) {
+            // Para certificados .pfx/.p12, usar X509Certificate para convertir a PEM
+            Log::info('Procesando certificado PFX/P12', [
+                'extension' => $extension,
+                'certificate_size' => strlen($certificateContent) . ' bytes'
+            ]);
+
+            try {
+                $certificate = new X509Certificate($certificateContent, $certificatePassword);
+                $pemCertificate = $certificate->export(X509ContentType::PEM);
+                $this->see->setCertificate($pemCertificate);
+
+                Log::info('Certificado PFX/P12 convertido a PEM exitosamente');
+            } catch (\Exception $e) {
+                Log::error('Error al procesar certificado PFX/P12', [
+                    'error' => $e->getMessage(),
+                    'extension' => $extension,
+                    'password_length' => strlen($certificatePassword)
+                ]);
+                throw new Exception('Error al procesar certificado digital: ' . $e->getMessage() . '. Verifique que la contraseña del certificado sea correcta.');
+            }
+        } else {
+            // Para certificados .pem, usar directamente
+            Log::info('Procesando certificado PEM', [
+                'extension' => $extension,
+                'certificate_size' => strlen($certificateContent) . ' bytes'
+            ]);
+
+            $this->see->setCertificate($certificateContent);
+        }
+
         $this->see->setCredentials($solUser, $solPassword);
 
         // Configurar endpoint según entorno
@@ -58,6 +111,12 @@ class SunatService
         } else {
             $this->see->setService(SunatEndpoints::FE_BETA);
         }
+
+        Log::info('Greenter inicializado correctamente', [
+            'environment' => $this->environment,
+            'certificate_type' => $extension,
+            'certificate_size' => strlen($certificateContent) . ' bytes'
+        ]);
     }
 
     /**
