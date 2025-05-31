@@ -79,19 +79,70 @@ class SunatService
                 'certificate_size' => strlen($certificateContent) . ' bytes'
             ]);
 
-            try {
-                $certificate = new X509Certificate($certificateContent, $certificatePassword);
-                $pemCertificate = $certificate->export(X509ContentType::PEM);
-                $this->see->setCertificate($pemCertificate);
+            // Método KISS: Configurar OpenSSL para algoritmos legacy
+            $certs = [];
 
-                Log::info('Certificado PFX/P12 convertido a PEM exitosamente');
-            } catch (\Exception $e) {
-                Log::error('Error al procesar certificado PFX/P12', [
-                    'error' => $e->getMessage(),
-                    'extension' => $extension,
-                    'password_length' => strlen($certificatePassword)
-                ]);
-                throw new Exception('Error al procesar certificado digital: ' . $e->getMessage() . '. Verifique que la contraseña del certificado sea correcta.');
+            // Limpiar errores previos de OpenSSL
+            while (openssl_error_string() !== false) {
+                // Limpiar cola de errores
+            }
+
+            // Configurar variables de entorno para OpenSSL legacy
+            $originalConf = getenv('OPENSSL_CONF');
+            $originalProvider = getenv('OPENSSL_MODULES');
+
+            // Configurar para permitir algoritmos legacy
+            putenv('OPENSSL_CONF=');
+            putenv('OPENSSL_MODULES=');
+
+            // Intentar con configuración más permisiva
+            $context = stream_context_create([
+                'ssl' => [
+                    'crypto_method' => STREAM_CRYPTO_METHOD_ANY_CLIENT,
+                    'ciphers' => 'DEFAULT:@SECLEVEL=0'
+                ]
+            ]);
+
+            if (!openssl_pkcs12_read($certificateContent, $certs, $certificatePassword)) {
+                $opensslError = openssl_error_string();
+
+                // Mensajes de error más específicos
+                if (strpos($opensslError, 'mac verify failure') !== false) {
+                    throw new Exception('Error al procesar certificado digital: La contraseña del certificado es incorrecta. Verifique que la contraseña sea la correcta para este certificado.');
+                } elseif (strpos($opensslError, 'digital envelope routines') !== false) {
+                    throw new Exception('Error al procesar certificado digital: El certificado usa algoritmos no soportados por esta versión de OpenSSL. Contacte al administrador del sistema.');
+                } else {
+                    throw new Exception('Error al procesar certificado digital: ' . ($opensslError ?: 'Error desconocido al leer el certificado PKCS#12') . '. Verifique que el archivo no esté corrupto.');
+                }
+            }
+
+            if (!isset($certs['cert']) || !isset($certs['pkey'])) {
+                throw new Exception('El certificado no contiene los componentes necesarios (certificado y clave privada).');
+            }
+
+            // Crear PEM simple
+            $pemContent = $certs['cert'] . $certs['pkey'];
+
+            // Agregar certificados adicionales si existen
+            if (isset($certs['extracerts']) && is_array($certs['extracerts'])) {
+                foreach ($certs['extracerts'] as $extraCert) {
+                    $pemContent .= $extraCert;
+                }
+            }
+
+            $this->see->setCertificate($pemContent);
+            Log::info('Certificado PFX/P12 procesado exitosamente', [
+                'has_cert' => isset($certs['cert']),
+                'has_pkey' => isset($certs['pkey']),
+                'extra_certs_count' => isset($certs['extracerts']) ? count($certs['extracerts']) : 0
+            ]);
+
+            // Restaurar configuración original de OpenSSL
+            if ($originalConf !== false) {
+                putenv('OPENSSL_CONF=' . $originalConf);
+            }
+            if ($originalProvider !== false) {
+                putenv('OPENSSL_MODULES=' . $originalProvider);
             }
         } else {
             // Para certificados .pem, usar directamente
@@ -753,5 +804,183 @@ class SunatService
     {
         $invoice = Invoice::find($invoiceId);
         return $invoice ? $invoice->pdf_path : null;
+    }
+
+    /**
+     * Procesar certificado usando OpenSSL directamente como método alternativo
+     */
+    private function processCertificateWithOpenSSL($certificateContent, $certificatePassword)
+    {
+        // Extraer certificado y clave privada usando openssl_pkcs12_read
+        $certs = [];
+        if (!openssl_pkcs12_read($certificateContent, $certs, $certificatePassword)) {
+            $opensslError = openssl_error_string();
+            throw new Exception('No se pudo leer el certificado PKCS#12. Error OpenSSL: ' . ($opensslError ?: 'Verifique la contraseña.'));
+        }
+
+        // Verificar que tenemos los componentes necesarios
+        if (!isset($certs['cert']) || !isset($certs['pkey'])) {
+            throw new Exception('El certificado no contiene los componentes necesarios (cert/pkey).');
+        }
+
+        // Verificar y procesar la clave privada
+        $privateKey = $certs['pkey'];
+        $certificate = $certs['cert'];
+
+        // Validar que la clave privada sea válida
+        $keyResource = openssl_pkey_get_private($privateKey);
+        if ($keyResource === false) {
+            throw new Exception('La clave privada extraída no es válida: ' . openssl_error_string());
+        }
+
+        // Obtener detalles de la clave privada para debugging
+        $keyDetails = openssl_pkey_get_details($keyResource);
+        Log::info('Detalles de la clave privada', [
+            'key_type' => $keyDetails['type'] ?? 'unknown',
+            'key_bits' => $keyDetails['bits'] ?? 'unknown'
+        ]);
+
+        // Combinar certificado y clave privada en formato PEM
+        $pemContent = $certificate . $privateKey;
+
+        // Agregar certificados adicionales si existen
+        if (isset($certs['extracerts']) && is_array($certs['extracerts'])) {
+            foreach ($certs['extracerts'] as $extraCert) {
+                $pemContent .= $extraCert;
+            }
+        }
+
+        // Configurar el certificado en Greenter
+        $this->see->setCertificate($pemContent);
+
+        // Liberar recursos
+        openssl_pkey_free($keyResource);
+
+        Log::info('Certificado procesado exitosamente con openssl_pkcs12_read', [
+            'has_cert' => isset($certs['cert']),
+            'has_pkey' => isset($certs['pkey']),
+            'extra_certs_count' => isset($certs['extracerts']) ? count($certs['extracerts']) : 0
+        ]);
+    }
+
+    /**
+     * Método de respaldo para procesar certificados problemáticos
+     */
+    private function processCertificateWithFallback($certificateContent, $certificatePassword)
+    {
+        // Crear archivo temporal
+        $tempFile = tempnam(sys_get_temp_dir(), 'cert_fallback_') . '.pfx';
+
+        try {
+            // Escribir certificado a archivo temporal
+            file_put_contents($tempFile, $certificateContent);
+
+            // Intentar convertir usando comando openssl externo (si está disponible)
+            $pemFile = tempnam(sys_get_temp_dir(), 'cert_pem_') . '.pem';
+
+            // Comando para extraer certificado y clave privada
+            // Usar -legacy para compatibilidad con certificados antiguos
+            $command = sprintf(
+                'openssl pkcs12 -in "%s" -out "%s" -nodes -legacy -passin pass:"%s" 2>&1',
+                $tempFile,
+                $pemFile,
+                escapeshellarg($certificatePassword)
+            );
+
+            $output = [];
+            $returnCode = 0;
+            exec($command, $output, $returnCode);
+
+            if ($returnCode === 0 && file_exists($pemFile) && filesize($pemFile) > 0) {
+                // Éxito con comando externo
+                $pemContent = file_get_contents($pemFile);
+                $this->see->setCertificate($pemContent);
+
+                Log::info('Certificado procesado con comando openssl externo', [
+                    'pem_size' => strlen($pemContent)
+                ]);
+
+                unlink($pemFile);
+            } else {
+                // Si el comando externo falla, intentar método manual
+                Log::warning('Comando openssl externo falló, intentando método manual', [
+                    'return_code' => $returnCode,
+                    'output' => implode(' ', $output)
+                ]);
+
+                // Método manual: usar el certificado tal como está
+                // Algunos certificados pueden funcionar directamente
+                $this->see->setCertificate($certificateContent);
+
+                Log::info('Usando certificado directamente como último recurso');
+            }
+
+        } finally {
+            // Limpiar archivos temporales
+            if (file_exists($tempFile)) {
+                unlink($tempFile);
+            }
+            if (isset($pemFile) && file_exists($pemFile)) {
+                unlink($pemFile);
+            }
+        }
+    }
+
+    /**
+     * Método de separación de componentes del certificado
+     */
+    private function processCertificateWithSeparation($certificateContent, $certificatePassword)
+    {
+        // Extraer certificado y clave privada usando openssl_pkcs12_read
+        $certs = [];
+        if (!openssl_pkcs12_read($certificateContent, $certs, $certificatePassword)) {
+            $opensslError = openssl_error_string();
+            throw new Exception('No se pudo leer el certificado PKCS#12 con separación. Error OpenSSL: ' . ($opensslError ?: 'Verifique la contraseña.'));
+        }
+
+        // Verificar que tenemos los componentes necesarios
+        if (!isset($certs['cert']) || !isset($certs['pkey'])) {
+            throw new Exception('El certificado no contiene los componentes necesarios (cert/pkey) para separación.');
+        }
+
+        // Procesar la clave privada por separado
+        $privateKey = $certs['pkey'];
+        $certificate = $certs['cert'];
+
+        // Validar la clave privada de forma más estricta
+        $keyResource = openssl_pkey_get_private($privateKey);
+        if ($keyResource === false) {
+            throw new Exception('La clave privada no es válida en separación: ' . openssl_error_string());
+        }
+
+        // Obtener detalles de la clave
+        $keyDetails = openssl_pkey_get_details($keyResource);
+        if (!$keyDetails) {
+            throw new Exception('No se pudieron obtener detalles de la clave privada');
+        }
+
+        Log::info('Separación de componentes exitosa', [
+            'key_type' => $keyDetails['type'] ?? 'unknown',
+            'key_bits' => $keyDetails['bits'] ?? 'unknown',
+            'has_public_key' => isset($keyDetails['key'])
+        ]);
+
+        // Crear PEM combinado con orden específico
+        $pemContent = $certificate . "\n" . $privateKey;
+
+        // Agregar certificados de la cadena si existen
+        if (isset($certs['extracerts']) && is_array($certs['extracerts'])) {
+            foreach ($certs['extracerts'] as $extraCert) {
+                $pemContent .= "\n" . $extraCert;
+            }
+        }
+
+        // Configurar en Greenter
+        $this->see->setCertificate($pemContent);
+
+        Log::info('Certificado configurado con separación de componentes', [
+            'pem_length' => strlen($pemContent),
+            'extra_certs_count' => isset($certs['extracerts']) ? count($certs['extracerts']) : 0
+        ]);
     }
 }
