@@ -21,6 +21,9 @@ class CashRegisterResource extends Resource
 
     protected static ?string $navigationGroup = 'Facturación';
 
+    // Mostrar en el menú de navegación
+    protected static bool $shouldRegisterNavigation = true;
+
     protected static ?string $navigationLabel = 'Apertura y Cierre de Caja';
 
     protected static ?string $modelLabel = 'Operación de Caja';

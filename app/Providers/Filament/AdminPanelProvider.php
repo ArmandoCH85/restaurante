@@ -304,18 +304,18 @@ class AdminPanelProvider extends PanelProvider
                         }
                         return PermissionHelper::hasPermission('view_any_document::series');
                     }),
-                NavigationItem::make('Caja')
-                    ->url('/admin/resources/cash-registers')
-                    ->icon('heroicon-o-banknotes')
-                    ->group('Facturación')
-                    ->sort(3)
-                    ->visible(function() {
-                        $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_cash::register');
-                    }),
+                // NavigationItem::make('Caja')
+                //     ->url('/admin/resources/cash-registers')
+                //     ->icon('heroicon-o-banknotes')
+                //     ->group('Facturación')
+                //     ->sort(3)
+                //     ->visible(function() {
+                //         $user = Auth::user();
+                //         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                //             return false;
+                //         }
+                //         return PermissionHelper::hasPermission('view_any_cash::register');
+                //     }),
 
                 // 📅 RESERVAS Y COTIZACIONES
                 NavigationItem::make('Reservas')
@@ -382,27 +382,27 @@ class AdminPanelProvider extends PanelProvider
                         }
                         return PermissionHelper::hasPermission('view_any_employee');
                     }),
-                NavigationItem::make('Usuarios')
-                    ->url('/admin/resources/users')
-                    ->icon('heroicon-o-users')
-                    ->group('Personal')
-                    ->sort(2)
-                    ->visible(function() {
-                        $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_user');
-                    }),
-                NavigationItem::make('Roles y Permisos')
-                    ->url('/admin/resources/roles')
-                    ->icon('heroicon-o-shield-check')
-                    ->group('Personal')
-                    ->sort(3)
-                    ->visible(function() {
-                        $user = Auth::user();
-                        return $user && $user->hasRole('super_admin');
-                    }),
+                // NavigationItem::make('Usuarios')
+                //     ->url('/admin/resources/users')
+                //     ->icon('heroicon-o-users')
+                //     ->group('Personal')
+                //     ->sort(2)
+                //     ->visible(function() {
+                //         $user = Auth::user();
+                //         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
+                //             return false;
+                //         }
+                //         return PermissionHelper::hasPermission('view_any_user');
+                //     }),
+                // NavigationItem::make('Roles y Permisos')
+                //     ->url('/admin/resources/roles')
+                //     ->icon('heroicon-o-shield-check')
+                //     ->group('Personal')
+                //     ->sort(3)
+                //     ->visible(function() {
+                //         $user = Auth::user();
+                //         return $user && $user->hasRole('super_admin');
+                //     }),
 
                 // 📊 REPORTES Y ANÁLISIS
                 NavigationItem::make('Reportes')
