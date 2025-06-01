@@ -2333,45 +2333,6 @@ class PointOfSale extends Component
     }
 
     /**
-     * Inicia la mesa cambiando su estado a ocupada sin importar si hay productos en el carrito
-     */
-    public function iniciarMesa(): void
-    {
-        try {
-            if (!$this->table) {
-                $this->dispatch('notification', [
-                    'type' => 'info',
-                    'title' => 'Seleccionar Mesa',
-                    'message' => 'Por favor, seleccione una mesa para iniciar'
-                ]);
-                return;
-            }
-
-            // Cambiar el estado de la mesa a ocupada sin verificar productos
-            $this->table->status = 'occupied';
-            $this->table->occupied_at = now();
-            $this->table->save();
-
-            // Guardar el carrito en la sesión
-            $this->saveCartToSession();
-
-            // Mostrar mensaje de éxito
-            $this->dispatch('notification', [
-                'type' => 'success',
-                'title' => 'Mesa Iniciada',
-                'message' => 'Mesa ' . $this->table->number . ' iniciada correctamente'
-            ]);
-        } catch (\Exception $e) {
-            $this->dispatch('notification', [
-                'type' => 'error',
-                'title' => 'Error',
-                'message' => 'Error al iniciar la mesa: ' . $e->getMessage()
-            ]);
-        }
-    }
-
-
-    /**
      * Cambiar el estado de una mesa
      *
      * @param array|string|int $params Puede ser un array con tableId y status, o directamente el tableId
