@@ -14,7 +14,7 @@ class ReservationCalendar extends Page
 
     protected static string $view = 'filament.pages.reservation-calendar';
 
-    protected static ?string $navigationGroup = 'Ventas';
+    protected static ?string $navigationGroup = 'Reservas';
 
     protected static ?string $navigationLabel = 'Calendario de Reservas';
 

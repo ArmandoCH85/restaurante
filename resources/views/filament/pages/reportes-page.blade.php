@@ -28,32 +28,20 @@
         </form>
     </x-filament::section>
 
-    <div id="debug-info" class="mt-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg hidden">
-        <h3 class="text-lg font-medium mb-2">Información de depuración</h3>
-        <div id="debug-content" class="text-sm font-mono"></div>
-    </div>
+
 
     @push('scripts')
         <script>
-            // Función para mostrar información de depuración
+            // Función para mostrar información de depuración (deshabilitada)
             function showDebug(message) {
-                const debugInfo = document.getElementById('debug-info');
-                const debugContent = document.getElementById('debug-content');
-
-                if (debugInfo && debugContent) {
-                    debugInfo.classList.remove('hidden');
-                    debugContent.innerHTML += `<div>${message}</div>`;
-                }
+                // Debug deshabilitado
             }
 
             // Función mejorada para descargar archivos
             function downloadFile(content, filename, mimeType) {
                 try {
-                    showDebug(`Iniciando descarga de ${filename}`);
-
                     // Decodificar el contenido base64
                     const binaryData = atob(content);
-                    showDebug(`Contenido decodificado: ${binaryData.length} bytes`);
 
                     // Convertir a array de bytes
                     const bytes = new Uint8Array(binaryData.length);
@@ -63,11 +51,9 @@
 
                     // Crear blob
                     const blob = new Blob([bytes.buffer], { type: mimeType });
-                    showDebug(`Blob creado: ${blob.size} bytes`);
 
                     // Crear URL del blob
                     const blobUrl = URL.createObjectURL(blob);
-                    showDebug(`URL del blob: ${blobUrl}`);
 
                     // Crear enlace de descarga
                     const link = document.createElement('a');
@@ -77,42 +63,33 @@
 
                     // Añadir al DOM, hacer clic y limpiar
                     document.body.appendChild(link);
-                    showDebug('Enlace añadido al DOM');
 
                     // Usar setTimeout para asegurar que el enlace se procese
                     setTimeout(() => {
-                        showDebug('Haciendo clic en el enlace');
                         link.click();
 
                         // Limpiar después de un breve retraso
                         setTimeout(() => {
                             document.body.removeChild(link);
                             URL.revokeObjectURL(blobUrl);
-                            showDebug('Enlace eliminado y URL liberada');
                         }, 100);
                     }, 100);
                 } catch (error) {
-                    showDebug(`Error: ${error.message}`);
                     console.error('Error al descargar archivo:', error);
                 }
             }
 
             document.addEventListener('livewire:initialized', () => {
-                showDebug('Livewire inicializado');
 
                 Livewire.on('download-pdf', (data) => {
-                    showDebug('Evento download-pdf recibido');
                     downloadFile(data.content, data.filename, 'application/pdf');
                 });
 
                 Livewire.on('download-excel', (data) => {
-                    showDebug('Evento download-excel recibido');
                     downloadFile(data.content, data.filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
                 });
 
                 Livewire.on('show-notification', (data) => {
-                    showDebug('Mostrando notificación: ' + data.message);
-
                     // No hacemos nada aquí, las notificaciones se manejan en el backend
                 });
             });

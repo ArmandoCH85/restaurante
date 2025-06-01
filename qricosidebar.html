@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>TailAdmin - Panel de Administración</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Icons+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-gray-100 flex">
+<aside class="bg-slate-900 text-slate-300 w-72 min-h-screen flex flex-col fixed">
+<div class="p-6 border-b border-slate-700">
+<h1 class="text-2xl font-semibold text-white">TailAdmin</h1>
+</div>
+<nav class="flex-grow p-4 space-y-1">
+<a class="flex items-center px-4 py-3 text-slate-100 bg-slate-800 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">dashboard</span>
+                Escritorio
+            </a>
+<div class="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">OPERACIONES</div>
+<a class="flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">point_of_sale</span>
+                Venta Directa
+            </a>
+<a class="flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">map</span>
+                Mapa de Mesas
+            </a>
+<a class="flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">local_shipping</span>
+                Gestión de Delivery
+            </a>
+<a class="flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">delivery_dining</span>
+                Delivery
+            </a>
+<div>
+<button class="flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200 focus:outline-none">
+<div class="flex items-center">
+<span class="material-icons-outlined mr-3">trending_up</span>
+                        Ventas
+                    </div>
+<span class="material-icons-outlined">expand_more</span>
+</button>
+</div>
+<div>
+<button class="flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200 focus:outline-none">
+<div class="flex items-center">
+<span class="material-icons-outlined mr-3">shield</span>
+                        FILAMENT SHIELD
+                    </div>
+<span class="material-icons-outlined">expand_more</span>
+</button>
+</div>
+<div class="px-4 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">MENÚ Y PRODUCTOS</div>
+<a class="flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">inventory_2</span>
+                Productos
+            </a>
+<a class="flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">category</span>
+                Categorías
+            </a>
+<a class="flex items-center px-4 py-3 rounded-lg hover:bg-slate-700 transition-colors duration-200" href="#">
+<span class="material-icons-outlined mr-3">receipt_long</span>
+                Recetas
+            </a>
+</nav>
+<div class="p-6 border-t border-slate-700">
+<div class="flex items-center">
+<img alt="Logo Menú" class="w-10 h-10 rounded-full mr-3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCatHyIDTJ0pbxYgbKRhJhBgIghixn8gQW5frd1zRwd407usEoziWQP6zjNlDeMXpemjicvRn2e_oobYQkZxOY3tQP3EkaW2xT7YBkTKjJgNTj4oC_bokOBAS-bWEMGz_sXf_LaRBBwmiab3vyIdBsQZ17dP2QWVVj6yY1DArWP_k0CHuNFIndbHUNyOoof7XIAjQEhN02qPckxX0chTlagfYqHDTvLTW1Nhe2r1TrFuz52YYhDqgcz2huQRbjMD2D5kmhNyG6HEA"/>
+<div>
+<p class="text-sm font-medium text-white">LOGO</p>
+<p class="text-xs text-slate-400">MENÚ</p>
+</div>
+</div>
+</div>
+</aside>
+<main class="ml-72 flex-1 p-8">
+<header class="flex items-center justify-between mb-8">
+<h2 class="text-3xl font-semibold text-slate-800">Panel de Administración</h2>
+<div class="flex items-center space-x-4">
+<div class="relative">
+<span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-2 w-64 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Buscar" type="text"/>
+</div>
+<div class="w-10 h-10 bg-slate-800 text-white flex items-center justify-center rounded-full text-lg font-semibold">
+                    A
+                </div>
+</div>
+</header>
+<div class="mb-6">
+<nav aria-label="Breadcrumb" class="text-sm text-slate-500">
+<ol class="list-none p-0 inline-flex">
+<li class="flex items-center">
+<a class="hover:text-blue-600" href="#">Cotizaciones</a>
+</li>
+<li class="flex items-center mx-2">
+<span class="material-icons-outlined text-base">chevron_right</span>
+</li>
+<li class="flex items-center">
+                        Listado
+                    </li>
+</ol>
+</nav>
+</div>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-2xl font-semibold text-slate-800">Cotizaciones</h3>
+<button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center">
+<span class="material-icons-outlined mr-2 text-base">add</span>
+                Crear Cotización
+            </button>
+</div>
+<div class="bg-white shadow-lg rounded-lg p-6">
+<div class="flex items-center justify-between mb-6">
+<div class="relative">
+<span class="material-icons-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-2 w-72 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Buscar" type="text"/>
+</div>
+<button class="text-slate-500 hover:text-blue-600">
+<span class="material-icons-outlined">filter_list</span>
+</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-sm text-left text-slate-600">
+<thead class="text-xs text-slate-700 uppercase bg-slate-50">
+<tr>
+<th class="px-6 py-3 w-12" scope="col">
+<input class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" type="checkbox"/>
+</th>
+<th class="px-6 py-3" scope="col">
+                                Número <span class="material-icons-outlined text-base align-middle">arrow_drop_down</span>
+</th>
+<th class="px-6 py-3" scope="col">
+                                Cliente <span class="material-icons-outlined text-base align-middle">arrow_drop_down</span>
+</th>
+<th class="px-6 py-3" scope="col">
+                                Fecha Emisión <span class="material-icons-outlined text-base align-middle">arrow_drop_down</span>
+</th>
+<th class="px-6 py-3" scope="col">
+                                Válido Hasta <span class="material-icons-outlined text-base align-middle">arrow_drop_down</span>
+</th>
+<th class="px-6 py-3" scope="col">
+                                Estado <span class="material-icons-outlined text-base align-middle">arrow_drop_down</span>
+</th>
+<th class="px-6 py-3" scope="col">
+                                Total <span class="material-icons-outlined text-base align-middle">arrow_drop_down</span>
+</th>
+<th class="px-6 py-3" scope="col">
+                                Acciones
+                            </th>
+</tr>
+</thead>
+<tbody>
+<tr class="bg-white border-b hover:bg-slate-50">
+<td class="px-6 py-4">
+<input class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" type="checkbox"/>
+</td>
+<td class="px-6 py-4 font-medium text-slate-900">COT-2025050002</td>
+<td class="px-6 py-4">Ernesto Dominguez</td>
+<td class="px-6 py-4">25/05/2025</td>
+<td class="px-6 py-4 text-green-600 font-medium">09/06/2025</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">Convertida</span>
+</td>
+<td class="px-6 py-4">613,60 PEN</td>
+<td class="px-6 py-4 flex items-center space-x-3">
+<a class="text-blue-600 hover:text-blue-800 flex items-center text-xs" href="#">
+<span class="material-icons-outlined mr-1 text-sm">visibility</span> Ver
+                                </a>
+<a class="text-blue-600 hover:text-blue-800 flex items-center text-xs" href="#">
+<span class="material-icons-outlined mr-1 text-sm">print</span> Imprimir
+                                </a>
+<a class="text-blue-600 hover:text-blue-800 flex items-center text-xs" href="#">
+<span class="material-icons-outlined mr-1 text-sm">email</span> Enviar por Email
+                                </a>
+</td>
+</tr>
+<tr class="bg-white border-b hover:bg-slate-50">
+<td class="px-6 py-4">
+<input class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" type="checkbox"/>
+</td>
+<td class="px-6 py-4 font-medium text-slate-900">COT-2025050001</td>
+<td class="px-6 py-4">Carlos Herrera</td>
+<td class="px-6 py-4">25/05/2025</td>
+<td class="px-6 py-4 text-green-600 font-medium">09/06/2025</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 text-xs font-medium text-purple-700 bg-purple-100 rounded-full">Convertida</span>
+</td>
+<td class="px-6 py-4">177,00 PEN</td>
+<td class="px-6 py-4 flex items-center space-x-3">
+<a class="text-blue-600 hover:text-blue-800 flex items-center text-xs" href="#">
+<span class="material-icons-outlined mr-1 text-sm">visibility</span> Ver
+                                </a>
+<a class="text-blue-600 hover:text-blue-800 flex items-center text-xs" href="#">
+<span class="material-icons-outlined mr-1 text-sm">print</span> Imprimir
+                                </a>
+<a class="text-blue-600 hover:text-blue-800 flex items-center text-xs" href="#">
+<span class="material-icons-outlined mr-1 text-sm">email</span> Enviar por Email
+                                </a>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="flex items-center justify-between pt-4 text-sm text-slate-500">
+<span>Se muestran de 1 a 2 de 2 resultados</span>
+<div class="flex items-center space-x-2">
+<span>por página</span>
+<select class="border border-slate-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+<option>10</option>
+<option>20</option>
+<option>50</option>
+</select>
+</div>
+</div>
+</div>
+<footer class="mt-auto pt-8 text-center text-sm text-slate-500">
+            © 2023 TailAdmin. Todos los derechos reservados.
+        </footer>
+</main>
+
+</body></html>

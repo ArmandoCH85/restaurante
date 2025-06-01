@@ -37,15 +37,7 @@ class DeliveryOrderResource extends Resource
         // Obtener el usuario actual
         $user = \Illuminate\Support\Facades\Auth::user();
 
-        // Registrar información del usuario y sus roles para depuración
-        if ($user) {
-            \Illuminate\Support\Facades\Log::info('Usuario actual en DeliveryOrderResource', [
-                'user_id' => $user->id,
-                'name' => $user->name,
-                'roles' => $user->roles->pluck('name')->toArray(),
-                'has_delivery_role' => $user->roles->where('name', 'Delivery')->count() > 0 ? 'Sí' : 'No'
-            ]);
-        }
+
 
         // Verificar si el usuario tiene el rol "delivery" o "Delivery"
         if ($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0)) {

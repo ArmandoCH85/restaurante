@@ -1,27 +1,4 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
-
-/* TailAdmin Global Variables */
-:root {
-    --tailadmin-primary: #3C50E0;
-    --tailadmin-secondary: #7CD4FD;
-    --tailadmin-background: #F2F7FF;
-    --tailadmin-text-primary: #1F2937;
-    --tailadmin-text-secondary: #6B7280;
-    --tailadmin-sidebar: #1C2434;
-    --tailadmin-sidebar-hover: #313D4A;
-    --tailadmin-border: rgba(0,0,0,0.06);
-    --tailadmin-shadow-light: 0 1px 3px rgba(0,0,0,0.04);
-    --tailadmin-shadow-modal: 0 4px 6px rgba(0,0,0,0.08);
-}
-
-/* Dark mode variables */
-.dark {
-    --tailadmin-background: #111827;
-    --tailadmin-text-primary: #F9FAFB;
-    --tailadmin-text-secondary: #D1D5DB;
-    --tailadmin-sidebar: #1F2937;
-}
 
 /* Estilos básicos para el POS */
 
