@@ -1059,6 +1059,470 @@
             background: var(--color-primary-light);
             color: white;
         }
+
+        /* ===== ESTILOS COMPACTOS PARA CARRITO OPTIMIZADO ===== */
+
+        /* Contenedor de item compacto */
+        .cart-item-compact {
+            background: linear-gradient(135deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+            margin: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--color-primary-light);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            padding: var(--spacing-xs);
+        }
+
+        .cart-item-compact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-success), var(--color-success-light));
+            border-radius: var(--border-radius-full);
+        }
+
+        .cart-item-compact:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+            border-color: var(--color-primary);
+        }
+
+        /* Fila principal compacta */
+        .cart-item-main-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: var(--spacing-xs);
+            align-items: center;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        /* Fila secundaria compacta */
+        .cart-item-secondary-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: var(--spacing-xs);
+            border-top: 1px solid var(--color-border-light);
+        }
+
+        /* Nombre del producto compacto */
+        .cart-item-name-compact {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            line-height: 1.2;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Precio compacto */
+        .cart-item-price-compact {
+            font-size: 0.7rem;
+            color: var(--color-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .cart-item-price-compact span {
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        /* Botón editar precio compacto */
+        .edit-price-btn-compact {
+            color: var(--color-primary);
+            background-color: var(--color-primary-light);
+            padding: 0.125rem;
+            border-radius: var(--border-radius-full);
+            transition: all var(--transition-fast);
+        }
+
+        .edit-price-btn-compact:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        /* Controles de cantidad compactos */
+        .cart-item-quantity-compact {
+            display: flex;
+            align-items: center;
+            background-color: var(--color-surface-hover);
+            border-radius: var(--border-radius-sm);
+            overflow: hidden;
+            border: 1px solid var(--color-border-light);
+        }
+
+        .quantity-btn-compact {
+            background-color: var(--color-primary-light);
+            color: var(--color-primary);
+            border: none;
+            padding: 0.25rem 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            min-width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn-compact:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .quantity-value-compact {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            background-color: var(--color-surface-elevated);
+            min-width: 32px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        /* Subtotal compacto */
+        .cart-item-subtotal-compact {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--color-success);
+            background-color: var(--color-success-light);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--border-radius-sm);
+            text-align: center;
+            min-width: 60px;
+        }
+
+        /* Botón eliminar compacto */
+        .cart-item-remove-compact {
+            background-color: var(--color-danger-light);
+            color: var(--color-danger);
+            border: none;
+            padding: 0.25rem;
+            border-radius: var(--border-radius-sm);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+        }
+
+        .cart-item-remove-compact:hover {
+            background-color: var(--color-danger);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Notas compactas */
+        .cart-item-note-compact {
+            background-color: var(--color-warning-light);
+            border-left: 2px solid var(--color-warning);
+            padding: 0.25rem 0.375rem;
+            margin-top: var(--spacing-xs);
+            font-size: 0.7rem;
+            font-style: italic;
+            color: var(--color-warning-dark);
+            border-radius: var(--border-radius-sm);
+            line-height: 1.2;
+        }
+
+        .cart-item-note-compact span {
+            font-weight: 600;
+        }
+
+        /* ===== MODO OSCURO PARA ESTILOS COMPACTOS ===== */
+        .dark .cart-item-compact {
+            background: linear-gradient(135deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+            border-color: var(--color-primary-light);
+        }
+
+        .dark .cart-item-name-compact {
+            color: var(--color-gray-900);
+        }
+
+        .dark .cart-item-price-compact {
+            color: var(--color-gray-600);
+        }
+
+        .dark .cart-item-price-compact span {
+            color: var(--color-primary-light);
+        }
+
+        .dark .edit-price-btn-compact {
+            background-color: var(--color-primary-light);
+            color: white;
+        }
+
+        .dark .edit-price-btn-compact:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .dark .cart-item-quantity-compact {
+            background-color: var(--color-surface-hover);
+            border-color: var(--color-primary-light);
+        }
+
+        .dark .quantity-btn-compact {
+            background-color: var(--color-primary-light);
+            color: white;
+        }
+
+        .dark .quantity-btn-compact:hover {
+            background-color: var(--color-primary);
+            color: white;
+        }
+
+        .dark .quantity-value-compact {
+            background-color: var(--color-surface-elevated);
+            color: var(--color-gray-900);
+        }
+
+        .dark .cart-item-subtotal-compact {
+            background-color: var(--color-success-dark);
+            color: var(--color-success-light);
+        }
+
+        .dark .cart-item-remove-compact {
+            background-color: var(--color-danger-dark);
+            color: var(--color-danger-light);
+        }
+
+        .dark .cart-item-remove-compact:hover {
+            background-color: var(--color-danger);
+            color: white;
+        }
+
+        .dark .cart-item-note-compact {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--color-warning-light);
+            border-color: var(--color-warning);
+        }
+
+        /* ===== ESTILOS COMPACTOS PARA RESUMEN DEL PEDIDO ===== */
+
+        /* Contenedor del resumen compacto */
+        .order-summary-compact {
+            background: linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+            border-top: 2px solid var(--color-primary);
+            padding: var(--spacing-sm);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .order-summary-compact::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light), var(--color-primary));
+        }
+
+        /* Título del resumen compacto */
+        .order-summary-compact-title {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--color-primary-light);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .order-summary-compact-title svg {
+            margin-right: var(--spacing-xs);
+            color: var(--color-primary);
+        }
+
+        /* Contenido del resumen compacto */
+        .order-summary-compact-content {
+            background: var(--color-surface-elevated);
+            border-radius: var(--border-radius-sm);
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-primary-light);
+            box-shadow: var(--shadow-xs);
+        }
+
+        /* Fila compacta para subtotal e IGV */
+        .order-summary-compact-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-xs);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        /* Item individual en la fila */
+        .order-summary-compact-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7rem;
+            color: var(--color-gray-600);
+            padding: var(--spacing-xs);
+            background: var(--color-surface-hover);
+            border-radius: var(--border-radius-xs);
+        }
+
+        .order-summary-compact-label {
+            font-weight: 500;
+        }
+
+        .order-summary-compact-value {
+            font-weight: 600;
+            color: var(--color-gray-900);
+        }
+
+        /* Total prominente compacto */
+        .order-summary-compact-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            color: var(--color-primary);
+            padding: var(--spacing-sm);
+            border-top: 1px solid var(--color-primary-light);
+            margin-top: var(--spacing-xs);
+            background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-surface-elevated) 100%);
+            border-radius: var(--border-radius-sm);
+            box-shadow: var(--shadow-xs);
+        }
+
+        .order-summary-compact-total-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+
+        .order-summary-compact-total-value {
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--color-primary);
+        }
+
+        /* ===== ESTILOS COMPACTOS PARA NOTAS DEL PEDIDO ===== */
+
+        /* Contenedor de notas compacto */
+        .order-note-compact {
+            margin-top: var(--spacing-sm);
+        }
+
+        /* Label de notas compacto */
+        .order-note-compact-label {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: var(--color-primary);
+            margin-bottom: var(--spacing-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--color-primary-light);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .order-note-compact-label svg {
+            margin-right: var(--spacing-xs);
+        }
+
+        /* Input de notas compacto */
+        .order-note-compact-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            border: 1px solid var(--color-primary-light);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.75rem;
+            color: var(--color-gray-900);
+            background: var(--color-surface-elevated);
+            transition: all var(--transition-fast);
+            resize: vertical;
+            min-height: 60px;
+            font-family: var(--font-family-base);
+        }
+
+        .order-note-compact-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 2px rgba(60, 80, 224, 0.1);
+            background: white;
+        }
+
+        .order-note-compact-input::placeholder {
+            color: var(--color-gray-400);
+            font-style: italic;
+            font-size: 0.7rem;
+        }
+
+        /* ===== MODO OSCURO PARA RESUMEN Y NOTAS COMPACTOS ===== */
+        .dark .order-summary-compact {
+            background: linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+            border-color: var(--color-primary-light);
+        }
+
+        .dark .order-summary-compact-title {
+            background: var(--color-primary-light);
+            color: white;
+        }
+
+        .dark .order-summary-compact-content {
+            background: var(--color-surface-elevated);
+            border-color: var(--color-primary-light);
+        }
+
+        .dark .order-summary-compact-item {
+            background: var(--color-surface-hover);
+            color: var(--color-gray-600);
+        }
+
+        .dark .order-summary-compact-value {
+            color: var(--color-gray-900);
+        }
+
+        .dark .order-summary-compact-total {
+            background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-surface-elevated) 100%);
+            color: white;
+        }
+
+        .dark .order-summary-compact-total-label,
+        .dark .order-summary-compact-total-value {
+            color: white;
+        }
+
+        .dark .order-note-compact-label {
+            background: var(--color-primary-light);
+            color: white;
+        }
+
+        .dark .order-note-compact-input {
+            background: var(--color-surface-elevated);
+            border-color: var(--color-primary-light);
+            color: var(--color-gray-900);
+        }
+
+        .dark .order-note-compact-input:focus {
+            background: var(--color-surface-hover);
+            border-color: var(--color-primary-light);
+        }
     </style>
     <!-- Barra superior (Simplificada para enfoque POS) -->
     {{-- <header class="flex-shrink-0 bg-white shadow-sm dark:bg-gray-800">
@@ -1422,60 +1886,62 @@
                 </div>
             </div>
 
-            <!-- Lista de productos en el pedido - Diseño estándar sin scroll -->
+            <!-- Lista de productos en el pedido - Diseño compacto optimizado -->
             <div class="cart-standard">
-                <!-- Lista de productos con diseño estándar -->
+                <!-- Lista de productos con diseño compacto -->
                 @forelse ($cart as $item)
-                    <div wire:key="cart-item-{{ $item['id'] }}" class="cart-item-standard">
-                        <div class="cart-item-standard-content">
+                    <div wire:key="cart-item-{{ $item['id'] }}" class="cart-item-compact">
+                        <!-- Fila principal con información esencial -->
+                        <div class="cart-item-main-row">
                             <!-- Nombre del producto -->
-                            <div class="cart-item-standard-name">{{ $item['name'] }}</div>
+                            <div class="cart-item-name-compact">{{ $item['name'] }}</div>
 
-                            <!-- Precio unitario -->
-                            <div class="cart-item-standard-price">
-                                Precio unitario: <span>S/ {{ number_format($item['price'], 2) }}</span>
-                                @can('admin')
-                                <button type="button" wire:click="openEditPriceModal('{{ $item['id'] }}')" class="edit-price-btn" title="Editar precio">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                                </button>
-                                @endcan
-                            </div>
-
-                            <!-- Controles de cantidad -->
-                            <div class="cart-item-standard-quantity">
+                            <!-- Controles de cantidad compactos -->
+                            <div class="cart-item-quantity-compact">
                                 <button
                                     wire:click="updateCartItemQuantity('{{ $item['id'] }}', {{ $item['quantity'] - 1 }})"
                                     type="button"
-                                    class="quantity-btn-minus"
+                                    class="quantity-btn-compact quantity-btn-minus"
                                 >&minus;</button>
-                                <span class="quantity-value">{{ $item['quantity'] }}</span>
+                                <span class="quantity-value-compact">{{ $item['quantity'] }}</span>
                                 <button
                                     wire:click="updateCartItemQuantity('{{ $item['id'] }}', {{ $item['quantity'] + 1 }})"
                                     type="button"
-                                    class="quantity-btn-plus"
+                                    class="quantity-btn-compact quantity-btn-plus"
                                 >+</button>
                             </div>
 
-                            <!-- Subtotal -->
-                            <div class="cart-item-standard-subtotal">
+                            <!-- Subtotal prominente -->
+                            <div class="cart-item-subtotal-compact">
                                 S/ {{ number_format($item['subtotal'], 2) }}
                             </div>
 
-                            <!-- Botón eliminar -->
+                            <!-- Botón eliminar compacto -->
                             <button
                                 wire:click="removeFromCart('{{ $item['id'] }}')"
                                 type="button"
-                                class="cart-item-standard-remove"
+                                class="cart-item-remove-compact"
                                 title="Eliminar del carrito"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></path></svg>
-                                <span>Eliminar</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></path></svg>
                             </button>
+                        </div>
+
+                        <!-- Fila secundaria con precio unitario -->
+                        <div class="cart-item-secondary-row">
+                            <div class="cart-item-price-compact">
+                                Precio: <span>S/ {{ number_format($item['price'], 2) }}</span>
+                                @can('admin')
+                                <button type="button" wire:click="openEditPriceModal('{{ $item['id'] }}')" class="edit-price-btn-compact" title="Editar precio">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                </button>
+                                @endcan
+                            </div>
                         </div>
 
                         <!-- Notas del producto si existen -->
                         @if(!empty($item['notes']))
-                        <div class="cart-item-standard-note">
+                        <div class="cart-item-note-compact">
                             <span>Nota: </span>{{ $item['notes'] }}
                         </div>
                         @endif
@@ -1490,36 +1956,41 @@
                 @endforelse
             </div>
 
-            <!-- Resumen del pedido - Diseño estándar -->
-            <div class="order-summary-standard">
-                <!-- Título del resumen -->
-                <div class="order-summary-standard-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <!-- Resumen del pedido - Diseño compacto optimizado -->
+            <div class="order-summary-compact">
+                <!-- Título del resumen compacto -->
+                <div class="order-summary-compact-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     RESUMEN DEL PEDIDO
                 </div>
 
-                <!-- Resumen del pedido - Contenido -->
-                <div class="order-summary-standard-content">
-                    <div class="order-summary-standard-row">
-                        <span>Subtotal:</span>
-                        <span>S/ {{ number_format($cartTotal, 2) }}</span>
+                <!-- Resumen del pedido - Contenido compacto -->
+                <div class="order-summary-compact-content">
+                    <!-- Subtotal e IGV en una sola línea -->
+                    <div class="order-summary-compact-row">
+                        <div class="order-summary-compact-item">
+                            <span class="order-summary-compact-label">Subtotal:</span>
+                            <span class="order-summary-compact-value">S/ {{ number_format($cartTotal, 2) }}</span>
+                        </div>
+                        <div class="order-summary-compact-item">
+                            <span class="order-summary-compact-label">IGV (18%):</span>
+                            <span class="order-summary-compact-value">S/ {{ number_format($cartTotal * 0.18, 2) }}</span>
+                        </div>
                     </div>
-                    <div class="order-summary-standard-row">
-                        <span>IGV (18%):</span>
-                        <span>S/ {{ number_format($cartTotal * 0.18, 2) }}</span>
-                    </div>
-                    <div class="order-summary-standard-total">
-                        <span>TOTAL:</span>
-                        <span>S/ {{ number_format($cartTotal * 1.18, 2) }}</span>
+
+                    <!-- Total prominente -->
+                    <div class="order-summary-compact-total">
+                        <span class="order-summary-compact-total-label">TOTAL:</span>
+                        <span class="order-summary-compact-total-value">S/ {{ number_format($cartTotal * 1.18, 2) }}</span>
                     </div>
                 </div>
 
-                <!-- Notas del pedido -->
-                <div class="order-note-standard">
-                    <label for="customerNote" class="order-note-standard-label">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <!-- Notas del pedido compactas -->
+                <div class="order-note-compact">
+                    <label for="customerNote" class="order-note-compact-label">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         NOTA PARA EL PEDIDO
@@ -1528,7 +1999,7 @@
                         id="customerNote"
                         wire:model="customerNote"
                         placeholder="Ej: Sin ají, bien cocido..."
-                        class="order-note-standard-input"
+                        class="order-note-compact-input"
                         rows="2"
                     ></textarea>
                 </div>
