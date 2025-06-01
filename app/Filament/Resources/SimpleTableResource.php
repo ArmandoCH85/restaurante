@@ -28,6 +28,15 @@ class SimpleTableResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    /**
+     * OPTIMIZACIÓN: Agregar eager loading para evitar N+1 queries
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['floor']);
+    }
+
     public static function form(Form $form): Form
     {
         return $form

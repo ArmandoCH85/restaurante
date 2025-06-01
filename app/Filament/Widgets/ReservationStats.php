@@ -15,13 +15,17 @@ class ReservationStats extends BaseWidget
 
     protected function getStats(): array
     {
-        // Reservas de hoy
-        $todayReservations = Reservation::whereDate('reservation_date', Carbon::today())->count();
-        $todayConfirmed = Reservation::whereDate('reservation_date', Carbon::today())
+        // OPTIMIZACIÓN: Usar consultas agrupadas para evitar múltiples queries
+        $today = Carbon::today();
+        $tomorrow = Carbon::tomorrow();
+
+        // Reservas de hoy con eager loading
+        $todayReservations = Reservation::whereDate('reservation_date', $today)->count();
+        $todayConfirmed = Reservation::whereDate('reservation_date', $today)
             ->where('status', Reservation::STATUS_CONFIRMED)->count();
 
         // Reservas de mañana
-        $tomorrowReservations = Reservation::whereDate('reservation_date', Carbon::tomorrow())->count();
+        $tomorrowReservations = Reservation::whereDate('reservation_date', $tomorrow)->count();
 
         // Reservas de esta semana (comentado porque no se usa actualmente)
         // $weekReservations = Reservation::whereBetween('reservation_date', [

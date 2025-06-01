@@ -32,12 +32,17 @@ class DeliveryOrderResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        $query = parent::getEloquentQuery();
+        // OPTIMIZACIÓN: Agregar eager loading para evitar N+1 queries
+        $query = parent::getEloquentQuery()
+            ->with([
+                'order.customer',
+                'order.table',
+                'order.orderDetails.product',
+                'deliveryPerson'
+            ]);
 
         // Obtener el usuario actual
         $user = \Illuminate\Support\Facades\Auth::user();
-
-
 
         // Verificar si el usuario tiene el rol "delivery" o "Delivery"
         if ($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0)) {

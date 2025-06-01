@@ -155,6 +155,15 @@ class ProductResource extends Resource
             ]);
     }
 
+    /**
+     * OPTIMIZACIÓN: Agregar eager loading para evitar N+1 queries
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['category', 'recipe']);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
