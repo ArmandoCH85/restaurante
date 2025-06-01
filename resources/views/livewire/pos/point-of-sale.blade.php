@@ -3149,10 +3149,11 @@
             const productos = [];
             document.querySelectorAll('[wire\\:key^="cart-item-"]').forEach(item => {
                 const id = item.getAttribute('wire:key').replace('cart-item-', '');
-                const name = item.querySelector('.cart-item-standard-name').textContent;
-                const price = parseFloat(item.querySelector('.cart-item-standard-price span').textContent.replace('S/ ', ''));
-                const quantity = parseInt(item.querySelector('.quantity-value').textContent);
-                const subtotal = parseFloat(item.querySelector('.cart-item-standard-subtotal').textContent.replace('S/ ', ''));
+                const name = item.querySelector('.cart-item-name-compact').textContent;
+                const priceElement = item.querySelector('.cart-item-price-compact span');
+                const price = priceElement ? parseFloat(priceElement.textContent.replace('S/ ', '')) : 0;
+                const quantity = parseInt(item.querySelector('.quantity-value-compact').textContent);
+                const subtotal = parseFloat(item.querySelector('.cart-item-subtotal-compact').textContent.replace('S/ ', ''));
 
                 productos.push({
                     id: id,
@@ -3291,10 +3292,11 @@
             const productos = [];
             document.querySelectorAll('[wire\\:key^="cart-item-"]').forEach(item => {
                 const id = item.getAttribute('wire:key').replace('cart-item-', '');
-                const name = item.querySelector('.cart-item-standard-name').textContent;
-                const price = parseFloat(item.querySelector('.cart-item-standard-price span').textContent.replace('S/ ', ''));
-                const quantity = parseInt(item.querySelector('.quantity-value').textContent);
-                const subtotal = parseFloat(item.querySelector('.cart-item-standard-subtotal').textContent.replace('S/ ', ''));
+                const name = item.querySelector('.cart-item-name-compact').textContent;
+                const priceElement = item.querySelector('.cart-item-price-compact span');
+                const price = priceElement ? parseFloat(priceElement.textContent.replace('S/ ', '')) : 0;
+                const quantity = parseInt(item.querySelector('.quantity-value-compact').textContent);
+                const subtotal = parseFloat(item.querySelector('.cart-item-subtotal-compact').textContent.replace('S/ ', ''));
 
                 productos.push({
                     id: id,
@@ -3414,10 +3416,11 @@
             const productos = [];
             document.querySelectorAll('[wire\\:key^="cart-item-"]').forEach(item => {
                 const id = item.getAttribute('wire:key').replace('cart-item-', '');
-                const name = item.querySelector('.cart-item-standard-name').textContent;
-                const price = parseFloat(item.querySelector('.cart-item-standard-price span').textContent.replace('S/ ', ''));
-                const quantity = parseInt(item.querySelector('.quantity-value').textContent);
-                const subtotal = parseFloat(item.querySelector('.cart-item-standard-subtotal').textContent.replace('S/ ', ''));
+                const name = item.querySelector('.cart-item-name-compact').textContent;
+                const priceElement = item.querySelector('.cart-item-price-compact span');
+                const price = priceElement ? parseFloat(priceElement.textContent.replace('S/ ', '')) : 0;
+                const quantity = parseInt(item.querySelector('.quantity-value-compact').textContent);
+                const subtotal = parseFloat(item.querySelector('.cart-item-subtotal-compact').textContent.replace('S/ ', ''));
 
                 productos.push({
                     id: id,
