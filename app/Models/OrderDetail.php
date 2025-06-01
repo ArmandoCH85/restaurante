@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class OrderDetail extends Model
 {
     /**
+     * OPTIMIZACIÓN: Relaciones que se cargan por defecto para evitar N+1
+     */
+    protected $with = ['product'];
+
+    /**
      * Los atributos que son asignables masivamente.
      *
      * @var array

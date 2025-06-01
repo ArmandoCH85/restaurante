@@ -11,6 +11,11 @@ class Product extends Model
     use SoftDeletes;
 
     /**
+     * OPTIMIZACIÓN: Relaciones que se cargan por defecto para evitar N+1
+     */
+    protected $with = ['category'];
+
+    /**
      * Los tipos de productos disponibles.
      */
     const TYPE_INGREDIENT = 'ingredient';

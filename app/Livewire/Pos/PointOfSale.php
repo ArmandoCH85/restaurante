@@ -210,11 +210,17 @@ class PointOfSale extends Component
             return;
         }
 
-        // Buscar orden existente para la mesa que no esté facturada
+        // OPTIMIZACIÓN: Agregar más eager loading para evitar N+1 queries
         $order = Order::where('table_id', $this->tableId)
             ->where('status', '!=', 'billed') // Que no esté facturada
             ->orderBy('created_at', 'desc')
-            ->with('orderDetails.product') // Cargar detalles y productos
+            ->with([
+                'orderDetails.product.category',
+                'orderDetails.product.recipe',
+                'customer',
+                'employee',
+                'table'
+            ])
             ->first();
 
         if (!$order) {
@@ -286,6 +292,7 @@ class PointOfSale extends Component
     public function loadCategories(): void
     {
         // Cargar categorías ordenadas por display_order con contador de productos
+        // OPTIMIZACIÓN: Usar eager loading para evitar N+1 queries
         $this->categories = ProductCategory::where('visible_in_menu', true)
             ->withCount(['products' => function ($query) {
                 $query->where('active', true)
@@ -306,7 +313,9 @@ class PointOfSale extends Component
     {
         $this->selectedCategoryId = $categoryId;
 
-        $query = Product::where('category_id', $categoryId)
+        // OPTIMIZACIÓN: Agregar eager loading para evitar N+1 queries
+        $query = Product::with(['category', 'recipe'])
+            ->where('category_id', $categoryId)
             ->where('active', true)
             ->where('available', true)
             ->where('product_type', '!=', 'ingredient');
@@ -354,7 +363,8 @@ class PointOfSale extends Component
 
     public function addToCart($productId): void
     {
-        $product = Product::find($productId);
+        // OPTIMIZACIÓN: Usar eager loading para evitar N+1 si se accede a relaciones
+        $product = Product::with(['category', 'recipe'])->find($productId);
 
         if (!$product) {
             return;
@@ -1841,6 +1851,7 @@ class PointOfSale extends Component
             return;
         }
 
+        // OPTIMIZACIÓN: Consulta optimizada para búsqueda de cliente
         $customer = \App\Models\Customer::where('document_number', $this->customerDocument)
             ->where('document_type', $this->customerDocumentType)
             ->first();

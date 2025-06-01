@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Log;
 class Order extends Model
 {
     /**
+     * OPTIMIZACIÓN: Relaciones que se cargan por defecto para evitar N+1
+     * Solo cargamos las más críticas para no sobrecargar
+     */
+    protected $with = ['customer', 'table'];
+
+    /**
      * Estados disponibles para las órdenes.
      */
     const STATUS_OPEN = 'open';
