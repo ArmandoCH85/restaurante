@@ -38,21 +38,6 @@
                     </svg>
                     Nueva Reserva
                 </a>
-                <a href="{{ route('filament.admin.resources.tables.create') }}" class="header-button bg-green-600 hover:bg-green-700 text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    Nueva Mesa
-                </a>
-
-                <a href="{{ route('tables.reset-status') }}"
-                   class="header-button bg-blue-600 hover:bg-blue-700 text-white"
-                   onclick="return confirm('¿Estás seguro de que deseas cambiar TODAS las mesas a estado DISPONIBLE?');">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Resetear Mesas
-                </a>
             </div>
         </div>
 

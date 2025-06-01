@@ -285,8 +285,13 @@ class PointOfSale extends Component
 
     public function loadCategories(): void
     {
-        // Cargar categorías ordenadas por display_order
+        // Cargar categorías ordenadas por display_order con contador de productos
         $this->categories = ProductCategory::where('visible_in_menu', true)
+            ->withCount(['products' => function ($query) {
+                $query->where('active', true)
+                      ->where('available', true)
+                      ->where('product_type', '!=', 'ingredient');
+            }])
             ->orderBy('display_order')
             ->get();
 
@@ -317,9 +322,22 @@ class PointOfSale extends Component
         if ($this->products === null) {
             $this->products = collect();
         }
+
+        // Recargar categorías con contadores actualizados
+        $this->loadCategories();
     }
 
     public function searchProducts(): void
+    {
+        if ($this->selectedCategoryId) {
+            $this->loadProductsByCategory($this->selectedCategoryId);
+        }
+    }
+
+    /**
+     * Listener para cuando cambia el searchQuery
+     */
+    public function updatedSearchQuery(): void
     {
         if ($this->selectedCategoryId) {
             $this->loadProductsByCategory($this->selectedCategoryId);

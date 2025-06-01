@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Providers\Filament;
+
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -147,7 +148,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-shopping-cart')
                     ->group('Operaciones')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -159,7 +160,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-map')
                     ->group('Operaciones')
                     ->sort(2)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -171,7 +172,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-truck')
                     ->group('Operaciones')
                     ->sort(3)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -185,7 +186,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-truck')
                     ->group('Operaciones')
                     ->sort(4)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         return $user && $user->roles->where('name', 'delivery')->count() > 0;
                     }),
@@ -194,7 +195,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-map')
                     ->group('Operaciones')
                     ->sort(5)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         return $user && $user->roles->where('name', 'delivery')->count() > 0;
                     }),
@@ -207,7 +208,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-squares-2x2')
                     ->group('Menú y Productos')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -219,7 +220,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-tag')
                     ->group('Menú y Productos')
                     ->sort(2)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -231,7 +232,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-beaker')
                     ->group('Menú y Productos')
                     ->sort(3)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -245,7 +246,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-cube')
                     ->group('Inventario')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -257,7 +258,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-building-storefront')
                     ->group('Inventario')
                     ->sort(2)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -269,7 +270,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-shopping-bag')
                     ->group('Inventario')
                     ->sort(3)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -281,7 +282,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-building-office')
                     ->group('Inventario')
                     ->sort(4)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -295,7 +296,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-document-text')
                     ->group('Facturación')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -307,7 +308,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-hashtag')
                     ->group('Facturación')
                     ->sort(2)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -333,7 +334,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-calendar-days')
                     ->group('Reservas')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -345,7 +346,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-calendar')
                     ->group('Reservas')
                     ->sort(2)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -357,7 +358,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-document-duplicate')
                     ->group('Reservas')
                     ->sort(3)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -371,7 +372,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-user-circle')
                     ->group('Clientes')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -385,7 +386,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-user-group')
                     ->group('Personal')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -420,7 +421,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-chart-bar')
                     ->group('Reportes')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         return $user && ($user->hasRole('super_admin') || $user->hasRole('admin'));
                     }),
@@ -431,7 +432,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-building-office')
                     ->group('Configuración')
                     ->sort(1)
-                    ->visible(function() {
+                    ->visible(function () {
                         return PermissionHelper::hasPermission('view_any_company::config');
                     }),
                 NavigationItem::make('Facturación Electrónica')
@@ -439,7 +440,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-document-text')
                     ->group('Configuración')
                     ->sort(2)
-                    ->visible(function() {
+                    ->visible(function () {
                         return PermissionHelper::hasPermission('view_any_electronic::billing::config');
                     }),
                 NavigationItem::make('Mesas')
@@ -447,7 +448,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-squares-plus')
                     ->group('Configuración')
                     ->sort(3)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
@@ -459,7 +460,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('heroicon-o-building-storefront')
                     ->group('Configuración')
                     ->sort(4)
-                    ->visible(function() {
+                    ->visible(function () {
                         $user = Auth::user();
                         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
                             return false;
