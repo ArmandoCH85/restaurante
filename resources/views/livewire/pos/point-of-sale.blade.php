@@ -1380,19 +1380,6 @@
                 <!-- Botones de acciones adicionales responsivos -->
                 <div class="grid grid-cols-2 gap-1 mt-1 mb-1 sm:grid-cols-3 sm:gap-2">
                     @if($table)
-                        <!-- Botón Iniciar Mesa -->
-                        <button
-                            type="button"
-                            wire:click="iniciarMesa"
-                            class="px-2 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs min-h-[44px] scale-hover"
-                            id="btn-iniciar-mesa"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                            <span class="text-xs font-medium">Iniciar Mesa</span>
-                        </button>
-
                         <!-- Botón Transferir Mesa -->
                         <button
                             type="button"
