@@ -79,32 +79,42 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make()
                     ->label('Operaciones')
                     ->icon('heroicon-o-building-storefront')
-                    ->collapsed(false)
-                    ->collapsible(false), // No colapsable - siempre visible
+                    ->collapsed(true)
+                    ->collapsible(true), // No colapsable - siempre visible
 
                 // 📦 GESTIÓN DE PRODUCTOS - Expandido por defecto
                 NavigationGroup::make()
                     ->label('Menú y Productos')
                     ->icon('heroicon-o-squares-2x2')
-                    ->collapsed(false),
+                    ->collapsed(true),
+
+                NavigationGroup::make()
+                    ->label('Seguridad y Usuarios')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->collapsed(true),
+
+                NavigationGroup::make()
+                    ->label('Ventas')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->collapsed(true),
 
                 // 🛒 COMPRAS E INVENTARIO - Expandido por defecto
                 NavigationGroup::make()
                     ->label('Inventario')
                     ->icon('heroicon-o-cube')
-                    ->collapsed(false),
+                    ->collapsed(true),
 
                 // 📄 FACTURACIÓN - Expandido por defecto
                 NavigationGroup::make()
                     ->label('Facturación')
                     ->icon('heroicon-o-document-text')
-                    ->collapsed(false),
+                    ->collapsed(true),
 
                 // 📅 RESERVAS Y COTIZACIONES - Expandido por defecto
                 NavigationGroup::make()
                     ->label('Reservas')
                     ->icon('heroicon-o-calendar-days')
-                    ->collapsed(false),
+                    ->collapsed(true),
 
                 // 👥 CLIENTES - Colapsado por defecto (menos usado)
                 NavigationGroup::make()

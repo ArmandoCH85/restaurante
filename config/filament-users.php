@@ -17,7 +17,7 @@ return [
      * ---------------------------------------------
      * The Group name of the resource.
      */
-    'group' => 'Personal',
+    'group' => 'Seguridad y Usuarios',
 
     /**
      * ---------------------------------------------
