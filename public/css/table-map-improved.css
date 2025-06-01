@@ -1,33 +1,38 @@
-/* Mapa de mesas y delivery mejorado - Aplicando principios de UX/UI */
+/* Mapa de mesas POS mejorado - Optimizado para punto de venta */
 :root {
-  /* Paleta de colores principal */
-  --color-primary: #3b82f6;
-  --color-primary-light: #dbeafe;
-  --color-primary-dark: #1e40af;
+  /* Paleta de colores principal - Optimizada para POS */
+  --color-primary: #3C50E0;
+  --color-primary-light: #E8ECFF;
+  --color-primary-dark: #2A3BB7;
 
-  /* Estados */
-  --color-success: #10b981;
-  --color-success-light: #d1fae5;
-  --color-success-dark: #065f46;
+  /* Estados de mesa - Colores de alto contraste para POS */
+  --color-success: #22C55E;
+  --color-success-light: #DCFCE7;
+  --color-success-dark: #15803D;
 
-  --color-warning: #f59e0b;
-  --color-warning-light: #fef3c7;
-  --color-warning-dark: #92400e;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-warning-dark: #D97706;
 
-  --color-danger: #ef4444;
-  --color-danger-light: #fee2e2;
-  --color-danger-dark: #991b1b;
+  --color-danger: #EF4444;
+  --color-danger-light: #FEE2E2;
+  --color-danger-dark: #DC2626;
 
-  --color-neutral: #6b7280;
-  --color-neutral-light: #f3f4f6;
+  --color-neutral: #6B7280;
+  --color-neutral-light: #F3F4F6;
   --color-neutral-dark: #374151;
 
-  /* Delivery */
-  --color-delivery: #ec4899;
-  --color-delivery-light: #fce7f3;
-  --color-delivery-dark: #9d174d;
+  /* Delivery - Color distintivo */
+  --color-delivery: #EC4899;
+  --color-delivery-light: #FCE7F3;
+  --color-delivery-dark: #BE185D;
 
-  /* Escala de grises */
+  /* Superficie y fondos - Optimizado para POS */
+  --color-surface: #F2F7FF;
+  --color-surface-elevated: #FFFFFF;
+  --color-surface-hover: #E8ECFF;
+
+  /* Escala de grises mejorada */
   --color-white: #ffffff;
   --color-gray-50: #f9fafb;
   --color-gray-100: #f3f4f6;
@@ -40,214 +45,358 @@
   --color-gray-800: #1f2937;
   --color-gray-900: #111827;
 
-  /* Espaciado */
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 1rem;
-  --spacing-lg: 1.5rem;
-  --spacing-xl: 2rem;
+  /* Espaciado - Grid de 4px para POS */
+  --spacing-xs: 0.25rem;   /* 4px */
+  --spacing-sm: 0.5rem;    /* 8px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
 
-  /* Bordes */
-  --border-radius-sm: 0.25rem;
-  --border-radius-md: 0.375rem;
-  --border-radius-lg: 0.5rem;
-  --border-radius-xl: 0.75rem;
+  /* Bordes - 8px radius estándar */
+  --border-radius-sm: 0.25rem;  /* 4px */
+  --border-radius-md: 0.5rem;   /* 8px */
+  --border-radius-lg: 0.75rem;  /* 12px */
+  --border-radius-xl: 1rem;     /* 16px */
   --border-radius-full: 9999px;
 
-  /* Sombras */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Sombras mejoradas para POS */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.16), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
 
-  /* Transiciones */
-  --transition-fast: 150ms ease;
-  --transition-normal: 300ms ease;
+  /* Transiciones optimizadas - 150ms estándar */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Tipografía - Inter font system */
+  --font-family-base: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+
+  /* Z-index layers */
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-modal-backdrop: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-tooltip: 70;
+  --z-toast: 80;
 }
 
-/* Estilos generales */
+/* Estilos base optimizados para POS */
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  color: var(--color-gray-900);
+  background-color: var(--color-surface);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Contenedor principal - Aplicando mejor estructura */
+/* Contenedor principal - Optimizado para POS táctil */
 .table-map-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: hidden;
-  background-color: var(--color-gray-100);
+  background-color: var(--color-surface);
+  position: relative;
 }
 
 .dark .table-map-container {
   background-color: var(--color-gray-900);
 }
 
-/* Header - Mejorando jerarquía visual */
+/* Header mejorado para POS - Más prominente y accesible */
 .table-map-header {
-  background-color: var(--color-white);
-  border-bottom: 1px solid var(--color-gray-200);
-  padding: var(--spacing-md);
+  background: linear-gradient(135deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+  border-bottom: 2px solid var(--color-primary-light);
+  padding: var(--spacing-md) var(--spacing-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: var(--shadow-sm);
-  z-index: 10;
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-sticky);
+  min-height: 80px;
 }
 
 .dark .table-map-header {
-  background-color: var(--color-gray-800);
-  border-color: var(--color-gray-700);
+  background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-700) 100%);
+  border-color: var(--color-primary-dark);
 }
 
 .header-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-gray-900);
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  letter-spacing: -0.025em;
 }
 
 .dark .header-title {
-  color: var(--color-gray-100);
+  color: var(--color-primary-light);
 }
 
-/* Agrupando botones de acción - Ley de proximidad */
+.header-title svg {
+  width: 2rem;
+  height: 2rem;
+  color: var(--color-danger);
+  filter: drop-shadow(0 2px 4px rgba(239, 68, 68, 0.2));
+}
+
+/* Botones de acción mejorados para POS táctil */
 .header-actions {
   display: flex;
   gap: var(--spacing-sm);
   overflow-x: auto;
-  padding-bottom: var(--spacing-xs);
+  padding: var(--spacing-xs) 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
-/* Estilo consistente para botones - Ley de similitud */
+.header-actions::-webkit-scrollbar {
+  display: none;
+}
+
+/* Botones optimizados para pantallas táctiles */
 .header-button {
   display: flex;
   align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
+  justify-content: center;
+  padding: var(--spacing-md) var(--spacing-lg);
   border-radius: var(--border-radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  text-decoration: none;
   transition: all var(--transition-fast);
   white-space: nowrap;
   box-shadow: var(--shadow-sm);
+  border: 2px solid transparent;
+  min-height: 48px; /* Tamaño mínimo táctil */
+  min-width: 120px;
+  position: relative;
+  overflow: hidden;
+}
+
+.header-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left var(--transition-normal);
+}
+
+.header-button:hover::before {
+  left: 100%;
 }
 
 .header-button:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.header-button:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .header-button svg {
   width: 1.25rem;
   height: 1.25rem;
-  margin-right: var(--spacing-xs);
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
-/* Contenido principal */
+/* Contenido principal mejorado */
 .table-map-content {
   display: flex;
   flex: 1;
   overflow: hidden;
+  gap: var(--spacing-md);
 }
 
-/* Sidebar - Mejorando organización */
+/* Sidebar optimizado para POS */
 .table-map-sidebar {
-  width: 16rem;
-  background-color: var(--color-white);
-  border-right: 1px solid var(--color-gray-200);
+  width: 18rem;
+  background: linear-gradient(180deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+  border-right: 2px solid var(--color-primary-light);
   overflow-y: auto;
-  padding: var(--spacing-md);
-  box-shadow: var(--shadow-sm);
-  z-index: 5;
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  z-index: var(--z-dropdown);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-light) transparent;
+}
+
+.table-map-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-map-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-map-sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-primary-light);
+  border-radius: var(--border-radius-full);
 }
 
 .dark .table-map-sidebar {
-  background-color: var(--color-gray-800);
-  border-color: var(--color-gray-700);
+  background: linear-gradient(180deg, var(--color-gray-800) 0%, var(--color-gray-700) 100%);
+  border-color: var(--color-primary-dark);
 }
 
 .sidebar-section {
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-gray-200);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 2px solid var(--color-primary-light);
+  border-radius: var(--border-radius-md);
+  background: rgba(255, 255, 255, 0.5);
+  padding: var(--spacing-lg);
 }
 
 .dark .sidebar-section {
-  border-color: var(--color-gray-700);
+  border-color: var(--color-primary-dark);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .sidebar-section:last-child {
   border-bottom: none;
   margin-bottom: 0;
-  padding-bottom: 0;
 }
 
 .sidebar-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-gray-900);
-  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.sidebar-title::before {
+  content: '';
+  width: 4px;
+  height: 20px;
+  background: var(--color-primary);
+  border-radius: var(--border-radius-full);
 }
 
 .dark .sidebar-title {
-  color: var(--color-gray-300);
+  color: var(--color-primary-light);
 }
 
-/* Área principal de contenido */
+/* Área principal optimizada */
 .tables-main {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-md);
-  background-color: var(--color-gray-100);
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-light) transparent;
+}
+
+.tables-main::-webkit-scrollbar {
+  width: 8px;
+}
+
+.tables-main::-webkit-scrollbar-track {
+  background: var(--color-surface-hover);
+  border-radius: var(--border-radius-full);
+}
+
+.tables-main::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--border-radius-full);
 }
 
 .dark .tables-main {
   background-color: var(--color-gray-900);
 }
 
-/* Estadísticas - Aplicando Ley de Similitud */
+/* Estadísticas mejoradas para POS */
 .stats-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
 .stat-card {
-  background-color: var(--color-white);
+  background: linear-gradient(135deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
   border-radius: var(--border-radius-lg);
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast);
-  border-top: 3px solid transparent;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+  border: 2px solid transparent;
+  min-height: 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+  border-radius: var(--border-radius-full);
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: var(--shadow-xl);
+  border-color: var(--color-primary-light);
 }
 
 .dark .stat-card {
-  background-color: var(--color-gray-800);
+  background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-700) 100%);
 }
 
 .stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: var(--font-size-2xl);
+  font-weight: 800;
   line-height: 1;
+  margin-bottom: var(--spacing-xs);
 }
 
 .stat-label {
-  font-size: 0.75rem;
-  color: var(--color-gray-500);
-  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-gray-600);
   text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .dark .stat-label {
@@ -415,61 +564,127 @@ body {
   color: var(--color-primary);
 }
 
-/* Cuadrícula de mesas - Aplicando Ley de Proximidad y Similitud */
+/* Grid de mesas optimizado para POS táctil */
 .tables-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
 }
 
 .table-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 1 / 1.2;
-  max-height: 280px;
+  aspect-ratio: 1 / 1.1;
+  max-height: 320px;
+  min-height: 280px;
 }
 
-/* Tarjeta de mesa - Mejorando jerarquía visual */
+/* Tarjetas de mesa optimizadas para POS táctil */
 .table-card {
   position: relative;
-  background-color: var(--color-white);
-  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+  border-radius: var(--border-radius-xl);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   transition: all var(--transition-fast);
-  border-left: 4px solid transparent;
+  border: 3px solid transparent;
   width: 100%;
   display: flex;
   flex-direction: column;
   height: 100%;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.table-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
+  border-radius: var(--border-radius-full);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
 }
 
 .dark .table-card {
-  background-color: var(--color-gray-800);
+  background: linear-gradient(135deg, var(--color-gray-800) 0%, var(--color-gray-700) 100%);
 }
 
 .table-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-  z-index: 1;
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: var(--shadow-xl);
+  z-index: var(--z-dropdown);
+  border-color: var(--color-primary-light);
 }
 
-/* Estados de mesa con colores consistentes - Ley de Similitud */
+.table-card:hover::before {
+  opacity: 1;
+}
+
+.table-card:active {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Estados de mesa con indicadores visuales mejorados */
 .table-card.available {
-  border-left-color: var(--color-success);
+  border-color: var(--color-success);
+  background: linear-gradient(135deg, var(--color-success-light) 0%, var(--color-surface-elevated) 100%);
+}
+
+.table-card.available::before {
+  background: linear-gradient(90deg, var(--color-success), var(--color-success-light));
+  opacity: 1;
 }
 
 .table-card.occupied {
-  border-left-color: var(--color-danger);
+  border-color: var(--color-danger);
+  background: linear-gradient(135deg, var(--color-danger-light) 0%, var(--color-surface-elevated) 100%);
+  animation: pulse-occupied 2s infinite;
+}
+
+.table-card.occupied::before {
+  background: linear-gradient(90deg, var(--color-danger), var(--color-danger-light));
+  opacity: 1;
 }
 
 .table-card.reserved {
-  border-left-color: var(--color-warning);
+  border-color: var(--color-warning);
+  background: linear-gradient(135deg, var(--color-warning-light) 0%, var(--color-surface-elevated) 100%);
+}
+
+.table-card.reserved::before {
+  background: linear-gradient(90deg, var(--color-warning), var(--color-warning-light));
+  opacity: 1;
 }
 
 .table-card.maintenance {
-  border-left-color: var(--color-neutral);
+  border-color: var(--color-neutral);
+  background: linear-gradient(135deg, var(--color-neutral-light) 0%, var(--color-surface-elevated) 100%);
+  opacity: 0.7;
+}
+
+.table-card.maintenance::before {
+  background: linear-gradient(90deg, var(--color-neutral), var(--color-neutral-light));
+  opacity: 1;
+}
+
+/* Animación para mesas ocupadas */
+@keyframes pulse-occupied {
+  0% {
+    box-shadow: var(--shadow-md), 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    box-shadow: var(--shadow-md), 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: var(--shadow-md), 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 /* Cabecera de la mesa */
@@ -558,27 +773,12 @@ body {
   margin-right: var(--spacing-xs);
 }
 
-/* Representación visual de la mesa */
+/* Contenedor visual de mesa optimizado */
 .table-visual-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: var(--spacing-md);
-  flex: 1;
-}
-
-.table-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
-
-/* Formas de mesa - Ley de Similitud */
-.table-visual-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
   flex: 1;
   position: relative;
 }
@@ -588,51 +788,91 @@ body {
   text-decoration: none;
   color: inherit;
   position: relative;
+  transition: all var(--transition-fast);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-sm);
 }
 
+.table-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.table-link:focus {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Representación visual de mesa mejorada para POS */
 .table-visual {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 90px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-white);
-  border: 3px solid var(--color-gray-300);
-  box-shadow: var(--shadow-sm);
+  background: linear-gradient(135deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+  border: 4px solid var(--color-primary);
+  box-shadow: var(--shadow-lg);
   transition: all var(--transition-fast);
   z-index: 1;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.table-visual::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
 }
 
 .table-visual:hover {
-  transform: scale(1.05);
+  transform: scale(1.08) rotate(1deg);
+  box-shadow: var(--shadow-xl);
+}
+
+.table-visual:hover::after {
+  opacity: 1;
+}
+
+.table-visual:active {
+  transform: scale(1.02);
   box-shadow: var(--shadow-md);
 }
 
 .dark .table-visual {
-  background-color: var(--color-gray-700);
-  border-color: var(--color-gray-600);
+  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-600) 100%);
+  border-color: var(--color-primary-light);
 }
 
-/* Diferentes formas de mesa */
+/* Formas de mesa optimizadas para POS */
 .table-round {
   border-radius: 50%;
+  box-shadow: var(--shadow-lg), inset 0 2px 4px rgba(255, 255, 255, 0.2);
 }
 
 .table-square {
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg), inset 0 2px 4px rgba(255, 255, 255, 0.2);
 }
 
 .table-rectangular {
-  width: 100px;
-  height: 70px;
-  border-radius: var(--border-radius-md);
+  width: 110px;
+  height: 80px;
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg), inset 0 2px 4px rgba(255, 255, 255, 0.2);
 }
 
 .table-oval {
-  width: 100px;
-  height: 70px;
+  width: 110px;
+  height: 80px;
   border-radius: 50% / 70%;
+  box-shadow: var(--shadow-lg), inset 0 2px 4px rgba(255, 255, 255, 0.2);
 }
 
 /* Sillas alrededor de las mesas */
@@ -954,93 +1194,135 @@ body {
   border-color: var(--color-gray-800);
 }
 
-/* Acciones de mesa - Aplicando Ley de Hick para simplificar opciones */
+/* Controles de mesa optimizados para POS táctil */
 .table-actions {
-  padding: var(--spacing-sm);
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  border-top: 1px solid var(--color-gray-100);
+  gap: var(--spacing-md);
+  border-top: 2px solid var(--color-primary-light);
   margin-top: auto;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
 }
 
 .dark .table-actions {
-  border-top-color: var(--color-gray-700);
+  border-top-color: var(--color-primary-dark);
+  background: rgba(0, 0, 0, 0.3);
 }
 
 .status-select-container {
   position: relative;
-  width: 100%;
+  width: auto; /* Cambio de 100% a auto para que se ajuste al contenido */
+  max-width: 140px; /* Ancho máximo para mantener compacto */
 }
 
+/* Selector de estado compacto para POS */
 .status-select {
   width: 100%;
+  max-width: 140px; /* Ancho máximo reducido */
   padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.75rem;
-  line-height: 1.25;
-  color: var(--color-gray-700);
-  background-color: var(--color-white);
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--color-gray-800);
+  background: linear-gradient(135deg, var(--color-surface-elevated) 0%, var(--color-surface-hover) 100%);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--border-radius-sm);
   box-shadow: var(--shadow-sm);
   appearance: none;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%233C50E0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right var(--spacing-sm) center;
   background-repeat: no-repeat;
   background-size: 1rem 1rem;
   transition: all var(--transition-fast);
+  cursor: pointer;
+  min-height: 36px; /* Tamaño más compacto */
+}
+
+.status-select:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
 }
 
 .status-select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 3px rgba(60, 80, 224, 0.25), var(--shadow-lg);
 }
 
 .dark .status-select {
-  color: var(--color-gray-300);
-  background-color: var(--color-gray-700);
-  border-color: var(--color-gray-600);
+  color: var(--color-gray-200);
+  background: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-600) 100%);
+  border-color: var(--color-primary-dark);
 }
 
-/* Botón de reserva */
+/* Botón de reserva optimizado para POS */
 .reserve-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.75rem;
-  font-weight: 500;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
   color: var(--color-white);
-  background-color: var(--color-warning);
+  background: linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-dark) 100%);
+  border: none;
   border-radius: var(--border-radius-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   transition: all var(--transition-fast);
   text-decoration: none;
+  cursor: pointer;
+  min-height: 48px; /* Tamaño táctil mínimo */
+  position: relative;
+  overflow: hidden;
+}
+
+.reserve-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left var(--transition-normal);
+}
+
+.reserve-button:hover::before {
+  left: 100%;
 }
 
 .reserve-button:hover {
-  background-color: var(--color-warning-dark);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, var(--color-warning-dark) 0%, var(--color-warning) 100%);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-xl);
+}
+
+.reserve-button:active {
+  transform: translateY(0);
   box-shadow: var(--shadow-md);
 }
 
 .reserve-button.disabled {
-  background-color: var(--color-gray-300);
-  color: var(--color-gray-500);
+  background: var(--color-neutral-light);
+  color: var(--color-neutral);
   cursor: not-allowed;
   pointer-events: none;
+  opacity: 0.6;
 }
 
 .dark .reserve-button.disabled {
-  background-color: var(--color-gray-600);
+  background: var(--color-gray-600);
   color: var(--color-gray-400);
 }
 
 .reserve-icon {
-  width: 0.875rem;
-  height: 0.875rem;
-  margin-right: var(--spacing-xs);
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-right: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
 /* Indicador de tiempo de ocupación */
@@ -1777,8 +2059,114 @@ body {
   border-color: var(--color-gray-600);
 }
 
-/* Responsive - Adaptando a diferentes tamaños de pantalla */
-@media (max-width: 768px) {
+/* Diseño responsivo optimizado para POS en diferentes dispositivos */
+
+/* Tablets en orientación portrait (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .tables-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--spacing-md);
+  }
+
+  .table-visual {
+    width: 80px;
+    height: 80px;
+  }
+
+  .table-rectangular, .table-oval {
+    width: 100px;
+    height: 70px;
+  }
+}
+
+/* Tablets y móviles en landscape (481px - 768px) */
+@media (max-width: 768px) and (min-width: 481px) {
+  .table-map-content {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .table-map-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 2px solid var(--color-primary-light);
+    max-height: 180px;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+  }
+
+  .dark .table-map-sidebar {
+    border-color: var(--color-primary-dark);
+  }
+
+  .tables-grid, .delivery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+
+  .table-visual {
+    width: 70px;
+    height: 70px;
+  }
+
+  .table-rectangular, .table-oval {
+    width: 90px;
+    height: 60px;
+  }
+
+  .header-actions {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .header-button {
+    min-width: 100px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .stat-card {
+    min-height: 80px;
+    padding: var(--spacing-md);
+  }
+
+  .stat-value {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* Móviles en portrait (hasta 480px) */
+@media (max-width: 480px) {
+  .table-map-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 70px;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    align-items: stretch;
+  }
+
+  .header-title {
+    font-size: var(--font-size-xl);
+    justify-content: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .header-button {
+    min-width: 80px;
+    padding: var(--spacing-sm);
+    font-size: var(--font-size-xs);
+  }
+
+  .header-button svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
   .table-map-content {
     flex-direction: column;
   }
@@ -1786,25 +2174,120 @@ body {
   .table-map-sidebar {
     width: 100%;
     border-right: none;
-    border-bottom: 1px solid var(--color-gray-200);
-    max-height: 200px;
-    overflow-y: auto;
+    border-bottom: 2px solid var(--color-primary-light);
+    max-height: 150px;
+    padding: var(--spacing-sm);
   }
 
-  .dark .table-map-sidebar {
-    border-color: var(--color-gray-700);
+  .sidebar-section {
+    padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .tables-main {
+    padding: var(--spacing-sm);
+  }
+
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+  }
+
+  .stat-card {
+    min-height: 70px;
+    padding: var(--spacing-sm);
+  }
+
+  .stat-value {
+    font-size: var(--font-size-lg);
+  }
+
+  .stat-label {
+    font-size: 0.625rem;
   }
 
   .tables-grid, .delivery-grid {
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
   }
 
-  .header-actions {
-    flex-wrap: wrap;
+  .table-container {
+    min-height: 240px;
   }
 
-  .new-delivery-button {
-    bottom: var(--spacing-md);
-    right: var(--spacing-md);
+  .table-visual {
+    width: 60px;
+    height: 60px;
+  }
+
+  .table-rectangular, .table-oval {
+    width: 80px;
+    height: 50px;
+  }
+
+  .table-actions {
+    padding: var(--spacing-sm);
+    gap: var(--spacing-sm);
+  }
+
+  .status-select, .reserve-button {
+    min-height: 40px; /* Reducido para móviles */
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.625rem; /* Más pequeño en móviles */
+  }
+
+  .status-select {
+    max-width: 120px; /* Más compacto en móviles */
+  }
+}
+
+/* Optimizaciones para pantallas táctiles */
+@media (hover: none) and (pointer: coarse) {
+  .header-button,
+  .table-card,
+  .table-visual,
+  .status-select,
+  .reserve-button {
+    min-height: 48px;
+  }
+
+  .table-card:hover,
+  .table-visual:hover,
+  .header-button:hover,
+  .reserve-button:hover {
+    transform: none;
+  }
+
+  .table-card:active,
+  .table-visual:active,
+  .header-button:active,
+  .reserve-button:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Modo landscape para móviles */
+@media (max-height: 500px) and (orientation: landscape) {
+  .table-map-header {
+    min-height: 60px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  .header-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .table-map-sidebar {
+    max-height: 120px;
+  }
+
+  .tables-grid {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+
+  .table-container {
+    min-height: 200px;
   }
 }
