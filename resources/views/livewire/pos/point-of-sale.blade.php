@@ -2102,25 +2102,6 @@
             <div class="px-6 py-4 h-[70vh]">
                 <iframe id="commandFrame" x-bind:src="url" class="w-full h-full border-0 rounded-md bg-gray-50 dark:bg-gray-700/30"></iframe>
             </div>
-            <div class="flex justify-end gap-3 px-6 py-3 border-t border-gray-200 bg-gray-50 dark:bg-gray-700/50 dark:border-gray-700">
-                <button
-                    type="button"
-                    @click="document.getElementById('commandFrame').contentWindow.print()"
-                    class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    Imprimir
-                </button>
-                <button
-                    type="button"
-                    @click="$wire.showCommandModal = false"
-                    class="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-500 dark:text-gray-200 dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                >
-                    Cerrar
-                </button>
-            </div>
         </div>
     </div>
 
@@ -2152,25 +2133,6 @@
             </div>
             <div class="px-6 py-4 h-[70vh]">
                 <iframe id="preBillFrame" x-bind:src="url" class="w-full h-full border-0 rounded-md bg-gray-50 dark:bg-gray-700/30"></iframe>
-            </div>
-            <div class="flex justify-end gap-3 px-6 py-3 border-t border-gray-200 bg-gray-50 dark:bg-gray-700/50 dark:border-gray-700">
-                <button
-                    type="button"
-                    @click="document.getElementById('preBillFrame').contentWindow.print()"
-                    class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-yellow-500 border border-transparent rounded-md shadow-sm hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                    </svg>
-                    Imprimir
-                </button>
-                <button
-                    type="button"
-                    @click="$wire.showPreBillModal = false"
-                    class="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 transition-colors duration-200 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-500 dark:text-gray-200 dark:bg-gray-600 hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800"
-                >
-                    Cerrar
-                </button>
             </div>
         </div>
     </div>
