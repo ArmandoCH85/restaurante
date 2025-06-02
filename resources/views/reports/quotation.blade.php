@@ -191,11 +191,15 @@
         <div class="header">
             <img src="{{ public_path('images/logo.png') }}" alt="Logo" class="logo">
             <div class="company-info">
-                <h1>RESTAURANTE EJEMPLO</h1>
-                <p>Av. Principal 123, Lima, Perú</p>
-                <p>Teléfono: (01) 123-4567</p>
-                <p>Email: info@restauranteejemplo.com</p>
-                <p>RUC: 20123456789</p>
+                <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
+                <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Principal 123, Lima, Perú' }}</p>
+                @if(\App\Models\CompanyConfig::getTelefono())
+                    <p>Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                @endif
+                @if(\App\Models\CompanyConfig::getEmail())
+                    <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
+                @endif
+                <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
             </div>
         </div>
 
@@ -340,7 +344,7 @@
         <div class="footer">
             <p>Esta cotización es válida hasta el {{ $quotation->valid_until->format('d/m/Y') }}. Después de esta fecha, los precios y condiciones pueden variar.</p>
             <p>Gracias por su preferencia. Para cualquier consulta, no dude en contactarnos.</p>
-            <p>© {{ date('Y') }} Restaurante Ejemplo. Todos los derechos reservados.</p>
+            <p>© {{ date('Y') }} {{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}. Todos los derechos reservados.</p>
         </div>
     </div>
 </body>

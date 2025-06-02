@@ -153,10 +153,21 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">Restaurante Ejemplo</div>
+        <div class="logo">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</div>
         <div class="subtitle">Pre-Cuenta</div>
-        <div class="address">Av. Ejemplo 123, Ciudad</div>
-        <div class="contact">Tel: (01) 234-5678 | Email: info@restaurante.com</div>
+        @if(\App\Models\CompanyConfig::getRuc())
+            <div class="address">RUC: {{ \App\Models\CompanyConfig::getRuc() }}</div>
+        @endif
+        <div class="address">{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</div>
+        <div class="contact">
+            @if(\App\Models\CompanyConfig::getTelefono())
+                Tel: {{ \App\Models\CompanyConfig::getTelefono() }}
+            @endif
+            @if(\App\Models\CompanyConfig::getEmail())
+                @if(\App\Models\CompanyConfig::getTelefono()) | @endif
+                Email: {{ \App\Models\CompanyConfig::getEmail() }}
+            @endif
+        </div>
     </div>
 
     <div class="info">
