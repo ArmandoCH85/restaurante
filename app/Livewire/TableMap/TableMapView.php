@@ -117,18 +117,18 @@ class TableMapView extends Component
         if ($this->searchQuery) {
             $query->where(function ($q) {
                 $q->where('number', 'like', "%{$this->searchQuery}%")
-                  ->orWhere('location', 'like', "%{$this->searchQuery}%");
+                    ->orWhere('location', 'like', "%{$this->searchQuery}%");
             });
         }
 
         // Cargar las mesas con sus reservas activas
-        $query->with(['activeReservations' => function($query) {
+        $query->with(['activeReservations' => function ($query) {
             $query->whereDate('reservation_date', Carbon::today());
         }]);
 
         // Filtrar por mesas con reservas para hoy si está activado
         if ($this->showTodayReservations) {
-            $query->whereHas('activeReservations', function($query) {
+            $query->whereHas('activeReservations', function ($query) {
                 $query->whereDate('reservation_date', Carbon::today());
             });
         }
@@ -169,10 +169,10 @@ class TableMapView extends Component
         if ($this->searchQuery) {
             $query->where(function ($q) {
                 $q->where('delivery_address', 'like', "%{$this->searchQuery}%")
-                  ->orWhereHas('order.customer', function($sq) {
-                      $sq->where('name', 'like', "%{$this->searchQuery}%")
-                        ->orWhere('phone', 'like', "%{$this->searchQuery}%");
-                  });
+                    ->orWhereHas('order.customer', function ($sq) {
+                        $sq->where('name', 'like', "%{$this->searchQuery}%")
+                            ->orWhere('phone', 'like', "%{$this->searchQuery}%");
+                    });
             });
         }
 
@@ -271,8 +271,8 @@ class TableMapView extends Component
 
         // Verificar roles del usuario
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDeliveryPerson = $user && $user->hasRole('delivery');
-        $isAdmin = $user && ($user->hasRole('admin') || $user->hasRole('super_admin') || $user->hasRole('cashier'));
+        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+        $isAdmin = $user && ($user->roles->whereIn('name', ['Admin', 'Super Admin', 'Cashier'])->count() > 0);
         $employee = $isDeliveryPerson ? \App\Models\Employee::where('user_id', $user->id)->first() : null;
 
         // Restricciones según el rol y el estado solicitado
@@ -334,6 +334,15 @@ class TableMapView extends Component
             event(new \App\Events\DeliveryStatusChanged($deliveryOrder, $previousStatus));
 
             $this->loadDeliveryOrders();
+
+            // Emitir evento para actualizar semáforo en tiempo real
+            $this->dispatch('delivery-status-changed', [
+                'deliveryId' => $deliveryOrder->id,
+                'newStatus' => $newStatus,
+                'previousStatus' => $previousStatus,
+                'message' => "Estado del pedido actualizado a " . $this->getDeliveryStatusName($newStatus)
+            ]);
+
             $this->dispatch('notification', [
                 'message' => "Estado del pedido actualizado a " . $this->getDeliveryStatusName($newStatus),
                 'type' => 'success'
@@ -469,6 +478,52 @@ class TableMapView extends Component
     }
 
     /**
+     * Obtiene la información de estilo para el estado de delivery
+     */
+    public function getDeliveryStatusInfo(string $status): array
+    {
+        $statusInfo = [
+            'pending' => [
+                'color' => '#dc2626',      // Rojo
+                'bg' => '#fee2e2',         // Rojo claro
+                'border_color' => '#dc2626',
+                'text' => 'Pendiente',
+                'traffic_light' => 'pending'
+            ],
+            'assigned' => [
+                'color' => '#ea580c',      // Naranja
+                'bg' => '#fed7aa',         // Naranja claro
+                'border_color' => '#ea580c',
+                'text' => 'Asignado',
+                'traffic_light' => 'assigned'
+            ],
+            'in_transit' => [
+                'color' => '#eab308',      // Amarillo
+                'bg' => '#fef3c7',         // Amarillo claro
+                'border_color' => '#eab308',
+                'text' => 'En tránsito',
+                'traffic_light' => 'in_transit'
+            ],
+            'delivered' => [
+                'color' => '#16a34a',      // Verde
+                'bg' => '#d1fae5',         // Verde claro
+                'border_color' => '#16a34a',
+                'text' => 'Entregado',
+                'traffic_light' => 'delivered'
+            ],
+            'cancelled' => [
+                'color' => '#6b7280',      // Gris
+                'bg' => '#f3f4f6',         // Gris claro
+                'border_color' => '#6b7280',
+                'text' => 'Cancelado',
+                'traffic_light' => 'cancelled'
+            ]
+        ];
+
+        return $statusInfo[$status] ?? $statusInfo['pending'];
+    }
+
+    /**
      * Obtiene el conteo de pedidos asignados para el usuario actual
      */
     public function getAssignedCount(): int
@@ -557,46 +612,7 @@ class TableMapView extends Component
         $this->dispatch('openCancelDeliveryModal', $deliveryId);
     }
 
-    /**
-     * Obtiene la información de estilo para un estado de delivery
-     */
-    public function getDeliveryStatusInfo(string $status): array
-    {
-        $statusInfo = [
-            'pending' => [
-                'color' => '#92400e', // Naranja oscuro
-                'bg' => '#fef3c7',    // Amarillo claro
-                'text' => 'Pendiente',
-                'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
-            ],
-            'assigned' => [
-                'color' => '#1e40af', // Azul oscuro
-                'bg' => '#dbeafe',    // Azul claro
-                'text' => 'Asignado',
-                'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
-            ],
-            'in_transit' => [
-                'color' => '#4338ca', // Índigo oscuro
-                'bg' => '#e0e7ff',    // Índigo claro
-                'text' => 'En tránsito',
-                'icon' => 'M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0'
-            ],
-            'delivered' => [
-                'color' => '#065f46', // Verde oscuro
-                'bg' => '#d1fae5',    // Verde claro
-                'text' => 'Entregado',
-                'icon' => 'M5 13l4 4L19 7'
-            ],
-            'cancelled' => [
-                'color' => '#991b1b', // Rojo oscuro
-                'bg' => '#fee2e2',    // Rojo claro
-                'text' => 'Cancelado',
-                'icon' => 'M6 18L18 6M6 6l12 12'
-            ]
-        ];
 
-        return $statusInfo[$status] ?? $statusInfo['pending'];
-    }
 
     public function changeTableStatus($tableId, $newStatus): void
     {
@@ -738,12 +754,12 @@ class TableMapView extends Component
         $groupedTables = [];
 
         // Filtrar mesas inválidas
-        $validTables = $this->tables->filter(function($table) {
+        $validTables = $this->tables->filter(function ($table) {
             return $table->id && $table->number;
         });
 
         // Asegurar que floor_id y location tengan valores predeterminados
-        $validTables = $validTables->map(function($table) {
+        $validTables = $validTables->map(function ($table) {
             if (!$table->floor_id) {
                 $table->floor_id = 0; // Valor predeterminado para pisos no asignados
             }

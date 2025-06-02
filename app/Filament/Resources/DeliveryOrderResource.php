@@ -172,25 +172,11 @@ class DeliveryOrderResource extends Resource
                     ->sortable()
                     ->searchable(),
 
-                Tables\Columns\TextColumn::make('status')
+                // SISTEMA DE SEMÁFORO: Columna personalizada con semáforo y badge
+                Tables\Columns\ViewColumn::make('status')
                     ->label('Estado')
-                    ->badge()
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Pendiente',
-                        'assigned' => 'Asignado',
-                        'in_transit' => 'En tránsito',
-                        'delivered' => 'Entregado',
-                        'cancelled' => 'Cancelado',
-                        default => $state,
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'warning',
-                        'assigned' => 'info',
-                        'in_transit' => 'primary',
-                        'delivered' => 'success',
-                        'cancelled' => 'danger',
-                        default => 'gray',
-                    }),
+                    ->view('filament.tables.columns.delivery-status-with-traffic-light')
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('estimated_delivery_time')
                     ->label('Tiempo Estimado')
@@ -217,7 +203,7 @@ class DeliveryOrderResource extends Resource
                 Tables\Filters\SelectFilter::make('delivery_person_id')
                     ->label('Repartidor')
                     ->relationship('deliveryPerson', 'first_name')
-                    ->visible(function() {
+                    ->visible(function () {
                         // Ocultar el filtro si el usuario es un repartidor
                         $user = \Illuminate\Support\Facades\Auth::user();
                         return !($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0));
@@ -234,11 +220,11 @@ class DeliveryOrderResource extends Resource
                         return $query
                             ->when(
                                 $data['from_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['to_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     }),
             ])
@@ -264,6 +250,13 @@ class DeliveryOrderResource extends Resource
 
                             // Disparar evento de cambio de estado
                             event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+
+                            // SISTEMA DE SEMÁFORO: Notificación de éxito
+                            \Filament\Notifications\Notification::make()
+                                ->title('Repartidor asignado')
+                                ->body("Repartidor {$employee->full_name} asignado al pedido #{$record->order_id}")
+                                ->success()
+                                ->send();
                         }
                     })
                     ->visible(function (DeliveryOrder $record) {
@@ -286,8 +279,15 @@ class DeliveryOrderResource extends Resource
 
                         // Disparar evento de cambio de estado
                         event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+
+                        // SISTEMA DE SEMÁFORO: Notificación de éxito
+                        \Filament\Notifications\Notification::make()
+                            ->title('Estado actualizado')
+                            ->body("Pedido #{$record->order_id} marcado como En Tránsito")
+                            ->success()
+                            ->send();
                     })
-                    ->visible(fn (DeliveryOrder $record): bool => $record->isAssigned()),
+                    ->visible(fn(DeliveryOrder $record): bool => $record->isAssigned()),
 
                 Tables\Actions\Action::make('mark_delivered')
                     ->label('Entregado')
@@ -300,8 +300,15 @@ class DeliveryOrderResource extends Resource
 
                         // Disparar evento de cambio de estado
                         event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+
+                        // SISTEMA DE SEMÁFORO: Notificación de éxito
+                        \Filament\Notifications\Notification::make()
+                            ->title('Pedido entregado')
+                            ->body("Pedido #{$record->order_id} marcado como Entregado")
+                            ->success()
+                            ->send();
                     })
-                    ->visible(fn (DeliveryOrder $record): bool => $record->isInTransit()),
+                    ->visible(fn(DeliveryOrder $record): bool => $record->isInTransit()),
 
                 Tables\Actions\Action::make('cancel')
                     ->label('Cancelar')
@@ -319,8 +326,15 @@ class DeliveryOrderResource extends Resource
 
                         // Disparar evento de cambio de estado
                         event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+
+                        // SISTEMA DE SEMÁFORO: Notificación de éxito
+                        \Filament\Notifications\Notification::make()
+                            ->title('Pedido cancelado')
+                            ->body("Pedido #{$record->order_id} ha sido cancelado")
+                            ->warning()
+                            ->send();
                     })
-                    ->visible(fn (DeliveryOrder $record): bool => !$record->isDelivered() && !$record->isCancelled()),
+                    ->visible(fn(DeliveryOrder $record): bool => !$record->isDelivered() && !$record->isCancelled()),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

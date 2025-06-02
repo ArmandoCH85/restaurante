@@ -10,8 +10,6 @@ class ListDeliveryOrders extends ListRecords
 {
     protected static string $resource = DeliveryOrderResource::class;
 
-
-
     protected function getHeaderActions(): array
     {
         // Obtener el usuario actual

@@ -460,24 +460,37 @@
                                         @php
                                             $statusInfo = $this->getDeliveryStatusInfo($delivery->status);
                                         @endphp
-                                        <div class="table-container">
-                                            <div class="delivery-card {{ $delivery->status }}">
+                                        <div class="table-container" data-delivery-id="{{ $delivery->id }}">
+                                            <div class="delivery-card {{ $delivery->status }}" data-delivery-id="{{ $delivery->id }}">
                                                 <!-- Cabecera con número y estado -->
                                                 <div class="delivery-header-container">
                                                     <div class="delivery-header-content">
-                                                        <h3 class="flex items-center">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                                                            </svg>
-                                                            Pedido #{{ $delivery->order_id }}
-                                                        </h3>
-                                                        <span class="delivery-status-badge {{ $delivery->status }}">
-                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="status-icon">
-                                                                <circle cx="12" cy="12" r="4" fill="currentColor" />
-                                                            </svg>
-                                                            {{ $statusInfo['text'] }}
-                                                        </span>
+                                                        <div class="delivery-header-main">
+                                                            <h3 class="flex items-center">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
+                                                                </svg>
+                                                                Pedido #{{ $delivery->order_id }}
+                                                            </h3>
+                                                            <span class="delivery-status-badge {{ $delivery->status }}">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="status-icon">
+                                                                    <circle cx="12" cy="12" r="4" fill="currentColor" />
+                                                                </svg>
+                                                                {{ $statusInfo['text'] }}
+                                                            </span>
+                                                        </div>
+
+                                                        <!-- SEMÁFORO DE DELIVERY -->
+                                                        <div class="delivery-traffic-light-container">
+                                                            <x-delivery-traffic-light
+                                                                :status="$delivery->status"
+                                                                size="sm"
+                                                                :animate="in_array($delivery->status, ['pending', 'in_transit'])"
+                                                                :showLabel="false"
+                                                                class="delivery-semaphore"
+                                                            />
+                                                        </div>
                                                     </div>
                                                     <p class="delivery-time">
                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -725,7 +738,17 @@
                 }, 3000);
             });
 
-            // Actualizar los indicadores de tiempo cada minuto
+            // SISTEMA DE SEMÁFORO: Escuchar cambios de estado de delivery
+            Livewire.on('delivery-status-changed', (data) => {
+                console.log('Estado de delivery cambiado:', data);
+                // Actualizar inmediatamente el semáforo correspondiente
+                updateDeliveryTrafficLight(data.deliveryId, data.newStatus);
+                // Mostrar notificación con color del semáforo
+                showTrafficLightNotification(data.newStatus, data.message);
+            });
+
+            // SISTEMA DE ACTUALIZACIONES EN TIEMPO REAL
+            // Actualizar los indicadores de tiempo y semáforos cada 30 segundos
             setInterval(() => {
                 try {
                     // Comprobar si estamos usando Livewire 2 o Livewire 3
@@ -738,10 +761,102 @@
                             Livewire.dispatch('refresh');
                         }
                     }
+
+                    // Actualizar animaciones del semáforo
+                    updateTrafficLightAnimations();
                 } catch (e) {
                     console.error('Error al actualizar los indicadores de tiempo:', e);
                 }
-            }, 60000); // 60 segundos
+            }, 30000); // 30 segundos para actualizaciones más frecuentes
+
+            // Función para actualizar animaciones del semáforo
+            function updateTrafficLightAnimations() {
+                const trafficLights = document.querySelectorAll('.delivery-traffic-light-component');
+                trafficLights.forEach(light => {
+                    const activeLight = light.querySelector('.traffic-light-light.active');
+                    if (activeLight) {
+                        // Añadir efecto de pulso temporal para indicar actualización
+                        activeLight.style.animation = 'none';
+                        setTimeout(() => {
+                            if (activeLight.classList.contains('red') || activeLight.classList.contains('yellow')) {
+                                activeLight.style.animation = activeLight.classList.contains('red') ?
+                                    'pulse-red 2s infinite' : 'pulse-yellow 1.5s infinite';
+                            }
+                        }, 100);
+                    }
+                });
+            }
+
+            // Función para actualizar un semáforo específico
+            function updateDeliveryTrafficLight(deliveryId, newStatus) {
+                const deliveryCard = document.querySelector(`[data-delivery-id="${deliveryId}"]`);
+                if (!deliveryCard) return;
+
+                const trafficLight = deliveryCard.querySelector('.delivery-traffic-light-component');
+                if (!trafficLight) return;
+
+                // Remover estado activo de todas las luces
+                const lights = trafficLight.querySelectorAll('.traffic-light-light');
+                lights.forEach(light => {
+                    light.classList.remove('active');
+                    light.style.animation = 'none';
+                });
+
+                // Activar la luz correspondiente al nuevo estado
+                const statusMap = {
+                    'pending': 'red',
+                    'assigned': 'orange',
+                    'in_transit': 'yellow',
+                    'delivered': 'green',
+                    'cancelled': 'gray'
+                };
+
+                const lightColor = statusMap[newStatus];
+                if (lightColor) {
+                    const targetLight = trafficLight.querySelector(`.traffic-light-light.${lightColor}`);
+                    if (targetLight) {
+                        targetLight.classList.add('active');
+
+                        // Añadir animación para estados activos
+                        if (newStatus === 'pending') {
+                            targetLight.style.animation = 'pulse-red 2s infinite';
+                        } else if (newStatus === 'in_transit') {
+                            targetLight.style.animation = 'pulse-yellow 1.5s infinite';
+                        }
+
+                        // Efecto de transición suave
+                        targetLight.style.transform = 'scale(1.2)';
+                        setTimeout(() => {
+                            targetLight.style.transform = 'scale(1.1)';
+                        }, 200);
+                    }
+                }
+            }
+
+            // Función para mostrar notificación con color del semáforo
+            function showTrafficLightNotification(status, message) {
+                const statusColors = {
+                    'pending': '#dc2626',      // Rojo
+                    'assigned': '#ea580c',     // Naranja
+                    'in_transit': '#eab308',   // Amarillo
+                    'delivered': '#16a34a',    // Verde
+                    'cancelled': '#6b7280'     // Gris
+                };
+
+                const color = statusColors[status] || '#6b7280';
+
+                notificationMessage.textContent = message;
+                notification.className = 'notification notification-success';
+                notification.style.borderLeftColor = color;
+                notification.style.backgroundColor = color + '15'; // Color con transparencia
+                notification.classList.add('show');
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    notification.style.borderLeftColor = '';
+                    notification.style.backgroundColor = '';
+                }, 4000);
+            }
         });
     </script>
 
