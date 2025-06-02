@@ -4,11 +4,9 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CompanyConfigResource\Pages;
 use App\Models\AppSetting;
-use App\Models\CompanyConfig;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\HtmlString;
@@ -63,7 +61,7 @@ class CompanyConfigResource extends Resource
                             })
                             ->helperText(function ($record) {
                                 return match ($record->key) {
-                                    'ruc' => 'Número de RUC de la empresa (11 dígitos)',
+                                    'ruc' => '⚠️ CAMPO CRÍTICO: Número de RUC de la empresa (11 dígitos). Cambios incorrectos pueden afectar la facturación electrónica.',
                                     'ubigeo' => 'Código Ubigeo según SUNAT (6 dígitos)',
                                     'codigo_pais' => 'Código ISO del país (PE para Perú)',
                                     'email' => 'Email para facturación electrónica',
@@ -73,9 +71,31 @@ class CompanyConfigResource extends Resource
                             ->required()
                             ->maxLength(255)
                             ->columnSpanFull()
-                            ->disabled(function ($record) {
-                                // Deshabilitar la edición de campos críticos
-                                return in_array($record->key, ['ruc']);
+                            ->rules(function ($record) {
+                                if ($record && $record->key === 'ruc') {
+                                    return [
+                                        'required',
+                                        'string',
+                                        'size:11',
+                                        'regex:/^[0-9]{11}$/',
+                                        function (string $attribute, $value, \Closure $fail) {
+                                            // Validar que empiece con 10 o 20 (personas jurídicas)
+                                            if (!str_starts_with($value, '10') && !str_starts_with($value, '20')) {
+                                                $fail('El RUC debe empezar con 10 o 20 para personas jurídicas.');
+                                            }
+                                        },
+                                    ];
+                                }
+                                return ['required', 'string', 'max:255'];
+                            })
+                            ->extraInputAttributes(function ($record) {
+                                if ($record && $record->key === 'ruc') {
+                                    return [
+                                        'style' => 'border: 2px solid #f59e0b; background-color: #fef3c7;',
+                                        'placeholder' => 'Ej: 20123456789'
+                                    ];
+                                }
+                                return [];
                             }),
                     ])
                     ->columns(1),
@@ -151,7 +171,28 @@ class CompanyConfigResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->requiresConfirmation(function ($record) {
+                        return $record->key === 'ruc';
+                    })
+                    ->modalHeading(function ($record) {
+                        if ($record->key === 'ruc') {
+                            return '⚠️ Editar RUC - Campo Crítico';
+                        }
+                        return 'Editar Configuración';
+                    })
+                    ->modalDescription(function ($record) {
+                        if ($record->key === 'ruc') {
+                            return 'ADVERTENCIA: Está a punto de modificar el RUC de la empresa. Este es un campo crítico para la facturación electrónica. Un RUC incorrecto puede causar problemas graves con SUNAT y rechazar todos los comprobantes electrónicos. ¿Está seguro de continuar?';
+                        }
+                        return null;
+                    })
+                    ->modalSubmitActionLabel(function ($record) {
+                        if ($record->key === 'ruc') {
+                            return 'Sí, modificar RUC';
+                        }
+                        return 'Guardar';
+                    }),
             ])
             ->bulkActions([
                 //
