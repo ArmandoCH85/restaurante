@@ -200,10 +200,15 @@
                     <img src="{{ asset('images/logo.png') }}" alt="Logo" width="150">
                 </div>
                 <div>
-                    <h1>RESTAURANTE EJEMPLO S.A.C.</h1>
-                    <p>RUC: 20123456789</p>
-                    <p>Av. Ejemplo 123, Lima</p>
-                    <p>Tel: (01) 123-4567</p>
+                    <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO S.A.C.' }}</h1>
+                    <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
+                    <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}</p>
+                    @if(\App\Models\CompanyConfig::getTelefono())
+                        <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                    @endif
+                    @if(\App\Models\CompanyConfig::getEmail())
+                        <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
+                    @endif
                 </div>
             </div>
             <div class="document-info">

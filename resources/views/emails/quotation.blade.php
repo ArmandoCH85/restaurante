@@ -49,31 +49,38 @@
         <div class="header">
             <h1>Cotización {{ $quotation->quotation_number }}</h1>
         </div>
-        
+
         <div class="content">
             <p>Estimado(a) cliente,</p>
-            
+
             <p>{{ $message }}</p>
-            
+
             <div class="quotation-details">
                 <p><strong>Número de Cotización:</strong> {{ $quotation->quotation_number }}</p>
                 <p><strong>Fecha de Emisión:</strong> {{ $quotation->issue_date->format('d/m/Y') }}</p>
                 <p><strong>Válido Hasta:</strong> {{ $quotation->valid_until->format('d/m/Y') }}</p>
                 <p><strong>Total:</strong> S/ {{ number_format($quotation->total, 2) }}</p>
             </div>
-            
+
             <p>Adjuntamos el documento PDF con todos los detalles de la cotización.</p>
-            
+
             <p>Si tiene alguna pregunta o necesita más información, no dude en contactarnos.</p>
-            
+
             <p>Atentamente,</p>
             <p><strong>{{ $quotation->user->name }}</strong><br>
-            Restaurante Ejemplo</p>
+            {{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</p>
         </div>
-        
+
         <div class="footer">
-            <p>© {{ date('Y') }} Restaurante Ejemplo. Todos los derechos reservados.</p>
-            <p>Av. Principal 123, Lima, Perú | Teléfono: (01) 123-4567 | Email: info@restauranteejemplo.com</p>
+            <p>© {{ date('Y') }} {{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}. Todos los derechos reservados.</p>
+            <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Principal 123, Lima, Perú' }}
+            @if(\App\Models\CompanyConfig::getTelefono())
+                | Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}
+            @endif
+            @if(\App\Models\CompanyConfig::getEmail())
+                | Email: {{ \App\Models\CompanyConfig::getEmail() }}
+            @endif
+            </p>
         </div>
     </div>
 </body>

@@ -119,7 +119,13 @@
 <body>
     <div class="header">
         <div class="title">COMANDA</div>
-        <div class="subtitle">Restaurante Ejemplo</div>
+        <div class="subtitle">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</div>
+        @if(\App\Models\CompanyConfig::getRuc())
+            <div style="font-size: 12px; margin-top: 3px;">RUC: {{ \App\Models\CompanyConfig::getRuc() }}</div>
+        @endif
+        @if(\App\Models\CompanyConfig::getDireccion())
+            <div style="font-size: 11px; margin-top: 2px;">{{ \App\Models\CompanyConfig::getDireccion() }}</div>
+        @endif
     </div>
 
     <div class="info">
