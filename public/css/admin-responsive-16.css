@@ -1,0 +1,289 @@
+/* ===== OPTIMIZACIONES ESPECÍFICAS PARA PANEL ADMIN EN MONITORES 16.3" ===== */
+/* Archivo dedicado para optimizaciones del panel de administración Filament */
+/* Monitores 16.3" con dimensiones físicas 14.2" x 8" (1366x768 a 1600x900) */
+
+/* Variables CSS para consistencia con TailAdmin */
+:root {
+    --admin-primary: #3C50E0;
+    --admin-secondary: #7CD4FD;
+    --admin-background: #F2F7FF;
+    --admin-sidebar: #1E293B;
+    --admin-spacing-xs: 0.25rem;
+    --admin-spacing-sm: 0.5rem;
+    --admin-spacing-md: 1rem;
+    --admin-border-radius: 0.5rem;
+    --admin-font-size-xs: 0.75rem;
+    --admin-font-size-sm: 0.8125rem;
+    --admin-font-size-base: 0.875rem;
+}
+
+/* ===== OPTIMIZACIONES ESPECÍFICAS PARA MONITORES 16.3" ===== */
+@media (min-width: 1366px) and (max-width: 1600px) {
+    
+    /* ===== OPTIMIZACIONES DE DASHBOARD ===== */
+    
+    /* Widgets de estadísticas más compactos */
+    .fi-wi-stats-overview-stat {
+        padding: 0.75rem !important;
+        border-radius: var(--admin-border-radius);
+    }
+    
+    .fi-wi-stats-overview-stat-value {
+        font-size: 1.25rem !important;
+        line-height: 1.1;
+        font-weight: 700;
+    }
+    
+    .fi-wi-stats-overview-stat-label {
+        font-size: var(--admin-font-size-xs) !important;
+        margin-top: var(--admin-spacing-xs);
+        color: #6b7280;
+    }
+    
+    /* Grid de widgets más eficiente */
+    .fi-wi-stats-overview {
+        gap: 0.75rem !important;
+    }
+    
+    /* ===== OPTIMIZACIONES DE TABLAS AVANZADAS ===== */
+    
+    /* Headers de tabla más compactos */
+    .fi-ta-header {
+        padding: 0.5rem 0.75rem !important;
+        background-color: var(--admin-background);
+        border-bottom: 2px solid var(--admin-primary);
+    }
+    
+    .fi-ta-header-cell {
+        font-size: var(--admin-font-size-xs) !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        color: var(--admin-primary);
+    }
+    
+    /* Celdas de tabla optimizadas */
+    .fi-ta-cell {
+        font-size: var(--admin-font-size-sm) !important;
+        line-height: 1.3;
+    }
+    
+    /* Acciones de tabla más compactas */
+    .fi-ta-actions {
+        gap: var(--admin-spacing-xs) !important;
+    }
+    
+    .fi-ta-action {
+        padding: var(--admin-spacing-xs) var(--admin-spacing-sm) !important;
+        font-size: var(--admin-font-size-xs) !important;
+        min-height: 1.75rem;
+    }
+    
+    /* ===== OPTIMIZACIONES DE FORMULARIOS AVANZADAS ===== */
+    
+    /* Secciones de formulario más compactas */
+    .fi-fo-section {
+        padding: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .fi-fo-section-header {
+        padding-bottom: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .fi-fo-section-header-heading {
+        font-size: 1rem !important;
+        font-weight: 600;
+        color: var(--admin-primary);
+    }
+    
+    /* Campos de formulario optimizados */
+    .fi-fo-field-wrp {
+        margin-bottom: 0.625rem !important;
+    }
+    
+    .fi-fo-field-wrp-label {
+        font-size: var(--admin-font-size-sm) !important;
+        font-weight: 500;
+        margin-bottom: var(--admin-spacing-xs) !important;
+    }
+    
+    /* Inputs más compactos */
+    .fi-input {
+        padding: 0.5rem 0.75rem !important;
+        font-size: var(--admin-font-size-base) !important;
+        min-height: 2.25rem !important;
+        border-radius: var(--admin-border-radius);
+    }
+    
+    .fi-select-input {
+        padding: 0.5rem 0.75rem !important;
+        font-size: var(--admin-font-size-base) !important;
+        min-height: 2.25rem !important;
+    }
+    
+    /* Textareas optimizadas */
+    .fi-textarea {
+        padding: 0.5rem 0.75rem !important;
+        font-size: var(--admin-font-size-base) !important;
+        min-height: 4rem !important;
+        resize: vertical;
+    }
+    
+    /* ===== OPTIMIZACIONES DE MODALES AVANZADAS ===== */
+    
+    /* Modales más eficientes para 16.3" */
+    .fi-modal-content {
+        max-width: 85vw !important;
+        max-height: 80vh !important;
+        margin: 1rem auto !important;
+    }
+    
+    .fi-modal-header {
+        padding: 0.75rem 1rem !important;
+        border-bottom: 2px solid var(--admin-background);
+    }
+    
+    .fi-modal-heading {
+        font-size: 1.125rem !important;
+        font-weight: 600;
+        color: var(--admin-primary);
+    }
+    
+    .fi-modal-body {
+        padding: 0.75rem 1rem !important;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    
+    .fi-modal-footer {
+        padding: 0.75rem 1rem !important;
+        gap: var(--admin-spacing-sm) !important;
+        border-top: 1px solid var(--admin-background);
+    }
+    
+    /* ===== OPTIMIZACIONES DE NAVEGACIÓN AVANZADAS ===== */
+    
+    /* Grupos de navegación más compactos */
+    .fi-sidebar-group {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .fi-sidebar-group-label {
+        font-size: var(--admin-font-size-xs) !important;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #94a3b8;
+        padding: var(--admin-spacing-xs) 0.75rem !important;
+    }
+    
+    /* Items de navegación optimizados */
+    .fi-sidebar-item-button {
+        padding: 0.375rem 0.75rem !important;
+        font-size: var(--admin-font-size-sm) !important;
+        min-height: 2.25rem;
+        border-radius: var(--admin-border-radius);
+    }
+    
+    .fi-sidebar-item-icon {
+        width: 1.125rem !important;
+        height: 1.125rem !important;
+    }
+    
+    /* ===== OPTIMIZACIONES DE BOTONES ===== */
+    
+    /* Botones primarios más compactos */
+    .fi-btn-primary {
+        padding: 0.5rem 0.875rem !important;
+        font-size: var(--admin-font-size-base) !important;
+        min-height: 2.25rem !important;
+        background-color: var(--admin-primary);
+        border-radius: var(--admin-border-radius);
+    }
+    
+    .fi-btn-secondary {
+        padding: 0.5rem 0.875rem !important;
+        font-size: var(--admin-font-size-base) !important;
+        min-height: 2.25rem !important;
+        border-radius: var(--admin-border-radius);
+    }
+    
+    /* Botones de acción más pequeños */
+    .fi-btn-sm {
+        padding: var(--admin-spacing-xs) 0.625rem !important;
+        font-size: var(--admin-font-size-xs) !important;
+        min-height: 1.875rem !important;
+    }
+    
+    /* ===== OPTIMIZACIONES DE BREADCRUMBS ===== */
+    
+    .fi-breadcrumbs {
+        padding: var(--admin-spacing-sm) 0 !important;
+        font-size: var(--admin-font-size-sm) !important;
+    }
+    
+    .fi-breadcrumbs-item {
+        font-size: var(--admin-font-size-sm) !important;
+    }
+    
+    /* ===== OPTIMIZACIONES DE NOTIFICACIONES ===== */
+    
+    .fi-notification {
+        max-width: 24rem !important;
+        padding: 0.75rem !important;
+        font-size: var(--admin-font-size-sm) !important;
+    }
+    
+    .fi-notification-title {
+        font-size: var(--admin-font-size-base) !important;
+        font-weight: 600;
+    }
+    
+    .fi-notification-body {
+        font-size: var(--admin-font-size-sm) !important;
+        margin-top: var(--admin-spacing-xs);
+    }
+}
+
+/* ===== OPTIMIZACIONES PARA ALTURA LIMITADA EN ADMIN ===== */
+@media (min-width: 1366px) and (max-height: 900px) {
+    
+    /* Reducir altura de elementos para aprovechar espacio vertical */
+    .fi-header {
+        min-height: 3rem !important;
+    }
+    
+    .fi-sidebar-item-button {
+        min-height: 2rem !important;
+        padding: 0.25rem 0.75rem !important;
+    }
+    
+    .fi-modal-content {
+        max-height: 75vh !important;
+    }
+    
+    .fi-modal-body {
+        max-height: 55vh !important;
+    }
+    
+    /* Formularios más compactos verticalmente */
+    .fi-fo-field-wrp {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .fi-fo-section {
+        padding: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Widgets de estadísticas más pequeños */
+    .fi-wi-stats-overview-stat {
+        padding: 0.5rem !important;
+    }
+    
+    .fi-wi-stats-overview-stat-value {
+        font-size: 1.125rem !important;
+    }
+}
