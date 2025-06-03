@@ -1626,20 +1626,72 @@
                     Categorías
                 </h2>
                 <nav class="space-y-1">
-                    @foreach ($categories as $category)
+                    @php
+                        // Paleta de colores CSS DIRECTOS - GARANTIZA VISIBILIDAD TOTAL
+                        $categoryColors = [
+                            // TailAdmin Primary - Azul corporativo
+                            ['bg_color' => '#3B82F6', 'selected_bg_color' => '#2563EB', 'badge_bg' => '#DBEAFE', 'badge_text' => '#1E40AF'],
+                            // Rojo - Excelente contraste
+                            ['bg_color' => '#EF4444', 'selected_bg_color' => '#DC2626', 'badge_bg' => '#FEE2E2', 'badge_text' => '#991B1B'],
+                            // Naranja - Buen contraste
+                            ['bg_color' => '#F97316', 'selected_bg_color' => '#EA580C', 'badge_bg' => '#FED7AA', 'badge_text' => '#9A3412'],
+                            // Ámbar oscuro
+                            ['bg_color' => '#D97706', 'selected_bg_color' => '#B45309', 'badge_bg' => '#FEF3C7', 'badge_text' => '#92400E'],
+                            // Verde - Excelente contraste
+                            ['bg_color' => '#22C55E', 'selected_bg_color' => '#16A34A', 'badge_bg' => '#DCFCE7', 'badge_text' => '#166534'],
+                            // TailAdmin Secondary - Cian oscuro
+                            ['bg_color' => '#0891B2', 'selected_bg_color' => '#0E7490', 'badge_bg' => '#CFFAFE', 'badge_text' => '#155E75'],
+                            // Índigo - Excelente contraste
+                            ['bg_color' => '#6366F1', 'selected_bg_color' => '#4F46E5', 'badge_bg' => '#E0E7FF', 'badge_text' => '#3730A3'],
+                            // Púrpura - Buen contraste
+                            ['bg_color' => '#A855F7', 'selected_bg_color' => '#9333EA', 'badge_bg' => '#F3E8FF', 'badge_text' => '#6B21A8'],
+                            // Rosa - Buen contraste
+                            ['bg_color' => '#EC4899', 'selected_bg_color' => '#DB2777', 'badge_bg' => '#FCE7F3', 'badge_text' => '#BE185D'],
+                            // Esmeralda - Excelente contraste
+                            ['bg_color' => '#10B981', 'selected_bg_color' => '#059669', 'badge_bg' => '#D1FAE5', 'badge_text' => '#065F46'],
+                            // Teal - Excelente contraste
+                            ['bg_color' => '#14B8A6', 'selected_bg_color' => '#0D9488', 'badge_bg' => '#CCFBF1', 'badge_text' => '#134E4A'],
+                            // TailAdmin Sidebar - Gris oscuro corporativo
+                            ['bg_color' => '#475569', 'selected_bg_color' => '#334155', 'badge_bg' => '#F1F5F9', 'badge_text' => '#1E293B'],
+                            // Amarillo oscuro
+                            ['bg_color' => '#CA8A04', 'selected_bg_color' => '#A16207', 'badge_bg' => '#FEF3C7', 'badge_text' => '#92400E'],
+                            // Lima oscuro
+                            ['bg_color' => '#65A30D', 'selected_bg_color' => '#4D7C0F', 'badge_bg' => '#ECFCCB', 'badge_text' => '#365314'],
+                            // Violeta
+                            ['bg_color' => '#8B5CF6', 'selected_bg_color' => '#7C3AED', 'badge_bg' => '#EDE9FE', 'badge_text' => '#5B21B6'],
+                            // Fucsia
+                            ['bg_color' => '#D946EF', 'selected_bg_color' => '#C026D3', 'badge_bg' => '#FAE8FF', 'badge_text' => '#A21CAF'],
+                            // Rosa intenso
+                            ['bg_color' => '#F43F5E', 'selected_bg_color' => '#E11D48', 'badge_bg' => '#FFE4E6', 'badge_text' => '#BE123C'],
+                            // Gris
+                            ['bg_color' => '#4B5563', 'selected_bg_color' => '#374151', 'badge_bg' => '#F3F4F6', 'badge_text' => '#1F2937'],
+                            // Sky
+                            ['bg_color' => '#0EA5E9', 'selected_bg_color' => '#0284C7', 'badge_bg' => '#E0F2FE', 'badge_text' => '#0C4A6E'],
+                            // Zinc
+                            ['bg_color' => '#52525B', 'selected_bg_color' => '#3F3F46', 'badge_bg' => '#F4F4F5', 'badge_text' => '#18181B'],
+                        ];
+
+                        // FALLBACK: Color por defecto garantizado
+                        $defaultColor = ['bg_color' => '#4B5563', 'selected_bg_color' => '#374151', 'badge_bg' => '#F3F4F6', 'badge_text' => '#1F2937'];
+                    @endphp
+                    @foreach ($categories as $index => $category)
+                        @php
+                            // Asegurar que siempre tengamos un color válido
+                            $colorIndex = $index % count($categoryColors);
+                            $colors = isset($categoryColors[$colorIndex]) ? $categoryColors[$colorIndex] : $defaultColor;
+                        @endphp
                         <button
                             wire:click="loadProductsByCategory('{{ $category->id }}')"
-                            class="w-full py-2 px-3 text-left rounded-md transition-all duration-200 text-sm flex items-center justify-between group
-                                {{ $selectedCategoryId == $category->id
-                                    ? 'bg-blue-50 text-blue-700 font-medium dark:bg-blue-900/50 dark:text-blue-300 shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white hover:shadow-sm' }}"
+                            class="w-full py-2 px-3 text-left rounded-md transition-all duration-200 text-sm flex items-center justify-between group shadow-sm hover:shadow-md font-medium"
+                            style="background-color: {{ $selectedCategoryId == $category->id ? $colors['selected_bg_color'] : $colors['bg_color'] }} !important;
+                                   color: white !important;
+                                   {{ $selectedCategoryId == $category->id ? 'box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);' : '' }}"
                         >
                             <span class="font-medium truncate">{{ $category->name }}</span>
-                             <span class="text-xs font-normal ml-2 px-1.5 py-0.5 rounded-full
-                                {{ $selectedCategoryId == $category->id
-                                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-600 dark:text-white'
-                                    : 'text-gray-400 bg-gray-100 group-hover:bg-gray-200 dark:text-gray-500 dark:bg-gray-700 dark:group-hover:bg-gray-600' }}">
-                                {{ $category->products_count }} {{-- Asumiendo que tienes un withCount('products') --}}
+                             <span class="text-xs font-normal ml-2 px-1.5 py-0.5 rounded-full"
+                                   style="background-color: {{ $selectedCategoryId == $category->id ? $colors['badge_bg'] : 'rgba(255, 255, 255, 0.2)' }} !important;
+                                          color: {{ $selectedCategoryId == $category->id ? $colors['badge_text'] : 'white' }} !important;">
+                                {{ $category->products_count }}
                             </span>
                         </button>
                     @endforeach
