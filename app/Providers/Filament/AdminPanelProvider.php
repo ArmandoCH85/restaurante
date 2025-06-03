@@ -169,18 +169,7 @@ class AdminPanelProvider extends PanelProvider
                         }
                         return PermissionHelper::hasCustomAccess('access_tables');
                     }),
-                NavigationItem::make('Gestión de Delivery')
-                    ->url('/delivery/manage')
-                    ->icon('heroicon-o-truck')
-                    ->group('Operaciones')
-                    ->sort(3)
-                    ->visible(function () {
-                        $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasCustomAccess('access_delivery');
-                    }),
+
 
                 // 🚚 DELIVERY (solo para usuarios delivery)
                 NavigationItem::make('Mis Pedidos')
