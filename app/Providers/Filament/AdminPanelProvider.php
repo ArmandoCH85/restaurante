@@ -47,6 +47,8 @@ class AdminPanelProvider extends PanelProvider
             })
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('') // Ocultar el nombre de la aplicación
+            ->brandLogo('/images/logoWayna.svg')
+            ->brandLogoHeight('6rem')
             ->colors([
                 'primary' => [
                     50 => '#eff6ff',

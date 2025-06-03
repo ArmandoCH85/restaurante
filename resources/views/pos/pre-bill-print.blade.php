@@ -33,7 +33,11 @@
             padding-bottom: 10px;
         }
         .logo {
-            font-size: 24px;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .company-name {
+            font-size: 18px;
             font-weight: bold;
             margin-bottom: 5px;
         }
@@ -153,7 +157,7 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</div>
+        <div class="company-name">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</div>
         <div class="subtitle">Pre-Cuenta</div>
         @if(\App\Models\CompanyConfig::getRuc())
             <div class="address">RUC: {{ \App\Models\CompanyConfig::getRuc() }}</div>

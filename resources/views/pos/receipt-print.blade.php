@@ -190,9 +190,6 @@
 </head>
 <body>
     <div class="header">
-        <div class="logo">
-            <img src="{{ asset('images/logo.png') }}" alt="Logo" width="100">
-        </div>
         <div class="company">
             <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
             <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
