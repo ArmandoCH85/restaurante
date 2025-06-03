@@ -5,7 +5,33 @@
     <title>Factura Electrónica #{{ $invoice->series }}-{{ $invoice->number }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        /* Detectar si es impresión térmica basado en parámetro URL */
         @media print {
+            @page {
+                size: 80mm 297mm;
+                margin: 0;
+            }
+
+            body {
+                margin: 0;
+                padding: 3mm;
+                font-family: Arial, sans-serif;
+                font-size: 11px;
+                line-height: 1.2;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            /* Ocultar elementos no necesarios en formato térmico */
+            .thermal-hide {
+                display: none !important;
+            }
+        }
+
+        /* Estilos para formato A4 normal cuando no es térmica */
+        @media print and (min-width: 200mm) {
             @page {
                 size: A4;
                 margin: 10mm;
@@ -18,7 +44,7 @@
                 font-size: 12px;
             }
 
-            .no-print {
+            .thermal-only {
                 display: none !important;
             }
         }
@@ -31,6 +57,50 @@
             max-width: 800px;
             margin: 0 auto;
         }
+
+        /* Estilos térmicos optimizados */
+        .thermal-header {
+            text-align: center;
+            margin-bottom: 8px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed #000;
+        }
+
+        .thermal-company h1 {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 3px 0;
+            line-height: 1.1;
+        }
+
+        .thermal-company p {
+            margin: 1px 0;
+            font-size: 10px;
+            line-height: 1.1;
+        }
+
+        .thermal-document-title {
+            text-align: center;
+            margin: 8px 0;
+            padding: 4px;
+            border-top: 1px dashed #000;
+            border-bottom: 1px dashed #000;
+        }
+
+        .thermal-document-title h2 {
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+            font-weight: bold;
+        }
+
+        .thermal-document-number {
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 3px;
+        }
+
+        /* Estilos A4 normales */
         .header {
             display: flex;
             justify-content: space-between;
@@ -56,6 +126,72 @@
             font-size: 14px;
             margin-bottom: 5px;
         }
+        /* Estilos térmicos para información */
+        .thermal-info {
+            margin: 6px 0;
+        }
+
+        .thermal-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            font-size: 10px;
+        }
+
+        .thermal-customer-info {
+            margin: 6px 0;
+        }
+
+        .thermal-customer-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+            font-size: 10px;
+        }
+
+        .thermal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 6px 0;
+        }
+
+        .thermal-table th {
+            text-align: left;
+            padding: 2px 1px;
+            border-bottom: 1px solid #000;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .thermal-table td {
+            padding: 2px 1px;
+            font-size: 9px;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .thermal-totals {
+            margin-top: 6px;
+            text-align: right;
+            border-top: 1px dashed #000;
+            padding-top: 3px;
+        }
+
+        .thermal-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 2px 0;
+            font-size: 10px;
+        }
+
+        .thermal-grand-total {
+            font-weight: bold;
+            font-size: 11px;
+            margin-top: 3px;
+            border-top: 1px solid #000;
+            padding-top: 3px;
+        }
+
+        /* Estilos A4 normales */
         .info {
             margin-bottom: 20px;
             display: flex;
@@ -99,6 +235,48 @@
         .price, .subtotal {
             text-align: right;
         }
+
+        /* Estilos térmicos para footer y elementos adicionales */
+        .thermal-footer {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 9px;
+            border-top: 1px dashed #000;
+            padding-top: 6px;
+        }
+
+        .thermal-qr-code {
+            text-align: center;
+            margin: 8px 0;
+        }
+
+        .thermal-notice {
+            margin-top: 8px;
+            font-style: italic;
+            text-align: center;
+            font-size: 8px;
+            line-height: 1.2;
+        }
+
+        .thermal-text-amount {
+            margin: 6px 0;
+            padding: 3px;
+            border: 1px solid #000;
+            font-style: italic;
+            font-size: 9px;
+            text-align: center;
+        }
+
+        /* Clases de utilidad térmica */
+        .thermal-quantity {
+            text-align: center;
+        }
+
+        .thermal-price, .thermal-subtotal {
+            text-align: right;
+        }
+
+        /* Estilos A4 normales */
         .footer {
             text-align: center;
             margin-top: 20px;
@@ -194,10 +372,11 @@
         </div>
         @endif
 
-        <div class="header">
-            <div class="company-info">
-                <div>
-                    <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO S.A.C.' }}</h1>
+        <!-- Versión térmica optimizada -->
+        <div class="thermal-only">
+            <div class="thermal-header">
+                <div class="thermal-company">
+                    <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
                     <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
                     <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}</p>
                     @if(\App\Models\CompanyConfig::getTelefono())
@@ -208,14 +387,15 @@
                     @endif
                 </div>
             </div>
-            <div class="document-info">
-                <div class="title">
+
+            <div class="thermal-document-title">
+                <h2>
                     @switch($invoice->invoice_type)
                         @case('invoice')
                             FACTURA ELECTRÓNICA
                             @break
                         @case('receipt')
-                            BOLETA DE VENTA ELECTRÓNICA
+                            BOLETA ELECTRÓNICA
                             @break
                         @case('sales_note')
                             NOTA DE VENTA
@@ -223,29 +403,164 @@
                         @default
                             COMPROBANTE DE PAGO
                     @endswitch
+                </h2>
+                <div class="thermal-document-number">{{ $invoice->series }}-{{ $invoice->number }}</div>
+            </div>
+
+            <div class="thermal-info">
+                <div class="thermal-info-row">
+                    <span class="label">Fecha:</span>
+                    <span>{{ $invoice->issue_date->format('d/m/Y') }}</span>
                 </div>
-                <div class="subtitle">{{ $invoice->series }}-{{ $invoice->number }}</div>
-                <div>Fecha de emisión: {{ $invoice->issue_date->format('d/m/Y') }}</div>
+                <div class="thermal-info-row">
+                    <span class="label">
+                        @if($invoice->invoice_type == 'invoice')
+                            Razón Social:
+                        @else
+                            Cliente:
+                        @endif
+                    </span>
+                    <span>{{ $invoice->client_name }}</span>
+                </div>
+                <div class="thermal-info-row">
+                    <span class="label">
+                        @if($invoice->invoice_type == 'invoice')
+                            RUC:
+                        @elseif($invoice->invoice_type == 'receipt')
+                            DNI:
+                        @else
+                            Doc:
+                        @endif
+                    </span>
+                    <span>{{ $invoice->client_document }}</span>
+                </div>
+                <div class="thermal-info-row">
+                    <span class="label">Mesa:</span>
+                    <span>{{ $invoice->order->table->name ?? 'Para llevar' }}</span>
+                </div>
+                <div class="thermal-info-row">
+                    <span class="label">Pago:</span>
+                    <span>
+                        @switch($invoice->payment_method)
+                            @case('cash')
+                                Efectivo
+                                @break
+                            @case('card')
+                                Tarjeta
+                                @break
+                            @case('transfer')
+                                Transferencia
+                                @break
+                            @case('yape')
+                                Yape
+                                @break
+                            @case('plin')
+                                Plin
+                                @break
+                            @default
+                                {{ $invoice->payment_method }}
+                        @endswitch
+                    </span>
+                </div>
+                @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
+                <div class="thermal-info-row">
+                    <span class="label">Recibido:</span>
+                    <span>S/ {{ number_format($invoice->payment_amount, 2) }}</span>
+                </div>
+                <div class="thermal-info-row">
+                    <span class="label">Vuelto:</span>
+                    <span>S/ {{ number_format($change_amount, 2) }}</span>
+                </div>
+                @endif
+            </div>
+
+            @if(isset($split_payment) && $split_payment)
+            <div class="thermal-info">
+                <p style="font-style: italic; font-size: 9px;">Este es un comprobante por pago dividido ({{ $invoice->notes }})</p>
+            </div>
+            @endif
+
+            <div style="border-top: 1px dashed #000; margin: 6px 0; padding-top: 3px;">
+                @foreach($invoice->details as $detail)
+                    <div style="margin-bottom: 3px; font-size: 10px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-weight: bold;">{{ $detail->quantity }} x {{ $detail->description }}</span>
+                            <span>{{ number_format($detail->subtotal, 2) }}</span>
+                        </div>
+                        @if($detail->unit_price != $detail->subtotal / $detail->quantity)
+                            <div style="font-size: 9px; color: #666; margin-left: 10px;">
+                                @ S/ {{ number_format($detail->unit_price, 2) }} c/u
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="thermal-text-amount">
+                SON: {{ ucfirst(num_to_letras($invoice->total)) }} SOLES
+            </div>
+
+            <div class="thermal-totals">
+                <div class="thermal-total-row">
+                    <span class="label">Subtotal:</span>
+                    <span>S/ {{ number_format($invoice->taxable_amount, 2) }}</span>
+                </div>
+                <div class="thermal-total-row">
+                    <span class="label">IGV (18%):</span>
+                    <span>S/ {{ number_format($invoice->tax, 2) }}</span>
+                </div>
+                <div class="thermal-grand-total">
+                    <span class="label">Total:</span>
+                    <span>S/ {{ number_format($invoice->total, 2) }}</span>
+                </div>
+            </div>
+
+            <div class="thermal-footer">
+                Gracias por su preferencia
             </div>
         </div>
 
-        <div class="customer-info">
-            <div class="customer-row">
-                <span class="label">Cliente:</span>
-                <span>{{ $invoice->customer->name }}</span>
+        <!-- Versión A4 normal (oculta en impresión térmica) -->
+        <div class="thermal-hide">
+            <div class="header">
+                <div class="company-info">
+                    <div>
+                        <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO S.A.C.' }}</h1>
+                        <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
+                        <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}</p>
+                        @if(\App\Models\CompanyConfig::getTelefono())
+                            <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                        @endif
+                        @if(\App\Models\CompanyConfig::getEmail())
+                            <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
+                        @endif
+                    </div>
+                </div>
+                <div class="document-info">
+                    <div class="title">
+                        @switch($invoice->invoice_type)
+                            @case('invoice')
+                                FACTURA ELECTRÓNICA
+                                @break
+                            @case('receipt')
+                                BOLETA DE VENTA ELECTRÓNICA
+                                @break
+                            @case('sales_note')
+                                NOTA DE VENTA
+                                @break
+                            @default
+                                COMPROBANTE DE PAGO
+                        @endswitch
+                    </div>
+                    <div class="subtitle">{{ $invoice->series }}-{{ $invoice->number }}</div>
+                    <div>Fecha de emisión: {{ $invoice->issue_date->format('d/m/Y') }}</div>
+                </div>
             </div>
-            <div class="customer-row">
-                <span class="label">RUC:</span>
-                <span>{{ $invoice->customer->document_number }}</span>
-            </div>
-            <div class="customer-row">
-                <span class="label">Dirección:</span>
-                <span>{{ $invoice->customer->address }}</span>
-            </div>
-        </div>
 
-        <div class="info">
-            <div class="client-info">
+            <div class="info">
+                <div class="info-row">
+                    <span class="label">FECHA:</span> {{ $invoice->issue_date->format('d/m/Y') }}
+                </div>
                 <div class="info-row">
                     <span class="label">
                         @if($invoice->invoice_type == 'invoice')
@@ -269,12 +584,7 @@
                     {{ $invoice->client_document }}
                 </div>
                 <div class="info-row">
-                    <span class="label">DIRECCIÓN:</span> {{ $invoice->client_address }}
-                </div>
-            </div>
-            <div class="operation-info">
-                <div class="info-row">
-                    <span class="label">FECHA:</span> {{ $date }}
+                    <span class="label">MESA:</span> {{ $invoice->order->table->name ?? 'Para llevar' }}
                 </div>
                 <div class="info-row">
                     <span class="label">FORMA DE PAGO:</span>
@@ -300,104 +610,65 @@
                 </div>
                 @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
                 <div class="info-row">
-                    <span class="label">MONTO RECIBIDO:</span> S/ {{ number_format($invoice->payment_amount, 2) }}
+                    <span class="label">RECIBIDO:</span> S/ {{ number_format($invoice->payment_amount, 2) }}
                 </div>
                 <div class="info-row">
                     <span class="label">VUELTO:</span> S/ {{ number_format($change_amount, 2) }}
                 </div>
                 @endif
-                <div class="info-row">
-                    <span class="label">MESA:</span> {{ $invoice->order->table->name ?? 'Para llevar' }}
+            </div>
+
+            @if(isset($split_payment) && $split_payment)
+            <div class="payment-note">
+                <p>Este es un comprobante por pago dividido {{ $invoice->notes }}</p>
+                @if(isset($next_invoice_url) && $next_invoice_url)
+                <div class="no-print text-center my-3">
+                    <button class="print-button" style="background-color: #10b981;" onclick="window.location.href='{{ $next_invoice_url }}'">
+                        Ver siguiente comprobante
+                    </button>
+                </div>
+                @endif
+            </div>
+            @endif
+
+            <div style="border-top: 1px solid #000; margin: 15px 0; padding-top: 10px;">
+                @foreach($invoice->details as $detail)
+                    <div style="margin-bottom: 8px; font-size: 12px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-weight: bold;">{{ $detail->quantity }} x {{ $detail->description }}</span>
+                            <span>S/ {{ number_format($detail->subtotal, 2) }}</span>
+                        </div>
+                        @if($detail->unit_price != $detail->subtotal / $detail->quantity)
+                            <div style="font-size: 10px; color: #666; margin-left: 15px;">
+                                @ S/ {{ number_format($detail->unit_price, 2) }} c/u
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="text-amount">
+                SON: {{ ucfirst(num_to_letras($invoice->total)) }} SOLES
+            </div>
+
+            <div class="totals">
+                <div class="total-row">
+                    <span class="label">Subtotal:</span>
+                    <span>S/ {{ number_format($invoice->taxable_amount, 2) }}</span>
+                </div>
+                <div class="total-row">
+                    <span class="label">IGV (18%):</span>
+                    <span>S/ {{ number_format($invoice->tax, 2) }}</span>
+                </div>
+                <div class="grand-total">
+                    <span class="label">Total:</span>
+                    <span>S/ {{ number_format($invoice->total, 2) }}</span>
                 </div>
             </div>
-        </div>
 
-        @if(isset($split_payment) && $split_payment)
-        <div class="payment-note">
-            <p>Este es un comprobante por pago dividido {{ $invoice->notes }}</p>
-            @if(isset($next_invoice_url) && $next_invoice_url)
-            <div class="no-print text-center my-3">
-                <button class="print-button" style="background-color: #10b981;" onclick="window.location.href='{{ $next_invoice_url }}'">
-                    Ver siguiente comprobante
-                </button>
+            <div class="footer">
+                Gracias por su preferencia
             </div>
-            @endif
-        </div>
-        @endif
-
-        <table>
-            <thead>
-                <tr>
-                    <th width="10%">CANT</th>
-                    <th width="10%">UNIDAD</th>
-                    <th width="40%">DESCRIPCIÓN</th>
-                    <th width="15%">V.UNIT</th>
-                    <th width="10%">DESC</th>
-                    <th width="15%">IMPORTE</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($invoice->details as $detail)
-                    <tr>
-                        <td class="quantity">{{ $detail->quantity }}</td>
-                        <td class="quantity">UND</td>
-                        <td>{{ $detail->description }}</td>
-                        <td class="price">{{ number_format($detail->unit_price, 2) }}</td>
-                        <td class="price">0.00</td>
-                        <td class="subtotal">{{ number_format($detail->subtotal, 2) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <div class="text-amount">
-            SON: {{ ucfirst(num_to_letras($invoice->total)) }} SOLES
-        </div>
-
-        <div class="totals">
-            <div class="total-row">
-                <span class="label">Subtotal:</span>
-                <span>S/ {{ number_format($invoice->taxable_amount, 2) }}</span>
-            </div>
-            <div class="total-row">
-                <span class="label">IGV (18%):</span>
-                <span>S/ {{ number_format($invoice->tax, 2) }}</span>
-            </div>
-            <div class="grand-total">
-                <span class="label">Total:</span>
-                <span>S/ {{ number_format($invoice->total, 2) }}</span>
-            </div>
-        </div>
-
-        @if($invoice->invoice_type != 'sales_note')
-        <div class="qr-code">
-            <!-- QR code: RUC|TIPO DOC|SERIE|NUMERO|MTO IGV|MTO TOTAL|FECHA EMISIÓN|TIPO DOC ADQUIRIENTE|NRO DOC ADQUIRIENTE -->
-            <img src="data:image/png;base64,{{ $qr_code ?? 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=' }}" width="150" height="150">
-        </div>
-        @endif
-
-        <div class="notice">
-            @switch($invoice->invoice_type)
-                @case('invoice')
-                    Representación impresa de la Factura Electrónica
-                    @break
-                @case('receipt')
-                    Representación impresa de la Boleta de Venta Electrónica
-                    @break
-                @case('sales_note')
-                    Nota de Venta - Documento Interno
-                    @break
-                @default
-                    Representación impresa del Comprobante de Pago
-            @endswitch
-            @if($invoice->invoice_type != 'sales_note')
-            <br>Autorizado mediante Resolución de Superintendencia N° 000-2023/SUNAT
-            <br>Consulte su comprobante en: www.sunat.gob.pe
-            @endif
-        </div>
-
-        <div class="footer">
-            Gracias por su preferencia
         </div>
 
         <div class="action-buttons no-print">

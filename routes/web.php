@@ -51,6 +51,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/invoices/print/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'printInvoice'])->name('invoices.print');
     Route::get('/pos/invoice/pdf/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'generatePdf'])->name('pos.invoice.pdf');
     Route::post('/invoices/void/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'voidInvoice'])->name('invoices.void');
+
+    // Rutas para vista previa térmica (solo para desarrollo/pruebas)
+    Route::get('/thermal-preview/invoice/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'thermalPreview'])->name('thermal.preview.invoice');
+    Route::get('/thermal-preview/command/{order}', [\App\Http\Controllers\PosController::class, 'thermalPreviewCommand'])->name('thermal.preview.command');
+    Route::get('/thermal-preview/pre-bill/{order}', [\App\Http\Controllers\PosController::class, 'thermalPreviewPreBill'])->name('thermal.preview.prebill');
+    Route::get('/thermal-preview/demo', function() {
+        return view('thermal-preview');
+    })->name('thermal.preview.demo');
 });
 
 // Rutas para el proceso unificado de pago y facturación

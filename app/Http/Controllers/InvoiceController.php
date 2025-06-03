@@ -126,6 +126,32 @@ class InvoiceController extends Controller
     }
 
     /**
+     * Vista previa térmica para desarrollo/pruebas.
+     *
+     * @param  int  $invoiceId
+     * @return \Illuminate\View\View
+     */
+    public function thermalPreview($invoiceId)
+    {
+        $invoice = \App\Models\Invoice::with(['customer', 'details', 'order.table'])->findOrFail($invoiceId);
+
+        $date = now()->format('d/m/Y H:i:s');
+
+        // Determinar la vista según el tipo de comprobante
+        $view = match($invoice->invoice_type) {
+            'receipt' => 'pos.receipt-print',
+            'sales_note' => 'pos.sales-note-print',
+            default => 'pos.invoice-print'
+        };
+
+        return view($view, [
+            'invoice' => $invoice,
+            'date' => $date,
+            'thermal_preview' => true // Flag para identificar vista previa
+        ])->with('thermalPreviewMode', true);
+    }
+
+    /**
      * Obtiene el siguiente número para un tipo de comprobante.
      *
      * @param string $type Tipo de comprobante (sales_note, receipt, invoice)

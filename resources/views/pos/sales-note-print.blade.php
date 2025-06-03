@@ -17,7 +17,47 @@
 
             body {
                 margin: 0;
-                padding: 5mm;
+                padding: 3mm;
+                font-size: 11px;
+                line-height: 1.2;
+            }
+        }
+
+        /* Estilos para papel de 57mm */
+        @media print and (max-width: 57mm) {
+            @page {
+                size: 57mm 297mm;
+                margin: 0;
+            }
+
+            body {
+                padding: 2mm;
+                font-size: 10px;
+            }
+
+            .company h1 {
+                font-size: 13px;
+            }
+
+            .company p {
+                font-size: 9px;
+            }
+
+            .document-title h2 {
+                font-size: 12px;
+            }
+
+            .document-number {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 2px 1px;
+                font-size: 8px;
+            }
+
+            .info-row, .customer-row, .total-row {
+                font-size: 9px;
             }
         }
 
@@ -37,14 +77,16 @@
         }
 
         .company h1 {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
-            margin: 5px 0;
+            margin: 3px 0;
+            line-height: 1.1;
         }
 
         .company p {
-            margin: 2px 0;
-            font-size: 11px;
+            margin: 1px 0;
+            font-size: 10px;
+            line-height: 1.1;
         }
 
         .document-title {
@@ -214,53 +256,26 @@
 
     <div class="info">
         <div class="info-row">
-            <span class="label">Fecha de emisión:</span>
+            <span class="label">Fecha:</span>
             <span>{{ $invoice->issue_date->format('d/m/Y') }}</span>
         </div>
-    </div>
-
-    <div class="customer-info">
-        <div class="customer-row">
+        <div class="info-row">
             <span class="label">Cliente:</span>
             <span>{{ $invoice->customer->name }}</span>
         </div>
         @if($invoice->customer->document_type != 'GENERIC')
-        <div class="customer-row">
+        <div class="info-row">
             <span class="label">{{ $invoice->customer->document_type }}:</span>
             <span>{{ $invoice->customer->document_number }}</span>
         </div>
         @endif
-        @if($invoice->customer->address && $invoice->customer->document_type != 'GENERIC')
-        <div class="customer-row">
-            <span class="label">Dirección:</span>
-            <span>{{ $invoice->customer->address }}</span>
-        </div>
-        @endif
-    </div>
-
-    @if(isset($split_payment) && $split_payment)
-    <div class="payment-info">
-        <p class="payment-note">Este es un comprobante por pago dividido ({{ $invoice->notes }})</p>
-        @if(isset($next_invoice_url) && $next_invoice_url)
-        <button class="next-payment-btn no-print" onclick="window.location.href='{{ $next_invoice_url }}'">
-            Ver siguiente comprobante
-        </button>
-        @endif
-    </div>
-    @endif
-
-    <div class="order-info">
-        <div class="info-row">
-            <span class="label">Fecha:</span>
-            <span class="value">{{ $date }}</span>
-        </div>
         <div class="info-row">
             <span class="label">Mesa:</span>
-            <span class="value">{{ $invoice->order->table->name ?? 'Para llevar' }}</span>
+            <span>{{ $invoice->order->table->name ?? 'Para llevar' }}</span>
         </div>
         <div class="info-row">
-            <span class="label">Tipo de pago:</span>
-            <span class="value">
+            <span class="label">Pago:</span>
+            <span>
                 @switch($invoice->payment_method)
                     @case('cash')
                         Efectivo
@@ -284,50 +299,48 @@
         </div>
         @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
         <div class="info-row">
-            <span class="label">Monto recibido:</span>
-            <span class="value">S/ {{ number_format($invoice->payment_amount, 2) }}</span>
+            <span class="label">Recibido:</span>
+            <span>S/ {{ number_format($invoice->payment_amount, 2) }}</span>
         </div>
         <div class="info-row">
             <span class="label">Vuelto:</span>
-            <span class="value">S/ {{ number_format($change_amount, 2) }}</span>
+            <span>S/ {{ number_format($change_amount, 2) }}</span>
         </div>
         @endif
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th width="10%">CANT</th>
-                <th width="55%">DESCRIPCIÓN</th>
-                <th width="15%">P.UNIT</th>
-                <th width="20%">IMPORTE</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($invoice->details as $detail)
-                <tr>
-                    <td class="quantity">{{ $detail->quantity }}</td>
-                    <td>{{ $detail->description }}</td>
-                    <td class="price">{{ number_format($detail->unit_price, 2) }}</td>
-                    <td class="subtotal">{{ number_format($detail->subtotal, 2) }}</td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+    @if(isset($split_payment) && $split_payment)
+    <div class="payment-info">
+        <p class="payment-note">Pago dividido ({{ $invoice->notes }})</p>
+        @if(isset($next_invoice_url) && $next_invoice_url)
+        <button class="next-payment-btn no-print" onclick="window.location.href='{{ $next_invoice_url }}'">
+            Ver siguiente comprobante
+        </button>
+        @endif
+    </div>
+    @endif
+
+    <div style="border-top: 1px dashed #000; margin: 8px 0; padding-top: 5px;">
+        @foreach($invoice->details as $detail)
+            <div style="margin-bottom: 4px; font-size: 11px;">
+                <div style="display: flex; justify-content: space-between;">
+                    <span style="font-weight: bold;">{{ $detail->quantity }} x {{ $detail->description }}</span>
+                    <span>{{ number_format($detail->subtotal, 2) }}</span>
+                </div>
+                @if($detail->unit_price != $detail->subtotal / $detail->quantity)
+                    <div style="font-size: 9px; color: #666; margin-left: 10px;">
+                        @ S/ {{ number_format($detail->unit_price, 2) }} c/u
+                    </div>
+                @endif
+            </div>
+        @endforeach
+    </div>
 
     <div class="totals">
-        <div class="total-row">
-            <span class="label">Subtotal:</span>
-            <span>S/ {{ number_format($invoice->taxable_amount, 2) }}</span>
-        </div>
         <div class="grand-total">
             <span class="label">Total:</span>
             <span>S/ {{ number_format($invoice->total, 2) }}</span>
         </div>
-    </div>
-
-    <div class="notice">
-        Este documento no tiene valor tributario
     </div>
 
     <div class="footer">
