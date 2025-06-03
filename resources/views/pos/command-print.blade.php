@@ -14,9 +14,10 @@
             body {
                 width: 80mm;
                 margin: 0;
-                padding: 5mm;
+                padding: 3mm;
                 font-family: Arial, sans-serif;
-                font-size: 14px;
+                font-size: 12px;
+                line-height: 1.2;
             }
 
             .no-print {
@@ -24,11 +25,42 @@
             }
         }
 
+        /* Estilos para papel de 57mm */
+        @media print and (max-width: 57mm) {
+            @page {
+                size: 57mm auto;
+                margin: 0;
+            }
+
+            body {
+                width: 57mm;
+                padding: 2mm;
+                font-size: 11px;
+            }
+
+            .title {
+                font-size: 16px;
+            }
+
+            .subtitle {
+                font-size: 13px;
+            }
+
+            th, td {
+                padding: 3px 1px;
+                font-size: 10px;
+            }
+
+            .info-row {
+                font-size: 10px;
+            }
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            font-size: 14px;
+            font-size: 12px;
             margin: 0;
-            padding: 10px;
+            padding: 8px;
             max-width: 800px;
             margin: 0 auto;
             background-color: #f9fafb;
@@ -36,24 +68,27 @@
         }
         .header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
+            padding-bottom: 6px;
         }
         .title {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
+            line-height: 1.1;
         }
         .subtitle {
-            font-size: 16px;
-            margin-bottom: 5px;
+            font-size: 14px;
+            margin-bottom: 3px;
+            line-height: 1.1;
         }
         .info {
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
         .info-row {
-            margin-bottom: 5px;
+            margin-bottom: 2px;
+            font-size: 11px;
         }
         .label {
             font-weight: bold;
@@ -61,17 +96,19 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
         }
         th {
             text-align: left;
-            padding: 5px;
+            padding: 3px 2px;
             border-bottom: 1px solid #000;
             font-weight: bold;
+            font-size: 10px;
         }
         td {
-            padding: 5px;
+            padding: 3px 2px;
             border-bottom: 1px dashed #ccc;
+            font-size: 10px;
         }
         .product-name {
             font-weight: bold;
@@ -82,15 +119,15 @@
         }
         .notes {
             font-style: italic;
-            font-size: 12px;
-            margin-top: 3px;
+            font-size: 9px;
+            margin-top: 1px;
         }
         .footer {
             text-align: center;
-            margin-top: 15px;
+            margin-top: 8px;
             border-top: 1px dashed #000;
-            padding-top: 10px;
-            font-size: 12px;
+            padding-top: 6px;
+            font-size: 9px;
         }
         .action-buttons {
             position: fixed;
@@ -158,27 +195,21 @@
         @endif
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th width="15%">CANT.</th>
-                <th width="85%">PRODUCTO</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($order->orderDetails as $detail)
-                <tr>
-                    <td class="quantity">{{ $detail->quantity }}</td>
-                    <td>
-                        <div class="product-name">{{ $detail->product->name }}</div>
+    <div style="border-top: 1px dashed #000; margin: 8px 0; padding-top: 5px;">
+        @foreach($order->orderDetails as $detail)
+            <div style="margin-bottom: 4px; font-size: 11px;">
+                <div style="display: flex; align-items: flex-start; gap: 8px;">
+                    <span style="font-weight: bold; min-width: 20px; text-align: center; background: #f0f0f0; padding: 2px 4px; border-radius: 3px;">{{ $detail->quantity }}</span>
+                    <div style="flex: 1;">
+                        <div style="font-weight: bold;">{{ $detail->product->name }}</div>
                         @if($detail->notes)
-                            <div class="notes">{{ $detail->notes }}</div>
+                            <div style="font-style: italic; font-size: 9px; color: #666; margin-top: 1px;">{{ $detail->notes }}</div>
                         @endif
-                    </td>
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
 
     @php
         // Extraer el nombre del cliente de las notas si existe

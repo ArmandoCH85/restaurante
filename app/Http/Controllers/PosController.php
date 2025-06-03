@@ -205,6 +205,38 @@ class PosController extends Controller
     }
 
     /**
+     * Vista previa térmica para comandas (desarrollo/pruebas)
+     */
+    public function thermalPreviewCommand(Order $order)
+    {
+        // Cargar relaciones necesarias
+        $order->load('orderDetails.product', 'table');
+
+        return view('pos.command-print', [
+            'order' => $order,
+            'table' => $order->table,
+            'date' => now()->format('d/m/Y H:i:s'),
+            'thermal_preview' => true
+        ])->with('thermalPreviewMode', true);
+    }
+
+    /**
+     * Vista previa térmica para pre-cuentas (desarrollo/pruebas)
+     */
+    public function thermalPreviewPreBill(Order $order)
+    {
+        // Cargar relaciones necesarias
+        $order->load('orderDetails.product', 'table');
+
+        return view('pos.pre-bill-print', [
+            'order' => $order,
+            'table' => $order->table,
+            'date' => now()->format('d/m/Y H:i:s'),
+            'thermal_preview' => true
+        ])->with('thermalPreviewMode', true);
+    }
+
+    /**
      * Crear una orden desde la sesión y mostrar la comanda
      */
     public function createAndShowCommand(Request $request)
