@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\DocumentSeriesResource\Pages;
-use App\Filament\Resources\DocumentSeriesResource\RelationManagers;
 use App\Models\DocumentSeries;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class DocumentSeriesResource extends Resource
 {
@@ -23,11 +20,14 @@ class DocumentSeriesResource extends Resource
 
     protected static ?string $navigationLabel = 'Series de Comprobantes';
 
+    // Deshabilitar navegación automática para usar NavigationItem personalizado
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?string $modelLabel = 'Serie de Comprobante';
 
     protected static ?string $pluralModelLabel = 'Series de Comprobantes';
 
-    protected static ?string $slug = 'configuracion/series-comprobantes';
+    protected static ?string $slug = 'document-series';
 
     public static function form(Form $form): Form
     {

@@ -306,7 +306,7 @@ class AdminPanelProvider extends PanelProvider
                         return PermissionHelper::hasPermission('view_any_invoice');
                     }),
                 NavigationItem::make('Series de Comprobantes')
-                    ->url('/admin/resources/document-series')
+                    ->url('/admin/document-series')
                     ->icon('heroicon-o-hashtag')
                     ->group('Facturación')
                     ->sort(2)
