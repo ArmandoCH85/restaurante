@@ -46,6 +46,16 @@ export default {
                 textSecondary: '#6B7280',
                 border: 'rgba(0,0,0,0.06)',
             },
+            screens: {
+                // Monitores 16.3" específicos (14.2" x 8" - 1366x768 a 1600x900)
+                'monitor-16': {'min': '1366px', 'max': '1600px'},
+                // Monitores compactos de escritorio generales
+                'compact-desktop': {'min': '1366px', 'max': '1920px'},
+                // Monitores amplios
+                'wide-desktop': {'min': '1921px'},
+                // Breakpoint específico para altura limitada (típico de 16.3")
+                'short-height': {'raw': '(min-width: 1366px) and (max-height: 900px)'},
+            },
             fontFamily: {
                 sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
             },

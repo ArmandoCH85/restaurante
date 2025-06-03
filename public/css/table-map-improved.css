@@ -2080,6 +2080,160 @@ body {
 
 /* Diseño responsivo optimizado para POS en diferentes dispositivos */
 
+/* ========================================
+   OPTIMIZACIONES PARA MONITORES 16.3"
+   Resolución: 1366px - 1920px
+   Dimensiones físicas: 14.2" x 8"
+   ======================================== */
+
+/* ===== OPTIMIZACIONES ESPECÍFICAS PARA MONITORES 16.3" ===== */
+/* Monitores 16.3" con dimensiones físicas 14.2" x 8" (1366x768 a 1600x900) */
+@media (min-width: 1366px) and (max-width: 1600px) {
+  /* Optimizar grid de mesas para mejor aprovechamiento del espacio en 16.3" */
+  .tables-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Más compacto */
+    gap: var(--spacing-md); /* Reducir gap */
+    padding: var(--spacing-md);
+  }
+
+  .delivery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Más compacto */
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+  }
+
+  /* Ajustar tamaño de elementos visuales de mesas para 16.3" */
+  .table-visual {
+    width: 80px; /* Más pequeño */
+    height: 80px;
+  }
+
+  .table-rectangular, .table-oval {
+    width: 100px; /* Más compacto */
+    height: 70px;
+  }
+
+  /* Optimizar sidebar para mejor proporción en 16.3" */
+  .table-map-sidebar {
+    width: 260px; /* Más estrecho */
+    padding: var(--spacing-md);
+  }
+
+  /* Optimizar header para 16.3" */
+  .table-map-header {
+    padding: var(--spacing-sm) var(--spacing-md);
+    min-height: 3rem; /* Más compacto */
+  }
+
+  .header-title {
+    font-size: 1.125rem; /* Más pequeño */
+    font-weight: 600;
+  }
+
+  /* Optimizar botones del header */
+  .header-button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: 0.8125rem;
+    min-height: 2.25rem;
+  }
+
+  /* Ajustar cards de mesa para 16.3" */
+  .table-card {
+    padding: var(--spacing-sm);
+    min-height: 140px; /* Más compacto */
+  }
+
+  .table-info {
+    font-size: 0.8125rem;
+  }
+
+  .table-number {
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  /* Optimizar controles de estado */
+  .status-select {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-height: 2rem;
+  }
+
+  .reserve-button {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    min-height: 2rem;
+  }
+}
+
+/* Monitores compactos de escritorio (16.3" y similares) */
+@media (min-width: 1366px) and (max-width: 1920px) {
+  /* Optimizar grid de mesas para mejor aprovechamiento del espacio */
+  .tables-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+  }
+
+  .delivery-grid {
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg);
+  }
+
+  /* Ajustar tamaño de elementos visuales de mesas */
+  .table-visual {
+    width: 90px;
+    height: 90px;
+  }
+
+  .table-rectangular, .table-oval {
+    width: 110px;
+    height: 80px;
+  }
+
+  /* Optimizar sidebar para mejor proporción */
+  .table-map-sidebar {
+    width: 280px;
+    padding: var(--spacing-lg);
+  }
+
+  /* Mejorar espaciado en header */
+  .table-map-header {
+    padding: var(--spacing-lg) var(--spacing-xl);
+    min-height: 80px;
+  }
+
+  /* Optimizar controles de mesa */
+  .table-card {
+    padding: var(--spacing-md);
+    min-height: 140px;
+  }
+
+  .table-info h3 {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .table-info p {
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  /* Mejorar botones y controles */
+  .status-select, .reserve-button {
+    min-height: 44px;
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Optimizar modal de reservas */
+  .modal-content {
+    max-width: 600px;
+    padding: var(--spacing-xl);
+  }
+}
+
 /* Tablets en orientación portrait (768px - 1024px) */
 @media (max-width: 1024px) and (min-width: 769px) {
   .tables-grid {

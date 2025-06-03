@@ -47,6 +47,9 @@
 
         @filamentStyles
 
+        <!-- CSS específico para optimizaciones responsive en monitores 16.3" -->
+        <link href="{{ asset('css/admin-responsive-16.css') }}" rel="stylesheet">
+
         {{ \Filament\Support\Facades\FilamentView::renderHook('styles.end') }}
 
         <script>
