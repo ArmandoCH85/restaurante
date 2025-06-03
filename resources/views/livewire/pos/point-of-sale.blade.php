@@ -2609,10 +2609,13 @@
                                         isDisabled: function() {
                                             // Verificar si falta información del cliente
                                             return !$wire.customerName || !$wire.customerPhone;
-                                        }
+                                        },
+                                        isLoading: false
                                     }"
                                     x-on:click="
+                                        console.log('Botón Guardar Cliente clickeado');
                                         if (!$wire.customerName || !$wire.customerPhone) {
+                                            console.log('Faltan datos del cliente');
                                             $wire.dispatch('notification', {
                                                 type: 'error',
                                                 title: 'Error',
@@ -2621,14 +2624,42 @@
                                             });
                                             return false;
                                         }
+                                        console.log('Datos del cliente completos, guardando...');
+                                        isLoading = true;
+
+                                        // Mostrar feedback inmediato
+                                        Swal.fire({
+                                            title: 'Guardando Cliente...',
+                                            text: 'Por favor espere',
+                                            icon: 'info',
+                                            allowOutsideClick: false,
+                                            allowEscapeKey: false,
+                                            showConfirmButton: false,
+                                            didOpen: () => {
+                                                Swal.showLoading();
+                                            }
+                                        });
+
+                                        // Resetear loading después de 3 segundos
+                                        setTimeout(() => {
+                                            isLoading = false;
+                                            Swal.close();
+                                        }, 3000);
                                     "
-                                    x-bind:class="{ 'opacity-50 cursor-not-allowed': isDisabled() }"
-                                    x-bind:disabled="isDisabled()"
+                                    x-bind:class="{
+                                        'opacity-50 cursor-not-allowed': isDisabled() || isLoading,
+                                        'bg-gray-500': isLoading
+                                    }"
+                                    x-bind:disabled="isDisabled() || isLoading"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" x-show="!isLoading">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                     </svg>
-                                    Guardar Información del Cliente
+                                    <svg x-show="isLoading" class="w-5 h-5 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span x-text="isLoading ? 'Guardando...' : 'Guardar Información del Cliente'"></span>
                                 </button>
                                 <p class="mt-1 text-xs text-center text-gray-500 dark:text-gray-400">
                                     Solo se requiere nombre y teléfono para registrar un cliente

@@ -1946,12 +1946,22 @@ class PointOfSale extends Component
 
     public function saveCustomer(): void
     {
+        // Log para debug
+        \Illuminate\Support\Facades\Log::info('saveCustomer llamado', [
+            'customerName' => $this->customerName,
+            'customerPhone' => $this->customerPhone,
+            'customerDocument' => $this->customerDocument
+        ]);
+
         // Validar campos requeridos
         if (empty($this->customerName) || empty($this->customerPhone)) {
+            \Illuminate\Support\Facades\Log::warning('saveCustomer: Campos requeridos faltantes');
+
             $this->dispatch('notification', [
                 'type' => 'error',
                 'title' => 'Error',
-                'message' => 'Nombre y teléfono son campos obligatorios'
+                'message' => 'Nombre y teléfono son campos obligatorios',
+                'showModal' => true
             ]);
             return;
         }
@@ -1969,21 +1979,42 @@ class PointOfSale extends Component
 
             $isNewCustomer = !$customer;
 
+            \Illuminate\Support\Facades\Log::info('saveCustomer: Estado del cliente', [
+                'isNewCustomer' => $isNewCustomer,
+                'existingCustomerId' => $customer ? $customer->id : null,
+                'hasDocument' => !empty($this->customerDocument)
+            ]);
+
             if (!$customer) {
                 // Crear nuevo cliente
                 $customer = new \App\Models\Customer();
 
-                // Asignar documento solo si está presente
-                if (!empty($this->customerDocument)) {
-                    $customer->document_type = $this->customerDocumentType;
-                    $customer->document_number = $this->customerDocument;
-                }
+                \Illuminate\Support\Facades\Log::info('Creando nuevo cliente', [
+                    'customerName' => $this->customerName,
+                    'customerPhone' => $this->customerPhone,
+                    'hasDocument' => !empty($this->customerDocument)
+                ]);
+            }
+
+            // Asignar documento solo si se proporciona
+            if (!empty($this->customerDocument)) {
+                $customer->document_type = $this->customerDocumentType;
+                $customer->document_number = $this->customerDocument;
+
+                \Illuminate\Support\Facades\Log::info('Documento asignado al cliente', [
+                    'customerId' => $customer->id ?? 'nuevo',
+                    'document_type' => $this->customerDocumentType,
+                    'document_number' => $this->customerDocument
+                ]);
             } else {
-                // Si se encontró un cliente existente y hay documento nuevo, actualizarlo
-                if (!empty($this->customerDocument)) {
-                    $customer->document_type = $this->customerDocumentType;
-                    $customer->document_number = $this->customerDocument;
-                }
+                // Si no hay documento, dejar campos como NULL (ahora es permitido)
+                $customer->document_type = null;
+                $customer->document_number = null;
+
+                \Illuminate\Support\Facades\Log::info('Cliente sin documento - campos NULL', [
+                    'customerId' => $customer->id ?? 'nuevo',
+                    'customerName' => $this->customerName
+                ]);
             }
 
             $customer->name = $this->customerName;
@@ -1994,18 +2025,40 @@ class PointOfSale extends Component
 
             $this->customerId = $customer->id;
 
+            \Illuminate\Support\Facades\Log::info('saveCustomer: Cliente guardado exitosamente', [
+                'customerId' => $this->customerId,
+                'isNewCustomer' => $isNewCustomer
+            ]);
+
             // Notificación más visible y detallada
             $title = $isNewCustomer ? '¡Cliente Registrado!' : '¡Cliente Actualizado!';
             $message = $isNewCustomer
                 ? 'Se ha registrado el cliente ' . $this->customerName . ' con teléfono ' . $this->customerPhone
                 : 'Se ha actualizado la información del cliente ' . $this->customerName;
 
+            // Emitir notificación con múltiples métodos para asegurar que se muestre
             $this->dispatch('notification', [
                 'type' => 'success',
                 'title' => $title,
                 'message' => $message,
-                'timeout' => 5000 // Mostrar por 5 segundos
+                'timeout' => 5000, // Mostrar por 5 segundos
+                'showModal' => true // Mostrar también como modal
             ]);
+
+            // También usar JavaScript directo para mostrar SweetAlert
+            $this->js('
+                setTimeout(function() {
+                    Swal.fire({
+                        icon: "success",
+                        title: "' . $title . '",
+                        text: "' . $message . '",
+                        confirmButtonText: "Aceptar",
+                        confirmButtonColor: "#10b981",
+                        timer: 5000,
+                        timerProgressBar: true
+                    });
+                }, 100);
+            ');
 
             // Notificar que se encontró/guardó el cliente para actualizar la UI
             $this->dispatch('search-customer-result', [
@@ -2015,11 +2068,30 @@ class PointOfSale extends Component
             ]);
 
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('saveCustomer: Error al guardar cliente', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             $this->dispatch('notification', [
                 'type' => 'error',
                 'title' => 'Error',
-                'message' => 'Error al guardar el cliente: ' . $e->getMessage()
+                'message' => 'Error al guardar el cliente: ' . $e->getMessage(),
+                'showModal' => true
             ]);
+
+            // También mostrar error con SweetAlert
+            $this->js('
+                setTimeout(function() {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Error al guardar el cliente: ' . addslashes($e->getMessage()) . '",
+                        confirmButtonText: "Aceptar",
+                        confirmButtonColor: "#ef4444"
+                    });
+                }, 100);
+            ');
         }
     }
 
