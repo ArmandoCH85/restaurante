@@ -541,7 +541,10 @@
 
                                                 <!-- Acciones de delivery -->
                                                 <div class="delivery-actions">
-                                                    <select class="delivery-status-select" wire:change="updateDeliveryStatus({{ $delivery->id }}, $event.target.value)">
+                                                    <select class="delivery-status-select"
+                                                            data-delivery-id="{{ $delivery->id }}"
+                                                            wire:change="updateDeliveryStatus({{ $delivery->id }}, $event.target.value)"
+                                                            onchange="handleDeliveryStatusChange(this, {{ $delivery->id }})">
                                                         <option value="" disabled selected>Cambiar estado</option>
                                                         @if($delivery->status === 'pending')
                                                             <option value="assigned">Asignar repartidor</option>
@@ -585,6 +588,8 @@
                 console.log('Evento openAssignDeliveryPersonModal recibido:', deliveryOrderId);
                 this.deliveryOrderId = deliveryOrderId;
                 this.open = true;
+                // Resetear el dropdown cuando se abre el modal
+                resetDeliveryDropdown(deliveryOrderId);
             });
         }
     }"
@@ -630,10 +635,10 @@
                     </div>
                 </div>
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" @click="console.log('Asignando repartidor:', deliveryOrderId, $refs.deliveryPerson.value); $wire.assignDeliveryPerson(deliveryOrderId, $refs.deliveryPerson.value); open = false;" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" @click="console.log('Asignando repartidor:', deliveryOrderId, $refs.deliveryPerson.value); $wire.assignDeliveryPerson(deliveryOrderId, $refs.deliveryPerson.value); resetDeliveryDropdown(deliveryOrderId); open = false;" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
                         Asignar
                     </button>
-                    <button type="button" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" @click="resetDeliveryDropdown(deliveryOrderId); open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                         Cancelar
                     </button>
                 </div>
@@ -653,6 +658,8 @@
                 this.deliveryOrderId = deliveryOrderId;
                 this.reason = '';
                 this.open = true;
+                // Resetear el dropdown cuando se abre el modal
+                resetDeliveryDropdown(deliveryOrderId);
             });
         }
     }"
@@ -693,10 +700,10 @@
                     </div>
                 </div>
                 <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                    <button type="button" @click="console.log('Cancelando pedido:', deliveryOrderId, reason); $wire.cancelDelivery(deliveryOrderId, reason); open = false;" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" @click="console.log('Cancelando pedido:', deliveryOrderId, reason); $wire.cancelDelivery(deliveryOrderId, reason); resetDeliveryDropdown(deliveryOrderId); open = false;" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm">
                         Cancelar Pedido
                     </button>
-                    <button type="button" @click="open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    <button type="button" @click="resetDeliveryDropdown(deliveryOrderId); open = false" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
                         Volver
                     </button>
                 </div>
@@ -712,6 +719,42 @@
             // Asegurarse de que Livewire esté inicializado
             document.addEventListener('livewire:initialized', function() {
                 console.log('Livewire inicializado, listo para escuchar eventos');
+            });
+
+            // Resetear dropdowns después de que Livewire actualice el componente
+            document.addEventListener('livewire:updated', function() {
+                console.log('Livewire actualizado, reseteando dropdowns');
+                // Usar un pequeño delay para asegurar que el DOM esté completamente actualizado
+                setTimeout(() => {
+                    resetAllDeliveryDropdowns();
+                }, 50);
+            });
+
+            // Observer para detectar cambios en el DOM y resetear dropdowns automáticamente
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList') {
+                        // Verificar si se agregaron nuevos dropdowns de delivery
+                        const addedNodes = Array.from(mutation.addedNodes);
+                        addedNodes.forEach(node => {
+                            if (node.nodeType === 1) { // Element node
+                                const dropdowns = node.querySelectorAll ? node.querySelectorAll('.delivery-status-select') : [];
+                                dropdowns.forEach(dropdown => {
+                                    if (dropdown.value !== '') {
+                                        dropdown.value = '';
+                                        console.log('Dropdown auto-reseteado por observer:', dropdown.getAttribute('data-delivery-id'));
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            });
+
+            // Iniciar el observer
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
             });
 
             // Manejar notificaciones de cambio de estado de mesa
@@ -733,6 +776,11 @@
                 notification.className = 'notification notification-' + data.type;
                 notification.classList.add('show');
 
+                // Si es una notificación de error relacionada con delivery, resetear todos los dropdowns
+                if (data.type === 'error' && data.message.toLowerCase().includes('pedido')) {
+                    resetAllDeliveryDropdowns();
+                }
+
                 setTimeout(() => {
                     notification.classList.remove('show');
                 }, 3000);
@@ -745,6 +793,14 @@
                 updateDeliveryTrafficLight(data.deliveryId, data.newStatus);
                 // Mostrar notificación con color del semáforo
                 showTrafficLightNotification(data.newStatus, data.message);
+                // RESETEAR EL DROPDOWN después del cambio exitoso
+                resetDeliveryDropdown(data.deliveryId);
+            });
+
+            // Escuchar evento específico para resetear dropdown
+            Livewire.on('reset-delivery-dropdown', (data) => {
+                console.log('Evento reset-delivery-dropdown recibido:', data);
+                resetDeliveryDropdown(data.deliveryId);
             });
 
             // SISTEMA DE ACTUALIZACIONES EN TIEMPO REAL
@@ -785,6 +841,41 @@
                         }, 100);
                     }
                 });
+            }
+
+            // Función para manejar el cambio de estado inmediatamente
+            window.handleDeliveryStatusChange = function(selectElement, deliveryId) {
+                console.log('handleDeliveryStatusChange llamado:', deliveryId, selectElement.value);
+
+                // Resetear inmediatamente el dropdown después de un pequeño delay
+                setTimeout(() => {
+                    selectElement.value = '';
+                    console.log('Dropdown reseteado inmediatamente para delivery ID:', deliveryId);
+                }, 100);
+            }
+
+            // Función para resetear el dropdown de delivery
+            window.resetDeliveryDropdown = function(deliveryId) {
+                const deliveryCard = document.querySelector(`[data-delivery-id="${deliveryId}"]`);
+                if (!deliveryCard) return;
+
+                const dropdown = deliveryCard.querySelector('.delivery-status-select');
+                if (dropdown) {
+                    dropdown.value = '';
+                    console.log('Dropdown reseteado para delivery ID:', deliveryId);
+                }
+            }
+
+            // Función para resetear todos los dropdowns de delivery (en caso de error)
+            function resetAllDeliveryDropdowns() {
+                const allDropdowns = document.querySelectorAll('.delivery-status-select');
+                allDropdowns.forEach(dropdown => {
+                    if (dropdown.value !== '') {
+                        dropdown.value = '';
+                        console.log('Dropdown reseteado:', dropdown.getAttribute('data-delivery-id'));
+                    }
+                });
+                console.log('Todos los dropdowns de delivery verificados y reseteados si era necesario');
             }
 
             // Función para actualizar un semáforo específico
