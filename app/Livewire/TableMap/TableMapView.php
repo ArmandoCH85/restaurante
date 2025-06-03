@@ -251,6 +251,13 @@ class TableMapView extends Component
      */
     public function updateDeliveryStatus($deliveryOrderId, string $newStatus): void
     {
+        // Log para debug
+        \Illuminate\Support\Facades\Log::info('updateDeliveryStatus llamado', [
+            'deliveryOrderId' => $deliveryOrderId,
+            'newStatus' => $newStatus,
+            'user_id' => \Illuminate\Support\Facades\Auth::id()
+        ]);
+
         // Asegurarse de que $deliveryOrderId sea un entero
         if (is_array($deliveryOrderId)) {
             // Si es un array, tomamos el primer elemento
@@ -271,8 +278,8 @@ class TableMapView extends Component
 
         // Verificar roles del usuario
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
-        $isAdmin = $user && ($user->roles->whereIn('name', ['Admin', 'Super Admin', 'Cashier'])->count() > 0);
+        $isDeliveryPerson = $user && $user->roles->whereIn('name', ['Delivery', 'delivery'])->count() > 0;
+        $isAdmin = $user && ($user->roles->whereIn('name', ['Admin', 'Super Admin', 'Cashier', 'admin', 'super_admin', 'cashier'])->count() > 0);
         $employee = $isDeliveryPerson ? \App\Models\Employee::where('user_id', $user->id)->first() : null;
 
         // Restricciones según el rol y el estado solicitado
@@ -311,6 +318,8 @@ class TableMapView extends Component
             case 'assigned':
                 // Mostrar modal para asignar repartidor
                 $this->dispatch('openAssignDeliveryPersonModal', $deliveryOrderId);
+                // Emitir evento para resetear dropdown inmediatamente
+                $this->dispatch('reset-delivery-dropdown', ['deliveryId' => $deliveryOrderId]);
                 return;
 
             case 'in_transit':
@@ -326,6 +335,8 @@ class TableMapView extends Component
             case 'cancelled':
                 // Mostrar modal para ingresar motivo de cancelación
                 $this->dispatch('openCancelDeliveryModal', $deliveryOrderId);
+                // Emitir evento para resetear dropdown inmediatamente
+                $this->dispatch('reset-delivery-dropdown', ['deliveryId' => $deliveryOrderId]);
                 return;
         }
 
@@ -389,6 +400,15 @@ class TableMapView extends Component
             event(new \App\Events\DeliveryStatusChanged($deliveryOrder, $previousStatus));
 
             $this->loadDeliveryOrders();
+
+            // Emitir evento para actualizar semáforo y resetear dropdown
+            $this->dispatch('delivery-status-changed', [
+                'deliveryId' => $deliveryOrder->id,
+                'newStatus' => 'assigned',
+                'previousStatus' => $previousStatus,
+                'message' => "Repartidor {$employee->full_name} asignado al pedido #{$deliveryOrder->order_id}"
+            ]);
+
             $this->dispatch('notification', [
                 'message' => "Repartidor {$employee->full_name} asignado al pedido #{$deliveryOrder->order_id}",
                 'type' => 'success'
@@ -427,7 +447,7 @@ class TableMapView extends Component
 
         // Verificar si el usuario tiene permiso para cancelar este pedido
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+        $isDeliveryPerson = $user && $user->roles->whereIn('name', ['Delivery', 'delivery'])->count() > 0;
         $employee = $isDeliveryPerson ? \App\Models\Employee::where('user_id', $user->id)->first() : null;
 
         // Si es un repartidor, solo puede cancelar sus propios pedidos
@@ -449,6 +469,15 @@ class TableMapView extends Component
             event(new \App\Events\DeliveryStatusChanged($deliveryOrder, $previousStatus));
 
             $this->loadDeliveryOrders();
+
+            // Emitir evento para actualizar semáforo y resetear dropdown
+            $this->dispatch('delivery-status-changed', [
+                'deliveryId' => $deliveryOrder->id,
+                'newStatus' => 'cancelled',
+                'previousStatus' => $previousStatus,
+                'message' => "Pedido #{$deliveryOrder->order_id} cancelado"
+            ]);
+
             $this->dispatch('notification', [
                 'message' => "Pedido #{$deliveryOrder->order_id} cancelado",
                 'type' => 'success'
@@ -530,7 +559,7 @@ class TableMapView extends Component
     {
         // Verificar si el usuario actual tiene rol de Delivery
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+        $isDeliveryPerson = $user && $user->roles->whereIn('name', ['Delivery', 'delivery'])->count() > 0;
 
         if (!$isDeliveryPerson) {
             return $this->deliveryOrders->where('status', 'assigned')->count();
@@ -555,7 +584,7 @@ class TableMapView extends Component
     {
         // Verificar si el usuario actual tiene rol de Delivery
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+        $isDeliveryPerson = $user && $user->roles->whereIn('name', ['Delivery', 'delivery'])->count() > 0;
 
         if (!$isDeliveryPerson) {
             return $this->deliveryOrders->where('status', 'in_transit')->count();
@@ -583,7 +612,7 @@ class TableMapView extends Component
 
         // Verificar si el usuario actual tiene rol de Delivery
         $user = \Illuminate\Support\Facades\Auth::user();
-        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+        $isDeliveryPerson = $user && $user->roles->whereIn('name', ['Delivery', 'delivery'])->count() > 0;
 
         if (!$isDeliveryPerson) {
             return \App\Models\DeliveryOrder::where('status', 'delivered')
