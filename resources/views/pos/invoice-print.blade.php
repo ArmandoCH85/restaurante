@@ -196,9 +196,6 @@
 
         <div class="header">
             <div class="company-info">
-                <div class="logo">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo" width="150">
-                </div>
                 <div>
                     <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO S.A.C.' }}</h1>
                     <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>

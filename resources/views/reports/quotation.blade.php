@@ -189,7 +189,6 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ public_path('images/logo.png') }}" alt="Logo" class="logo">
             <div class="company-info">
                 <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
                 <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Principal 123, Lima, Perú' }}</p>
