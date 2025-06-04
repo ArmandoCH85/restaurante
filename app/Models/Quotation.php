@@ -313,7 +313,7 @@ class Quotation extends Model
                 $this->order_id = $order->id;
                 $this->save();
 
-                // Si es para consumo en local, actualizar el estado de la mesa
+                // Si es para servicio en local, actualizar el estado de la mesa
                 if ($serviceType === 'dine_in' && $tableId) {
                     $table = Table::find($tableId);
                     if ($table) {

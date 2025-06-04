@@ -326,7 +326,7 @@ class Order extends Model
         $this->status = self::STATUS_COMPLETED;
         $this->save();
 
-        // Liberar la mesa si es una orden de consumo en local
+        // Liberar la mesa si es una orden de servicio en local
         if ($this->service_type === 'dine_in' && $this->table_id) {
             $table = Table::find($this->table_id);
             if ($table) {
@@ -753,6 +753,34 @@ class Order extends Model
         $advancePayment = $this->getQuotationAdvancePayment();
         $advanceNotes = $this->getQuotationAdvanceNotes();
         $pendingBalance = $this->total - $advancePayment;
+
+        // Log para debugging con información más detallada
+        try {
+            $tableInfo = 'NULL';
+            $tableType = 'NULL';
+            if ($this->table) {
+                $tableInfo = is_object($this->table) ? 'OBJECT' : 'NOT_OBJECT';
+                $tableType = gettype($this->table);
+            }
+
+            Log::info('Generating invoice with order data', [
+                'order_id' => $this->id,
+                'service_type' => $this->service_type,
+                'table_id' => $this->table_id,
+                'table_info' => $tableInfo,
+                'table_type' => $tableType,
+                'table_number' => $this->table && is_object($this->table) ? $this->table->number : 'NULL',
+                'table_location' => $this->table && is_object($this->table) ? $this->table->location : 'NULL',
+                'invoice_type' => $invoiceType,
+                'has_delivery_order' => $this->deliveryOrder ? 'YES' : 'NO',
+                'order_attributes' => $this->getAttributes()
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error in generateInvoice logging', [
+                'error' => $e->getMessage(),
+                'order_id' => $this->id
+            ]);
+        }
 
         $invoice = new Invoice([
             'invoice_type' => $invoiceType,

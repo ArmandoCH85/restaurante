@@ -23,9 +23,26 @@
                 display: none !important;
             }
 
-            /* Ocultar elementos no necesarios en formato térmico */
+            /* PRINCIPIO KISS: Una sola versión optimizada para todos los formatos */
             .thermal-hide {
                 display: none !important;
+            }
+        }
+
+        /* Estilos para formato A5 cuando no es impresión térmica */
+        @media screen, print and (min-width: 148mm) {
+            @page {
+                size: A5;
+                margin: 10mm;
+            }
+
+            body {
+                padding: 10mm;
+                font-size: 12px;
+            }
+
+            .thermal-only {
+                display: block !important;
             }
         }
 
@@ -387,92 +404,8 @@
         </div>
     </div>
 
-    <!-- Versión A5 normal (oculta en impresión térmica) -->
-    <div class="thermal-hide">
-        <div class="header">
-            <div class="company-name">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</div>
-            <div class="subtitle">Pre-Cuenta</div>
-            @if(\App\Models\CompanyConfig::getRuc())
-                <div class="address">RUC: {{ \App\Models\CompanyConfig::getRuc() }}</div>
-            @endif
-            <div class="address">{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</div>
-            <div class="contact">
-                @if(\App\Models\CompanyConfig::getTelefono())
-                    Tel: {{ \App\Models\CompanyConfig::getTelefono() }}
-                @endif
-                @if(\App\Models\CompanyConfig::getEmail())
-                    @if(\App\Models\CompanyConfig::getTelefono()) | @endif
-                    Email: {{ \App\Models\CompanyConfig::getEmail() }}
-                @endif
-            </div>
-        </div>
-
-        <div class="info">
-            <div class="info-row">
-                <span class="label">Pre-Cuenta #:</span> {{ $order->id }}
-            </div>
-            <div class="info-row">
-                <span class="label">Fecha:</span> {{ $date }}
-            </div>
-            <div class="info-row">
-                <span class="label">Mesa:</span> {{ $table ? 'Mesa #'.$table->number.' - '.ucfirst($table->location) : 'Venta Rápida' }}
-            </div>
-            <div class="info-row">
-                <span class="label">Atendido por:</span> {{ $order->employee->name ?? 'No asignado' }}
-            </div>
-        </div>
-
-        <div style="border-top: 1px solid #000; margin: 15px 0; padding-top: 10px;">
-            @foreach($order->orderDetails as $detail)
-                <div style="margin-bottom: 8px; font-size: 12px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-weight: bold;">{{ $detail->quantity }} x {{ $detail->product->name }}</span>
-                        <span>S/ {{ number_format($detail->subtotal, 2) }}</span>
-                    </div>
-                    @if($detail->notes)
-                        <div style="font-style: italic; font-size: 10px; color: #666; margin-left: 15px;">{{ $detail->notes }}</div>
-                    @endif
-                    @if($detail->unit_price != $detail->subtotal / $detail->quantity)
-                        <div style="font-size: 10px; color: #666; margin-left: 15px;">
-                            @ S/ {{ number_format($detail->unit_price, 2) }} c/u
-                        </div>
-                    @endif
-                </div>
-            @endforeach
-        </div>
-
-        <table class="totals">
-            <tr>
-                <td class="label">Subtotal:</td>
-                <td class="value">S/ {{ number_format($order->subtotal, 2) }}</td>
-            </tr>
-            <tr>
-                <td class="label">I.G.V. (18%):</td>
-                <td class="value">S/ {{ number_format($order->tax, 2) }}</td>
-            </tr>
-            @if($order->discount > 0)
-            <tr>
-                <td class="label">Descuento:</td>
-                <td class="value">S/ {{ number_format($order->discount, 2) }}</td>
-            </tr>
-            @endif
-            <tr class="grand-total">
-                <td class="label">TOTAL:</td>
-                <td class="value">S/ {{ number_format($order->total, 2) }}</td>
-            </tr>
-        </table>
-
-        @if($order->notes)
-            <div class="info">
-                <div class="label">Notas:</div>
-                <div>{{ $order->notes }}</div>
-            </div>
-        @endif
-
-        <div class="footer">
-            Gracias por su preferencia
-        </div>
-    </div>
+    <!-- VERSIÓN A5 ELIMINADA - PRINCIPIO KISS: Solo una versión optimizada -->
+    <!-- La versión térmica optimizada sirve para ambos formatos (80mm/57mm y A5) -->
 
 
 </body>
