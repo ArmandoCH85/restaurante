@@ -2970,18 +2970,16 @@
 
         });
 
-        // Escuchar el evento personalizado de factura completada
-        window.addEventListener('invoice-completed', function() {
-            // Vaciar el carrito
-            vaciarCarrito();
-
-            // Mostrar mensaje de éxito
-            alert('Factura generada correctamente');
-        });
-
-        // Mantener compatibilidad con el evento de mensaje
+        // Listener principal para eventos de factura completada
         window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'invoice-completed') {
+            console.log('Evento recibido:', event.data);
+
+            // Manejar tanto string directo como objeto
+            if (event.data === 'invoice-completed' ||
+                (event.data && event.data.type === 'invoice-completed')) {
+
+                console.log('Factura completada - Iniciando limpieza del carrito');
+
                 // Vaciar el carrito
                 vaciarCarrito();
 
@@ -2991,7 +2989,7 @@
                 }
 
                 // Mostrar mensaje de éxito
-                alert('Factura generada correctamente');
+                console.log('Carrito limpiado exitosamente');
             }
         });
     </script>
@@ -3055,33 +3053,30 @@
         // Función para vaciar el carrito después de generar un comprobante
         // Esta función SOLO debe llamarse cuando se emite un comprobante final (factura/boleta)
         function vaciarCarrito() {
-            console.log('Ejecutando vaciarCarrito() - Limpiando carrito y liberando mesa');
+            console.log('🧹 Ejecutando vaciarCarrito() - Limpiando carrito y liberando mesa');
 
             // Llamar al método clearSale del componente Livewire que limpia el carrito y libera la mesa
             if (window.Livewire) {
+                console.log('✅ Livewire disponible - Enviando evento clearSale');
+
                 // Usar dispatch para llamar al método clearSale
                 Livewire.dispatch('clearSale');
-                console.log('Evento clearSale enviado correctamente');
+                console.log('📤 Evento clearSale enviado correctamente');
 
-                // Redirigir al mapa de mesas después de un breve retraso
+                // Esperar a que se complete la actualización antes de redirigir
                 setTimeout(function() {
-                    console.log('Redirigiendo al mapa de mesas...');
-                    window.location.href = '{{ url("/tables") }}';
-                }, 500);
+                    console.log('🔄 Redirigiendo al mapa de mesas...');
+                    // Forzar recarga completa para asegurar que se vea el estado actualizado
+                    window.location.href = '{{ url("/tables") }}?refresh=' + Date.now();
+                }, 2000); // Aumentar el tiempo para asegurar que se complete la actualización
             } else {
-                console.error('Livewire no está disponible');
+                console.error('❌ Livewire no está disponible');
                 // Plan B: Recargar la página
-                window.location.href = '{{ url("/tables") }}';
+                window.location.href = '{{ url("/tables") }}?refresh=' + Date.now();
             }
         }
 
-        // Escuchar cuando se cierra la ventana del comprobante
-        window.addEventListener('message', function(event) {
-            if (event.data === 'invoice-completed') {
-                console.log('Comprobante generado - Vaciando carrito');
-                vaciarCarrito();
-            }
-        });
+        // Listener duplicado eliminado - se maneja en el listener principal arriba
 
         // Función para ir al mapa de mesas sin perder el carrito
         function irAMesas() {

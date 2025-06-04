@@ -65,13 +65,32 @@ class PointOfSale extends Component
         $this->products = collect(); // Inicializar como una colección vacía
         $this->availableTables = collect(); // Inicializar como una colección vacía
 
+        // SOLUCIÓN KISS: Detectar si se debe limpiar el carrito automáticamente
+        $clearCart = request()->get('clear_cart', false);
+
         // Registrar información para depuración
         Log::info('Montando componente PointOfSale', [
             'tableId' => $tableId,
             'serviceType' => $serviceType,
             'orderId' => $orderId,
-            'preserveCart' => $preserveCart
+            'preserveCart' => $preserveCart,
+            'clearCart' => $clearCart
         ]);
+
+        // Si se solicita limpiar el carrito, ejecutar clearSale inmediatamente
+        if ($clearCart && $tableId) {
+            Log::info('🧹 Limpieza automática de carrito solicitada', [
+                'tableId' => $tableId,
+                'clear_cart_param' => $clearCart
+            ]);
+
+            // Ejecutar la limpieza del carrito
+            $this->clearSale();
+
+            // Redirigir al mapa de mesas después de limpiar
+            $this->redirect(route('tables.map'));
+            return;
+        }
 
         // Configurar el tipo de servicio si se proporciona
         if ($serviceType) {
@@ -200,6 +219,26 @@ class PointOfSale extends Component
         // Si hay una mesa seleccionada, intentar cargar el carrito desde la sesión
         // independientemente de si el carrito está vacío o no
         if ($this->tableId) {
+            // Verificar si se acaba de ejecutar clearSale para evitar recargar órdenes
+            $clearSaleExecuted = session('clearSale_executed_' . $this->tableId);
+
+            if ($clearSaleExecuted && $clearSaleExecuted > now()) {
+                // Si se ejecutó clearSale recientemente y no ha expirado, no cargar órdenes automáticamente
+                \Illuminate\Support\Facades\Log::info('Evitando recarga automática después de clearSale', [
+                    'table_id' => $this->tableId,
+                    'expires_at' => $clearSaleExecuted->toDateTimeString(),
+                    'current_time' => now()->toDateTimeString()
+                ]);
+
+                return;
+            } elseif ($clearSaleExecuted) {
+                // Si la bandera ha expirado, limpiarla
+                session()->forget('clearSale_executed_' . $this->tableId);
+                \Illuminate\Support\Facades\Log::info('Bandera clearSale_executed expirada y limpiada', [
+                    'table_id' => $this->tableId
+                ]);
+            }
+
             // Intentar cargar el carrito desde la sesión
             if (!$this->loadCartFromSession()) {
                 // Si no hay carrito en la sesión, cargar desde la orden existente
@@ -218,8 +257,11 @@ class PointOfSale extends Component
         }
 
         // OPTIMIZACIÓN: Agregar más eager loading para evitar N+1 queries
+        // Solo cargar órdenes que NO estén completadas NI facturadas
         $order = Order::where('table_id', $this->tableId)
-            ->where('status', '!=', 'billed') // Que no esté facturada
+            ->where('status', '!=', Order::STATUS_COMPLETED) // Que no esté completada
+            ->where('status', '!=', Order::STATUS_CANCELLED) // Que no esté cancelada
+            ->where('billed', false) // Que no esté facturada
             ->orderBy('created_at', 'desc')
             ->with([
                 'orderDetails.product.category',
@@ -303,8 +345,8 @@ class PointOfSale extends Component
         $this->categories = ProductCategory::where('visible_in_menu', true)
             ->withCount(['products' => function ($query) {
                 $query->where('active', true)
-                      ->where('available', true)
-                      ->where('product_type', '!=', 'ingredient');
+                    ->where('available', true)
+                    ->where('product_type', '!=', 'ingredient');
             }])
             ->orderBy('display_order')
             ->get();
@@ -651,9 +693,9 @@ class PointOfSale extends Component
             } else {
                 // Buscar orden existente según el tipo de servicio
                 $query = Order::where('status', '!=', Order::STATUS_COMPLETED)
-                            ->where('status', '!=', Order::STATUS_CANCELLED)
-                            ->where('service_type', $this->serviceType)
-                            ->orderBy('created_at', 'desc');
+                    ->where('status', '!=', Order::STATUS_CANCELLED)
+                    ->where('service_type', $this->serviceType)
+                    ->orderBy('created_at', 'desc');
 
                 // Si es delivery, filtrar por cliente
                 if ($this->serviceType === 'delivery' && $this->customerId) {
@@ -715,7 +757,6 @@ class PointOfSale extends Component
                     event(new \App\Events\DeliveryStatusChanged($deliveryOrder));
                 }
             }
-
         } else {
             // Si no existe, crear una nueva usando los métodos de la mesa
             Log::info('Creating new order');
@@ -737,7 +778,6 @@ class PointOfSale extends Component
                     'table_number' => $table->number,
                     'table_location' => $table->location
                 ]);
-
             } else {
                 // Para otros tipos de servicio, crear la orden manualmente
                 $order = new Order();
@@ -801,7 +841,6 @@ class PointOfSale extends Component
 
                     // Disparar evento de cambio de estado
                     event(new \App\Events\DeliveryStatusChanged($deliveryOrder));
-
                 } catch (\Exception $e) {
                     // Registrar error detallado
                     Log::error('Error al crear pedido de delivery', [
@@ -848,7 +887,6 @@ class PointOfSale extends Component
             // Abrir ventana directamente con JavaScript
             $url = route('pos.command.pdf', ['order' => $order->id]);
             $this->js("window.open('$url', '_blank', 'width=800,height=600')");
-
         } catch (\Exception $e) {
             $this->dispatch('notification', [
                 'type' => 'error',
@@ -886,7 +924,6 @@ class PointOfSale extends Component
             // Abrir ventana directamente con JavaScript
             $url = route('pos.prebill.pdf', ['order' => $order->id]);
             $this->js("window.open('$url', '_blank', 'width=800,height=600')");
-
         } catch (\Exception $e) {
             $this->dispatch('notification', [
                 'type' => 'error',
@@ -952,7 +989,6 @@ class PointOfSale extends Component
             // Abrir ventana directamente con JavaScript usando el nuevo flujo unificado
             $url = route('pos.unified.form', ['order' => $order->id]);
             $this->js("window.open('$url', '_blank', 'width=1000,height=700')");
-
         } catch (\Exception $e) {
             $this->dispatch('notification', [
                 'type' => 'error',
@@ -997,7 +1033,6 @@ class PointOfSale extends Component
             // Abrir ventana directamente con JavaScript usando el nuevo flujo unificado
             $url = route('pos.unified.form', ['order' => $order->id]);
             $this->js("window.open('$url', '_blank', 'width=1000,height=700')");
-
         } catch (\Exception $e) {
             $this->dispatch('notification', [
                 'type' => 'error',
@@ -1037,37 +1072,53 @@ class PointOfSale extends Component
     public function clearSale(): void
     {
         // Registrar información detallada para depuración
-        \Illuminate\Support\Facades\Log::info('Ejecutando clearSale', [
+        \Illuminate\Support\Facades\Log::info('🧹 EJECUTANDO clearSale - Iniciando limpieza completa', [
             'table_id' => $this->tableId,
             'table_status' => $this->table ? $this->table->status : 'null',
             'cart_count' => count($this->cart),
-            'current_order_id' => $this->currentOrder ? $this->currentOrder->id : null
+            'current_order_id' => $this->currentOrder ? $this->currentOrder->id : null,
+            'timestamp' => now()->toDateTimeString()
         ]);
 
-        // Si hay una orden actual, marcarla como completada
-        if ($this->currentOrder) {
+        // Marcar TODAS las órdenes pendientes de esta mesa como completadas
+        if ($this->tableId) {
             try {
-                // Marcar la orden como completada
-                $this->currentOrder->status = Order::STATUS_COMPLETED;
-                $this->currentOrder->save();
+                // Buscar TODAS las órdenes pendientes de esta mesa (sin restricción de billed)
+                $pendingOrders = Order::where('table_id', $this->tableId)
+                    ->whereIn('status', [Order::STATUS_OPEN, Order::STATUS_IN_PREPARATION, Order::STATUS_READY, Order::STATUS_DELIVERED])
+                    ->get();
 
-                // Registrar en el log
-                \Illuminate\Support\Facades\Log::info('Orden marcada como completada', [
-                    'order_id' => $this->currentOrder->id
+                \Illuminate\Support\Facades\Log::info('🔍 Órdenes pendientes encontradas para completar', [
+                    'table_id' => $this->tableId,
+                    'orders_found' => $pendingOrders->count(),
+                    'order_ids' => $pendingOrders->pluck('id')->toArray(),
+                    'order_statuses' => $pendingOrders->pluck('status')->toArray()
                 ]);
 
-                // Eliminar los detalles de la orden (productos)
-                $this->currentOrder->orderDetails()->delete();
+                foreach ($pendingOrders as $order) {
+                    $previousStatus = $order->status;
+                    $order->status = Order::STATUS_COMPLETED;
+                    $order->billed = true;
+                    $order->save();
 
-                // Registrar en el log
-                \Illuminate\Support\Facades\Log::info('Productos de la orden eliminados', [
-                    'order_id' => $this->currentOrder->id
+                    \Illuminate\Support\Facades\Log::info('✅ Orden marcada como completada en clearSale', [
+                        'order_id' => $order->id,
+                        'table_id' => $this->tableId,
+                        'previous_status' => $previousStatus,
+                        'new_status' => $order->status,
+                        'billed' => $order->billed
+                    ]);
+                }
+
+                \Illuminate\Support\Facades\Log::info('✅ Todas las órdenes pendientes marcadas como completadas', [
+                    'table_id' => $this->tableId,
+                    'orders_completed' => $pendingOrders->count()
                 ]);
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Error al completar la orden', [
+                \Illuminate\Support\Facades\Log::error('Error al completar las órdenes pendientes', [
                     'error' => $e->getMessage(),
                     'trace' => $e->getTraceAsString(),
-                    'order_id' => $this->currentOrder->id
+                    'table_id' => $this->tableId
                 ]);
             }
         }
@@ -1077,24 +1128,60 @@ class PointOfSale extends Component
         $this->cartTotal = 0;
         $this->customerNote = null;
 
-        // Limpiar la sesión
+        // Limpiar la sesión y marcar que clearSale se ejecutó
         if ($this->tableId) {
             session()->forget('cart_' . $this->tableId);
+            // Marcar que clearSale se ejecutó para evitar recarga automática por 30 segundos
+            session()->put('clearSale_executed_' . $this->tableId, now()->addSeconds(30));
+
+            \Illuminate\Support\Facades\Log::info('🚫 Bandera clearSale_executed establecida', [
+                'table_id' => $this->tableId,
+                'expires_at' => now()->addSeconds(30)->toDateTimeString()
+            ]);
         }
 
         // Si hay una mesa seleccionada, cambiarla a disponible
         if ($this->table) {
-            $this->table->refresh(); // Refrescar para obtener los últimos datos
+            try {
+                // Refrescar para obtener los últimos datos desde la base de datos
+                $this->table->refresh();
 
-            // Cambiar el estado de la mesa a disponible
-            $this->table->status = Table::STATUS_AVAILABLE;
-            $this->table->occupied_at = null;
-            $this->table->save();
+                // Cambiar el estado de la mesa a disponible
+                $this->table->status = Table::STATUS_AVAILABLE;
+                $this->table->occupied_at = null;
+                $saved = $this->table->save();
 
-            // Registrar en el log
-            \Illuminate\Support\Facades\Log::info('Mesa marcada como disponible al completar la venta', [
-                'table_id' => $this->tableId,
-                'table_number' => $this->table->number
+                // Registrar en el log con más detalles
+                \Illuminate\Support\Facades\Log::info('✅ Mesa marcada como disponible al completar la venta', [
+                    'table_id' => $this->tableId,
+                    'table_number' => $this->table->number,
+                    'previous_status' => $this->table->getOriginal('status'),
+                    'new_status' => $this->table->status,
+                    'save_result' => $saved ? 'success' : 'failed',
+                    'timestamp' => now()->toDateTimeString()
+                ]);
+
+                // Forzar actualización del componente
+                $this->dispatch('table-status-updated', [
+                    'tableId' => $this->tableId,
+                    'newStatus' => Table::STATUS_AVAILABLE
+                ]);
+
+                \Illuminate\Support\Facades\Log::info('📡 Evento table-status-updated enviado', [
+                    'table_id' => $this->tableId,
+                    'new_status' => Table::STATUS_AVAILABLE,
+                    'timestamp' => now()->toDateTimeString()
+                ]);
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('❌ Error al actualizar estado de mesa en clearSale', [
+                    'table_id' => $this->tableId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+            }
+        } else {
+            \Illuminate\Support\Facades\Log::warning('⚠️ No hay mesa seleccionada para liberar en clearSale', [
+                'table_id' => $this->tableId
             ]);
         }
 
@@ -1103,6 +1190,14 @@ class PointOfSale extends Component
             'type' => 'success',
             'title' => 'Venta completada',
             'message' => 'La venta se ha completado correctamente y la mesa está disponible'
+        ]);
+
+        // Log final para confirmar que el método se ejecutó completamente
+        \Illuminate\Support\Facades\Log::info('✅ clearSale COMPLETADO exitosamente', [
+            'table_id' => $this->tableId,
+            'cart_cleared' => empty($this->cart),
+            'table_status' => $this->table ? $this->table->status : 'null',
+            'timestamp' => now()->toDateTimeString()
         ]);
     }
 
@@ -1296,7 +1391,6 @@ class PointOfSale extends Component
 
             // Redirigir al mapa de mesas
             $this->redirect(route('tables.map'));
-
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error al liberar la mesa', [
                 'error' => $e->getMessage(),
@@ -1501,7 +1595,7 @@ class PointOfSale extends Component
                 ]);
 
                 // Guardar el carrito de la mesa destino en la sesión
-                $destinationCartTotal = array_sum(array_map(function($item) {
+                $destinationCartTotal = array_sum(array_map(function ($item) {
                     return $item['subtotal'];
                 }, $destinationCart));
 
@@ -1581,7 +1675,7 @@ class PointOfSale extends Component
                 $this->saveCartToSession();
 
                 // Guardar el carrito de la mesa destino en la sesión con el formato correcto
-                $destinationCartTotal = array_sum(array_map(function($item) {
+                $destinationCartTotal = array_sum(array_map(function ($item) {
                     return $item['subtotal'];
                 }, $destinationCart));
 
@@ -1677,7 +1771,6 @@ class PointOfSale extends Component
                 // Si transferimos todos los productos, redirigir a la mesa destino
                 $this->redirect(route('pos.table', ['table' => $destinationTable->id]));
             }
-
         } catch (\Exception $e) {
             // En caso de error, notificar al usuario
             \Illuminate\Support\Facades\Log::error('Error al transferir mesa', [
@@ -2089,7 +2182,6 @@ class PointOfSale extends Component
                 'phone' => $this->customerPhone,
                 'name' => $this->customerName
             ]);
-
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('saveCustomer: Error al guardar cliente', [
                 'error' => $e->getMessage(),
@@ -2290,7 +2382,6 @@ class PointOfSale extends Component
             $logPath = storage_path('logs/delivery_process.log');
             $logContent = '[' . now()->format('Y-m-d H:i:s') . '] ÉXITO: Proceso completado, mostrando comanda para orden ID: ' . $order->id;
             file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
-
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error en processDeliveryOrder', [
                 'error' => $e->getMessage(),
