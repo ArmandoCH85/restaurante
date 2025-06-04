@@ -267,25 +267,19 @@
                                             @endphp
                                             <div class="table-container">
                                                 <div class="table-card {{ $table->status ?? 'available' }}">
-                                                    <!-- Cabecera con número y estado -->
-                                                    <div class="table-header-container">
-                                                        <div class="table-header">
-                                                            <h3>Mesa {{ $table->number }}</h3>
-                                                            <span class="table-status-badge-inline {{ $table->status ?? 'available' }}">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="status-icon">
-                                                                    <circle cx="12" cy="12" r="4" fill="currentColor" />
-                                                                </svg>
-                                                                {{ $statusInfo['text'] }}
-                                                            </span>
-                                                        </div>
-                                                        <p class="table-capacity">Capacidad: {{ $table->capacity ?? '?' }} personas</p>
+                                                    <div class="table-card-header">
+                                                        <h3 class="table-number">Mesa {{ $table->number }}</h3>
+                                                        <span class="table-status-badge-inline {{ $table->status ?? 'available' }}">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="status-icon">
+                                                                <circle cx="12" cy="12" r="4" fill="currentColor" />
+                                                            </svg>
+                                                            {{ $statusInfo['text'] }}
+                                                        </span>
                                                     </div>
 
-                                                    <!-- Representación visual de la mesa -->
-                                                    <div class="table-visual-container">
+                                                    <div class="table-card-body">
                                                         <a href="{{ route('pos.index', ['table_id' => $table->id, 'preserve_cart' => 'true']) }}" class="table-link">
                                                             @php
-                                                                // Determinar la forma de la mesa basada en la capacidad y la forma
                                                                 $tableShape = 'table-square';
                                                                 if ($table->shape == 'round') {
                                                                     $tableShape = 'table-round';
@@ -294,13 +288,11 @@
                                                                 }
                                                             @endphp
                                                             <div class="table-visual {{ $tableShape }} {{ $table->status ?? 'available' }}">
-                                                                <!-- Sillas para mesas cuadradas -->
                                                                 @if($tableShape == 'table-square')
                                                                     <div class="chair-left"></div>
                                                                     <div class="chair-right"></div>
                                                                 @endif
 
-                                                                <!-- Sillas para mesas redondas -->
                                                                 @if($tableShape == 'table-round' && ($table->capacity ?? 0) >= 6)
                                                                     <div class="chair-top-left"></div>
                                                                     <div class="chair-top-right"></div>
@@ -313,7 +305,6 @@
                                                                     <div class="chair-right"></div>
                                                                 @endif
 
-                                                                <!-- Sillas para mesas rectangulares -->
                                                                 @if($tableShape == 'table-rectangular' || $tableShape == 'table-oval')
                                                                     <div class="chair-left-top"></div>
                                                                     <div class="chair-left-bottom"></div>
@@ -322,13 +313,8 @@
                                                                 @endif
 
                                                                 <span class="table-number">{{ $table->number }}</span>
+                                                                <div class="table-capacity-indicator">{{ $table->capacity ?? '?' }}</div>
 
-                                                                <!-- Indicador de capacidad -->
-                                                                <div class="table-capacity-indicator">
-                                                                    {{ $table->capacity ?? '?' }}
-                                                                </div>
-
-                                                                <!-- Información de orden para mesas ocupadas -->
                                                                 @if(($table->status ?? '') === 'occupied')
                                                                     <div class="table-order-info">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -339,28 +325,28 @@
                                                                 @endif
                                                             </div>
                                                         </a>
+
+                                                        <p class="table-capacity">Capacidad: {{ $table->capacity ?? '?' }} personas</p>
+
+                                                        @if(($table->status ?? '') === 'occupied' && ($occupationTime = $this->getOccupationTime($table)))
+                                                            <div class="occupation-time-container">
+                                                                <span class="occupation-time {{ $this->getOccupationTimeClass($table) }}">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="time-icon">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    </svg>
+                                                                    {{ $occupationTime }}
+                                                                </span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if($table->activeReservations && $table->activeReservations->count() > 0)
+                                                            <div class="absolute top-0 left-0 transform -translate-x-1/4 -translate-y-1/4 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold border border-white dark:border-gray-800 shadow-sm">
+                                                                {{ $table->activeReservations->count() }}
+                                                            </div>
+                                                        @endif
                                                     </div>
 
-                                                    <!-- Tiempo de ocupación si está ocupada -->
-                                                    @if(($table->status ?? '') === 'occupied' && ($occupationTime = $this->getOccupationTime($table)))
-                                                        <div class="occupation-time-container">
-                                                            <span class="occupation-time {{ $this->getOccupationTimeClass($table) }}">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="time-icon">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                </svg>
-                                                                {{ $occupationTime }}
-                                                            </span>
-                                                        </div>
-                                                    @endif
-
-                                                    <!-- Indicador de reserva -->
-                                                    @if($table->activeReservations && $table->activeReservations->count() > 0)
-                                                        <div class="absolute top-0 left-0 transform -translate-x-1/4 -translate-y-1/4 w-4 h-4 bg-yellow-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold border border-white dark:border-gray-800 shadow-sm">
-                                                            {{ $table->activeReservations->count() }}
-                                                        </div>
-                                                    @endif
-
-                                                    <div class="table-actions mt-auto">
+                                                    <div class="table-card-footer">
                                                         <div class="status-select-container">
                                                             <select class="status-select" wire:change="changeTableStatus({{ $table->id }}, $event.target.value)">
                                                                 <option value="" disabled selected>Cambiar estado</option>
