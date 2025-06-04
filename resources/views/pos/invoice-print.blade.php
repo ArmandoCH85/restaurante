@@ -434,43 +434,81 @@
                     </span>
                     <span>{{ $invoice->client_document }}</span>
                 </div>
-                <div class="thermal-info-row">
-                    <span class="label">Mesa:</span>
-                    <span>{{ $invoice->order->table->name ?? 'Para llevar' }}</span>
-                </div>
-                <div class="thermal-info-row">
-                    <span class="label">Pago:</span>
-                    <span>
-                        @switch($invoice->payment_method)
-                            @case('cash')
-                                Efectivo
-                                @break
-                            @case('card')
-                                Tarjeta
-                                @break
-                            @case('transfer')
-                                Transferencia
-                                @break
-                            @case('yape')
-                                Yape
-                                @break
-                            @case('plin')
-                                Plin
-                                @break
-                            @default
-                                {{ $invoice->payment_method }}
-                        @endswitch
-                    </span>
-                </div>
-                @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
-                <div class="thermal-info-row">
-                    <span class="label">Recibido:</span>
-                    <span>S/ {{ number_format($invoice->payment_amount, 2) }}</span>
-                </div>
-                <div class="thermal-info-row">
-                    <span class="label">Vuelto:</span>
-                    <span>S/ {{ number_format($change_amount, 2) }}</span>
-                </div>
+
+
+                @if($invoice->order->service_type === 'delivery')
+                    @php
+                        // Lógica inteligente para obtener dirección y referencias
+                        $deliveryAddress = null;
+                        $deliveryReferences = null;
+
+                        // Primero intentar obtener del DeliveryOrder
+                        if($invoice->order->deliveryOrder) {
+                            $deliveryAddress = $invoice->order->deliveryOrder->delivery_address;
+                            $deliveryReferences = $invoice->order->deliveryOrder->delivery_references;
+                        }
+
+                        // Si el DeliveryOrder tiene valores por defecto, usar información del cliente
+                        if($deliveryAddress === 'Dirección pendiente de completar' || empty($deliveryAddress)) {
+                            $deliveryAddress = $invoice->customer->address ?? null;
+                        }
+
+                        if($deliveryReferences === 'Referencias pendientes' || empty($deliveryReferences)) {
+                            $deliveryReferences = $invoice->customer->address_references ?? null;
+                        }
+                    @endphp
+
+                    <!-- INFORMACIÓN DE DELIVERY -->
+                    @if($deliveryAddress)
+                        <div class="thermal-info-row">
+                            <span class="label">Dirección:</span>
+                            <span>{{ $deliveryAddress }}</span>
+                        </div>
+                        @if($deliveryReferences)
+                        <div class="thermal-info-row">
+                            <span class="label">Referencia:</span>
+                            <span>{{ $deliveryReferences }}</span>
+                        </div>
+                        @endif
+                    @else
+                        <div class="thermal-info-row">
+                            <span class="label">Tipo:</span>
+                            <span>Delivery</span>
+                        </div>
+                    @endif
+                @elseif($invoice->order->table_id && $invoice->order->table)
+                    <!-- INFORMACIÓN DE MESA -->
+                    <div class="thermal-info-row">
+                        <span class="label">Mesa:</span>
+                        <span>Mesa #{{ $invoice->order->table->number }}@if($invoice->order->table->location) - {{ ucfirst($invoice->order->table->location) }}@endif</span>
+                    </div>
+                @else
+                    <!-- INFORMACIÓN DE TIPO DE SERVICIO -->
+                    @if($invoice->order->service_type === 'dine_in')
+                        <!-- EN LOCAL: Mostrar mesa si existe, sino "En local" -->
+                        <div class="thermal-info-row">
+                            <span class="label">Mesa:</span>
+                            <span>
+                                @if($invoice->order->table_id && $invoice->order->table)
+                                    Mesa #{{ $invoice->order->table->number }}@if($invoice->order->table->location) - {{ ucfirst($invoice->order->table->location) }}@endif
+                                @else
+                                    En local
+                                @endif
+                            </span>
+                        </div>
+                    @elseif($invoice->order->service_type === 'takeout')
+                        <!-- PARA LLEVAR -->
+                        <div class="thermal-info-row">
+                            <span class="label">Tipo:</span>
+                            <span>Para llevar</span>
+                        </div>
+                    @else
+                        <!-- FALLBACK -->
+                        <div class="thermal-info-row">
+                            <span class="label">Tipo:</span>
+                            <span>Para llevar</span>
+                        </div>
+                    @endif
                 @endif
             </div>
 
@@ -480,6 +518,7 @@
             </div>
             @endif
 
+            <!-- DETALLES DEL PEDIDO (PRIMERO) -->
             <div style="border-top: 1px dashed #000; margin: 6px 0; padding-top: 3px;">
                 @foreach($invoice->details as $detail)
                     <div style="margin-bottom: 3px; font-size: 10px;">
@@ -496,10 +535,62 @@
                 @endforeach
             </div>
 
+            <!-- INFORMACIÓN DE PAGO (DESPUÉS DE DETALLES) -->
+            <div class="thermal-info" style="border-top: 1px dashed #000; margin: 6px 0; padding-top: 3px;">
+                <div class="thermal-info-row">
+                    <span class="label">Pago:</span>
+                    <span>
+                        @switch($invoice->payment_method)
+                            @case('cash')
+                                Efectivo
+                                @break
+                            @case('card')
+                                Tarjeta
+                                @break
+                            @case('credit_card')
+                                Tarjeta de Crédito
+                                @break
+                            @case('debit_card')
+                                Tarjeta de Débito
+                                @break
+                            @case('digital_wallet')
+                                Billetera Digital
+                                @break
+                            @case('bank_transfer')
+                            @case('transfer')
+                                Transferencia
+                                @break
+                            @case('yape')
+                                Yape
+                                @break
+                            @case('plin')
+                                Plin
+                                @break
+                            @case('multiple')
+                                Múltiple
+                                @break
+                            @default
+                                {{ ucfirst(str_replace('_', ' ', $invoice->payment_method)) }}
+                        @endswitch
+                    </span>
+                </div>
+                @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
+                <div class="thermal-info-row">
+                    <span class="label">Recibido:</span>
+                    <span>S/ {{ number_format($invoice->payment_amount, 2) }}</span>
+                </div>
+                <div class="thermal-info-row">
+                    <span class="label">Vuelto:</span>
+                    <span>S/ {{ number_format($change_amount, 2) }}</span>
+                </div>
+                @endif
+            </div>
+
             <div class="thermal-text-amount">
                 SON: {{ ucfirst(num_to_letras($invoice->total)) }} SOLES
             </div>
 
+            <!-- TOTALES CON IGV -->
             <div class="thermal-totals">
                 <div class="thermal-total-row">
                     <span class="label">Subtotal:</span>
@@ -583,38 +674,75 @@
                     </span>
                     {{ $invoice->client_document }}
                 </div>
-                <div class="info-row">
-                    <span class="label">MESA:</span> {{ $invoice->order->table->name ?? 'Para llevar' }}
-                </div>
-                <div class="info-row">
-                    <span class="label">FORMA DE PAGO:</span>
-                    @switch($invoice->payment_method)
-                        @case('cash')
-                            Efectivo
-                            @break
-                        @case('card')
-                            Tarjeta
-                            @break
-                        @case('transfer')
-                            Transferencia
-                            @break
-                        @case('yape')
-                            Yape
-                            @break
-                        @case('plin')
-                            Plin
-                            @break
-                        @default
-                            {{ $invoice->payment_method }}
-                    @endswitch
-                </div>
-                @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
-                <div class="info-row">
-                    <span class="label">RECIBIDO:</span> S/ {{ number_format($invoice->payment_amount, 2) }}
-                </div>
-                <div class="info-row">
-                    <span class="label">VUELTO:</span> S/ {{ number_format($change_amount, 2) }}
-                </div>
+
+
+                @if($invoice->order->service_type === 'delivery')
+                    @php
+                        // Lógica inteligente para obtener dirección y referencias
+                        $deliveryAddress = null;
+                        $deliveryReferences = null;
+
+                        // Primero intentar obtener del DeliveryOrder
+                        if($invoice->order->deliveryOrder) {
+                            $deliveryAddress = $invoice->order->deliveryOrder->delivery_address;
+                            $deliveryReferences = $invoice->order->deliveryOrder->delivery_references;
+                        }
+
+                        // Si el DeliveryOrder tiene valores por defecto, usar información del cliente
+                        if($deliveryAddress === 'Dirección pendiente de completar' || empty($deliveryAddress)) {
+                            $deliveryAddress = $invoice->customer->address ?? null;
+                        }
+
+                        if($deliveryReferences === 'Referencias pendientes' || empty($deliveryReferences)) {
+                            $deliveryReferences = $invoice->customer->address_references ?? null;
+                        }
+                    @endphp
+
+                    <!-- INFORMACIÓN DE DELIVERY -->
+                    @if($deliveryAddress)
+                        <div class="info-row">
+                            <span class="label">DIRECCIÓN:</span> {{ $deliveryAddress }}
+                        </div>
+                        @if($deliveryReferences)
+                        <div class="info-row">
+                            <span class="label">REFERENCIA:</span> {{ $deliveryReferences }}
+                        </div>
+                        @endif
+                    @else
+                        <div class="info-row">
+                            <span class="label">TIPO:</span> Delivery
+                        </div>
+                    @endif
+                @elseif($invoice->order->table_id && $invoice->order->table)
+                    <!-- INFORMACIÓN DE MESA -->
+                    <div class="info-row">
+                        <span class="label">MESA:</span> Mesa #{{ $invoice->order->table->number }}@if($invoice->order->table->location) - {{ ucfirst($invoice->order->table->location) }}@endif
+                    </div>
+                @else
+                    <!-- INFORMACIÓN DE TIPO DE SERVICIO -->
+                    @if($invoice->order->service_type === 'dine_in')
+                        <!-- EN LOCAL: Mostrar mesa si existe, sino "En local" -->
+                        <div class="info-row">
+                            <span class="label">MESA:</span>
+                            @if($invoice->order->table_id && $invoice->order->table)
+                                Mesa #{{ $invoice->order->table->number }}@if($invoice->order->table->location) - {{ ucfirst($invoice->order->table->location) }}@endif
+                            @else
+                                En local
+                            @endif
+                        </div>
+                    @elseif($invoice->order->service_type === 'takeout')
+                        <!-- PARA LLEVAR -->
+                        <div class="info-row">
+                            <span class="label">TIPO:</span>
+                            Para llevar
+                        </div>
+                    @else
+                        <!-- FALLBACK -->
+                        <div class="info-row">
+                            <span class="label">TIPO:</span>
+                            Para llevar
+                        </div>
+                    @endif
                 @endif
             </div>
 
@@ -631,6 +759,7 @@
             </div>
             @endif
 
+            <!-- DETALLES DEL PEDIDO (PRIMERO) -->
             <div style="border-top: 1px solid #000; margin: 15px 0; padding-top: 10px;">
                 @foreach($invoice->details as $detail)
                     <div style="margin-bottom: 8px; font-size: 12px;">
@@ -647,10 +776,58 @@
                 @endforeach
             </div>
 
+            <!-- INFORMACIÓN DE PAGO (DESPUÉS DE DETALLES) -->
+            <div class="info" style="border-top: 1px solid #000; margin: 15px 0; padding-top: 10px;">
+                <div class="info-row">
+                    <span class="label">FORMA DE PAGO:</span>
+                    @switch($invoice->payment_method)
+                        @case('cash')
+                            Efectivo
+                            @break
+                        @case('card')
+                            Tarjeta
+                            @break
+                        @case('credit_card')
+                            Tarjeta de Crédito
+                            @break
+                        @case('debit_card')
+                            Tarjeta de Débito
+                            @break
+                        @case('digital_wallet')
+                            Billetera Digital
+                            @break
+                        @case('bank_transfer')
+                        @case('transfer')
+                            Transferencia
+                            @break
+                        @case('yape')
+                            Yape
+                            @break
+                        @case('plin')
+                            Plin
+                            @break
+                        @case('multiple')
+                            Múltiple
+                            @break
+                        @default
+                            {{ ucfirst(str_replace('_', ' ', $invoice->payment_method)) }}
+                    @endswitch
+                </div>
+                @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
+                <div class="info-row">
+                    <span class="label">RECIBIDO:</span> S/ {{ number_format($invoice->payment_amount, 2) }}
+                </div>
+                <div class="info-row">
+                    <span class="label">VUELTO:</span> S/ {{ number_format($change_amount, 2) }}
+                </div>
+                @endif
+            </div>
+
             <div class="text-amount">
                 SON: {{ ucfirst(num_to_letras($invoice->total)) }} SOLES
             </div>
 
+            <!-- TOTALES CON IGV -->
             <div class="totals">
                 <div class="total-row">
                     <span class="label">Subtotal:</span>
@@ -670,6 +847,8 @@
                 Gracias por su preferencia
             </div>
         </div>
+
+
 
         <div class="action-buttons no-print">
             <button class="print-button" onclick="window.print()">

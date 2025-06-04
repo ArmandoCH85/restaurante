@@ -135,6 +135,18 @@
             margin-top: 10px;
             border: 1px solid #b8daff;
         }
+        .customer-result:hover {
+            background-color: #f8f9fa;
+        }
+        .alert-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        .alert-info {
+            background-color: #e7f3ff;
+            border-color: #b8daff;
+            color: #0c5460;
+        }
     </style>
 </head>
 <body>
@@ -145,8 +157,25 @@
                     <h2>Pago y Facturación</h2>
                     <p class="mb-0">Orden #{{ $order->id }}</p>
                     <p class="mb-0">Fecha: {{ $order->order_datetime->format('d/m/Y H:i') }}</p>
-                    @if($order->table)
-                        <p class="mb-0">Mesa: {{ $order->table->number }}</p>
+                    @if($order->service_type === 'delivery')
+                        <p class="mb-0"><i class="fas fa-truck text-primary"></i> <strong>Servicio: Delivery</strong></p>
+                        @if($order->deliveryOrder && $order->deliveryOrder->delivery_address)
+                            <p class="mb-0"><i class="fas fa-map-marker-alt text-success"></i> {{ $order->deliveryOrder->delivery_address }}</p>
+                            @if($order->deliveryOrder->delivery_references)
+                                <p class="mb-0 small text-muted">Ref: {{ $order->deliveryOrder->delivery_references }}</p>
+                            @endif
+                        @endif
+                    @elseif($order->service_type === 'dine_in')
+                        <!-- EN LOCAL: Mostrar mesa si existe, sino "En local" -->
+                        @if($order->table_id && $order->table)
+                            <p class="mb-0"><i class="fas fa-utensils text-info"></i> Mesa: {{ $order->table->number }}@if($order->table->location) - {{ ucfirst($order->table->location) }}@endif</p>
+                        @else
+                            <p class="mb-0"><i class="fas fa-utensils text-info"></i> En local</p>
+                        @endif
+                    @elseif($order->service_type === 'takeout')
+                        <p class="mb-0"><i class="fas fa-shopping-bag text-warning"></i> Para llevar</p>
+                    @else
+                        <p class="mb-0"><i class="fas fa-shopping-bag text-warning"></i> Para llevar</p>
                     @endif
                     @if($order->customer)
                         <p class="mb-0">Cliente: {{ $order->customer->name }}</p>
@@ -305,7 +334,7 @@
                         <h5>3. Datos del Cliente</h5>
 
                         <!-- Campo oculto para el ID del cliente -->
-                        <input type="hidden" id="customer_id" name="customer_id" value="{{ $genericCustomer->id }}">
+                        <input type="hidden" id="customer_id" name="customer_id" value="{{ $order->customer_id ?? $genericCustomer->id }}">
 
                         <!-- Cliente genérico para Nota de Venta -->
                         <div id="generic_customer" class="mb-3" style="display: block;">
@@ -321,6 +350,12 @@
 
                         <!-- Búsqueda de cliente (solo para Boleta y Factura) -->
                         <div id="customer_search_container" class="mb-3" style="display: none;">
+                            @if($order->service_type === 'delivery' && $order->customer)
+                                <div class="alert alert-info alert-sm mb-2">
+                                    <i class="fas fa-truck"></i> <strong>Datos precargados desde delivery</strong>
+                                    <small class="d-block">Los datos del cliente y dirección se han cargado automáticamente desde la orden de delivery.</small>
+                                </div>
+                            @endif
                             <div class="input-group">
                                 <input type="text" class="form-control" id="customer_search" placeholder="Buscar por nombre o documento" autocomplete="off">
                                 <button class="btn btn-outline-secondary" type="button" id="search_customer_btn">
@@ -343,6 +378,16 @@
                                     <p class="card-text" id="customer_document"></p>
                                     <p class="card-text" id="customer_address"></p>
                                     <p class="card-text" id="customer_phone"></p>
+                                    @if($order->service_type === 'delivery' && $order->deliveryOrder)
+                                        <hr class="my-2">
+                                        <h6 class="card-subtitle mb-2 text-muted"><i class="fas fa-truck"></i> Información de Delivery</h6>
+                                        @if($order->deliveryOrder->delivery_address)
+                                            <p class="card-text small"><strong>Dirección de entrega:</strong> {{ $order->deliveryOrder->delivery_address }}</p>
+                                        @endif
+                                        @if($order->deliveryOrder->delivery_references)
+                                            <p class="card-text small"><strong>Referencias:</strong> {{ $order->deliveryOrder->delivery_references }}</p>
+                                        @endif
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -574,6 +619,7 @@
                 document.getElementById('customer_name').textContent = 'Nombre: ' + customer.name;
                 document.getElementById('customer_document').textContent = 'Documento: ' + (customer.document_type || 'DNI') + ' ' + customer.document_number;
                 document.getElementById('customer_address').textContent = 'Dirección: ' + (customer.address || 'No especificada');
+                document.getElementById('customer_phone').textContent = 'Teléfono: ' + (customer.phone || 'No especificado');
                 document.getElementById('customer_details').style.display = 'block';
             } else {
                 document.getElementById('customer_details').style.display = 'none';
@@ -699,6 +745,10 @@
 
         // Inicializar la interfaz según el tipo de comprobante seleccionado
         const initialInvoiceType = document.getElementById('invoice_type').value;
+
+        // Verificar si es una orden de delivery con cliente
+        const isDeliveryWithCustomer = {{ $order->service_type === 'delivery' && $order->customer ? 'true' : 'false' }};
+
         if (initialInvoiceType === 'sales_note') {
             // Para nota de venta, mostrar cliente genérico y ocultar búsqueda
             document.getElementById('generic_customer').style.display = 'block';
@@ -714,6 +764,14 @@
             if (customerId != {{ $genericCustomer?->id ?? 0 }}) {
                 updateCustomerDetails();
                 document.getElementById('customer_details').style.display = 'block';
+
+                // Si es delivery con cliente, precargar datos en el campo de búsqueda
+                if (isDeliveryWithCustomer) {
+                    const deliveryCustomer = @json($order->customer ?? null);
+                    if (deliveryCustomer) {
+                        document.getElementById('customer_search').value = deliveryCustomer.name;
+                    }
+                }
             }
         }
 

@@ -21,7 +21,7 @@ class UnifiedPaymentController extends Controller
      */
     public function showUnifiedForm($orderId)
     {
-        $order = Order::with(['orderDetails.product', 'customer', 'payments'])
+        $order = Order::with(['orderDetails.product', 'customer', 'payments', 'table', 'deliveryOrder'])
             ->findOrFail($orderId);
 
         // Verificar si hay una caja abierta
@@ -73,7 +73,17 @@ class UnifiedPaymentController extends Controller
             'payment_count' => 'nullable|integer',
         ]);
 
-        $order = Order::findOrFail($orderId);
+        $order = Order::with(['orderDetails.product', 'customer', 'payments', 'table', 'deliveryOrder'])
+            ->findOrFail($orderId);
+
+        // Log para debugging de la orden cargada
+        Log::info('Order loaded in processUnified', [
+            'order_id' => $order->id,
+            'service_type' => $order->service_type,
+            'table_id' => $order->table_id,
+            'has_table_relation' => $order->table ? 'YES' : 'NO',
+            'table_type' => $order->table ? gettype($order->table) : 'NULL'
+        ]);
 
         try {
             // 1. Registrar el pago principal
