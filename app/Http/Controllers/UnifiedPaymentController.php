@@ -115,7 +115,7 @@ class UnifiedPaymentController extends Controller
                         // Si es una billetera digital, guardar el tipo en el número de referencia
                         if ($additionalMethod === 'digital_wallet' && $request->has($walletTypeKey)) {
                             $additionalReference = ($additionalReference ? $additionalReference . ' - ' : '') .
-                                                  'Tipo: ' . $request->$walletTypeKey;
+                                'Tipo: ' . $request->$walletTypeKey;
                         }
 
                         $order->registerPayment(
@@ -173,12 +173,31 @@ class UnifiedPaymentController extends Controller
             // 4. Generar la pre-cuenta automáticamente después del comprobante
             // Esto asegura que siempre se genere una pre-cuenta cuando se crea un comprobante
 
-            // 5. Redirigir a la impresión del comprobante con información adicional
+            // 5. Liberar la mesa inmediatamente después de generar el comprobante
+            if ($order->table_id) {
+                $table = \App\Models\Table::find($order->table_id);
+                if ($table) {
+                    $table->status = \App\Models\Table::STATUS_AVAILABLE;
+                    $table->occupied_at = null;
+                    $table->save();
+
+                    \Illuminate\Support\Facades\Log::info('✅ Mesa liberada automáticamente al generar comprobante', [
+                        'table_id' => $table->id,
+                        'table_number' => $table->number,
+                        'invoice_id' => $invoice->id,
+                        'order_id' => $order->id
+                    ]);
+                }
+            }
+
+            // 6. Redirigir a la impresión del comprobante con información adicional
             return redirect()->route('invoices.print', ['invoice' => $invoice->id])
                 ->with('success', 'Pago registrado y comprobante generado correctamente.')
                 ->with('change_amount', $changeAmount)
                 ->with('order_id', $order->id)
-                ->with('generate_prebill', true); // Flag para indicar que se debe generar pre-cuenta
+                ->with('generate_prebill', true) // Flag para indicar que se debe generar pre-cuenta
+                ->with('clear_cart_after_print', true) // Flag para limpiar carrito después de imprimir
+                ->with('table_id', $order->table_id); // ID de la mesa para limpiar carrito
 
         } catch (\Exception $e) {
             Log::error('Error al procesar el pago y generar comprobante', [
