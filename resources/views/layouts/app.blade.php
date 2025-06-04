@@ -48,9 +48,9 @@
     </style>
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900">
-    <header class="bg-white dark:bg-gray-800 shadow">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
+    <header class="bg-white shadow dark:bg-gray-800">
+        <div class="container px-4 py-4 mx-auto">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <a href="{{ url('/') }}" class="text-xl font-bold text-gray-800 dark:text-white">
                         {{ config('app.name', 'Restaurante') }}
@@ -79,12 +79,13 @@
         @yield('content')
     </main>
 
-    <footer class="bg-white dark:bg-gray-800 shadow mt-8 py-4">
-        <div class="container mx-auto px-4">
-            <div class="text-center text-gray-500 dark:text-gray-400 text-sm">
+    <footer class="py-4 mt-8 bg-white shadow dark:bg-gray-800">
+        <div class="container px-4 mx-auto">
+            <div class="text-sm text-center text-gray-500 dark:text-gray-400">
                 &copy; {{ date('Y') }} {{ config('app.name', 'Restaurante') }}. Todos los derechos reservados.
             </div>
         </div>
     </footer>
 </body>
 </html>
+

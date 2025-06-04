@@ -170,10 +170,15 @@ class UnifiedPaymentController extends Controller
                     ->with('error', 'No se pudo generar el comprobante. Verifique que la orden esté pagada y no facturada.');
             }
 
-            // 4. Redirigir a la impresión del comprobante
+            // 4. Generar la pre-cuenta automáticamente después del comprobante
+            // Esto asegura que siempre se genere una pre-cuenta cuando se crea un comprobante
+
+            // 5. Redirigir a la impresión del comprobante con información adicional
             return redirect()->route('invoices.print', ['invoice' => $invoice->id])
                 ->with('success', 'Pago registrado y comprobante generado correctamente.')
-                ->with('change_amount', $changeAmount);
+                ->with('change_amount', $changeAmount)
+                ->with('order_id', $order->id)
+                ->with('generate_prebill', true); // Flag para indicar que se debe generar pre-cuenta
 
         } catch (\Exception $e) {
             Log::error('Error al procesar el pago y generar comprobante', [
