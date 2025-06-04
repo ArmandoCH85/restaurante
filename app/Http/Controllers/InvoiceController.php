@@ -61,6 +61,19 @@ class InvoiceController extends Controller
             $changeAmount = $invoice->payment_amount - $invoice->total;
         }
 
+        // Verificar si se debe generar automáticamente la pre-cuenta
+        $generatePreBill = session('generate_prebill', false);
+        $orderId = session('order_id', null);
+        $preBillUrl = null;
+
+        if ($generatePreBill && $orderId && $invoice->order) {
+            // Generar la URL de la pre-cuenta para abrir automáticamente
+            $preBillUrl = route('pos.prebill.pdf', ['order' => $invoice->order->id]);
+
+            // Limpiar las variables de sesión para evitar regeneración
+            session()->forget(['generate_prebill', 'order_id']);
+        }
+
         // Determinar la vista según el tipo de comprobante
         $view = match($invoice->invoice_type) {
             'receipt' => 'pos.receipt-print',
@@ -72,7 +85,8 @@ class InvoiceController extends Controller
             'invoice' => $invoice,
             'date' => $invoice->issue_date->format('d/m/Y'),
             'change_amount' => $changeAmount,
-            'qr_code' => $invoice->qr_code ?? null
+            'qr_code' => $invoice->qr_code ?? null,
+            'prebill_url' => $preBillUrl // URL para generar automáticamente la pre-cuenta
         ]);
     }
 
