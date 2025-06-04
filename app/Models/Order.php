@@ -733,10 +733,20 @@ class Order extends Model
             return null; // Ya está facturada
         }
 
-        // Obtener el siguiente número de factura para la serie
-        $lastInvoice = Invoice::where('series', $series)->latest('number')->first();
-        $nextNumber = $lastInvoice ? (int)$lastInvoice->number + 1 : 1;
-        $formattedNumber = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+        // Obtener el siguiente número de factura usando DocumentSeries
+        $documentSeries = \App\Models\DocumentSeries::where('series', $series)
+            ->where('active', true)
+            ->first();
+
+        if ($documentSeries) {
+            // Usar el método getNextNumber() de DocumentSeries que actualiza automáticamente el correlativo
+            $formattedNumber = $documentSeries->getNextNumber();
+        } else {
+            // Fallback al método anterior si no se encuentra la serie en DocumentSeries
+            $lastInvoice = Invoice::where('series', $series)->latest('number')->first();
+            $nextNumber = $lastInvoice ? (int)$lastInvoice->number + 1 : 1;
+            $formattedNumber = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+        }
 
         // Usar el cliente de la orden o el cliente genérico si no hay cliente
         $finalCustomerId = $customerId ?? $this->customer_id ?? 1; // Cliente genérico si no hay cliente
