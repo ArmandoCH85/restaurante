@@ -65,8 +65,13 @@
             }
 
             .thermal-only {
-                display: none !important;
+                display: block !important;
             }
+        }
+
+        /* Mostrar contenido en pantalla por defecto */
+        .thermal-only {
+            display: block !important;
         }
 
         body {
@@ -76,8 +81,19 @@
             padding: 15px;
             max-width: 800px;
             margin: 0 auto;
-            background-color: #f9fafb;
+            background-color: #ffffff;
             color: #111827;
+            min-height: 100vh;
+        }
+
+        /* Mejorar visibilidad del contenido en pantalla */
+        .thermal-only {
+            background-color: #ffffff;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            margin-bottom: 80px; /* Espacio para los botones */
         }
 
         /* Estilos térmicos optimizados */
@@ -404,9 +420,17 @@
         </div>
     </div>
 
-    <!-- VERSIÓN A5 ELIMINADA - PRINCIPIO KISS: Solo una versión optimizada -->
-    <!-- La versión térmica optimizada sirve para ambos formatos (80mm/57mm y A5) -->
 
+
+    <!-- Script para auto-impresión opcional -->
+    <script>
+        // Función para imprimir automáticamente (opcional)
+        // window.onload = function() {
+        //     setTimeout(function() {
+        //         window.print();
+        //     }, 1000);
+        // };
+    </script>
 
 </body>
 </html>
