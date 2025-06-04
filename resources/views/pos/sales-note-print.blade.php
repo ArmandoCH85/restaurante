@@ -557,6 +557,19 @@
                 console.log('Notificación enviada: invoice-completed');
             }
         }
+
+        // Función para abrir automáticamente la pre-cuenta si está configurado
+        @if(isset($prebill_url) && $prebill_url)
+        function openPreBill() {
+            console.log('Abriendo pre-cuenta automáticamente...');
+            window.open('{{ $prebill_url }}', '_blank', 'width=800,height=600');
+        }
+
+        // Abrir la pre-cuenta automáticamente después de un breve delay
+        setTimeout(function() {
+            openPreBill();
+        }, 1500); // Esperar 1.5 segundos para que se cargue completamente la nota de venta
+        @endif
     </script>
 </body>
 </html>

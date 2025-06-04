@@ -949,6 +949,9 @@ class PosController extends Controller
             $order->billed = true;
             $order->save();
 
+            // Generar URL de pre-cuenta automáticamente para pagos divididos
+            $preBillUrl = route('pos.prebill.pdf', ['order' => $order->id]);
+
             return view($view, [
                 'invoice' => $invoice,
                 'date' => now()->format('d/m/Y H:i:s'),
@@ -963,6 +966,7 @@ class PosController extends Controller
                     'sales_note' => 'Nota de Venta',
                     default => 'Comprobante',
                 },
+                'prebill_url' => $preBillUrl // URL para generar automáticamente la pre-cuenta
             ]);
         } else {
             // Generar serie y número según tipo
@@ -1021,6 +1025,9 @@ class PosController extends Controller
             $order->billed = true;
             $order->save();
 
+            // Generar URL de pre-cuenta automáticamente
+            $preBillUrl = route('pos.prebill.pdf', ['order' => $order->id]);
+
             return view($view, [
                 'invoice' => $invoice,
                 'date' => now()->format('d/m/Y H:i:s'),
@@ -1034,6 +1041,7 @@ class PosController extends Controller
                     'sales_note' => 'Nota de Venta',
                     default => 'Comprobante',
                 },
+                'prebill_url' => $preBillUrl // URL para generar automáticamente la pre-cuenta
             ]);
         }
     }
