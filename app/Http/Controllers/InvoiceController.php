@@ -69,10 +69,15 @@ class InvoiceController extends Controller
         if ($generatePreBill && $orderId && $invoice->order) {
             // Generar la URL de la pre-cuenta para abrir automáticamente
             $preBillUrl = route('pos.prebill.pdf', ['order' => $invoice->order->id]);
-
-            // Limpiar las variables de sesión para evitar regeneración
-            session()->forget(['generate_prebill', 'order_id']);
         }
+
+        // Limpiar TODAS las variables de sesión relacionadas con el flujo unificado
+        session()->forget([
+            'generate_prebill',
+            'order_id',
+            'clear_cart_after_print',
+            'table_id'
+        ]);
 
         // Determinar la vista según el tipo de comprobante
         $view = match($invoice->invoice_type) {

@@ -526,7 +526,6 @@ class PosController extends Controller
 
                 // Disparar evento de cambio de estado
                 event(new \App\Events\DeliveryStatusChanged($deliveryOrder));
-
             } catch (\Exception $e) {
                 Log::error('Error al crear registro de delivery desde PosController', [
                     'error' => $e->getMessage(),
@@ -942,7 +941,15 @@ class PosController extends Controller
             // Cambiar el estado de la mesa a disponible si existe
             if ($order->table) {
                 $order->table->status = 'available';
+                $order->table->occupied_at = null;
                 $order->table->save();
+
+                \Illuminate\Support\Facades\Log::info('✅ Mesa liberada en PosController al generar comprobante', [
+                    'table_id' => $order->table->id,
+                    'table_number' => $order->table->number,
+                    'order_id' => $order->id,
+                    'invoice_type' => $validated['invoice_type']
+                ]);
             }
 
             // Marcar el pedido como facturado
@@ -960,7 +967,7 @@ class PosController extends Controller
                 'payment_methods' => implode(', ', $validated['split_methods']),
                 'change_amount' => 0,
                 'document_number' => $invoice->series . '-' . $invoice->number,
-                'document_type' => match($validated['invoice_type']) {
+                'document_type' => match ($validated['invoice_type']) {
                     'invoice' => 'Factura Electrónica',
                     'receipt' => 'Boleta Electrónica',
                     'sales_note' => 'Nota de Venta',
@@ -1018,7 +1025,15 @@ class PosController extends Controller
             // Cambiar el estado de la mesa a disponible si existe
             if ($order->table) {
                 $order->table->status = 'available';
+                $order->table->occupied_at = null;
                 $order->table->save();
+
+                \Illuminate\Support\Facades\Log::info('✅ Mesa liberada en PosController al generar comprobante (segunda instancia)', [
+                    'table_id' => $order->table->id,
+                    'table_number' => $order->table->number,
+                    'order_id' => $order->id,
+                    'invoice_type' => $validated['invoice_type']
+                ]);
             }
 
             // Marcar el pedido como facturado
@@ -1035,7 +1050,7 @@ class PosController extends Controller
                 'split_payment' => false,
                 'change_amount' => $validated['payment_method'] === 'cash' ? $validated['payment_amount'] - $total : 0,
                 'document_number' => $invoice->series . '-' . $invoice->number,
-                'document_type' => match($validated['invoice_type']) {
+                'document_type' => match ($validated['invoice_type']) {
                     'invoice' => 'Factura Electrónica',
                     'receipt' => 'Boleta Electrónica',
                     'sales_note' => 'Nota de Venta',
@@ -1101,7 +1116,7 @@ class PosController extends Controller
 
         // Si no se encuentra una serie, usar valores por defecto
         if (!$series) {
-            return match($type) {
+            return match ($type) {
                 'sales_note' => 'NV001',
                 'receipt' => 'B001',
                 'invoice' => 'F001',
@@ -1241,7 +1256,7 @@ class PosController extends Controller
 
         // Ordenar por fecha de emisión descendente (más recientes primero)
         $query->orderBy('issue_date', 'desc')
-              ->orderBy('id', 'desc');
+            ->orderBy('id', 'desc');
 
         // Paginar resultados
         $invoices = $query->paginate(15);

@@ -950,10 +950,19 @@
                     console.log('Notificación enviada: invoice-completed');
                 }
 
-                // Cerrar esta ventana después de imprimir
+                // SOLUCIÓN KISS: Si viene del flujo unificado, limpiar carrito y redirigir
+                @if(session('clear_cart_after_print') && session('table_id'))
+                setTimeout(function() {
+                    console.log('🧹 Limpiando carrito después de completar venta...');
+                    // Redirigir directamente al mapa de mesas con parámetro de actualización
+                    window.location.href = '{{ url("/tables?refresh=") }}' + Date.now();
+                }, 3000); // Dar tiempo para que se complete la impresión
+                @else
+                // Cerrar esta ventana después de imprimir (flujo normal)
                 setTimeout(function() {
                     window.close();
                 }, 2000);
+                @endif
             }, 1000);
         };
 
