@@ -33,10 +33,22 @@ class TableMapView extends Component
 
     public ?string $preserve_cart = null;
 
-    protected $listeners = ['refresh' => 'loadTables'];
+    protected $listeners = [
+        'refresh' => 'loadTables',
+        'table-status-updated' => 'handleTableStatusUpdate'
+    ];
 
     public function mount(): void
     {
+        // Verificar si se solicita una actualización forzada
+        $refreshParam = request()->get('refresh');
+        if ($refreshParam) {
+            \Illuminate\Support\Facades\Log::info('🔄 Actualización forzada del mapa de mesas solicitada', [
+                'refresh_param' => $refreshParam,
+                'timestamp' => now()->toDateTimeString()
+            ]);
+        }
+
         // Verificar si el usuario tiene acceso a este componente
         $user = \Illuminate\Support\Facades\Auth::user();
         $hasDeliveryRole = $user && $user->roles->where('name', 'Delivery')->count() > 0;
@@ -244,6 +256,27 @@ class TableMapView extends Component
     {
         $this->reset(['statusFilter', 'locationFilter', 'shapeFilter', 'capacityFilter', 'searchQuery', 'floorFilter', 'showTodayReservations']);
         $this->loadTables();
+    }
+
+    /**
+     * Maneja las actualizaciones de estado de mesa desde otros componentes
+     */
+    public function handleTableStatusUpdate($data): void
+    {
+        \Illuminate\Support\Facades\Log::info('📡 TableMapView recibió actualización de estado de mesa', [
+            'data' => $data,
+            'timestamp' => now()->toDateTimeString()
+        ]);
+
+        // Recargar las mesas para reflejar el cambio
+        $this->loadTables();
+        $this->loadDeliveryOrders();
+
+        // Emitir evento para actualizar la vista
+        $this->dispatch('table-status-changed', [
+            'message' => 'Estado de mesa actualizado correctamente',
+            'type' => 'success'
+        ]);
     }
 
     /**
