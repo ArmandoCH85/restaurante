@@ -76,6 +76,7 @@ class PointOfSale extends Component
         // Configurar el tipo de servicio si se proporciona
         if ($serviceType) {
             $this->serviceType = $serviceType;
+            Log::info('Service type set in mount', ['serviceType' => $serviceType]);
 
             // Si es delivery, mostrar el modal de delivery automáticamente
             if ($serviceType === 'delivery') {
@@ -85,6 +86,12 @@ class PointOfSale extends Component
 
                 // Programar la apertura del modal después de la renderización
                 $this->dispatch('open-delivery-modal-after-render');
+            }
+        } else {
+            // Si hay una mesa seleccionada pero no se especifica tipo de servicio, debe ser dine_in
+            if ($tableId) {
+                $this->serviceType = 'dine_in';
+                Log::info('Service type set to dine_in for table', ['tableId' => $tableId]);
             }
         }
 
@@ -634,7 +641,7 @@ class PointOfSale extends Component
 
         // Si no tenemos una orden válida, buscar una existente
         if (!$order) {
-            // Si es consumo en local, buscar una orden activa para la mesa
+            // Si es servicio en local, buscar una orden activa para la mesa
             if ($this->serviceType === 'dine_in' && $this->tableId) {
                 $table = Table::find($this->tableId);
                 if ($table && $table->hasActiveOrder()) {
@@ -714,7 +721,7 @@ class PointOfSale extends Component
             Log::info('Creating new order');
 
             if ($this->serviceType === 'dine_in' && $this->tableId) {
-                // Si es consumo en local, usar el método occupy de la mesa
+                // Si es servicio en local, usar el método occupy de la mesa
                 $table = Table::find($this->tableId);
                 if (!$table) {
                     Log::error('Table not found', ['table_id' => $this->tableId]);
@@ -723,12 +730,23 @@ class PointOfSale extends Component
 
                 // Ocupar la mesa y crear una nueva orden
                 $order = $table->occupy(Auth::id());
-                Log::info('Table occupied and new order created', ['order_id' => $order->id, 'table_id' => $this->tableId]);
+                Log::info('Table occupied and new order created', [
+                    'order_id' => $order->id,
+                    'table_id' => $this->tableId,
+                    'service_type' => $order->service_type,
+                    'table_number' => $table->number,
+                    'table_location' => $table->location
+                ]);
 
             } else {
                 // Para otros tipos de servicio, crear la orden manualmente
                 $order = new Order();
                 $order->service_type = $this->serviceType;
+
+                // Asignar mesa solo si es dine_in
+                if ($this->serviceType === 'dine_in' && $this->tableId) {
+                    $order->table_id = $this->tableId;
+                }
 
                 if ($this->serviceType === 'delivery' && $this->customerId) {
                     $order->customer_id = $this->customerId;
@@ -742,7 +760,12 @@ class PointOfSale extends Component
                 $order->total = 0;
                 $order->notes = $this->customerNote;
                 $order->save();
-                Log::info('New order created', ['order_id' => $order->id]);
+                Log::info('New order created', [
+                    'order_id' => $order->id,
+                    'service_type' => $order->service_type,
+                    'customer_id' => $order->customer_id,
+                    'table_id' => $order->table_id
+                ]);
             }
 
             // Añadir los productos del carrito

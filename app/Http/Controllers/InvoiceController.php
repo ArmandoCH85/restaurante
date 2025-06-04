@@ -45,8 +45,13 @@ class InvoiceController extends Controller
      */
     public function printInvoice($invoiceId)
     {
-        $invoice = Invoice::with(['order.orderDetails.product', 'order.table', 'customer', 'details'])
-            ->findOrFail($invoiceId);
+        $invoice = Invoice::with([
+            'order.orderDetails.product',
+            'order.table',
+            'order.deliveryOrder', // Agregar relación de delivery
+            'customer',
+            'details'
+        ])->findOrFail($invoiceId);
 
         // Obtener el cambio/vuelto de la sesión o calcularlo
         $changeAmount = session('change_amount', 0);
@@ -56,7 +61,14 @@ class InvoiceController extends Controller
             $changeAmount = $invoice->payment_amount - $invoice->total;
         }
 
-        return view('pos.invoice-print', [
+        // Determinar la vista según el tipo de comprobante
+        $view = match($invoice->invoice_type) {
+            'receipt' => 'pos.receipt-print',
+            'sales_note' => 'pos.sales-note-print',
+            default => 'pos.invoice-print'
+        };
+
+        return view($view, [
             'invoice' => $invoice,
             'date' => $invoice->issue_date->format('d/m/Y'),
             'change_amount' => $changeAmount,
@@ -133,7 +145,12 @@ class InvoiceController extends Controller
      */
     public function thermalPreview($invoiceId)
     {
-        $invoice = \App\Models\Invoice::with(['customer', 'details', 'order.table'])->findOrFail($invoiceId);
+        $invoice = \App\Models\Invoice::with([
+            'customer',
+            'details',
+            'order.table',
+            'order.deliveryOrder' // Agregar relación de delivery
+        ])->findOrFail($invoiceId);
 
         $date = now()->format('d/m/Y H:i:s');
 
@@ -147,6 +164,7 @@ class InvoiceController extends Controller
         return view($view, [
             'invoice' => $invoice,
             'date' => $date,
+            'change_amount' => 0, // Para vista previa
             'thermal_preview' => true // Flag para identificar vista previa
         ])->with('thermalPreviewMode', true);
     }

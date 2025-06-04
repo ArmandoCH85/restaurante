@@ -400,8 +400,17 @@ class PosController extends Controller
      */
     private function createOrderFromCartItems($cartItems, $tableId = null, $customerName = null, $serviceType = null)
     {
+        // Log para debugging
+        Log::info('Creating order from cart items', [
+            'cart_items_count' => count($cartItems),
+            'table_id' => $tableId,
+            'customer_name' => $customerName,
+            'service_type' => $serviceType
+        ]);
+
         // Verificar que hay productos
         if (empty($cartItems)) {
+            Log::warning('No cart items provided');
             return null;
         }
 
@@ -427,9 +436,17 @@ class PosController extends Controller
         }
 
         // Asignar el tipo de servicio
-        $order->service_type = $serviceType ?: 'dine_in'; // Valor predeterminado es 'dine_in'
+        $order->service_type = $serviceType ?: 'takeout'; // Valor predeterminado es 'takeout'
 
         $order->save();
+
+        // Log después de guardar para confirmar los datos
+        Log::info('Order saved successfully', [
+            'order_id' => $order->id,
+            'table_id' => $order->table_id,
+            'service_type' => $order->service_type,
+            'order_attributes' => $order->getAttributes()
+        ]);
 
         // Calcular el total
         $total = 0;
@@ -458,6 +475,66 @@ class PosController extends Controller
         $order->subtotal = $total;
         $order->total = $total * 1.18; // Incluyendo IGV (18%)
         $order->save();
+
+        // Si es delivery, crear el registro de delivery con información del cliente
+        if ($serviceType === 'delivery') {
+            try {
+                Log::info('Creando registro de delivery desde PosController', [
+                    'order_id' => $order->id,
+                    'service_type' => $serviceType,
+                    'customer_id' => $order->customer_id
+                ]);
+
+                // Obtener información del cliente si existe
+                $customer = $order->customer;
+                $deliveryAddress = 'Dirección pendiente de completar';
+                $deliveryReferences = 'Referencias pendientes';
+
+                if ($customer) {
+                    // Usar la dirección del cliente si está disponible
+                    if (!empty($customer->address)) {
+                        $deliveryAddress = $customer->address;
+                    }
+
+                    // Usar las referencias del cliente si están disponibles
+                    if (!empty($customer->address_references)) {
+                        $deliveryReferences = $customer->address_references;
+                    }
+
+                    Log::info('Información del cliente obtenida para delivery', [
+                        'customer_name' => $customer->name,
+                        'customer_address' => $customer->address,
+                        'customer_references' => $customer->address_references,
+                        'delivery_address' => $deliveryAddress,
+                        'delivery_references' => $deliveryReferences
+                    ]);
+                }
+
+                $deliveryOrder = new \App\Models\DeliveryOrder();
+                $deliveryOrder->order_id = $order->id;
+                $deliveryOrder->delivery_address = $deliveryAddress;
+                $deliveryOrder->delivery_references = $deliveryReferences;
+                $deliveryOrder->status = 'pending';
+                $deliveryOrder->save();
+
+                Log::info('Registro de delivery creado exitosamente', [
+                    'delivery_id' => $deliveryOrder->id,
+                    'order_id' => $order->id,
+                    'final_address' => $deliveryOrder->delivery_address,
+                    'final_references' => $deliveryOrder->delivery_references
+                ]);
+
+                // Disparar evento de cambio de estado
+                event(new \App\Events\DeliveryStatusChanged($deliveryOrder));
+
+            } catch (\Exception $e) {
+                Log::error('Error al crear registro de delivery desde PosController', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'order_id' => $order->id
+                ]);
+            }
+        }
 
         return $order;
     }
@@ -765,6 +842,41 @@ class PosController extends Controller
         $order->customer_id = $customerId;
         $order->save();
 
+        // Si es delivery y existe un DeliveryOrder, actualizar con información del cliente
+        if ($order->service_type === 'delivery' && $order->deliveryOrder) {
+            try {
+                $customer = \App\Models\Customer::find($customerId);
+                if ($customer) {
+                    $deliveryOrder = $order->deliveryOrder;
+
+                    // Solo actualizar si aún tiene los valores por defecto
+                    if ($deliveryOrder->delivery_address === 'Dirección pendiente de completar' && !empty($customer->address)) {
+                        $deliveryOrder->delivery_address = $customer->address;
+                    }
+
+                    if ($deliveryOrder->delivery_references === 'Referencias pendientes' && !empty($customer->address_references)) {
+                        $deliveryOrder->delivery_references = $customer->address_references;
+                    }
+
+                    $deliveryOrder->save();
+
+                    Log::info('DeliveryOrder actualizado con información del cliente', [
+                        'delivery_id' => $deliveryOrder->id,
+                        'customer_id' => $customerId,
+                        'customer_name' => $customer->name,
+                        'updated_address' => $deliveryOrder->delivery_address,
+                        'updated_references' => $deliveryOrder->delivery_references
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error('Error al actualizar DeliveryOrder con información del cliente', [
+                    'error' => $e->getMessage(),
+                    'order_id' => $order->id,
+                    'customer_id' => $customerId
+                ]);
+            }
+        }
+
         // Mapear tipos de comprobante (sales_note no existe en el enum, se maneja como receipt)
         $invoiceTypeForDb = $validated['invoice_type'] === 'sales_note' ? 'receipt' : $validated['invoice_type'];
 
@@ -957,7 +1069,7 @@ class PosController extends Controller
     public function downloadInvoicePdf(\App\Models\Invoice $invoice)
     {
         // Cargar relaciones necesarias
-        $invoice->load('details', 'order.table');
+        $invoice->load('details', 'order.table', 'order.deliveryOrder', 'customer');
 
         // Seleccionar la vista según el tipo de comprobante
         $view = $this->getInvoiceTemplateByType($invoice->invoice_type);

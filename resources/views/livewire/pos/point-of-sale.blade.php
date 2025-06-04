@@ -1532,7 +1532,8 @@
                     <span class="text-xl font-bold text-blue-600 dark:text-blue-400">POS Restaurante</span>
                 </div>
                 <div class="flex items-center space-x-4">
-                     <span class="px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                     <span class="px-3 py-1.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                           @if($tableId) data-table-id="{{ $tableId }}" @endif>
                         @if($table)
                             Mesa: {{ $table->number }} | {{ ucfirst($table->location ?? 'General') }}
                         @else
@@ -3215,11 +3216,11 @@
             }
 
             // Si hay una mesa seleccionada, asegurarse de que esté marcada como ocupada
-            @if($table)
+            @if($tableId)
                 // Verificar si la mesa está disponible y cambiarla a ocupada si es necesario
-                if ('{{ $table->status }}' === 'available') {
-                    Livewire.dispatch('changeTableStatus', { tableId: {{ $table->id }}, status: 'occupied' });
-                }
+                @if($table && $table->status === 'available')
+                    Livewire.dispatch('changeTableStatus', { tableId: {{ $tableId }}, status: 'occupied' });
+                @endif
             @endif
 
             // Obtener el tipo de servicio actual directamente del DOM
@@ -3303,6 +3304,29 @@
                 service_type: serviceType // Enviar el tipo de servicio detectado o proporcionado
             };
 
+            // KISS: Obtener table_id directamente desde la URL o desde el DOM
+            const urlParams = new URLSearchParams(window.location.search);
+            const tableIdFromUrl = urlParams.get('table_id');
+            const tableIdFromPath = window.location.pathname.match(/\/table\/(\d+)/);
+
+            if (tableIdFromUrl) {
+                requestData.table_id = parseInt(tableIdFromUrl);
+                requestData.service_type = 'dine_in';
+                console.log('Table ID desde URL:', tableIdFromUrl);
+            } else if (tableIdFromPath) {
+                requestData.table_id = parseInt(tableIdFromPath[1]);
+                requestData.service_type = 'dine_in';
+                console.log('Table ID desde path:', tableIdFromPath[1]);
+            } else {
+                // Buscar en el DOM si hay información de mesa
+                const mesaInfo = document.querySelector('[data-table-id]');
+                if (mesaInfo) {
+                    requestData.table_id = parseInt(mesaInfo.getAttribute('data-table-id'));
+                    requestData.service_type = 'dine_in';
+                    console.log('Table ID desde DOM:', requestData.table_id);
+                }
+            }
+
             // Si se proporcionó un nombre de cliente, agregarlo a la solicitud
             if (customerName) {
                 requestData.customer_name = customerName;
@@ -3358,12 +3382,36 @@
             }
 
             // Si hay una mesa seleccionada, asegurarse de que esté marcada como ocupada
-            @if($table)
+            @if($tableId)
                 // Verificar si la mesa está disponible y cambiarla a ocupada si es necesario
-                if ('{{ $table->status }}' === 'available') {
-                    Livewire.dispatch('changeTableStatus', { tableId: {{ $table->id }}, status: 'occupied' });
-                }
+                @if($table && $table->status === 'available')
+                    Livewire.dispatch('changeTableStatus', { tableId: {{ $tableId }}, status: 'occupied' });
+                @endif
             @endif
+
+            // Crear el objeto de datos para la solicitud
+            const requestData = {
+                has_products: true,
+                cart_items: productos,
+                service_type: 'dine_in' // Tipo de servicio por defecto para pre-cuenta
+            };
+
+            // KISS: Obtener table_id directamente desde la URL o desde el DOM
+            const urlParams = new URLSearchParams(window.location.search);
+            const tableIdFromUrl = urlParams.get('table_id');
+            const tableIdFromPath = window.location.pathname.match(/\/table\/(\d+)/);
+            const mesaInfo = document.querySelector('[data-table-id]');
+
+            if (tableIdFromUrl) {
+                requestData.table_id = parseInt(tableIdFromUrl);
+                requestData.service_type = 'dine_in';
+            } else if (tableIdFromPath) {
+                requestData.table_id = parseInt(tableIdFromPath[1]);
+                requestData.service_type = 'dine_in';
+            } else if (mesaInfo) {
+                requestData.table_id = parseInt(mesaInfo.getAttribute('data-table-id'));
+                requestData.service_type = 'dine_in';
+            }
 
             // Crear la orden con los productos capturados directamente
             fetch('{{ route("pos.create-order") }}', {
@@ -3372,10 +3420,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({
-                    has_products: true,
-                    cart_items: productos
-                })
+                body: JSON.stringify(requestData)
             })
             .then(procesarRespuesta)
             .then(orderId => {
@@ -3482,12 +3527,56 @@
             }
 
             // Si hay una mesa seleccionada, asegurarse de que esté marcada como ocupada
-            @if($table)
+            @if($tableId)
                 // Verificar si la mesa está disponible y cambiarla a ocupada si es necesario
-                if ('{{ $table->status }}' === 'available') {
-                    Livewire.dispatch('changeTableStatus', { tableId: {{ $table->id }}, status: 'occupied' });
-                }
+                @if($table && $table->status === 'available')
+                    Livewire.dispatch('changeTableStatus', { tableId: {{ $tableId }}, status: 'occupied' });
+                @endif
             @endif
+
+            // Detectar el tipo de servicio actual
+            let currentServiceType = 'takeout'; // Por defecto para llevar
+
+            // Verificar qué botón de tipo de servicio está activo
+            if (document.querySelector('button[wire\\:click="setServiceType(\'takeout\')"].bg-green-100') ||
+                document.querySelector('button[wire\\:click="setServiceType(\'takeout\')"].bg-green-900\\/50')) {
+                currentServiceType = 'takeout';
+            } else if (document.querySelector('button[wire\\:click="setServiceType(\'dine_in\')"].bg-blue-100') ||
+                       document.querySelector('button[wire\\:click="setServiceType(\'dine_in\')"].bg-blue-900\\/50')) {
+                currentServiceType = 'dine_in';
+            } else if (document.querySelector('button[wire\\:click="setServiceType(\'delivery\')"].bg-red-100') ||
+                       document.querySelector('button[wire\\:click="setServiceType(\'delivery\')"].bg-red-900\\/50')) {
+                currentServiceType = 'delivery';
+            } else {
+                // Si no podemos determinar por el DOM, usar el valor de Livewire como respaldo
+                currentServiceType = '{{ $serviceType }}'.trim();
+            }
+
+            console.log('Tipo de servicio detectado para facturación:', currentServiceType);
+
+            // Crear el objeto de datos para la solicitud
+            const requestData = {
+                has_products: true,
+                cart_items: productos,
+                service_type: currentServiceType // Usar el tipo de servicio detectado
+            };
+
+            // KISS: Obtener table_id directamente desde la URL o desde el DOM
+            const urlParams = new URLSearchParams(window.location.search);
+            const tableIdFromUrl = urlParams.get('table_id');
+            const tableIdFromPath = window.location.pathname.match(/\/table\/(\d+)/);
+            const mesaInfo = document.querySelector('[data-table-id]');
+
+            if (tableIdFromUrl) {
+                requestData.table_id = parseInt(tableIdFromUrl);
+                // Mantener el service_type detectado, no sobreescribir
+            } else if (tableIdFromPath) {
+                requestData.table_id = parseInt(tableIdFromPath[1]);
+                // Mantener el service_type detectado, no sobreescribir
+            } else if (mesaInfo) {
+                requestData.table_id = parseInt(mesaInfo.getAttribute('data-table-id'));
+                // Mantener el service_type detectado, no sobreescribir
+            }
 
             // Crear la orden con los productos capturados directamente
             fetch('{{ route("pos.create-order") }}', {
@@ -3496,10 +3585,7 @@
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 },
-                body: JSON.stringify({
-                    has_products: true,
-                    cart_items: productos
-                })
+                body: JSON.stringify(requestData)
             })
             .then(procesarRespuesta)
             .then(orderId => {
