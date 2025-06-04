@@ -36,11 +36,16 @@ class UnifiedPaymentController extends Controller
             $genericCustomer = Customer::first(); // Usar el primer cliente si no hay uno genérico
         }
 
-        // Obtener los próximos números de comprobantes
+        // Obtener las series configuradas desde DocumentSeries
+        $salesNoteSeries = \App\Models\DocumentSeries::where('document_type', 'sales_note')->where('active', true)->first();
+        $receiptSeries = \App\Models\DocumentSeries::where('document_type', 'receipt')->where('active', true)->first();
+        $invoiceSeries = \App\Models\DocumentSeries::where('document_type', 'invoice')->where('active', true)->first();
+
+        // Obtener información de los próximos correlativos
         $nextNumbers = [
-            'sales_note' => 'NV-' . str_pad($this->getNextNumber('sales_note'), 8, '0', STR_PAD_LEFT),
-            'receipt' => 'B001-' . str_pad($this->getNextNumber('receipt'), 8, '0', STR_PAD_LEFT),
-            'invoice' => 'F001-' . str_pad($this->getNextNumber('invoice'), 8, '0', STR_PAD_LEFT),
+            'invoice' => $invoiceSeries ? $invoiceSeries->series . '-' . str_pad($invoiceSeries->current_number, 8, '0', STR_PAD_LEFT) : 'F001-00000001',
+            'receipt' => $receiptSeries ? $receiptSeries->series . '-' . str_pad($receiptSeries->current_number, 8, '0', STR_PAD_LEFT) : 'B001-00000001',
+            'sales_note' => $salesNoteSeries ? $salesNoteSeries->series . '-' . str_pad($salesNoteSeries->current_number, 8, '0', STR_PAD_LEFT) : 'NV001-00000001',
         ];
 
         return view('pos.unified-payment-form', [
@@ -144,20 +149,8 @@ class UnifiedPaymentController extends Controller
             $this->recalculateOrderTotalsForInvoiceType($order, $request->invoice_type);
 
             // 3. Generar el comprobante
-            // Determinar la serie según el tipo de comprobante
-            //se debe generar de la base de datos
-            $series = '';
-            switch ($request->invoice_type) {
-                case 'sales_note':
-                    $series = 'NV';
-                    break;
-                case 'receipt':
-                    $series = 'B001';
-                    break;
-                case 'invoice':
-                    $series = 'F001';
-                    break;
-            }
+            // Obtener la serie desde DocumentSeries
+            $series = $this->getNextSeries($request->invoice_type);
 
             $invoice = $order->generateInvoice(
                 $request->invoice_type,
@@ -210,6 +203,29 @@ class UnifiedPaymentController extends Controller
             return redirect()->route('pos.unified.form', ['order' => $order->id])
                 ->with('error', 'Error al procesar: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Obtener la serie según el tipo de comprobante
+     */
+    private function getNextSeries($type)
+    {
+        // Buscar la primera serie activa para este tipo de documento
+        $series = \App\Models\DocumentSeries::where('document_type', $type)
+            ->where('active', true)
+            ->first();
+
+        // Si no se encuentra una serie, usar valores por defecto
+        if (!$series) {
+            return match ($type) {
+                'sales_note' => 'NV001',
+                'receipt' => 'B001',
+                'invoice' => 'F001',
+                default => 'NV001',
+            };
+        }
+
+        return $series->series;
     }
 
     /**
