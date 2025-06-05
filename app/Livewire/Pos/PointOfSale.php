@@ -8,6 +8,7 @@ use App\Models\ProductCategory;
 use App\Models\Table;
 use App\Models\Order;
 use App\Models\OrderDetail as OrderDetailModel;
+use App\Traits\CalculatesIgv;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Log;
 
 class PointOfSale extends Component
 {
+    use CalculatesIgv;
     public ?Table $table = null;
     public ?string $tableId = null;
     public ?string $selectedCategoryId = null;
@@ -602,6 +604,7 @@ class PointOfSale extends Component
 
     public function updateCartTotal(): void
     {
+        // Los precios en el carrito YA INCLUYEN IGV
         $this->cartTotal = collect($this->cart)->sum('subtotal');
 
         // Si hay items en el carrito, crear o actualizar la orden
@@ -1047,6 +1050,31 @@ class PointOfSale extends Component
         // Esta función se implementará en el futuro para guardar el pedido
         // Por ahora simplemente limpiamos el carrito como demostración
         $this->clearCart();
+    }
+
+    /**
+     * Métodos para calcular desglose de IGV en la interfaz
+     */
+    public function getCartSubtotal(): float
+    {
+        // Verificar que el cartTotal no sea null o negativo
+        if ($this->cartTotal <= 0) {
+            return 0.0;
+        }
+
+        // Calcular subtotal sin IGV del total del carrito
+        return $this->calculateSubtotalFromPriceWithIgv($this->cartTotal);
+    }
+
+    public function getCartTax(): float
+    {
+        // Verificar que el cartTotal no sea null o negativo
+        if ($this->cartTotal <= 0) {
+            return 0.0;
+        }
+
+        // Calcular IGV incluido en el total del carrito
+        return $this->calculateIncludedIgv($this->cartTotal);
     }
 
     public function render()
@@ -1624,12 +1652,10 @@ class PointOfSale extends Component
                     $orderDetail->save();
                 }
 
-                // Actualizar los totales de la orden
-                $this->currentOrder->subtotal = $destinationCartTotal;
-                $this->currentOrder->tax = $destinationCartTotal * 0.18;
-                $this->currentOrder->total = $destinationCartTotal * 1.18;
+                // CORRECCIÓN: Los precios YA INCLUYEN IGV
+                // Usar el método recalculateTotals() que aplica la lógica correcta
                 $this->currentOrder->notes = $this->customerNote;
-                $this->currentOrder->save();
+                $this->currentOrder->recalculateTotals();
 
                 \Illuminate\Support\Facades\Log::info('Carrito de mesa destino guardado correctamente en sesión y base de datos (transferencia completa)', [
                     'destination_table_id' => $destinationTable->id,
