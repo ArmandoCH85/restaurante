@@ -414,15 +414,15 @@
         @endif
     </div>
 
-    <!-- TOTALES CON IGV -->
+    <!-- TOTALES CON IGV INCLUIDO (CORRECTO) -->
     <div class="totals">
         <div class="total-row">
             <span class="label">Subtotal:</span>
-            <span>S/ {{ number_format($invoice->taxable_amount, 2) }}</span>
+            <span>S/ {{ number_format($invoice->correct_subtotal, 2) }}</span>
         </div>
         <div class="total-row">
             <span class="label">IGV (18%):</span>
-            <span>S/ {{ number_format($invoice->tax, 2) }}</span>
+            <span>S/ {{ number_format($invoice->correct_igv, 2) }}</span>
         </div>
         <div class="grand-total">
             <span class="label">Total:</span>
@@ -432,6 +432,9 @@
 
     <div class="footer">
         Gracias por su preferencia
+        <div style="margin-top: 4px; font-size: 8px; font-style: italic;">
+            * Precios incluyen IGV
+        </div>
     </div>
 
 

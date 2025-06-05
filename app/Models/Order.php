@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\CalculatesIgv;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -10,6 +11,8 @@ use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
+    use CalculatesIgv;
+
     /**
      * OPTIMIZACIÓN: Relaciones que se cargan por defecto para evitar N+1
      * Solo cargamos las más críticas para no sobrecargar
@@ -496,34 +499,41 @@ class Order extends Model
 
     /**
      * Recalcula los totales de la orden basándose en los detalles.
+     *
+     * IMPORTANTE: Los precios en orderDetails YA INCLUYEN IGV
+     * Este método calcula cuánto IGV está incluido en esos precios
      */
     public function recalculateTotals(): void
     {
         // Recargar la relación para asegurar datos actualizados
         $this->load('orderDetails');
 
-        $subtotal = $this->orderDetails->sum('subtotal');
+        // El subtotal de orderDetails ya incluye IGV
+        $totalWithIgv = $this->orderDetails->sum('subtotal');
 
-        // Calcular impuestos (18% IGV)
-        $tax = round($subtotal * 0.18, 2);
+        // Aplicar descuento al total con IGV
+        $totalWithIgvAfterDiscount = $totalWithIgv - ($this->discount ?? 0);
 
-        // Calcular total
-        $total = round($subtotal + $tax - ($this->discount ?? 0), 2);
+        // Calcular el subtotal sin IGV y el IGV incluido
+        $subtotalWithoutIgv = $this->calculateSubtotalFromPriceWithIgv($totalWithIgvAfterDiscount);
+        $includedIgv = $this->calculateIncludedIgv($totalWithIgvAfterDiscount);
 
         // Actualizar los valores
-        $this->subtotal = $subtotal;
-        $this->tax = $tax;
-        $this->total = $total;
+        $this->subtotal = $subtotalWithoutIgv;
+        $this->tax = $includedIgv;
+        $this->total = $totalWithIgvAfterDiscount;
 
         // Guardar los cambios
         $this->save();
 
         // Log para depuración
         \Illuminate\Support\Facades\Log::info('Totales recalculados para orden #' . $this->id, [
-            'subtotal' => $subtotal,
-            'tax' => $tax,
+            'total_with_igv_before_discount' => $totalWithIgv,
             'discount' => $this->discount,
-            'total' => $total,
+            'total_with_igv_after_discount' => $totalWithIgvAfterDiscount,
+            'subtotal_without_igv' => $subtotalWithoutIgv,
+            'included_igv' => $includedIgv,
+            'final_total' => $this->total,
             'details_count' => $this->orderDetails->count()
         ]);
     }

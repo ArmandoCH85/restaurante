@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\CalculatesIgv;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -13,7 +14,7 @@ use App\Models\Table;
 
 class Quotation extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, CalculatesIgv;
 
     /**
      * Estados disponibles para las cotizaciones.
@@ -234,15 +235,20 @@ class Quotation extends Model
             }
         }
 
-        // Calcular el IGV (18%)
-        $tax = $subtotal * 0.18;
+        // Los precios ya incluyen IGV, calcular IGV incluido correctamente
+        $totalWithIgv = $subtotal;
+        $totalWithIgvAfterDiscount = $totalWithIgv - floatval($this->discount ?? 0);
 
-        // Calcular el total
-        $total = $subtotal + $tax - floatval($this->discount ?? 0);
+        // Calcular subtotal sin IGV e IGV incluido usando el trait
+        $subtotalWithoutIgv = $this->calculateSubtotalFromPriceWithIgv($totalWithIgvAfterDiscount);
+        $includedIgv = $this->calculateIncludedIgv($totalWithIgvAfterDiscount);
 
-        // Actualizar los valores
-        $this->subtotal = $subtotal;
-        $this->tax = $tax;
+        // El total final es el precio con IGV después del descuento
+        $total = $totalWithIgvAfterDiscount;
+
+        // Actualizar los valores con cálculo correcto de IGV incluido
+        $this->subtotal = $subtotalWithoutIgv;
+        $this->tax = $includedIgv;
         $this->total = $total;
 
         // Guardar los cambios sin disparar eventos para evitar recursión
@@ -250,10 +256,12 @@ class Quotation extends Model
 
         // Registrar para depuración
         \Illuminate\Support\Facades\Log::info('Totales recalculados para cotización #' . $this->id, [
-            'subtotal' => $subtotal,
-            'tax' => $tax,
+            'total_with_igv_before_discount' => $totalWithIgv,
             'discount' => $this->discount,
-            'total' => $total,
+            'total_with_igv_after_discount' => $totalWithIgvAfterDiscount,
+            'subtotal_without_igv' => $subtotalWithoutIgv,
+            'included_igv' => $includedIgv,
+            'final_total' => $total,
             'detalles_count' => $this->details->count()
         ]);
     }

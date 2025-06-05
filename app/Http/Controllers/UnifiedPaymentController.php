@@ -259,16 +259,22 @@ class UnifiedPaymentController extends Controller
         $discountAmount = $order->discount ?? 0;
         $subtotalAfterDiscount = $subtotal - $discountAmount;
 
-        // Calcular IGV según el tipo de comprobante
+        // CORRECCIÓN: Los precios YA INCLUYEN IGV
+        // El subtotal de la orden ya incluye IGV, necesitamos calcular el desglose
+        $totalWithIgvAfterDiscount = $subtotalAfterDiscount;
+
+        // Calcular desglose según el tipo de comprobante
         $tax = 0;
         if (in_array($invoiceType, ['receipt', 'invoice'])) {
-            // Solo boletas y facturas tienen IGV (18%)
-            $tax = round($subtotalAfterDiscount * 0.18, 2);
+            // Calcular IGV incluido en el precio
+            $subtotalWithoutIgv = round($totalWithIgvAfterDiscount / 1.18, 2);
+            $tax = round($totalWithIgvAfterDiscount / 1.18 * 0.18, 2);
+            $subtotalAfterDiscount = $subtotalWithoutIgv; // Actualizar para BD
         }
         // Las notas de venta no tienen IGV
 
-        // Calcular total
-        $total = round($subtotalAfterDiscount + $tax, 2);
+        // El total es el precio con IGV (no se agrega IGV adicional)
+        $total = $totalWithIgvAfterDiscount;
 
         // Actualizar los valores en la orden
         $order->subtotal = $subtotal;

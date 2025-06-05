@@ -471,10 +471,8 @@ class PosController extends Controller
             $total += $item['subtotal'];
         }
 
-        // Actualizar el total de la orden
-        $order->subtotal = $total;
-        $order->total = $total * 1.18; // Incluyendo IGV (18%)
-        $order->save();
+        // Los precios ya incluyen IGV, usar el método correcto para recalcular
+        $order->recalculateTotals();
 
         // Si es delivery, crear el registro de delivery con información del cliente
         if ($serviceType === 'delivery') {
@@ -762,22 +760,24 @@ class PosController extends Controller
 
         $validated = $request->validate($rules);
 
-        // Calcular subtotal, descuento, impuestos y total
-        $subtotal = $order->subtotal;
+        // CORRECCIÓN: Los precios YA INCLUYEN IGV
+        // El total de la orden ya incluye IGV, necesitamos calcular el desglose
+        $totalWithIgv = $order->total; // Este ya incluye IGV
         $discountPercent = $validated['discount_percent'] ?? 0;
-        $discountAmount = $subtotal * ($discountPercent / 100);
-        $subtotalAfterDiscount = $subtotal - $discountAmount;
+        $discountAmount = $totalWithIgv * ($discountPercent / 100);
+        $totalAfterDiscount = $totalWithIgv - $discountAmount;
 
-        // Calcular impuesto según tipo de comprobante
+        // Calcular desglose según tipo de comprobante
         if (in_array($validated['invoice_type'], ['receipt', 'invoice'])) {
-            $taxPercent = 18;
-            $taxAmount = $subtotalAfterDiscount * ($taxPercent / 100);
-            $total = $subtotalAfterDiscount + $taxAmount;
+            // Calcular IGV incluido en el precio
+            $subtotalAfterDiscount = round($totalAfterDiscount / 1.18, 2);
+            $taxAmount = round($totalAfterDiscount / 1.18 * 0.18, 2);
+            $total = $totalAfterDiscount; // El total no cambia, ya incluye IGV
         } else {
             // Nota de venta no tiene IGV
-            $taxPercent = 0;
+            $subtotalAfterDiscount = $totalAfterDiscount;
             $taxAmount = 0;
-            $total = $subtotalAfterDiscount;
+            $total = $totalAfterDiscount;
         }
 
         // Determinar cliente o usar cliente genérico

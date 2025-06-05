@@ -716,17 +716,20 @@ class QuotationResource extends Resource
                 $subtotal += $detailSubtotal;
             }
 
-            // Calcular el IGV (18%)
-            $tax = $subtotal * 0.18;
-
-            // Obtener el descuento
+            // CORRECCIÓN: Los precios YA INCLUYEN IGV
+            $totalWithIgv = $subtotal;
             $discount = floatval($get('discount') ?? 0);
+            $totalWithIgvAfterDiscount = $totalWithIgv - $discount;
 
-            // Calcular el total
-            $total = $subtotal + $tax - $discount;
+            // Calcular IGV incluido en el precio
+            $subtotalWithoutIgv = round($totalWithIgvAfterDiscount / 1.18, 2);
+            $tax = round($totalWithIgvAfterDiscount / 1.18 * 0.18, 2);
 
-            // Actualizar los valores
-            $set('subtotal', $subtotal);
+            // El total es el precio con IGV después del descuento
+            $total = $totalWithIgvAfterDiscount;
+
+            // Actualizar los valores con cálculo correcto
+            $set('subtotal', $subtotalWithoutIgv);
             $set('tax', $tax);
             $set('total', $total);
         } catch (\Exception $e) {
