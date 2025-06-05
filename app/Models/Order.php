@@ -837,9 +837,17 @@ class Order extends Model
             ]);
         }
 
-        // Marcar la orden como facturada
+        // Marcar la orden como facturada y completada
         $this->billed = true;
+        $this->status = self::STATUS_COMPLETED;
         $this->save();
+
+        Log::info('✅ Orden completada automáticamente al generar factura desde modelo', [
+            'order_id' => $this->id,
+            'previous_status' => $this->getOriginal('status'),
+            'new_status' => $this->status,
+            'invoice_type' => $invoiceType
+        ]);
 
         // Enviar a la autoridad tributaria (SUNAT)
         $invoice->sendToTaxAuthority();

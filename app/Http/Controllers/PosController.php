@@ -952,9 +952,17 @@ class PosController extends Controller
                 ]);
             }
 
-            // Marcar el pedido como facturado
+            // Marcar el pedido como facturado y completado
             $order->billed = true;
+            $order->status = \App\Models\Order::STATUS_COMPLETED;
             $order->save();
+
+            \Illuminate\Support\Facades\Log::info('✅ Orden completada automáticamente al generar comprobante', [
+                'order_id' => $order->id,
+                'previous_status' => $order->getOriginal('status'),
+                'new_status' => $order->status,
+                'invoice_type' => $validated['invoice_type']
+            ]);
 
             // Generar URL de pre-cuenta automáticamente para pagos divididos
             $preBillUrl = route('pos.prebill.pdf', ['order' => $order->id]);
@@ -1036,9 +1044,17 @@ class PosController extends Controller
                 ]);
             }
 
-            // Marcar el pedido como facturado
+            // Marcar el pedido como facturado y completado
             $order->billed = true;
+            $order->status = \App\Models\Order::STATUS_COMPLETED;
             $order->save();
+
+            \Illuminate\Support\Facades\Log::info('✅ Orden completada automáticamente al generar comprobante (segunda instancia)', [
+                'order_id' => $order->id,
+                'previous_status' => $order->getOriginal('status'),
+                'new_status' => $order->status,
+                'invoice_type' => $validated['invoice_type']
+            ]);
 
             // Generar URL de pre-cuenta automáticamente
             $preBillUrl = route('pos.prebill.pdf', ['order' => $order->id]);
