@@ -311,6 +311,7 @@
 
             <div style="margin-top: 10px; font-size: 11px; color: #6b7280; text-align: right;">
                 <p>Precios expresados en Soles (S/)</p>
+                <p style="font-style: italic; font-size: 10px;">* Precios incluyen IGV</p>
             </div>
         </div>
 

@@ -192,6 +192,8 @@
 
     <div class="notice">
         Esta pre-cuenta no tiene valor fiscal. Solicite su boleta o factura al pagar.
+        <br><br>
+        <em>* Precios incluyen IGV</em>
     </div>
 
     <div class="footer">
