@@ -7,15 +7,16 @@
     <style>
         @media print {
             @page {
-                size: 80mm 297mm;
+                size: 80mm auto;
                 margin: 0;
             }
 
             body {
+                width: 80mm;
                 margin: 0;
                 padding: 3mm;
                 font-family: Arial, sans-serif;
-                font-size: 11px;
+                font-size: 12px;
                 line-height: 1.2;
             }
 
@@ -26,6 +27,32 @@
             /* PRINCIPIO KISS: Una sola versión optimizada para todos los formatos */
             .thermal-hide {
                 display: none !important;
+            }
+        }
+
+        /* Estilos para papel de 57mm (consistencia con comandas) */
+        @media print and (max-width: 57mm) {
+            @page {
+                size: 57mm auto;
+                margin: 0;
+            }
+
+            body {
+                width: 57mm;
+                padding: 2mm;
+                font-size: 11px;
+            }
+
+            .title {
+                font-size: 16px;
+            }
+
+            .subtitle {
+                font-size: 13px;
+            }
+
+            .info-row {
+                font-size: 10px;
             }
         }
 
