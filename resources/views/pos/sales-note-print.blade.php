@@ -416,17 +416,17 @@
         @endif
     </div>
 
-    <!-- TOTALES PARA NOTAS DE VENTA -->
+    <!-- TOTALES PARA NOTAS DE VENTA CON IGV INCLUIDO (CORRECTO) -->
     <div class="totals">
-        @if($invoice->tax > 0)
-            <!-- Si por alguna razón la nota de venta tiene IGV, mostrarlo -->
+        @if($invoice->total > 0)
+            <!-- Mostrar desglose de IGV incluido -->
             <div class="total-row">
                 <span class="label">Subtotal:</span>
-                <span>S/ {{ number_format($invoice->taxable_amount, 2) }}</span>
+                <span>S/ {{ number_format($invoice->correct_subtotal, 2) }}</span>
             </div>
             <div class="total-row">
                 <span class="label">IGV (18%):</span>
-                <span>S/ {{ number_format($invoice->tax, 2) }}</span>
+                <span>S/ {{ number_format($invoice->correct_igv, 2) }}</span>
             </div>
         @endif
         <div class="grand-total">
@@ -437,6 +437,9 @@
 
     <div class="footer">
         Gracias por su preferencia
+        <div style="margin-top: 4px; font-size: 8px; font-style: italic;">
+            * Precios incluyen IGV
+        </div>
     </div>
 
 

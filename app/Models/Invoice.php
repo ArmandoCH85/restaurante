@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\CalculatesIgv;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends Model
 {
-    use HasFactory;
+    use HasFactory, CalculatesIgv;
 
     /**
      * Los atributos que son asignables masivamente.
@@ -278,5 +279,35 @@ class Invoice extends Model
         $this->tax_authority_status = self::STATUS_ACCEPTED;
 
         return $this->save();
+    }
+
+    /**
+     * Calcula el subtotal sin IGV basado en el total que incluye IGV
+     *
+     * @return float
+     */
+    public function getCorrectSubtotalAttribute(): float
+    {
+        return $this->calculateSubtotalFromPriceWithIgv($this->total);
+    }
+
+    /**
+     * Calcula el IGV incluido en el total
+     *
+     * @return float
+     */
+    public function getCorrectIgvAttribute(): float
+    {
+        return $this->calculateIncludedIgv($this->total);
+    }
+
+    /**
+     * Obtiene el desglose correcto de IGV para mostrar en comprobantes
+     *
+     * @return array
+     */
+    public function getCorrectTaxBreakdown(): array
+    {
+        return $this->getIgvBreakdown($this->total);
     }
 }

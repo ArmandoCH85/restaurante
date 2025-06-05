@@ -640,13 +640,16 @@
                 document.querySelector('.discount-row').classList.add('hidden');
             }
 
-            const subtotalAfterDiscount = subtotal - discountAmount;
+            // CORRECCIÓN: Los precios YA INCLUYEN IGV
+            const totalWithIgvAfterDiscount = subtotal - discountAmount;
 
-            let finalTotal = subtotalAfterDiscount;
+            let finalTotal = totalWithIgvAfterDiscount;
             if (invoiceType !== 'sales_note') {
-                const taxAmount = subtotalAfterDiscount * 0.18;
+                // Calcular IGV incluido en el precio
+                const taxAmount = totalWithIgvAfterDiscount / 1.18 * 0.18;
                 document.getElementById('tax-amount').textContent = 'S/ ' + taxAmount.toFixed(2);
-                finalTotal += taxAmount;
+                // El total no cambia, ya incluye IGV
+                finalTotal = totalWithIgvAfterDiscount;
             }
 
             // Actualizar total

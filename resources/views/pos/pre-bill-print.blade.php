@@ -445,6 +445,10 @@
         <div class="thermal-footer">
             Gracias por su preferencia
         </div>
+
+        <div class="thermal-notice">
+            * Precios incluyen IGV
+        </div>
     </div>
 
 
