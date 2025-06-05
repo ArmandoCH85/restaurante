@@ -2021,22 +2021,27 @@
 
                 <!-- Resumen del pedido - Contenido compacto -->
                 <div class="order-summary-compact-content">
-                    <!-- Subtotal e IGV en una sola línea -->
+                    <!-- Subtotal e IGV INCLUIDO (CORRECTO) -->
                     <div class="order-summary-compact-row">
                         <div class="order-summary-compact-item">
                             <span class="order-summary-compact-label">Subtotal:</span>
-                            <span class="order-summary-compact-value">S/ {{ number_format($cartTotal, 2) }}</span>
+                            <span class="order-summary-compact-value">S/ {{ number_format($this->getCartSubtotal(), 2) }}</span>
                         </div>
                         <div class="order-summary-compact-item">
                             <span class="order-summary-compact-label">IGV (18%):</span>
-                            <span class="order-summary-compact-value">S/ {{ number_format($cartTotal * 0.18, 2) }}</span>
+                            <span class="order-summary-compact-value">S/ {{ number_format($this->getCartTax(), 2) }}</span>
                         </div>
                     </div>
 
-                    <!-- Total prominente -->
+                    <!-- Total prominente (precio original con IGV incluido) -->
                     <div class="order-summary-compact-total">
                         <span class="order-summary-compact-total-label">TOTAL:</span>
-                        <span class="order-summary-compact-total-value">S/ {{ number_format($cartTotal * 1.18, 2) }}</span>
+                        <span class="order-summary-compact-total-value">S/ {{ number_format($cartTotal, 2) }}</span>
+                    </div>
+
+                    <!-- Nota aclaratoria -->
+                    <div style="text-align: center; font-size: 0.7rem; color: #6b7280; font-style: italic; margin-top: 0.5rem;">
+                        * Precios incluyen IGV
                     </div>
                 </div>
 
