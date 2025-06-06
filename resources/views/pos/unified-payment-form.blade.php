@@ -208,27 +208,27 @@
                     <h4>1. Método de Pago</h4>
                     <div class="payment-methods">
                         <div class="payment-method active" data-method="cash" onclick="selectPaymentMethod(this, 'cash')">
-                            <i class="fas fa-money-bill-wave"></i>
+                            <img src="{{ asset('images/efectivo.png') }}" alt="Efectivo" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Efectivo</span>
                         </div>
                         <div class="payment-method" data-method="credit_card" onclick="selectPaymentMethod(this, 'credit_card')">
-                            <i class="fas fa-credit-card"></i>
+                            <img src="{{ asset('images/tcredito.png') }}" alt="T. Crédito" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>T. Crédito</span>
                         </div>
                         <div class="payment-method" data-method="debit_card" onclick="selectPaymentMethod(this, 'debit_card')">
-                            <i class="fas fa-credit-card"></i>
+                            <img src="{{ asset('images/tdebito.png') }}" alt="T. Débito" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>T. Débito</span>
                         </div>
                         <div class="payment-method" data-method="bank_transfer" onclick="selectPaymentMethod(this, 'bank_transfer')">
-                            <i class="fas fa-exchange-alt"></i>
+                            <img src="{{ asset('images/tbancaria.png') }}" alt="Transferencia" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Transferencia</span>
                         </div>
                         <div class="payment-method" data-method="digital_wallet" data-wallet-type="yape" onclick="selectPaymentMethod(this, 'digital_wallet', 'yape')">
-                            <i class="fas fa-mobile-alt"></i>
+                            <img src="{{ asset('images/yape.png') }}" alt="Yape" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Yape</span>
                         </div>
                         <div class="payment-method" data-method="digital_wallet" data-wallet-type="plin" onclick="selectPaymentMethod(this, 'digital_wallet', 'plin')">
-                            <i class="fas fa-mobile-alt"></i>
+                            <img src="{{ asset('images/plin.jpeg') }}" alt="Plin" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Plin</span>
                         </div>
                     </div>
@@ -308,15 +308,15 @@
                     <h4>2. Tipo de Comprobante</h4>
                     <div class="invoice-type">
                         <div class="invoice-type-option active" data-type="sales_note" onclick="selectInvoiceType(this, 'sales_note')">
-                            <i class="fas fa-receipt"></i>
+                            <img src="{{ asset('images/nventa.png') }}" alt="Nota de Venta" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Nota de Venta</span>
                         </div>
                         <div class="invoice-type-option" data-type="receipt" onclick="selectInvoiceType(this, 'receipt')">
-                            <i class="fas fa-file-invoice"></i>
+                            <img src="{{ asset('images/boleta.png') }}" alt="Boleta" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Boleta</span>
                         </div>
                         <div class="invoice-type-option" data-type="invoice" onclick="selectInvoiceType(this, 'invoice')">
-                            <i class="fas fa-file-invoice-dollar"></i>
+                            <img src="{{ asset('images/factura.png') }}" alt="Factura" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Factura</span>
                         </div>
                     </div>
