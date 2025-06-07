@@ -384,7 +384,7 @@
                     @endforeach
 
                     <!-- Pedidos de Delivery -->
-                    @if(true) {{-- Forzar visualización de la sección de delivery --}}
+                    @if($showDeliveryOrders)
                         <div class="delivery-section">
                             <div class="delivery-header">
                                 <h2 class="delivery-title">
