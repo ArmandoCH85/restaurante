@@ -138,7 +138,8 @@ class EditCashRegister extends EditRecord
         if ($significantDifference) {
             // Si hay diferencia significativa, mostrar como advertencia
             $notification->warning()
-                ->title('Caja cerrada con diferencia significativa');
+                ->title('⚠️ Caja cerrada con diferencia significativa')
+                ->duration(8000);
 
             // Enviar notificación a supervisores (simulado con log)
             \Illuminate\Support\Facades\Log::warning('Cierre de caja con diferencia significativa', [
@@ -152,7 +153,8 @@ class EditCashRegister extends EditRecord
         } else {
             // Si no hay diferencia significativa, mostrar como éxito
             $notification->success()
-                ->title('Caja cerrada correctamente');
+                ->title('✅ Caja cerrada exitosamente')
+                ->duration(5000);
         }
 
         // Contenido del mensaje según el rol
@@ -180,6 +182,6 @@ class EditCashRegister extends EditRecord
 
     public function getHeading(): string
     {
-        return 'Cerrar Caja';
+        return '🔒 Cerrar Operación de Caja';
     }
 }
