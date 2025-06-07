@@ -1,0 +1,530 @@
+/* ===== MEJORAS PARA OPERACIONES DE CAJA ===== */
+/* Estilos específicos para mejorar la presentación de apertura y cierre de caja */
+
+/* Variables CSS para consistencia */
+:root {
+    --cash-primary: #10B981;
+    --cash-warning: #F59E0B;
+    --cash-danger: #EF4444;
+    --cash-info: #3B82F6;
+    --cash-success: #059669;
+    --cash-gradient-primary: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    --cash-gradient-warning: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    --cash-gradient-danger: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    --cash-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --cash-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --cash-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --cash-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* ===== MEJORAS PARA BOTONES DE OPERACIONES DE CAJA ===== */
+
+/* Botón de Abrir Caja */
+.fi-btn[data-action="create"] {
+    background: var(--cash-gradient-primary) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-btn[data-action="create"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--cash-shadow-xl) !important;
+}
+
+.fi-btn[data-action="create"]:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.fi-btn[data-action="create"]:hover:before {
+    left: 100%;
+}
+
+/* Botón de Cerrar Caja */
+.fi-btn[data-action="closeCashRegister"] {
+    background: var(--cash-gradient-warning) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+    animation: pulse-warning 2s infinite !important;
+}
+
+@keyframes pulse-warning {
+    0% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+    }
+}
+
+/* Botones de acción en tabla */
+.fi-ta-actions .fi-btn {
+    transition: all 0.2s ease !important;
+    border-radius: 8px !important;
+}
+
+.fi-ta-actions .fi-btn:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: var(--cash-shadow-md) !important;
+}
+
+/* ===== MEJORAS PARA BADGES DE ESTADO ===== */
+
+/* Badge de estado abierta */
+.fi-badge[data-state="Abierta"] {
+    background: var(--cash-gradient-primary) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+    animation: pulse-success 3s infinite !important;
+}
+
+@keyframes pulse-success {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+}
+
+/* Badge de estado cerrada */
+.fi-badge[data-state="Cerrada"] {
+    background: var(--cash-gradient-danger) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+}
+
+/* Badges de aprobación */
+.fi-badge[data-state="Aprobada"] {
+    background: var(--cash-gradient-primary) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+}
+
+.fi-badge[data-state="Pendiente de reconciliación"] {
+    background: var(--cash-gradient-warning) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+    animation: pulse-warning 2s infinite !important;
+}
+
+.fi-badge[data-state="Rechazada"] {
+    background: var(--cash-gradient-danger) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+}
+
+/* ===== MEJORAS PARA SECCIONES DE FORMULARIO ===== */
+
+/* Sección de información de apertura */
+.fi-section[data-section="Información de Apertura"] {
+    background: linear-gradient(135deg, #F0FDF4 0%, #ECFDF5 100%) !important;
+    border: 2px solid #10B981 !important;
+    border-radius: 12px !important;
+    box-shadow: var(--cash-shadow-md) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-section[data-section="Información de Apertura"]:before {
+    content: '🏦';
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 24px;
+    opacity: 0.3;
+}
+
+/* Sección de conteo de efectivo */
+.fi-section[data-section="Conteo de Efectivo"] {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+    border: 2px solid #F59E0B !important;
+    border-radius: 12px !important;
+    box-shadow: var(--cash-shadow-md) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-section[data-section="Conteo de Efectivo"]:before {
+    content: '💰';
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 24px;
+    opacity: 0.3;
+}
+
+/* Sección de resumen de ventas */
+.fi-section[data-section="Resumen de Ventas"] {
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
+    border: 2px solid #3B82F6 !important;
+    border-radius: 12px !important;
+    box-shadow: var(--cash-shadow-md) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-section[data-section="Resumen de Ventas"]:before {
+    content: '📊';
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 24px;
+    opacity: 0.3;
+}
+
+/* ===== MEJORAS PARA CAMPOS DE ENTRADA ===== */
+
+/* Campos de monto */
+.fi-input[type="number"] {
+    border: 2px solid #E5E7EB !important;
+    border-radius: 8px !important;
+    transition: all 0.2s ease !important;
+    font-weight: 600 !important;
+}
+
+.fi-input[type="number"]:focus {
+    border-color: var(--cash-primary) !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+    transform: scale(1.02) !important;
+}
+
+/* ===== MEJORAS PARA ICONOS ===== */
+
+/* Iconos en badges */
+.fi-badge svg {
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 6px !important;
+}
+
+/* Iconos en botones */
+.fi-btn svg {
+    width: 18px !important;
+    height: 18px !important;
+    margin-right: 8px !important;
+}
+
+/* ===== MEJORAS PARA TABLAS ===== */
+
+/* Filas de tabla con hover mejorado */
+.fi-ta-row:hover {
+    background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+    transition: all 0.2s ease !important;
+}
+
+/* ===== MEJORAS PARA MODALES ===== */
+
+/* Modal de confirmación */
+.fi-modal-content {
+    border-radius: 16px !important;
+    box-shadow: var(--cash-shadow-xl) !important;
+}
+
+.fi-modal-header {
+    background: linear-gradient(135deg, #F9FAFB 0%, #F3F4F6 100%) !important;
+    border-radius: 16px 16px 0 0 !important;
+}
+
+/* ===== MEJORAS PARA NOTIFICACIONES ===== */
+
+/* Notificaciones de éxito */
+.fi-notification.fi-color-success {
+    background: var(--cash-gradient-primary) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+}
+
+/* Notificaciones de advertencia */
+.fi-notification.fi-color-warning {
+    background: var(--cash-gradient-warning) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+}
+
+/* Notificaciones de error */
+.fi-notification.fi-color-danger {
+    background: var(--cash-gradient-danger) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+}
+
+/* ===== MEJORAS RESPONSIVAS ===== */
+
+@media (max-width: 768px) {
+    .fi-btn {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+    }
+    
+    .fi-badge {
+        padding: 4px 8px !important;
+        font-size: 12px !important;
+    }
+    
+    .fi-section {
+        margin-bottom: 16px !important;
+    }
+}
+
+/* ===== ANIMACIONES ADICIONALES ===== */
+
+@keyframes slideInFromTop {
+    0% {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.fi-section {
+    animation: slideInFromTop 0.5s ease-out !important;
+}
+
+/* ===== MEJORAS PARA ESTADO VACÍO ===== */
+
+.fi-ta-empty-state {
+    padding: 48px 24px !important;
+    text-align: center !important;
+}
+
+.fi-ta-empty-state-icon {
+    font-size: 48px !important;
+    margin-bottom: 16px !important;
+    opacity: 0.6 !important;
+}
+
+.fi-ta-empty-state-heading {
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+    color: #374151 !important;
+}
+
+.fi-ta-empty-state-description {
+    color: #6B7280 !important;
+    margin-bottom: 24px !important;
+}
+
+/* ===== MEJORAS ESPECÍFICAS PARA PÁGINA DE OPERACIONES DE CAJA ===== */
+
+/* Título de página mejorado */
+.fi-header-heading {
+    background: var(--cash-gradient-primary) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    font-weight: 700 !important;
+}
+
+/* Mejoras para fieldsets de billetes y monedas */
+.fi-fieldset {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border: 2px solid #E5E7EB !important;
+    border-radius: 12px !important;
+    padding: 20px !important;
+    margin-bottom: 16px !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+    transition: all 0.3s ease !important;
+}
+
+.fi-fieldset:hover {
+    border-color: var(--cash-primary) !important;
+    box-shadow: var(--cash-shadow-md) !important;
+    transform: translateY(-2px) !important;
+}
+
+.fi-fieldset-legend {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    background: white !important;
+    padding: 8px 16px !important;
+    border-radius: 20px !important;
+    border: 2px solid #E5E7EB !important;
+    box-shadow: var(--cash-shadow-sm) !important;
+}
+
+/* Mejoras para inputs de denominaciones */
+.fi-fieldset .fi-input {
+    text-align: center !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+}
+
+.fi-fieldset .fi-input:focus {
+    background: white !important;
+    border-color: var(--cash-primary) !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Mejoras para labels de denominaciones */
+.fi-fieldset .fi-field-wrp-label {
+    font-weight: 600 !important;
+    color: #374151 !important;
+    text-align: center !important;
+}
+
+/* Efectos especiales para billetes */
+.fi-fieldset[data-fieldset="Billetes"] {
+    background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+    border-color: #22C55E !important;
+}
+
+.fi-fieldset[data-fieldset="Billetes"] .fi-fieldset-legend {
+    background: linear-gradient(135deg, #22C55E 0%, #16A34A 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* Efectos especiales para monedas */
+.fi-fieldset[data-fieldset="Monedas"] {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%) !important;
+    border-color: #F59E0B !important;
+}
+
+.fi-fieldset[data-fieldset="Monedas"] .fi-fieldset-legend {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+/* ===== MEJORAS PARA INFORMACIÓN DE CIERRE ===== */
+
+/* Sección de información de cierre */
+.fi-section[data-section="Información de Cierre"] {
+    background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%) !important;
+    border: 2px solid #EF4444 !important;
+    border-radius: 12px !important;
+    box-shadow: var(--cash-shadow-md) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-section[data-section="Información de Cierre"]:before {
+    content: '🔒';
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 24px;
+    opacity: 0.3;
+}
+
+/* ===== MEJORAS PARA TEXTO DE DIFERENCIAS ===== */
+
+/* Texto de diferencia positiva (sobrante) */
+.difference-positive {
+    color: #F59E0B !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%) !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid #F59E0B !important;
+}
+
+/* Texto de diferencia negativa (faltante) */
+.difference-negative {
+    color: #EF4444 !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%) !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid #EF4444 !important;
+}
+
+/* Texto de diferencia cero (exacto) */
+.difference-zero {
+    color: #10B981 !important;
+    font-weight: 700 !important;
+    background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    border: 1px solid #10B981 !important;
+}
+
+/* ===== MEJORAS PARA BOTONES DE ACCIÓN ESPECÍFICOS ===== */
+
+/* Botón de reconciliar */
+.fi-btn[data-action="reconcile"] {
+    background: var(--cash-gradient-primary) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+}
+
+.fi-btn[data-action="reconcile"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: var(--cash-shadow-xl) !important;
+}
+
+/* Botón de aprobar */
+.fi-btn[data-action="approve"] {
+    background: var(--cash-gradient-primary) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+}
+
+/* Botón de rechazar */
+.fi-btn[data-action="reject"] {
+    background: var(--cash-gradient-danger) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+}
+
+/* Botón de imprimir */
+.fi-btn[data-action="print"] {
+    background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%) !important;
+    border: none !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+    transition: all 0.3s ease !important;
+    font-weight: 600 !important;
+}
+
+/* ===== MEJORAS PARA TOOLTIPS ===== */
+
+.fi-tooltip {
+    background: rgba(0, 0, 0, 0.9) !important;
+    color: white !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    box-shadow: var(--cash-shadow-lg) !important;
+}

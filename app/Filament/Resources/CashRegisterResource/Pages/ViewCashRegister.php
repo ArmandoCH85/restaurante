@@ -27,8 +27,9 @@ class ViewCashRegister extends ViewRecord
         return [
             Actions\EditAction::make()
                 ->label('Cerrar Caja')
-                ->icon('heroicon-o-lock-closed')
+                ->icon('heroicon-m-lock-closed')
                 ->color('warning')
+                ->button()
                 ->visible(function ($record) {
                     // Solo permitir cerrar cajas abiertas
                     return $record->is_active && $this->canCloseCashRegister();
@@ -36,8 +37,9 @@ class ViewCashRegister extends ViewRecord
 
             Actions\Action::make('print')
                 ->label('Imprimir Informe')
-                ->icon('heroicon-o-printer')
+                ->icon('heroicon-m-printer')
                 ->color('gray')
+                ->button()
                 ->url(fn ($record) => url("/admin/print-cash-register/{$record->id}"))
                 ->openUrlInNewTab()
                 ->visible(function ($record) {
@@ -47,8 +49,9 @@ class ViewCashRegister extends ViewRecord
 
             Actions\Action::make('reconcile')
                 ->label('Reconciliar y Aprobar')
-                ->icon('heroicon-o-check-circle')
+                ->icon('heroicon-m-check-circle')
                 ->color('success')
+                ->button()
                 ->form([
                     Forms\Components\Section::make('Reconciliación de Caja')
                         ->description('Verifique los montos contados contra los esperados')
@@ -103,19 +106,21 @@ class ViewCashRegister extends ViewRecord
 
                         // Mostrar notificación de éxito
                         Notification::make()
-                            ->title('Operación de caja reconciliada correctamente')
+                            ->title($data['is_approved'] ? '✅ Operación de caja aprobada' : '⚠️ Operación de caja rechazada')
                             ->body($data['is_approved']
-                                ? 'La operación de caja ha sido aprobada y reconciliada.'
+                                ? 'La operación de caja ha sido aprobada y reconciliada exitosamente.'
                                 : 'La operación de caja ha sido marcada como no aprobada.')
                             ->success()
+                            ->duration(5000)
                             ->send();
 
                     } catch (\Exception $e) {
                         // Mostrar notificación de error
                         Notification::make()
-                            ->title('Error al reconciliar la operación de caja')
+                            ->title('❌ Error al reconciliar la operación de caja')
                             ->body($e->getMessage())
                             ->danger()
+                            ->duration(8000)
                             ->send();
                     }
                 })
