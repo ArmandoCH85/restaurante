@@ -17,7 +17,7 @@ class CashRegisterResource extends Resource
 {
     protected static ?string $model = CashRegister::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-banknotes';
+    protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
     protected static ?string $navigationGroup = 'Facturación';
 
@@ -40,6 +40,7 @@ class CashRegisterResource extends Resource
             ->schema([
                 Forms\Components\Section::make('Información de Apertura')
                     ->description('Datos de apertura de caja')
+                    ->icon('heroicon-m-information-circle')
                     ->schema([
                         Forms\Components\TextInput::make('opening_amount')
                             ->label('Monto Inicial')
@@ -67,6 +68,7 @@ class CashRegisterResource extends Resource
 
                 Forms\Components\Section::make('Información de Apertura')
                     ->description('Datos de apertura de caja')
+                    ->icon('heroicon-m-calculator')
                     ->schema([
                         Forms\Components\TextInput::make('opening_amount')
                             ->label('Monto Inicial')
@@ -109,6 +111,7 @@ class CashRegisterResource extends Resource
 
                 Forms\Components\Section::make('Conteo de Efectivo')
                     ->description('Ingrese la cantidad de billetes y monedas para el cierre de caja')
+                    ->icon('heroicon-m-banknotes')
                     ->schema([
                         Forms\Components\Fieldset::make('Billetes')
                             ->schema([
@@ -195,6 +198,7 @@ class CashRegisterResource extends Resource
 
                 Forms\Components\Section::make('Resumen de Ventas')
                     ->description('Resumen de ventas por método de pago')
+                    ->icon('heroicon-m-chart-bar')
                     ->schema(function () {
                         $user = auth()->user();
                         $isSupervisor = $user->hasAnyRole(['admin', 'super_admin', 'manager']);
@@ -283,17 +287,40 @@ class CashRegisterResource extends Resource
                     }),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
+                    ->getStateUsing(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
                     ->colors([
                         'success' => 'Abierta',
                         'danger' => 'Cerrada',
+                    ])
+                    ->icons([
+                        'heroicon-m-lock-open' => 'Abierta',
+                        'heroicon-m-lock-closed' => 'Cerrada',
                     ]),
                 Tables\Columns\BadgeColumn::make('reconciliationStatus')
                     ->label('Estado Aprobación')
+                    ->getStateUsing(function ($record) {
+                        if ($record->is_active) {
+                            return 'Pendiente de cierre';
+                        }
+                        if ($record->is_approved) {
+                            return 'Aprobada';
+                        }
+                        if ($record->approval_notes && !$record->is_approved) {
+                            return 'Rechazada';
+                        }
+                        return 'Pendiente de reconciliación';
+                    })
                     ->colors([
                         'success' => 'Aprobada',
                         'warning' => 'Pendiente de reconciliación',
                         'danger' => 'Rechazada',
                         'info' => 'Pendiente de cierre',
+                    ])
+                    ->icons([
+                        'heroicon-m-check-circle' => 'Aprobada',
+                        'heroicon-m-clock' => 'Pendiente de reconciliación',
+                        'heroicon-m-x-circle' => 'Rechazada',
+                        'heroicon-m-exclamation-triangle' => 'Pendiente de cierre',
                     ])
                     ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager']))
                     ->tooltip(function ($record) {
@@ -450,16 +477,20 @@ class CashRegisterResource extends Resource
             ])
             ->filtersFormColumns(3)
             ->actions([
-                Tables\Actions\ViewAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-m-eye')
+                    ->color('info'),
                 Tables\Actions\EditAction::make()
                     ->label('Cerrar Caja')
-                    ->icon('heroicon-o-lock-closed')
+                    ->icon('heroicon-m-lock-closed')
                     ->color('warning')
+                    ->button()
                     ->visible(fn (CashRegister $record) => $record->is_active),
                 Tables\Actions\Action::make('approve')
                     ->label('Aprobar Cierre')
-                    ->icon('heroicon-o-check-circle')
+                    ->icon('heroicon-m-check-circle')
                     ->color('success')
+                    ->button()
                     ->visible(function (CashRegister $record) {
                         $user = auth()->user();
                         return !$record->is_active && !$record->is_approved && $user->hasAnyRole(['admin', 'super_admin', 'manager']);
@@ -498,8 +529,9 @@ class CashRegisterResource extends Resource
                     ->modalSubmitActionLabel('Sí, aprobar cierre'),
                 Tables\Actions\Action::make('print')
                     ->label('Imprimir')
-                    ->icon('heroicon-o-printer')
+                    ->icon('heroicon-m-printer')
                     ->color('gray')
+                    ->button()
                     ->url(fn (CashRegister $record) => url("/admin/print-cash-register/{$record->id}"))
                     ->openUrlInNewTab()
                     ->visible(function (CashRegister $record) {
@@ -509,8 +541,9 @@ class CashRegisterResource extends Resource
 
                 Tables\Actions\Action::make('reject')
                     ->label('Rechazar Cierre')
-                    ->icon('heroicon-o-x-circle')
+                    ->icon('heroicon-m-x-circle')
                     ->color('danger')
+                    ->button()
                     ->visible(function (CashRegister $record) {
                         $user = auth()->user();
                         return !$record->is_active && !$record->is_approved && $user->hasAnyRole(['admin', 'super_admin', 'manager']);
@@ -556,15 +589,16 @@ class CashRegisterResource extends Resource
                 ]),
             ])
             ->defaultSort('opening_datetime', 'desc')
-            ->emptyStateIcon('heroicon-o-banknotes')
+            ->emptyStateIcon('heroicon-o-calculator')
             ->emptyStateHeading('No hay cajas registradas')
             ->emptyStateDescription('Registra tu primera caja para comenzar a gestionar tus ventas.')
             ->emptyStateActions([
                 Tables\Actions\Action::make('crear')
-                    ->label('Abrir Caja')
+                    ->label('Abrir Primera Caja')
                     ->url(static::getUrl('create'))
                     ->icon('heroicon-m-plus')
-                    ->button(),
+                    ->button()
+                    ->color('primary'),
             ]);
     }
 

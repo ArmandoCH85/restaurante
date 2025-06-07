@@ -10,6 +10,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Support\Enums\FontWeight;
+use Illuminate\Database\Eloquent\Builder;
 
 class ProductResource extends Resource
 {
@@ -157,11 +158,16 @@ class ProductResource extends Resource
 
     /**
      * OPTIMIZACIÓN: Agregar eager loading para evitar N+1 queries
+     * y filtrar solo productos de venta, excluyendo ingredientes puros
      */
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         return parent::getEloquentQuery()
-            ->with(['category', 'recipe']);
+            ->with(['category', 'recipe'])
+            ->where(function(\Illuminate\Database\Eloquent\Builder $query) {
+                $query->where('product_type', Product::TYPE_SALE_ITEM)
+                      ->orWhere('product_type', Product::TYPE_BOTH);
+            });
     }
 
     public static function table(Table $table): Table

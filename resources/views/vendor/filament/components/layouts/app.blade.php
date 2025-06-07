@@ -50,6 +50,9 @@
         <!-- CSS específico para optimizaciones responsive en monitores 16.3" -->
         <link href="{{ asset('css/admin-responsive-16.css') }}" rel="stylesheet">
 
+        <!-- CSS específico para mejoras en operaciones de caja -->
+        <link href="{{ asset('css/cash-register-improvements.css') }}" rel="stylesheet">
+
         {{ \Filament\Support\Facades\FilamentView::renderHook('styles.end') }}
 
         <script>
