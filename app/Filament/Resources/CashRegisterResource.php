@@ -477,6 +477,15 @@ class CashRegisterResource extends Resource
             ])
             ->filtersFormColumns(3)
             ->actions([
+                Tables\Actions\Action::make('details')
+                    ->label('Ver Detalles')
+                    ->icon('heroicon-m-document-magnifying-glass')
+                    ->color('primary')
+                    ->button()
+                    ->modalHeading(fn (CashRegister $record) => "Detalles de Operación de Caja #{$record->id}")
+                    ->modalWidth('5xl')
+                    ->modalContent(fn (CashRegister $record) => 
+                        view('cash-registers.detail-modal', ['record' => $record])),
                 Tables\Actions\ViewAction::make()
                     ->icon('heroicon-m-eye')
                     ->color('info'),
