@@ -6,155 +6,468 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Pago y Facturación - Orden #{{ $order->id }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font size base optimizado para diferentes resoluciones -->
+    <style>
+        html {
+            font-size: 16px;
+        }
+        @media (max-width: 1366px) {
+            html {
+                font-size: 15px;
+            }
+        }
+        @media (max-width: 992px) {
+            html {
+                font-size: 14px;
+            }
+        }
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             background-color: #f8f9fa;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            color: #212529;
+            margin: 0;
+            padding: 0;
         }
+        
+        /* Container principal responsivo */
         .unified-container {
-            max-width: 1100px;
-            margin: 20px auto;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
             background: white;
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
-            padding: 20px;
         }
+        
+        /* Media queries para diferentes resoluciones de pantalla */
+        @media (max-width: 1366px) {
+            body {
+                font-size: 14px;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            h3 {
+                font-size: 1.3rem;
+            }
+            
+            h4 {
+                font-size: 1.1rem;
+            }
+            
+            .payment-method span, .invoice-type-option span {
+                font-size: 0.9rem;
+                display: block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                max-width: 100%;
+                padding: 0 2px;
+                line-height: 1.2;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .unified-container {
+                padding: 12px;
+                margin: 12px auto;
+            }
+            
+            body {
+                font-size: 13px;
+            }
+            
+            .payment-methods, .invoice-type {
+                gap: 8px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .unified-container {
+                padding: 10px;
+                margin: 10px auto;
+            }
+            
+            body {
+                font-size: 13px;
+            }
+            
+            .row {
+                margin-left: -8px;
+                margin-right: -8px;
+            }
+            
+            .row > [class*='col-'] {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+        }
+        
+        /* Encabezado de orden mejorado */
         .order-header {
             background-color: #f1f8ff;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
+            overflow: hidden; /* Prevenir desbordamiento */
         }
+        
+        /* Métodos de pago - Grid responsivo optimizado para pantallas pequeñas */
         .payment-methods {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             gap: 10px;
             margin-bottom: 20px;
         }
+        
         .payment-method {
-            flex: 1;
-            min-width: 100px;
-            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 8px;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-        .payment-method:hover {
+            transition: all 0.25s ease;
+            height: 100%;
+            position: relative;
             background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         }
+        
+        .payment-method:hover {
+            background-color: #f1f3f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
         .payment-method.active {
             background-color: #e7f5ff;
             border-color: #4dabf7;
+            box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.5);
         }
-        .payment-method i {
-            font-size: 20px;
-            margin-bottom: 6px;
-            display: block;
+        
+        .payment-method img {
+            max-width: 100%;
+            height: auto;
         }
+        
+        /* Botones de monto predefinidos */
         .amount-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
         }
+        
         .amount-button {
-            flex: 1;
-            min-width: 70px;
-            padding: 8px;
+            padding: 8px 4px;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .amount-button:hover {
+        
+        /* Grid responsivo optimizado para los tipos de comprobantes */
+        .invoice-type {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .invoice-type-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            height: 100%;
+            position: relative;
             background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         }
-        .order-details {
-            margin-top: 20px;
-            border-top: 1px solid #dee2e6;
-            padding-top: 20px;
+        
+        .invoice-type-option:hover {
+            background-color: #f1f3f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .product-row {
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
+        
+        .invoice-type-option.active {
+            background-color: #e7f5ff;
+            border-color: #4dabf7;
+            box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.5);
         }
+        
+        .invoice-type-option img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 8px;
+        }
+        
+        /* Información sobre balances y resumen */
         .balance-info {
             background-color: #e9ecef;
             padding: 15px;
             border-radius: 8px;
             margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
         }
+        
         .balance-info.paid {
             background-color: #d4edda;
         }
+        
         .balance-info.pending {
             background-color: #fff3cd;
         }
-        .invoice-type {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .invoice-type-option {
-            flex: 1;
-            min-width: 120px;
-            padding: 15px;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .invoice-type-option:hover {
-            background-color: #f8f9fa;
-        }
-        .invoice-type-option.active {
-            background-color: #e7f5ff;
-            border-color: #4dabf7;
-        }
-        .invoice-type-option i {
-            font-size: 24px;
-            margin-bottom: 8px;
-            display: block;
-        }
+        
+        /* Datos del cliente */
         .client-data {
             background-color: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             margin-top: 15px;
+            width: 100%;
+            box-sizing: border-box;
         }
+        
+        /* Documento siguiente */
         .next-document {
             background-color: #e7f5ff;
             padding: 10px;
             border-radius: 8px;
             margin-top: 10px;
             border: 1px solid #b8daff;
+            width: 100%;
+            box-sizing: border-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .customer-result:hover {
-            background-color: #f8f9fa;
+        
+        /* Detalles de la orden */
+        .order-details {
+            margin-top: 20px;
+            border-top: 1px solid #dee2e6;
+            padding-top: 20px;
+            width: 100%;
         }
+        
+        .product-row {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        /* Tablas responsivas */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Botones y controles de formulario */
+        .form-control {
+            border-radius: 6px;
+        }
+        
+        .btn {
+            border-radius: 6px;
+        }
+        
+        /* Media queries adicionales */
+        @media (max-width: 1024px) {
+            .invoice-type-option span, .payment-method span {
+                font-size: 0.85rem;
+            }
+            
+            .payment-method img, .invoice-type-option img {
+                max-height: 28px;
+                min-height: 24px;
+                margin-bottom: 8px;
+            }
+        }
+        
+        /* Fix específicos para resoluciones entre 800px y 1280px donde suelen cortarse textos */
+        @media (max-width: 1280px) and (min-width: 800px) {
+            .payment-methods, .invoice-type {
+                grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            }
+            
+            .payment-method img, .invoice-type-option img {
+                max-width: 90%;
+                object-fit: contain;
+            }
+        }
+    </style>
+    <!-- Optimización adicional para resoluciones bajas y visualización general -->
+    <style>
+        /* Estilos para textos específicos - restaurados */
+        .order-status-text {
+            font-weight: 500;
+            color: #198754;
+        }
+        
+        /* Clases de utilidad para textos - restaurados */
+        .text-nowrap {
+            white-space: nowrap;
+        }
+        
+        .text-ellipsis {
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        
         .alert-sm {
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
         }
+        
         .alert-info {
             background-color: #e7f3ff;
             border-color: #b8daff;
             color: #0c5460;
         }
+        
+        /* Arregla el botón principal - restaurado */
+        .btn-process {
+            width: 100%;
+            margin-top: 20px;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        /* Márgenes básicos y optimizaciones de tamaño */
+        @media (max-width: 1440px) {
+            .payment-method, .invoice-type-option {
+                padding: 8px 6px;
+            }
+            
+            .payment-method span, .invoice-type-option span {
+                font-size: 0.95rem;
+                line-height: 1.2;
+                margin-top: 4px;
+            }
+            
+            .table {
+                font-size: 0.95rem;
+            }
+        }
+        
+        /* Fix específicos para resoluciones intermedias donde suelen cortarse textos */
+        @media (max-width: 1280px) and (min-width: 800px) {
+            .payment-methods, .invoice-type {
+                grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+            }
+            
+            .payment-method img, .invoice-type-option img {
+                max-width: 90%;
+                object-fit: contain;
+            }
+        }
+        
+        /* Optimizaciones específicas para dispositivos móviles pequeños - restauradas */
+        @media (max-width: 576px) {
+            .row > [class*='col-'] {
+                padding-right: 10px;
+                padding-left: 10px;
+            }
+            
+            h4 {
+                font-size: 1.2rem;
+                margin-top: 15px;
+            }
+            
+            .payment-method, .invoice-type-option {
+                padding: 10px 5px;
+            }
+            
+            .order-header .col-md-6 {
+                margin-bottom: 10px;
+            }
+            
+            /* Mejoras para dispositivos móviles y resoluciones bajas */
+            .unified-container {
+                padding: 12px;
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .order-header {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+            
+            .form-control, .btn {
+                font-size: 0.95rem;
+                padding: 0.375rem 0.5rem;
+            }
+            
+            .table td, .table th {
+                padding: 0.5rem 0.4rem;
+                font-size: 0.95rem;
+            }
+            
+            /* Evitar que las imágenes sean demasiado pequeñas en móviles */
+            .payment-method img, .invoice-type-option img {
+                min-height: 28px;
+                max-height: 32px;
+                margin-bottom: 6px;
+            }
+            
+            /* Mejorar la visibilidad de los botones de acción */
+            .btn-process {
+                padding: 12px;
+                font-size: 1.1rem;
+                position: relative;
+                bottom: 0;
+                z-index: 100;
+            }
+        }
     </style>
 </head>
-<body>
-    <div class="unified-container">
+<body class="bg-light">
+    <div class="container-fluid unified-container p-2 p-md-3 p-lg-4">
         <div class="order-header">
-            <div class="row">
-                <div class="col-md-6">
-                    <h2>Pago y Facturación</h2>
+            <div class="row align-items-center">
+                <div class="col-md-6 col-sm-12 mb-3 mb-md-0">
+                    <h2 style="font-size: 1.4rem; font-weight: 600; margin-bottom: 10px;">Pago y Facturación</h2>
                     <p class="mb-0">Orden #{{ $order->id }}</p>
                     <p class="mb-0">Fecha: {{ $order->order_datetime->format('d/m/Y H:i') }}</p>
                     @if($order->service_type === 'delivery')
@@ -162,37 +475,6 @@
                         @if($order->deliveryOrder && $order->deliveryOrder->delivery_address)
                             <p class="mb-0"><i class="fas fa-map-marker-alt text-success"></i> {{ $order->deliveryOrder->delivery_address }}</p>
                             @if($order->deliveryOrder->delivery_references)
-                                <p class="mb-0 small text-muted">Ref: {{ $order->deliveryOrder->delivery_references }}</p>
-                            @endif
-                        @endif
-                    @elseif($order->service_type === 'dine_in')
-                        <!-- EN LOCAL: Mostrar mesa si existe, sino "En local" -->
-                        @if($order->table_id && $order->table)
-                            <p class="mb-0"><i class="fas fa-utensils text-info"></i> Mesa: {{ $order->table->number }}@if($order->table->location) - {{ ucfirst($order->table->location) }}@endif</p>
-                        @else
-                            <p class="mb-0"><i class="fas fa-utensils text-info"></i> En local</p>
-                        @endif
-                    @elseif($order->service_type === 'takeout')
-                        <p class="mb-0"><i class="fas fa-shopping-bag text-warning"></i> Para llevar</p>
-                    @else
-                        <p class="mb-0"><i class="fas fa-shopping-bag text-warning"></i> Para llevar</p>
-                    @endif
-                    @if($order->customer)
-                        <p class="mb-0">Cliente: {{ $order->customer->name }}</p>
-                    @endif
-                </div>
-                <div class="col-md-6 text-end">
-                    <h3>Total: S/ {{ number_format($order->total, 2) }}</h3>
-                    <p class="mb-0">Pagado: S/ {{ number_format($totalPaid, 2) }}</p>
-                    <p class="mb-0">Pendiente: S/ {{ number_format($remainingBalance, 2) }}</p>
-                </div>
-            </div>
-        </div>
-
-        @if(session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
         @endif
 
         @if(session('error'))
@@ -203,16 +485,16 @@
 
         <form action="{{ route('pos.unified.process', $order->id) }}" method="POST">
             @csrf
-            <div class="row">
-                <div class="col-md-6">
-                    <h4>1. Método de Pago</h4>
+            <div class="row g-3">
+                <div class="col-lg-6 col-md-12 col-sm-12 mb-3 mb-lg-0">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 15px;">1. Método de Pago</h4>
                     <div class="payment-methods">
                         <div class="payment-method active" data-method="cash" onclick="selectPaymentMethod(this, 'cash')">
-                            <img src="{{ asset('images/efectivo.png') }}" alt="Efectivo" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/efectivo.png') }}" alt="Efectivo" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Efectivo</span>
                         </div>
                         <div class="payment-method" data-method="credit_card" onclick="selectPaymentMethod(this, 'credit_card')">
-                            <img src="{{ asset('images/tcredito.png') }}" alt="T. Crédito" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/tarjeta.png') }}" alt="Tarjeta" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>T. Crédito</span>
                         </div>
                         <div class="payment-method" data-method="debit_card" onclick="selectPaymentMethod(this, 'debit_card')">
@@ -220,15 +502,15 @@
                             <span>T. Débito</span>
                         </div>
                         <div class="payment-method" data-method="bank_transfer" onclick="selectPaymentMethod(this, 'bank_transfer')">
-                            <img src="{{ asset('images/tbancaria.png') }}" alt="Transferencia" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/transferencia.png') }}" alt="Transferencia" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Transferencia</span>
                         </div>
                         <div class="payment-method" data-method="digital_wallet" data-wallet-type="yape" onclick="selectPaymentMethod(this, 'digital_wallet', 'yape')">
-                            <img src="{{ asset('images/yape.png') }}" alt="Yape" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/yape.png') }}" alt="Yape" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Yape</span>
                         </div>
                         <div class="payment-method" data-method="digital_wallet" data-wallet-type="plin" onclick="selectPaymentMethod(this, 'digital_wallet', 'plin')">
-                            <img src="{{ asset('images/plin.jpeg') }}" alt="Plin" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/plin.png') }}" alt="Plin" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Plin</span>
                         </div>
                     </div>
@@ -240,8 +522,8 @@
                         <input type="text" class="form-control" id="reference_number" name="reference_number" placeholder="Número de operación">
                     </div>
 
-                    <h4>Monto a Pagar</h4>
-                    <div class="amount-buttons">
+                    <h4 style="font-size: 1.1rem; margin-bottom: 15px;">Monto a Pagar</h4>
+                    <div class="amount-buttons" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(75px, 1fr)); gap: 10px; margin-bottom: 20px;">
                         <div class="amount-button" onclick="setAmount(10)">S/ 10</div>
                         <div class="amount-button" onclick="setAmount(20)">S/ 20</div>
                         <div class="amount-button" onclick="setAmount(50)">S/ 50</div>
@@ -305,18 +587,18 @@
                 </div>
 
                 <div class="col-md-6">
-                    <h4>2. Tipo de Comprobante</h4>
+                    <h4 style="font-size: 1.1rem; margin-bottom: 15px;">2. Tipo de Comprobante</h4>
                     <div class="invoice-type">
                         <div class="invoice-type-option active" data-type="sales_note" onclick="selectInvoiceType(this, 'sales_note')">
-                            <img src="{{ asset('images/nventa.png') }}" alt="Nota de Venta" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/nventa.png') }}" alt="Nota de Venta" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Nota de Venta</span>
                         </div>
                         <div class="invoice-type-option" data-type="receipt" onclick="selectInvoiceType(this, 'receipt')">
-                            <img src="{{ asset('images/boleta.png') }}" alt="Boleta" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/boleta.png') }}" alt="Boleta" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Boleta</span>
                         </div>
                         <div class="invoice-type-option" data-type="invoice" onclick="selectInvoiceType(this, 'invoice')">
-                            <img src="{{ asset('images/factura.png') }}" alt="Factura" style="max-height: 28px; margin-bottom: 6px; display: block; margin-left: auto; margin-right: auto;">
+                            <img src="{{ asset('images/factura.png') }}" alt="Factura" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Factura</span>
                         </div>
                     </div>
@@ -349,25 +631,6 @@
                         </div>
 
                         <!-- Búsqueda de cliente (solo para Boleta y Factura) -->
-                        <div id="customer_search_container" class="mb-3" style="display: none;">
-                            @if($order->service_type === 'delivery' && $order->customer)
-                                <div class="alert alert-info alert-sm mb-2">
-                                    <i class="fas fa-truck"></i> <strong>Datos precargados desde delivery</strong>
-                                    <small class="d-block">Los datos del cliente y dirección se han cargado automáticamente desde la orden de delivery.</small>
-                                </div>
-                            @endif
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="customer_search" placeholder="Buscar por nombre o documento" autocomplete="off">
-                                <button class="btn btn-outline-secondary" type="button" id="search_customer_btn">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                                <button class="btn btn-outline-primary" type="button" id="new_customer_btn">
-                                    <i class="fas fa-plus"></i> Nuevo
-                                </button>
-                            </div>
-                            <div id="search_results" class="mt-2" style="display: none; max-height: 200px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.25rem;"></div>
-                            <div id="search_message" class="mt-1 small" style="display: none;"></div>
-                        </div>
 
                         <!-- Detalles del cliente seleccionado -->
                         <div id="customer_details" class="mb-3" style="display: none;">
@@ -395,7 +658,7 @@
 
                     <!-- Modal para nuevo cliente -->
                     <div class="modal fade" id="newCustomerModal" tabindex="-1" aria-labelledby="newCustomerModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
+                        <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <div class="modal-header">
                                     <h5 class="modal-title" id="newCustomerModalLabel">Nuevo Cliente</h5>
@@ -439,16 +702,16 @@
                     </div>
 
                     <div class="mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg w-100">Procesar Pago y Generar Comprobante</button>
+                        <button type="submit" class="btn btn-primary btn-lg w-100 btn-process py-3 shadow-sm fw-bold" style="font-size: 1.1rem;">Procesar Pago y Generar Comprobante</button>
                     </div>
                 </div>
             </div>
         </form>
 
         <div class="mt-4 order-details">
-            <h4>Detalle de la Orden</h4>
-            <div class="table-responsive">
-                <table class="table table-sm">
+            <h4 style="font-size: 1.1rem; margin-bottom: 15px;">Detalle de la Orden</h4>
+            <div class="table-responsive overflow-auto rounded shadow-sm">
+                <table class="table table-striped table-hover" style="font-size: 0.95rem;">
                     <thead>
                         <tr>
                             <th>Producto</th>

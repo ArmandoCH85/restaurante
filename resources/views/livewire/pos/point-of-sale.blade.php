@@ -7,6 +7,34 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
+        /* Utilidades para truncar texto con múltiples líneas */
+        .line-clamp-1 {
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        /* Mejorar las tarjetas de productos */
+        .product-card {
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .product-card h3 {
+            word-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.3;
+        }
+        
         /* ===== SISTEMA POS OPTIMIZADO - PALETA PROFESIONAL ===== */
         :root {
             /* Colores principales optimizados para POS */
@@ -1753,8 +1781,8 @@
                             </div>
                             <div class="flex flex-col justify-between flex-grow p-3">
                                 <div>
-                                    <h3 class="text-sm font-medium text-gray-800 truncate dark:text-white">{{ $product->name }}</h3>
-                                    <p class="text-xs text-gray-500 truncate dark:text-gray-400">{{ $product->category->name ?? 'Sin categoría' }}</p>
+                                    <h3 class="text-sm font-medium text-gray-800 dark:text-white min-h-[2.5rem] line-clamp-2">{{ $product->name }}</h3>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">{{ $product->category->name ?? 'Sin categoría' }}</p>
                                 </div>
                                 <div class="flex items-center justify-between mt-2">
                                     <span class="text-sm font-semibold text-blue-600 dark:text-blue-400">
