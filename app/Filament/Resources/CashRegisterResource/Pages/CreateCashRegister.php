@@ -22,14 +22,19 @@ class CreateCashRegister extends CreateRecord
     protected function getCreateFormAction(): Actions\Action
     {
         return parent::getCreateFormAction()
-            ->label('Abrir Caja')
-            ->icon('heroicon-o-banknotes')
+            ->label('Abrir Nueva Caja')
+            ->icon('heroicon-m-calculator')
+            ->color('success')
+            ->button()
             ->requiresConfirmation()
-            ->modalHeading('Confirmar apertura de caja')
-            ->modalDescription('¿Estás seguro de que deseas abrir una nueva caja? Verifica que el monto inicial sea correcto.')
-            ->modalSubmitActionLabel('Sí, abrir caja')
-            ->modalIcon('heroicon-o-banknotes')
-            ->successNotificationTitle('Caja abierta correctamente');
+            ->modalHeading('🏦 Confirmar apertura de caja')
+            ->modalDescription('¿Estás seguro de que deseas abrir una nueva caja? Verifica que el monto inicial sea correcto antes de continuar.')
+            ->modalSubmitActionLabel('✅ Sí, abrir caja')
+            ->modalIcon('heroicon-m-calculator')
+            ->successNotificationTitle('🎉 Caja abierta exitosamente')
+            ->extraAttributes([
+                'class' => 'shadow-lg hover:shadow-xl transition-shadow duration-300',
+            ]);
     }
 
     protected function mutateFormDataBeforeCreate(array $data): array

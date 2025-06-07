@@ -23,8 +23,10 @@ class ListCashRegisters extends ListRecords
 
         return [
             Actions\CreateAction::make()
-                ->label('Abrir Caja')
-                ->icon('heroicon-o-banknotes')
+                ->label('Abrir Nueva Caja')
+                ->icon('heroicon-m-calculator')
+                ->color('success')
+                ->button()
                 ->visible(function () {
                     // Solo mostrar el botón si no hay una caja abierta
                     return !CashRegister::hasOpenRegister();
@@ -32,18 +34,20 @@ class ListCashRegisters extends ListRecords
                 ->successNotification(
                     Notification::make()
                         ->success()
-                        ->title('Caja abierta')
-                        ->body('La caja ha sido abierta correctamente.')
+                        ->title('✅ Caja abierta exitosamente')
+                        ->body('La caja ha sido abierta correctamente y está lista para operar.')
+                        ->duration(5000)
                 ),
 
             Actions\Action::make('closeCashRegister')
                 ->label('Cerrar Caja Actual')
-                ->icon('heroicon-o-lock-closed')
+                ->icon('heroicon-m-lock-closed')
                 ->color('warning')
+                ->button()
                 ->visible(fn () => CashRegister::hasOpenRegister())
                 ->url(fn () => $openRegister ? CashRegisterResource::getUrl('edit', ['record' => $openRegister]) : null)
                 ->extraAttributes([
-                    'class' => 'animate-pulse',
+                    'class' => 'animate-pulse shadow-lg',
                 ])
                 ->tooltip('Cerrar la caja registradora actualmente abierta'),
 
