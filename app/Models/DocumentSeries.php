@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use App\Models\Invoice;
 
 class DocumentSeries extends Model
 {
@@ -23,19 +25,35 @@ class DocumentSeries extends Model
     ];
 
     /**
-     * Obtiene el siguiente número correlativo y actualiza el contador
+     * Obtiene el siguiente número correlativo de forma atómica, segura y auto-reparable.
      */
     public function getNextNumber(): string
     {
-        // Obtener el número actual
-        $currentNumber = $this->current_number;
+        return DB::transaction(function () {
+            while (true) {
+                // 1. Bloquear la fila para que ninguna otra transacción pueda modificarla.
+                $series = self::where('id', $this->id)->lockForUpdate()->first();
 
-        // Incrementar el contador para la próxima factura
-        $this->current_number = $currentNumber + 1;
-        $this->save();
+                $currentNumber = $series->current_number;
+                $nextNumberFormatted = str_pad($currentNumber, 8, '0', STR_PAD_LEFT);
 
-        // Devolver el número actual formateado con ceros a la izquierda (8 dígitos)
-        return str_pad($currentNumber, 8, '0', STR_PAD_LEFT);
+                // 2. VERIFICACIÓN CRÍTICA: Asegurarse de que el número no esté ya en uso.
+                $exists = Invoice::where('series', $series->series)
+                                 ->where('number', $nextNumberFormatted)
+                                 ->exists();
+
+                // 3. Si el número ya existe, incrementamos el contador y probamos de nuevo.
+                //    Esto auto-repara la secuencia si se desincroniza.
+                if ($exists) {
+                    $series->increment('current_number');
+                    continue; // Vuelve al inicio del bucle while
+                }
+
+                // 4. Si el número está libre, lo usamos y lo preparamos para el siguiente.
+                $series->increment('current_number');
+                return $nextNumberFormatted;
+            }
+        });
     }
 
     /**

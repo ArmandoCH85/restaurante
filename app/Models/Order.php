@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
+use App\Models\DocumentSeries;
+use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
@@ -46,7 +48,8 @@ class Order extends Model
         'discount',
         'total',
         'notes',
-        'billed'
+        'billed',
+        'parent_id'
     ];
 
     /**
@@ -71,6 +74,22 @@ class Order extends Model
     public function table(): BelongsTo
     {
         return $this->belongsTo(Table::class);
+    }
+
+    /**
+     * Obtiene la orden "padre" de la que esta orden fue dividida.
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(Order::class, 'parent_id');
+    }
+
+    /**
+     * Obtiene las órdenes "hijas" que resultaron de dividir esta orden.
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(Order::class, 'parent_id');
     }
 
     /**
@@ -728,131 +747,66 @@ class Order extends Model
      *
      * @param string $invoiceType Tipo de factura ('receipt', 'invoice', etc.)
      * @param string $series Serie del comprobante
-     * @param int|null $customerId ID del cliente (opcional, si no se proporciona se usa el cliente de la orden)
+     * @param int $customerId ID del cliente
      * @return Invoice|null
      */
-    public function generateInvoice(string $invoiceType, string $series, ?int $customerId = null): ?Invoice
+    public function generateInvoice(string $invoiceType, string $series, int $customerId): ?Invoice
     {
-        // Verificar si la orden está pagada completamente
-        if (!$this->isFullyPaid()) {
-            return null; // No se puede facturar si no está pagada completamente
-        }
-
-        // Verificar si ya está facturada
         if ($this->billed) {
-            return null; // Ya está facturada
+            return null; // Ya facturado
         }
 
-        // Obtener el siguiente número de factura usando DocumentSeries
-        $documentSeries = \App\Models\DocumentSeries::where('series', $series)
-            ->where('active', true)
-            ->first();
+        return DB::transaction(function () use ($invoiceType, $series, $customerId) {
+            // 1. Obtener el siguiente número de factura de forma segura
+            $lastInvoice = Invoice::where('series', $series)->lockForUpdate()->latest('number')->first();
+            $nextNumber = $lastInvoice ? ((int) $lastInvoice->number) + 1 : 1;
 
-        if ($documentSeries) {
-            // Usar el método getNextNumber() de DocumentSeries que actualiza automáticamente el correlativo
-            $formattedNumber = $documentSeries->getNextNumber();
-        } else {
-            // Fallback al método anterior si no se encuentra la serie en DocumentSeries
-            $lastInvoice = Invoice::where('series', $series)->latest('number')->first();
-            $nextNumber = $lastInvoice ? (int)$lastInvoice->number + 1 : 1;
+            // 2. Formatear el número con ceros a la izquierda
             $formattedNumber = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
-        }
 
-        // Usar el cliente de la orden o el cliente genérico si no hay cliente
-        $finalCustomerId = $customerId ?? $this->customer_id ?? 1; // Cliente genérico si no hay cliente
+            // 3. Obtener el cliente
+            $customer = Customer::find($customerId);
 
-        // Obtener el cliente
-        $customer = \App\Models\Customer::find($finalCustomerId);
-
-        // Obtener el método de pago de la última transacción
-        $lastPayment = $this->payments()->latest()->first();
-        $paymentMethod = $lastPayment ? $lastPayment->payment_method : 'cash';
-        $paymentAmount = $lastPayment ? $lastPayment->amount : $this->total;
-
-        // Obtener información del anticipo si existe
-        $advancePayment = $this->getQuotationAdvancePayment();
-        $advanceNotes = $this->getQuotationAdvanceNotes();
-        $pendingBalance = $this->total - $advancePayment;
-
-        // Log para debugging con información más detallada
-        try {
-            $tableInfo = 'NULL';
-            $tableType = 'NULL';
-            if ($this->table) {
-                $tableInfo = is_object($this->table) ? 'OBJECT' : 'NOT_OBJECT';
-                $tableType = gettype($this->table);
-            }
-
-            Log::info('Generating invoice with order data', [
+            // 4. Crear la factura
+            $invoice = Invoice::create([
                 'order_id' => $this->id,
-                'service_type' => $this->service_type,
-                'table_id' => $this->table_id,
-                'table_info' => $tableInfo,
-                'table_type' => $tableType,
-                'table_number' => $this->table && is_object($this->table) ? $this->table->number : 'NULL',
-                'table_location' => $this->table && is_object($this->table) ? $this->table->location : 'NULL',
-                'invoice_type' => $invoiceType,
-                'has_delivery_order' => $this->deliveryOrder ? 'YES' : 'NO',
-                'order_attributes' => $this->getAttributes()
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Error in generateInvoice logging', [
-                'error' => $e->getMessage(),
-                'order_id' => $this->id
-            ]);
-        }
-
-        $invoice = new Invoice([
             'invoice_type' => $invoiceType,
             'series' => $series,
             'number' => $formattedNumber,
-            'issue_date' => now()->format('Y-m-d'),
-            'customer_id' => $finalCustomerId,
+                'issue_date' => now(),
+                'customer_id' => $customer->id,
+                'client_name' => $customer->name,
+                'client_document' => $customer->document_number,
+                'client_address' => $customer->address,
             'taxable_amount' => $this->subtotal,
             'tax' => $this->tax,
             'total' => $this->total,
-            'tax_authority_status' => Invoice::STATUS_PENDING,
-            'sunat_status' => in_array($invoiceType, ['invoice', 'receipt']) ? 'PENDIENTE' : 'NO_APLICA',
-            'order_id' => $this->id,
-            'payment_method' => $paymentMethod,
-            'payment_amount' => $paymentAmount,
-            'advance_payment_received' => $advancePayment,
-            'advance_payment_notes' => $advanceNotes,
-            'pending_balance' => $pendingBalance,
-            'client_name' => $customer ? $customer->name : 'Cliente General',
-            'client_document' => $customer ? $customer->document_number : '00000000',
-            'client_address' => $customer ? $customer->address : 'Sin dirección',
+                'status' => 'issued',
+                'sunat_status' => 'PENDIENTE',
         ]);
 
-        $invoice->save();
-
-        // Crear los detalles de la factura
+            // 5. Agregar detalles de la factura
         foreach ($this->orderDetails as $detail) {
             $invoice->details()->create([
                 'product_id' => $detail->product_id,
-                'description' => $detail->product->name,
                 'quantity' => $detail->quantity,
                 'unit_price' => $detail->unit_price,
                 'subtotal' => $detail->subtotal,
+                    'description' => $detail->product->name,
             ]);
         }
 
-        // Marcar la orden como facturada y completada
-        $this->billed = true;
-        $this->status = self::STATUS_COMPLETED;
-        $this->save();
+            // 6. Actualizar la orden como facturada
+            $this->update(['billed' => true, 'status' => self::STATUS_COMPLETED]);
 
-        Log::info('✅ Orden completada automáticamente al generar factura desde modelo', [
-            'order_id' => $this->id,
-            'previous_status' => $this->getOriginal('status'),
-            'new_status' => $this->status,
-            'invoice_type' => $invoiceType
-        ]);
-
-        // Enviar a la autoridad tributaria (SUNAT)
-        $invoice->sendToTaxAuthority();
+            // 7. Actualizar el correlativo en la serie del documento
+            $documentSeries = DocumentSeries::where('series', $series)->first();
+            if ($documentSeries) {
+                $documentSeries->increment('current_number');
+            }
 
         return $invoice;
+        });
     }
 
     /**

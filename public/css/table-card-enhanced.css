@@ -1,0 +1,241 @@
+/* Estilos mejorados para tarjetas de mesas con proporción áurea */
+@import url('golden-ratio-variables.css');
+
+/* Estructura de tarjeta de mesa con proporción áurea */
+.table-card {
+  position: relative;
+  background: linear-gradient(135deg, var(--color-surface) 0%, #f8fafc 100%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Usar proporción áurea para dimensiones */
+  aspect-ratio: 1/1.618;
+}
+
+/* Efecto hover elegante */
+.table-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  border-color: var(--color-primary-light);
+}
+
+/* Estados de mesa con colores semánticos e intuitivos */
+.table-card.available {
+  border-left: 4px solid var(--color-available);
+}
+
+.table-card.occupied {
+  border-left: 4px solid var(--color-occupied);
+}
+
+.table-card.reserved {
+  border-left: 4px solid var(--color-reserved);
+}
+
+.table-card.maintenance {
+  border-left: 4px solid var(--color-maintenance);
+}
+
+/* Cabecera de la tarjeta de mesa */
+.table-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-md) var(--spacing-md) var(--spacing-xs);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-number {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  margin: 0;
+  color: var(--color-primary);
+}
+
+/* Cuerpo de la tarjeta con visualización mejorada */
+.table-card-body {
+  flex-grow: 1;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Enlace que cubre toda la tarjeta para ir al POS */
+.table-link {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* Visualización de la mesa */
+.table-visual {
+  width: 62%; /* Aproximadamente 1/1.618 del 100% */
+  height: 62%;
+  border: 2px solid #64748b;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Formas de mesa */
+.table-square {
+  border-radius: var(--radius-sm);
+}
+
+.table-round {
+  border-radius: 50%;
+}
+
+/* Indicadores de capacidad */
+.chair {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+}
+
+/* Información de capacidad */
+.capacity-indicator {
+  position: relative;
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* Indicador de tiempo de ocupación */
+.occupation-time-container {
+  margin-top: var(--spacing-sm);
+  text-align: center;
+}
+
+.occupation-time {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+/* Colores para tiempos de ocupación */
+.occupation-time-short {
+  background-color: var(--color-available-light);
+  color: var(--color-available-dark);
+}
+
+.occupation-time-medium {
+  background-color: var(--color-reserved-light);
+  color: var(--color-reserved-dark);
+}
+
+.occupation-time-long {
+  background-color: var(--color-occupied-light);
+  color: var(--color-occupied-dark);
+}
+
+/* Pie de la tarjeta */
+.table-card-footer {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: rgba(248, 250, 252, 0.5);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Selector de estado */
+.status-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.status-select {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background-color: white;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  appearance: none;
+  padding-right: var(--spacing-xl);
+  text-align: center;
+  color: #475569;
+}
+
+/* Flecha del select */
+.status-select-container::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #64748b;
+  pointer-events: none;
+}
+
+/* Etiqueta de estado */
+.table-status-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Colores para los estados de las mesas */
+.table-status-badge-inline.available {
+  background-color: var(--color-available-light);
+  color: var(--color-available-dark);
+}
+
+.table-status-badge-inline.occupied {
+  background-color: var(--color-occupied-light);
+  color: var(--color-occupied-dark);
+}
+
+.table-status-badge-inline.reserved {
+  background-color: var(--color-reserved-light);
+  color: var(--color-reserved-dark);
+}
+
+.table-status-badge-inline.maintenance {
+  background-color: var(--color-maintenance-light);
+  color: var(--color-maintenance-dark);
+}
+
+/* Responsividad */
+@media (max-width: 640px) {
+  .table-card {
+    aspect-ratio: auto;
+  }
+  
+  .table-visual {
+    width: 50%;
+    height: 50%;
+  }
+}

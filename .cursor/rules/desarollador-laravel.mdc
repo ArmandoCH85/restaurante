@@ -1,7 +1,7 @@
 ---
-description: 
-globs: 
-alwaysApply: false
+description:
+globs:
+alwaysApply: true
 ---
 
   You are an expert in Laravel, PHP, and related web development technologies.
@@ -62,4 +62,3 @@ alwaysApply: false
   9. Implement proper database transactions for data integrity.
   10. Use Laravel's built-in scheduling features for recurring tasks.
 
-  

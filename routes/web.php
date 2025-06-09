@@ -6,6 +6,9 @@ use App\Livewire\TableMap\TableMapView;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\DashboardController;
+use App\Models\Invoice;
+use App\Models\Order;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 Route::get('/', function () {
     // Redirección automática a /admin
@@ -93,10 +96,12 @@ Route::get('/image-test', function() {
     return view('image-test', ['products' => $products]);
 });
 
-// Ruta del mapa de mesas y delivery
+// Rutas del mapa de mesas y delivery
 Route::get('/tables', TableMapView::class)
     ->name('tables.map')
     ->middleware(['auth', 'tables.access']);
+
+// La ruta para el mapa de mesas ahora se maneja a través del panel Filament en /admin/mapa-mesas
 
 // Rutas para pedidos de delivery
 Route::middleware(['auth', 'delivery.access'])->group(function () {
@@ -171,5 +176,20 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/admin/invoices/{invoice}/download-pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])
         ->name('filament.admin.invoices.download-pdf');
 });
+
+Route::get('/invoices/{invoice}/download-pdf', function(Invoice $invoice) {
+    $pdf = Pdf::loadView('pdf.invoice', compact('invoice'));
+    return $pdf->stream("invoice-{$invoice->id}.pdf");
+})->name('filament.admin.invoices.download-pdf');
+
+Route::get('/orders/{order}/download-comanda-pdf', function(Order $order) {
+    $pdf = Pdf::loadView('pdf.comanda', compact('order'));
+    return $pdf->stream("comanda-{$order->id}.pdf");
+})->name('orders.comanda.pdf');
+
+Route::get('/orders/{order}/download-prebill-pdf', function(Order $order) {
+    $pdf = Pdf::loadView('pdf.prebill', compact('order'));
+    return $pdf->stream("precuenta-{$order->id}.pdf");
+})->name('pos.prebill.pdf');
 
 

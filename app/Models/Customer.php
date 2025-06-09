@@ -130,4 +130,34 @@ class Customer extends Model
     {
         return $this->reservations()->whereIn('status', ['pending', 'confirmed']);
     }
+
+    /**
+     * Obtiene o crea el cliente genérico del sistema.
+     *
+     * @return Customer|null
+     */
+    public static function getGenericCustomer(): ?Customer
+    {
+        // Buscar cliente genérico existente
+        $genericCustomer = static::where('document_type', 'DNI')
+            ->where('document_number', '00000000')
+            ->where('name', 'Cliente Genérico')
+            ->first();
+
+        // Si no existe, crearlo
+        if (!$genericCustomer) {
+            $genericCustomer = static::create([
+                'document_type' => 'DNI',
+                'document_number' => '00000000',
+                'name' => 'Cliente Genérico',
+                'phone' => null,
+                'email' => null,
+                'address' => null,
+                'address_references' => null,
+                'tax_validated' => false,
+            ]);
+        }
+
+        return $genericCustomer;
+    }
 }

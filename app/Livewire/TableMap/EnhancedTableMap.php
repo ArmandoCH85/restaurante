@@ -134,6 +134,14 @@ class EnhancedTableMap extends Component
         };
     }
 
+    public function clearFilters(): void
+    {
+        $this->statusFilter = null;
+        $this->locationFilter = null;
+        $this->searchQuery = null;
+        $this->loadTables();
+    }
+
     public function render()
     {
         $locations = Table::select('location')->distinct()->pluck('location');

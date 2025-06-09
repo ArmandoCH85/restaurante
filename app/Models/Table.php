@@ -101,6 +101,15 @@ class Table extends Model
     }
 
     /**
+     * Obtiene solo las órdenes con estado "abierto" para esta mesa.
+     * Esta es la relación que se usa para la funcionalidad de dividir cuentas.
+     */
+    public function openOrders(): HasMany
+    {
+        return $this->hasMany(Order::class)->where('status', Order::STATUS_OPEN);
+    }
+
+    /**
      * Get active reservations for the table.
      */
     public function activeReservations(): HasMany
@@ -173,6 +182,17 @@ class Table extends Model
     public function hasActiveOrder(): bool
     {
         return $this->activeOrder()->exists();
+    }
+
+    /**
+     * Get all active orders for the table.
+     */
+    public function activeOrders(): HasMany
+    {
+        return $this->orders()->where(function($query) {
+            $query->where('status', '!=', Order::STATUS_COMPLETED)
+                  ->where('status', '!=', Order::STATUS_CANCELLED);
+        })->where('billed', false);
     }
 
     /**

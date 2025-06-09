@@ -151,9 +151,54 @@
         .print-button:hover {
             background-color: #1e429f;
         }
+        .item-separator {
+            border-top: 1px dashed #000;
+            margin: 5px 0;
+        }
+
+        /* Estilos para el botón de imprimir */
+        .command-container.no-print {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .print-button {
+            background-color: #4CAF50; /* Verde */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+
+        .print-button:hover {
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+
+        .print-button svg {
+            margin-right: 8px;
+        }
     </style>
 </head>
 <body>
+    <div class="command-container no-print">
+        <button onclick="window.print()" class="print-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir
+        </button>
+    </div>
+    <div class="ticket-container">
     <div class="header">
         <div class="title">COMANDA</div>
         <div class="subtitle">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</div>
@@ -233,7 +278,6 @@
     <div class="footer">
         Generado el {{ $date }}
     </div>
-
-
+    </div>
 </body>
 </html>
