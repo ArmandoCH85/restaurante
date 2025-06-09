@@ -256,35 +256,9 @@ class CashRegisterResource extends Resource
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('openedBy.name')
-                    ->label('Abierto por')
+                    ->label('Responsable')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('opening_amount')
-                    ->label('Monto Inicial')
-                    ->money('PEN')
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('total_sales')
-                    ->label('Ventas Totales')
-                    ->state(function ($record) {
-                        $user = auth()->user();
-                        if ($user->hasAnyRole(['admin', 'super_admin', 'manager'])) {
-                            return $record->total_sales;
-                        } else {
-                            return 'Información reservada';
-                        }
-                    })
-                    ->money(function () {
-                        $user = auth()->user();
-                        return $user->hasAnyRole(['admin', 'super_admin', 'manager']) ? 'PEN' : null;
-                    })
-                    ->sortable()
-                    ->tooltip(function () {
-                        $user = auth()->user();
-                        if (!$user->hasAnyRole(['admin', 'super_admin', 'manager'])) {
-                            return 'Esta información solo es visible para supervisores';
-                        }
-                        return null;
-                    }),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
                     ->getStateUsing(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
@@ -296,6 +270,11 @@ class CashRegisterResource extends Resource
                         'heroicon-m-lock-open' => 'Abierta',
                         'heroicon-m-lock-closed' => 'Cerrada',
                     ]),
+                Tables\Columns\TextColumn::make('opening_amount')
+                    ->label('Monto Inicial')
+                    ->money('PEN')
+                    ->sortable()
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
                 Tables\Columns\BadgeColumn::make('reconciliationStatus')
                     ->label('Estado Aprobación')
                     ->getStateUsing(function ($record) {
@@ -312,9 +291,9 @@ class CashRegisterResource extends Resource
                     })
                     ->colors([
                         'success' => 'Aprobada',
-                        'warning' => 'Pendiente de reconciliación',
+                        'warning' => 'Pendiente',
                         'danger' => 'Rechazada',
-                        'info' => 'Pendiente de cierre',
+                        'info' => 'Pendiente',
                     ])
                     ->icons([
                         'heroicon-m-check-circle' => 'Aprobada',
@@ -476,6 +455,7 @@ class CashRegisterResource extends Resource
                     ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
             ])
             ->filtersFormColumns(3)
+            ->defaultSort('id', 'desc')
             ->actions([
                 Tables\Actions\Action::make('details')
                     ->label('Ver Detalles')
@@ -495,6 +475,10 @@ class CashRegisterResource extends Resource
                     ->color('warning')
                     ->button()
                     ->visible(fn (CashRegister $record) => $record->is_active),
+                Tables\Actions\ViewAction::make()
+                    ->icon('heroicon-m-eye')
+                    ->color('info')
+                    ->visible(false),
                 Tables\Actions\Action::make('approve')
                     ->label('Aprobar Cierre')
                     ->icon('heroicon-m-check-circle')
