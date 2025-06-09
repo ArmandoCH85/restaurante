@@ -60,6 +60,15 @@ class Product extends Model
     ];
 
     /**
+     * Accessor para el campo 'price' - redirige a 'sale_price'
+     * Esto mantiene compatibilidad con el POS que espera $product->price
+     */
+    public function getPriceAttribute()
+    {
+        return $this->sale_price;
+    }
+
+    /**
      * Obtiene la categoría del producto.
      */
     public function category(): BelongsTo

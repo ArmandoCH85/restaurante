@@ -1,0 +1,82 @@
+/* Variables basadas en proporción áurea para el mapa de mesas
+   La proporción áurea es aproximadamente 1:1.618 */
+
+:root {
+  /* Paleta de colores corporativa */
+  --color-primary: #1e3a8a; /* Azul oscuro corporativo */
+  --color-primary-light: #3b82f6; /* Azul más claro */
+  --color-primary-dark: #1e40af; /* Azul muy oscuro */
+  
+  /* Acentos basados en proporción áurea */
+  --color-accent: #8b5cf6; /* Violeta */
+  --color-accent-light: #ddd6fe;
+  --color-accent-dark: #5b21b6;
+  
+  /* Estados de mesa con colores intuitivos */
+  --color-available: #10b981; /* Verde esmeralda - Disponible */
+  --color-available-light: #d1fae5;
+  --color-available-dark: #059669;
+  
+  --color-occupied: #ef4444; /* Rojo - Ocupado */
+  --color-occupied-light: #fee2e2;
+  --color-occupied-dark: #b91c1c;
+  
+  --color-reserved: #f59e0b; /* Ámbar - Reservado */
+  --color-reserved-light: #fef3c7;
+  --color-reserved-dark: #d97706;
+  
+  --color-maintenance: #6b7280; /* Gris - Mantenimiento */
+  --color-maintenance-light: #f3f4f6;
+  --color-maintenance-dark: #4b5563;
+  
+  /* Fondos y superficies */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  
+  /* Proporciones áureas para espaciado */
+  --golden-ratio: 1.618;
+  --spacing-base: 1rem; /* 16px base */
+  --spacing-xs: calc(var(--spacing-base) / var(--golden-ratio) / var(--golden-ratio)); /* 6.12px */
+  --spacing-sm: calc(var(--spacing-base) / var(--golden-ratio)); /* 9.89px */
+  --spacing-md: var(--spacing-base); /* 16px */
+  --spacing-lg: calc(var(--spacing-base) * var(--golden-ratio)); /* 25.89px */
+  --spacing-xl: calc(var(--spacing-base) * var(--golden-ratio) * var(--golden-ratio)); /* 41.89px */
+  
+  /* Tipografía con escala áurea */
+  --font-size-xs: calc(var(--font-size-base) / var(--golden-ratio)); /* 9.89px */
+  --font-size-sm: calc(var(--font-size-base) / var(--golden-ratio) * var(--golden-ratio-sm)); /* 13px aprox */
+  --font-size-base: 1rem; /* 16px base */
+  --font-size-lg: calc(var(--font-size-base) * var(--golden-ratio-sm)); /* 21px aprox */
+  --font-size-xl: calc(var(--font-size-base) * var(--golden-ratio)); /* 25.89px */
+  --font-size-2xl: calc(var(--font-size-base) * var(--golden-ratio) * var(--golden-ratio-sm)); /* 34px aprox */
+  --font-size-3xl: calc(var(--font-size-base) * var(--golden-ratio) * var(--golden-ratio)); /* 42px aprox */
+  
+  /* Factores para ajustes finos */
+  --golden-ratio-sm: 1.309; /* Raíz cuadrada de phi (√1.618) para incrementos más sutiles */
+  
+  /* Radios de borde basados en proporción áurea */
+  --radius-sm: 0.25rem; /* 4px */
+  --radius-md: 0.5rem; /* 8px */
+  --radius-lg: 0.75rem; /* 12px */
+  --radius-xl: 1rem; /* 16px */
+  
+  /* Sombras elegantes */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Modo oscuro */
+.dark {
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-border: #334155;
+  
+  --color-primary-light: #60a5fa;
+  --color-available-light: #34d399;
+  --color-occupied-light: #f87171;
+  --color-reserved-light: #fbbf24;
+  --color-maintenance-light: #9ca3af;
+}

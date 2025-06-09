@@ -141,28 +141,69 @@
 
             <!-- Área principal -->
             <div class="tables-main">
-                <!-- Estadísticas -->
+                <!-- Estadísticas horizontales -->
                 @php $stats = $this->getTableStats(); @endphp
-                <div class="stats-container">
-                    <div class="stat-card stat-total">
-                        <div class="stat-value">{{ $stats['total'] }}</div>
-                        <div class="stat-label">Total Mesas</div>
+                <div class="stats-container bg-white shadow-sm rounded-lg p-4 mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="text-sm font-medium text-gray-600 pl-2 flex items-center">Estadísticas:</div>
+                        @if($statusFilter || $locationFilter || $searchQuery)
+                        <button wire:click="clearFilters" class="text-sm text-blue-600 hover:text-blue-800 flex items-center transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Limpiar filtros
+                        </button>
+                        @endif
                     </div>
-                    <div class="stat-card stat-available">
-                        <div class="stat-value">{{ $stats['available'] }}</div>
-                        <div class="stat-label">Disponibles</div>
-                    </div>
-                    <div class="stat-card stat-occupied">
-                        <div class="stat-value">{{ $stats['occupied'] }}</div>
-                        <div class="stat-label">Ocupadas</div>
-                    </div>
-                    <div class="stat-card stat-reserved">
-                        <div class="stat-value">{{ $stats['reserved'] }}</div>
-                        <div class="stat-label">Reservadas</div>
-                    </div>
-                    <div class="stat-card stat-maintenance">
-                        <div class="stat-value">{{ $stats['maintenance'] }}</div>
-                        <div class="stat-label">Mantenimiento</div>
+                    <div class="grid grid-cols-4 gap-4">
+                        <!-- Total Mesas -->
+                        <div class="text-center">
+                            <div class="flex justify-center mb-1">
+                                <div class="bg-blue-200 rounded-full p-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="text-3xl font-bold text-blue-700">{{ $stats['total'] }}</div>
+                            <div class="text-xs text-blue-600">Total Mesas</div>
+                        </div>
+                        
+                        <!-- Disponibles -->
+                        <div class="text-center">
+                            <div class="flex justify-center mb-1">
+                                <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            </div>
+                            <div class="text-3xl font-bold text-green-700">{{ $stats['available'] }}</div>
+                            <div class="text-xs text-green-600">Disponibles</div>
+                        </div>
+                        
+                        <!-- Ocupadas -->
+                        <div class="text-center">
+                            <div class="flex justify-center mb-1">
+                                <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            </div>
+                            <div class="text-3xl font-bold text-red-700">{{ $stats['occupied'] }}</div>
+                            <div class="text-xs text-red-600">Ocupadas</div>
+                        </div>
+                        
+                        <!-- Reservadas -->
+                        <div class="text-center">
+                            <div class="flex justify-center mb-1">
+                                <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            </div>
+                            <div class="text-3xl font-bold text-yellow-700">{{ $stats['reserved'] }}</div>
+                            <div class="text-xs text-yellow-600">Reservadas</div>
+                        </div>
+                        
+                        <!-- Mantenimiento -->
+                        <div class="text-center">
+                            <div class="flex justify-center mb-1">
+                                <div class="w-3 h-3 rounded-full bg-gray-500"></div>
+                            </div>
+                            <div class="text-3xl font-bold text-gray-700">{{ $stats['maintenance'] }}</div>
+                            <div class="text-xs text-gray-600">Mantenimiento</div>
+                        </div>
                     </div>
                 </div>
 
@@ -278,7 +319,7 @@
                                                     </div>
 
                                                     <div class="table-card-body">
-                                                        <a href="{{ route('pos.index', ['table_id' => $table->id, 'preserve_cart' => 'true']) }}" class="table-link">
+                                                        <a href="javascript:void(0)" class="table-link w-full h-full" wire:click.prevent="goToPos({{ $table->id }})">
                                                             @php
                                                                 $tableShape = 'table-square';
                                                                 if ($table->shape == 'round') {

@@ -22,6 +22,7 @@ use Filament\Navigation\NavigationGroup;
 use Solutionforest\FilamentLoginScreen\Filament\Pages\Auth\Themes\Theme1\LoginScreenPage as LoginScreenPage;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\PermissionHelper;
+use App\Filament\Pages\TableMap;
 
 
 class AdminPanelProvider extends PanelProvider
@@ -68,6 +69,8 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             // Registrar páginas explícitamente en lugar de descubrirlas automáticamente
             ->pages([
+                TableMap::class,
+                \App\Filament\Pages\PosInterface::class,
                 Pages\Dashboard::class,
                 \App\Filament\Pages\ReservationCalendar::class,
                 \App\Filament\Pages\ReportesPage::class,
@@ -146,7 +149,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationItems([
                 // 🏪 OPERACIONES PRINCIPALES
                 NavigationItem::make('Venta Directa')
-                    ->url('/pos')
+                    ->url('/admin/pos')
                     ->icon('heroicon-o-shopping-cart')
                     ->group('Operaciones')
                     ->sort(1)
@@ -158,7 +161,7 @@ class AdminPanelProvider extends PanelProvider
                         return PermissionHelper::hasCustomAccess('access_pos');
                     }),
                 NavigationItem::make('Mapa de Mesas')
-                    ->url('/tables')
+                    ->url('/admin/mapa-mesas')
                     ->icon('heroicon-o-map')
                     ->group('Operaciones')
                     ->sort(2)
@@ -182,7 +185,7 @@ class AdminPanelProvider extends PanelProvider
                         return $user && $user->roles->where('name', 'delivery')->count() > 0;
                     }),
                 NavigationItem::make('Mapa de Pedidos')
-                    ->url('/tables')
+                    ->url('/admin/mapa-mesas')
                     ->icon('heroicon-o-map')
                     ->group('Operaciones')
                     ->sort(5)

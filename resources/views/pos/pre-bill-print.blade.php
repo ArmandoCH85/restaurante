@@ -356,102 +356,171 @@
         .print-button:hover {
             background-color: #1e429f;
         }
+        .total-value {
+            font-weight: bold;
+        }
+
+        /* Estilos para el botón de imprimir */
+        .command-container.no-print {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .print-button {
+            background-color: #2563eb; /* Azul */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+
+        .print-button:hover {
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+        }
+
+        .print-button svg {
+            margin-right: 8px;
+        }
+
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Versión térmica optimizada -->
-    <div class="thermal-only">
-        <div class="thermal-header">
-            <div class="thermal-company">
-                <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
-                <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
-                <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}</p>
+    <div class="command-container no-print">
+        <button onclick="window.print()" class="print-button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir
+        </button>
+    </div>
+    <div class="ticket-container">
+        <div class="header">
+            <div class="title">PRE-CUENTA</div>
+            <div class="company-name">
+                {{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}
+            </div>
+            <div class="subtitle">
+                {{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}
+            </div>
+            <div class="address">
+                {{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}
+            </div>
+            <div class="contact">
                 @if(\App\Models\CompanyConfig::getTelefono())
-                    <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                    <span>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</span>
                 @endif
                 @if(\App\Models\CompanyConfig::getEmail())
-                    <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
+                    <span>Email: {{ \App\Models\CompanyConfig::getEmail() }}</span>
                 @endif
             </div>
         </div>
 
-        <div class="thermal-document-title">
-            <h2>PRE-CUENTA</h2>
-            <div style="font-size: 11px; margin-top: 2px;">#{{ $order->id }}</div>
-        </div>
-
-        <div class="thermal-info">
-            <div class="thermal-info-row">
-                <span class="label">Fecha:</span>
-                <span>{{ $date }}</span>
-            </div>
-            <div class="thermal-info-row">
-                <span class="label">Mesa:</span>
-                <span>{{ $table ? 'Mesa #'.$table->number.' - '.ucfirst($table->location) : 'Venta Rápida' }}</span>
-            </div>
-            <div class="thermal-info-row">
-                <span class="label">Atendido por:</span>
-                <span>{{ $order->employee->name ?? 'No asignado' }}</span>
-            </div>
-        </div>
-
-        <div style="border-top: 1px dashed #000; margin: 8px 0; padding-top: 5px;">
-            @foreach($order->orderDetails as $detail)
-                <div style="margin-bottom: 4px; font-size: 11px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="font-weight: bold;">{{ $detail->quantity }} x {{ $detail->product->name }}</span>
-                        <span>{{ number_format($detail->subtotal, 2) }}</span>
-                    </div>
-                    @if($detail->notes)
-                        <div style="font-style: italic; font-size: 9px; color: #666; margin-left: 10px;">{{ $detail->notes }}</div>
+        <div class="thermal-only">
+            <div class="thermal-header">
+                <div class="thermal-company">
+                    <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
+                    <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
+                    <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}</p>
+                    @if(\App\Models\CompanyConfig::getTelefono())
+                        <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
                     @endif
-                    @if($detail->unit_price != $detail->subtotal / $detail->quantity)
-                        <div style="font-size: 9px; color: #666; margin-left: 10px;">
-                            @ S/ {{ number_format($detail->unit_price, 2) }} c/u
-                        </div>
+                    @if(\App\Models\CompanyConfig::getEmail())
+                        <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
                     @endif
                 </div>
-            @endforeach
-        </div>
+            </div>
 
-        <div class="thermal-totals">
-            <div class="thermal-total-row">
-                <span class="label">Subtotal:</span>
-                <span>S/ {{ number_format($order->subtotal, 2) }}</span>
+            <div class="thermal-document-title">
+                <h2>PRE-CUENTA</h2>
+                <div style="font-size: 11px; margin-top: 2px;">#{{ $order->id }}</div>
             </div>
-            <div class="thermal-total-row">
-                <span class="label">I.G.V. (18%):</span>
-                <span>S/ {{ number_format($order->tax, 2) }}</span>
+
+            <div class="thermal-info">
+                <div class="thermal-info-row">
+                    <span class="label">Fecha:</span>
+                    <span>{{ $date }}</span>
+                </div>
+                <div class="thermal-info-row">
+                    <span class="label">Mesa:</span>
+                    <span>{{ $table ? 'Mesa #'.$table->number.' - '.ucfirst($table->location) : 'Venta Rápida' }}</span>
+                </div>
+                <div class="thermal-info-row">
+                    <span class="label">Atendido por:</span>
+                    <span>{{ $order->employee->name ?? 'No asignado' }}</span>
+                </div>
             </div>
-            @if($order->discount > 0)
-            <div class="thermal-total-row">
-                <span class="label">Descuento:</span>
-                <span>S/ {{ number_format($order->discount, 2) }}</span>
+
+            <div style="border-top: 1px dashed #000; margin: 8px 0; padding-top: 5px;">
+                @foreach($order->orderDetails as $detail)
+                    <div style="margin-bottom: 4px; font-size: 11px;">
+                        <div style="display: flex; justify-content: space-between;">
+                            <span style="font-weight: bold;">{{ $detail->quantity }} x {{ $detail->product->name }}</span>
+                            <span>{{ number_format($detail->subtotal, 2) }}</span>
+                        </div>
+                        @if($detail->notes)
+                            <div style="font-style: italic; font-size: 9px; color: #666; margin-left: 10px;">{{ $detail->notes }}</div>
+                        @endif
+                        @if($detail->unit_price != $detail->subtotal / $detail->quantity)
+                            <div style="font-size: 9px; color: #666; margin-left: 10px;">
+                                @ S/ {{ number_format($detail->unit_price, 2) }} c/u
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="thermal-totals">
+                <div class="thermal-total-row">
+                    <span class="label">Subtotal:</span>
+                    <span>S/ {{ number_format($order->subtotal, 2) }}</span>
+                </div>
+                <div class="thermal-total-row">
+                    <span class="label">I.G.V. (18%):</span>
+                    <span>S/ {{ number_format($order->tax, 2) }}</span>
+                </div>
+                @if($order->discount > 0)
+                <div class="thermal-total-row">
+                    <span class="label">Descuento:</span>
+                    <span>S/ {{ number_format($order->discount, 2) }}</span>
+                </div>
+                @endif
+                <div class="thermal-grand-total">
+                    <span class="label">TOTAL:</span>
+                    <span>S/ {{ number_format($order->total, 2) }}</span>
+                </div>
+            </div>
+
+            @if($order->notes)
+            <div class="thermal-info">
+                <div style="font-weight: bold; font-size: 9px;">Notas:</div>
+                <div style="font-size: 9px; margin-top: 1px;">{{ $order->notes }}</div>
             </div>
             @endif
-            <div class="thermal-grand-total">
-                <span class="label">TOTAL:</span>
-                <span>S/ {{ number_format($order->total, 2) }}</span>
+
+            <div class="thermal-footer">
+                Gracias por su preferencia
+            </div>
+
+            <div class="thermal-notice">
+                * Precios incluyen IGV
             </div>
         </div>
-
-        @if($order->notes)
-        <div class="thermal-info">
-            <div style="font-weight: bold; font-size: 9px;">Notas:</div>
-            <div style="font-size: 9px; margin-top: 1px;">{{ $order->notes }}</div>
-        </div>
-        @endif
-
-        <div class="thermal-footer">
-            Gracias por su preferencia
-        </div>
-
-        <div class="thermal-notice">
-            * Precios incluyen IGV
-        </div>
     </div>
-
-
 
     <!-- Script para auto-impresión opcional -->
     <script>

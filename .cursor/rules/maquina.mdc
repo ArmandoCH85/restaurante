@@ -1,10 +1,10 @@
 ---
-description: 
-globs: 
-alwaysApply: false
+description:
+globs:
+alwaysApply: true
 ---
 Uso windows
-uso power shell 
+uso power shell
 todos los comandos deben ser para windows
 
 uso herd
