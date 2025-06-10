@@ -22,7 +22,7 @@ class RecipeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-beaker';
 
-    protected static ?string $navigationGroup = 'Menú y Productos';
+    protected static ?string $navigationGroup = '🍽️ Menú y Carta';
 
     protected static ?string $navigationLabel = 'Recetas';
 
@@ -32,7 +32,7 @@ class RecipeResource extends Resource
 
     protected static ?string $slug = 'resources/recipes';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

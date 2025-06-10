@@ -53,7 +53,7 @@
         </x-slot>
 
         <x-slot name="description">
-            Haz clic en una mesa para abrir el POS
+                                    Haz clic en una mesa para abrir la Venta Directa
         </x-slot>
 
         {{-- 🎯 Vista Grid - 100% Componentes Nativos de Filament --}}

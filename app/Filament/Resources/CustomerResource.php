@@ -266,6 +266,6 @@ class CustomerResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Clientes';
+        return '👥 Clientes';
     }
 }

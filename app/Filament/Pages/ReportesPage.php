@@ -25,7 +25,7 @@ class ReportesPage extends Page implements HasForms
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
     protected static ?string $navigationLabel = 'Reportes';
     protected static ?string $title = 'Reportes';
-    protected static ?string $navigationGroup = 'Ventas';
+    protected static ?string $navigationGroup = '📊 Reportes y Análisis';
     protected static ?int $navigationSort = 5;
     protected static ?string $slug = 'reportes';
 

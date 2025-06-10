@@ -81,77 +81,73 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\ReservationStats::class
             ])
             ->navigationGroups([
-                // 🏪 OPERACIONES PRINCIPALES - Siempre visibles y expandidas
+                // 🏪 OPERACIONES PRINCIPALES - DIARIAS (Más usadas - Siempre expandidas)
                 NavigationGroup::make()
-                    ->label('Operaciones')
+                    ->label('🏪 Operaciones Diarias')
                     ->icon('heroicon-o-building-storefront')
-                    ->collapsed(true)
-                    ->collapsible(true), // No colapsable - siempre visible
+                    ->collapsed(false) // Siempre expandido - uso diario
+                    ->collapsible(false), // No colapsable - crítico
 
-                // 📦 GESTIÓN DE PRODUCTOS - Expandido por defecto
+                // 🍽️ GESTIÓN DE MENÚ - FRECUENTE (Expandido por defecto)
                 NavigationGroup::make()
-                    ->label('Menú y Productos')
+                    ->label('🍽️ Menú y Carta')
                     ->icon('heroicon-o-squares-2x2')
-                    ->collapsed(true),
+                    ->collapsed(false), // Expandido - uso frecuente
 
+                // 👥 CLIENTES - FRECUENTE (Expandido por defecto)
                 NavigationGroup::make()
-                    ->label('Seguridad y Usuarios')
-                    ->icon('heroicon-o-squares-2x2')
-                    ->collapsed(true),
-
-                NavigationGroup::make()
-                    ->label('Ventas')
-                    ->icon('heroicon-o-squares-2x2')
-                    ->collapsed(true),
-
-                // 🛒 COMPRAS E INVENTARIO - Expandido por defecto
-                NavigationGroup::make()
-                    ->label('Inventario')
-                    ->icon('heroicon-o-cube')
-                    ->collapsed(true),
-
-                // 📄 FACTURACIÓN - Expandido por defecto
-                NavigationGroup::make()
-                    ->label('Facturación')
-                    ->icon('heroicon-o-document-text')
-                    ->collapsed(true),
-
-                // 📅 RESERVAS Y COTIZACIONES - Expandido por defecto
-                NavigationGroup::make()
-                    ->label('Reservas')
-                    ->icon('heroicon-o-calendar-days')
-                    ->collapsed(true),
-
-                // 👥 CLIENTES - Colapsado por defecto (menos usado)
-                NavigationGroup::make()
-                    ->label('Clientes')
+                    ->label('👥 Clientes')
                     ->icon('heroicon-o-user-circle')
-                    ->collapsed(true),
+                    ->collapsed(false), // Expandido - uso frecuente
 
-                // 👨‍💼 PERSONAL Y USUARIOS - Colapsado por defecto (administrativo)
+                // 📦 INVENTARIO Y COMPRAS - SEMANAL (Expandido por defecto)
                 NavigationGroup::make()
-                    ->label('Personal')
+                    ->label('📦 Inventario y Compras')
+                    ->icon('heroicon-o-cube')
+                    ->collapsed(false), // Expandido - importante
+
+                // 📄 FACTURACIÓN Y VENTAS - DIARIO/SEMANAL (Expandido)
+                NavigationGroup::make()
+                    ->label('📄 Facturación y Ventas')
+                    ->icon('heroicon-o-document-text')
+                    ->collapsed(false), // Expandido - importante
+
+                // 📅 RESERVAS Y EVENTOS - MODERADO (Colapsado por defecto)
+                NavigationGroup::make()
+                    ->label('📅 Reservas y Eventos')
+                    ->icon('heroicon-o-calendar-days')
+                    ->collapsed(true), // Colapsado - uso moderado
+
+                // 👨‍💼 PERSONAL Y EMPLEADOS - ADMINISTRATIVO (Colapsado)
+                NavigationGroup::make()
+                    ->label('👨‍💼 Personal')
                     ->icon('heroicon-o-user-group')
-                    ->collapsed(true),
+                    ->collapsed(true), // Colapsado - administrativo
 
-                // 📊 REPORTES - Colapsado por defecto (consulta ocasional)
+                // 📊 REPORTES Y ANÁLISIS - CONSULTA (Colapsado)
                 NavigationGroup::make()
-                    ->label('Reportes')
+                    ->label('📊 Reportes y Análisis')
                     ->icon('heroicon-o-chart-bar')
-                    ->collapsed(true),
+                    ->collapsed(true), // Colapsado - consulta ocasional
 
-                // ⚙️ CONFIGURACIÓN - Colapsado por defecto (uso esporádico)
+                // 🔐 SEGURIDAD Y PERMISOS - ADMINISTRATIVO (Colapsado)
                 NavigationGroup::make()
-                    ->label('Configuración')
+                    ->label('🔐 Seguridad')
+                    ->icon('heroicon-o-shield-check')
+                    ->collapsed(true), // Colapsado - administrativo
+
+                // ⚙️ CONFIGURACIÓN DEL SISTEMA - ESPORÁDICO (Colapsado)
+                NavigationGroup::make()
+                    ->label('⚙️ Configuración')
                     ->icon('heroicon-o-cog-6-tooth')
-                    ->collapsed(true),
+                    ->collapsed(true), // Colapsado - uso esporádico
             ])
             ->navigationItems([
                 // 🏪 OPERACIONES PRINCIPALES
                 NavigationItem::make('Venta Directa')
-                    ->url('/admin/pos')
+                    ->url('/admin/punto-de-venta')
                     ->icon('heroicon-o-shopping-cart')
-                    ->group('Operaciones')
+                    ->group('🏪 Operaciones Diarias')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -163,7 +159,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Mapa de Mesas')
                     ->url('/admin/mapa-mesas')
                     ->icon('heroicon-o-map')
-                    ->group('Operaciones')
+                    ->group('🏪 Operaciones Diarias')
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
@@ -178,7 +174,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Mis Pedidos')
                     ->url('/delivery/my-orders')
                     ->icon('heroicon-o-truck')
-                    ->group('Operaciones')
+                    ->group('🏪 Operaciones Diarias')
                     ->sort(4)
                     ->visible(function () {
                         $user = Auth::user();
@@ -187,7 +183,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Mapa de Pedidos')
                     ->url('/admin/mapa-mesas')
                     ->icon('heroicon-o-map')
-                    ->group('Operaciones')
+                    ->group('🏪 Operaciones Diarias')
                     ->sort(5)
                     ->visible(function () {
                         $user = Auth::user();
@@ -200,7 +196,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Productos')
                     ->url('/admin/resources/products')
                     ->icon('heroicon-o-squares-2x2')
-                    ->group('Menú y Productos')
+                    ->group('🍽️ Menú y Carta')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -212,7 +208,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Categorías')
                     ->url('/admin/resources/product-categories')
                     ->icon('heroicon-o-tag')
-                    ->group('Menú y Productos')
+                    ->group('🍽️ Menú y Carta')
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
@@ -224,7 +220,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Recetas')
                     ->url('/admin/resources/recipes')
                     ->icon('heroicon-o-beaker')
-                    ->group('Menú y Productos')
+                    ->group('🍽️ Menú y Carta')
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
@@ -238,7 +234,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Ingredientes')
                     ->url('/admin/resources/ingredients')
                     ->icon('heroicon-o-cube')
-                    ->group('Inventario')
+                    ->group('📦 Inventario y Compras')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -250,7 +246,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Almacenes')
                     ->url('/admin/resources/warehouses')
                     ->icon('heroicon-o-building-storefront')
-                    ->group('Inventario')
+                    ->group('📦 Inventario y Compras')
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
@@ -262,7 +258,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Compras')
                     ->url('/admin/resources/purchases')
                     ->icon('heroicon-o-shopping-bag')
-                    ->group('Inventario')
+                    ->group('📦 Inventario y Compras')
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
@@ -274,7 +270,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Proveedores')
                     ->url('/admin/resources/suppliers')
                     ->icon('heroicon-o-building-office')
-                    ->group('Inventario')
+                    ->group('📦 Inventario y Compras')
                     ->sort(4)
                     ->visible(function () {
                         $user = Auth::user();
@@ -288,7 +284,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Comprobantes')
                     ->url('/admin/resources/invoices')
                     ->icon('heroicon-o-document-text')
-                    ->group('Facturación')
+                    ->group('📄 Facturación y Ventas')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -300,7 +296,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Series de Comprobantes')
                     ->url('/admin/document-series')
                     ->icon('heroicon-o-hashtag')
-                    ->group('Facturación')
+                    ->group('📄 Facturación y Ventas')
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
@@ -312,7 +308,7 @@ class AdminPanelProvider extends PanelProvider
                 // NavigationItem::make('Caja')
                 //     ->url('/admin/resources/cash-registers')
                 //     ->icon('heroicon-o-banknotes')
-                //     ->group('Facturación')
+                //     ->group('📄 Facturación y Ventas')
                 //     ->sort(3)
                 //     ->visible(function() {
                 //         $user = Auth::user();
@@ -326,7 +322,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Reservas')
                     ->url('/admin/resources/reservations')
                     ->icon('heroicon-o-calendar-days')
-                    ->group('Reservas')
+                    ->group('📅 Reservas y Eventos')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -338,7 +334,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Calendario de Reservas')
                     ->url('/admin/reservation-calendar')
                     ->icon('heroicon-o-calendar')
-                    ->group('Reservas')
+                    ->group('📅 Reservas y Eventos')
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
@@ -350,7 +346,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Cotizaciones')
                     ->url('/admin/resources/quotations')
                     ->icon('heroicon-o-document-duplicate')
-                    ->group('Reservas')
+                    ->group('📅 Reservas y Eventos')
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
@@ -364,7 +360,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Clientes')
                     ->url('/admin/resources/customers')
                     ->icon('heroicon-o-user-circle')
-                    ->group('Clientes')
+                    ->group('👥 Clientes')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -378,7 +374,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Empleados')
                     ->url('/admin/resources/employees')
                     ->icon('heroicon-o-user-group')
-                    ->group('Personal')
+                    ->group('👨‍💼 Personal')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -413,7 +409,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Reportes')
                     ->url('/admin/reportes')
                     ->icon('heroicon-o-chart-bar')
-                    ->group('Reportes')
+                    ->group('📊 Reportes y Análisis')
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
@@ -424,7 +420,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Datos de la Empresa')
                     ->url('/admin/resources/company-configs')
                     ->icon('heroicon-o-building-office')
-                    ->group('Configuración')
+                    ->group('⚙️ Configuración')
                     ->sort(1)
                     ->visible(function () {
                         return PermissionHelper::hasPermission('view_any_company::config');
@@ -432,7 +428,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Facturación Electrónica')
                     ->url('/admin/resources/electronic-billing-configs')
                     ->icon('heroicon-o-document-text')
-                    ->group('Configuración')
+                    ->group('⚙️ Configuración')
                     ->sort(2)
                     ->visible(function () {
                         return PermissionHelper::hasPermission('view_any_electronic::billing::config');
@@ -440,7 +436,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Mesas')
                     ->url('/admin/resources/tables')
                     ->icon('heroicon-o-squares-plus')
-                    ->group('Configuración')
+                    ->group('⚙️ Configuración')
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
@@ -452,7 +448,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationItem::make('Pisos')
                     ->url('/admin/resources/floors')
                     ->icon('heroicon-o-building-storefront')
-                    ->group('Configuración')
+                    ->group('⚙️ Configuración')
                     ->sort(4)
                     ->visible(function () {
                         $user = Auth::user();
