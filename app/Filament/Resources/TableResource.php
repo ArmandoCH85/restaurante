@@ -22,7 +22,7 @@ class TableResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-table-cells';
 
-    protected static ?string $navigationGroup = 'Restaurante';
+    protected static ?string $navigationGroup = '⚙️ Configuración';
 
     protected static ?string $navigationLabel = 'Mesas';
 
@@ -176,7 +176,7 @@ class TableResource extends Resource
                 Tables\Actions\Action::make('Ver QR')
                     ->icon('heroicon-o-qr-code')
                     ->action(fn ($record, Table\Actions\Action $action) => $action->getLivewire()->dispatch('showQrCode', [$record->id])),
-                Tables\Actions\Action::make('Ver en POS')
+                Tables\Actions\Action::make('Ver en Venta Directa')
                     ->icon('heroicon-o-shopping-cart')
                     ->url(fn ($record): string => route('pos.index', ['table_id' => $record->id]))
                     ->openUrlInNewTab(),

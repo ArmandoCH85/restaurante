@@ -15,7 +15,7 @@ class SimpleFloorResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
-    protected static ?string $navigationGroup = 'Configuración';
+    protected static ?string $navigationGroup = '⚙️ Configuración';
 
     protected static ?string $navigationLabel = 'Pisos';
 

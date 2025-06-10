@@ -19,7 +19,7 @@ class CashRegisterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
-    protected static ?string $navigationGroup = 'Facturación';
+    protected static ?string $navigationGroup = '📄 Facturación y Ventas';
 
     // Mostrar en el menú de navegación
     protected static bool $shouldRegisterNavigation = true;
@@ -464,7 +464,7 @@ class CashRegisterResource extends Resource
                     ->button()
                     ->modalHeading(fn (CashRegister $record) => "Detalles de Operación de Caja #{$record->id}")
                     ->modalWidth('5xl')
-                    ->modalContent(fn (CashRegister $record) => 
+                    ->modalContent(fn (CashRegister $record) =>
                         view('cash-registers.detail-modal', ['record' => $record])),
                 Tables\Actions\ViewAction::make()
                     ->icon('heroicon-m-eye')

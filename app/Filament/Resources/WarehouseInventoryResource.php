@@ -26,7 +26,7 @@ class WarehouseInventoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?string $navigationGroup = 'Inventario';
+    protected static ?string $navigationGroup = '📦 Inventario y Compras';
 
     protected static ?string $navigationLabel = 'Inventario por Almacén';
 
@@ -102,7 +102,7 @@ class WarehouseInventoryResource extends Resource
                     ->label('Ubicación')
                     ->sortable()
                     ->searchable(),
-                    
+
                 Tables\Columns\TextColumn::make('stock_count')
                     ->label('Ingredientes')
                     ->counts('ingredientStocks')
@@ -112,7 +112,7 @@ class WarehouseInventoryResource extends Resource
                     ->label('Principal')
                     ->boolean()
                     ->sortable(),
-                
+
                 Tables\Columns\IconColumn::make('active')
                     ->label('Activo')
                     ->boolean()

@@ -25,7 +25,7 @@ class TableMap extends Page
 
     // IMPORTANTE: Slug debe coincidir con la ruta esperada
     protected static ?string $slug = 'mapa-mesas';
-    protected static ?string $navigationGroup = 'Operaciones';
+    protected static ?string $navigationGroup = '🏪 Operaciones Diarias';
     protected static ?int $navigationSort = 2;
 
     // Nueva vista 100% Filament nativo
@@ -368,7 +368,7 @@ class TableMap extends Page
     }
 
     /**
-     * 🔴 PASO 1: Abrir POS para una mesa específica
+     * 🔴 PASO 1: Abrir Venta Directa para una mesa específica
      * Método que maneja el click en las tarjetas de mesa
      */
     public function openPOS(int $tableId): void

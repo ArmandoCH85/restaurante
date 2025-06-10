@@ -25,17 +25,17 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-cart';
 
-    protected static ?string $navigationGroup = 'Operaciones';
+    protected static ?string $navigationGroup = '🏪 Operaciones Diarias';
 
-    protected static ?string $navigationLabel = 'Órdenes POS';
+    protected static ?string $navigationLabel = 'Órdenes de Venta Directa';
 
     protected static ?string $modelLabel = 'Orden';
 
     protected static ?string $pluralModelLabel = 'Órdenes';
 
-    protected static ?string $slug = 'pos/ordenes';
+    protected static ?string $slug = 'venta-directa/ordenes';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {

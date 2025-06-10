@@ -221,6 +221,6 @@ class ProductCategoryResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Menú y Productos';
+        return '🍽️ Menú y Carta';
     }
 }

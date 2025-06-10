@@ -15,7 +15,7 @@ class FloorPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_floor');
+        return $user->can('view_any_simple::floor');
     }
 
     /**
@@ -23,7 +23,7 @@ class FloorPolicy
      */
     public function view(User $user, Floor $floor): bool
     {
-        return $user->can('view_floor');
+        return $user->can('view_simple::floor');
     }
 
     /**
@@ -31,7 +31,7 @@ class FloorPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_floor');
+        return $user->can('create_simple::floor');
     }
 
     /**
@@ -39,7 +39,7 @@ class FloorPolicy
      */
     public function update(User $user, Floor $floor): bool
     {
-        return $user->can('update_floor');
+        return $user->can('update_simple::floor');
     }
 
     /**
@@ -47,7 +47,7 @@ class FloorPolicy
      */
     public function delete(User $user, Floor $floor): bool
     {
-        return $user->can('delete_floor');
+        return $user->can('delete_simple::floor');
     }
 
     /**
@@ -55,7 +55,7 @@ class FloorPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_floor');
+        return $user->can('delete_any_simple::floor');
     }
 
     /**
@@ -63,7 +63,7 @@ class FloorPolicy
      */
     public function forceDelete(User $user, Floor $floor): bool
     {
-        return $user->can('force_delete_floor');
+        return $user->can('force_delete_simple::floor');
     }
 
     /**
@@ -71,7 +71,7 @@ class FloorPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_floor');
+        return $user->can('force_delete_any_simple::floor');
     }
 
     /**
@@ -79,7 +79,7 @@ class FloorPolicy
      */
     public function restore(User $user, Floor $floor): bool
     {
-        return $user->can('restore_floor');
+        return $user->can('restore_simple::floor');
     }
 
     /**
@@ -87,7 +87,7 @@ class FloorPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_floor');
+        return $user->can('restore_any_simple::floor');
     }
 
     /**
@@ -95,7 +95,7 @@ class FloorPolicy
      */
     public function replicate(User $user, Floor $floor): bool
     {
-        return $user->can('replicate_floor');
+        return $user->can('replicate_simple::floor');
     }
 
     /**
@@ -103,6 +103,6 @@ class FloorPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_floor');
+        return $user->can('reorder_simple::floor');
     }
 }

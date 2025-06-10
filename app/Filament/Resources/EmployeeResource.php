@@ -298,7 +298,7 @@ class EmployeeResource extends Resource
 
     public static function getNavigationGroup(): ?string
     {
-        return 'Personal';
+        return '👨‍💼 Personal';
     }
 }
 //cambios visuales
