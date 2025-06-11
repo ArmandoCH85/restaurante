@@ -183,7 +183,10 @@ Route::get('/invoices/{invoice}/download-pdf', function(Invoice $invoice) {
 })->name('filament.admin.invoices.download-pdf');
 
 Route::get('/orders/{order}/download-comanda-pdf', function(Order $order) {
-    $pdf = Pdf::loadView('pdf.comanda', compact('order'));
+    // ✅ Capturar el nombre del cliente desde la URL para venta directa
+    $customerNameForComanda = request()->get('customerName', '');
+
+    $pdf = Pdf::loadView('pdf.comanda', compact('order', 'customerNameForComanda'));
     return $pdf->stream("comanda-{$order->id}.pdf");
 })->name('orders.comanda.pdf');
 

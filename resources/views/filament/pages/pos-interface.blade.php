@@ -201,17 +201,31 @@
                         {{-- BOTONES DE ACCIÓN CONDICIONALES --}}
                         <div class="space-y-3">
                             @if(!$order)
-                                {{-- BOTÓN PARA CREAR LA ORDEN INICIALMENTE --}}
-                                <x-filament::button
-                                    wire:click="processOrder"
-                                    color="primary"
-                                    size="lg"
-                                    class="w-full py-3 text-base font-bold"
-                                    :disabled="!count($cartItems)"
-                                >
-                                    <x-heroicon-m-check-circle class="h-5 w-5 mr-2" />
-                                    Guardar Orden
-                                </x-filament::button>
+                                {{-- ✅ VENTA DIRECTA: IR DIRECTO A PAGAR SIN CREAR ORDEN PRIMERO --}}
+                                @if($selectedTableId === null)
+                                    <x-filament::button
+                                        wire:click="mountAction('processBilling')"
+                                        color="success"
+                                        size="lg"
+                                        class="w-full py-3 text-base font-bold"
+                                        :disabled="!count($cartItems)"
+                                    >
+                                        <x-heroicon-m-credit-card class="h-5 w-5 mr-2" />
+                                        Emitir Comprobante
+                                    </x-filament::button>
+                                @else
+                                    {{-- VENTA CON MESA: GUARDAR ORDEN PRIMERO --}}
+                                    <x-filament::button
+                                        wire:click="processOrder"
+                                        color="primary"
+                                        size="lg"
+                                        class="w-full py-3 text-base font-bold"
+                                        :disabled="!count($cartItems)"
+                                    >
+                                        <x-heroicon-m-check-circle class="h-5 w-5 mr-2" />
+                                        Guardar Orden
+                                    </x-filament::button>
+                                @endif
                             @else
                                 {{-- BOTÓN PARA PROCEDER AL PAGO DE LA ORDEN YA CREADA --}}
                                 <x-filament::button

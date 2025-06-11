@@ -63,6 +63,12 @@
             <div class="info">
                 @if($order->table)
                     <strong>Mesa: {{ $order->table->number }}</strong><br>
+                @else
+                    {{-- ✅ Mostrar nombre del cliente solo para venta directa --}}
+                    @if(isset($customerNameForComanda) && !empty($customerNameForComanda))
+                        <strong>Cliente: {{ $customerNameForComanda }}</strong><br>
+                    @endif
+                    <strong>VENTA DIRECTA</strong><br>
                 @endif
                 <strong>Orden:</strong> #{{ $order->id }}<br>
                 <strong>Mesero:</strong> {{ $order->employee->name }}<br>
