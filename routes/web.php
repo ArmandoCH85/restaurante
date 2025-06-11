@@ -14,9 +14,6 @@ use Illuminate\Support\Facades\Log;
 use App\Models\CompanyConfig;
 use Illuminate\Support\Facades\Blade;
 
-// Incluir rutas específicas para impresión
-require __DIR__ . '/web-print.php';
-
 Route::get('/', function () {
     // Redirección automática a /admin
     return redirect('/admin');
