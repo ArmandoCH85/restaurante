@@ -1,5 +1,4 @@
 import './bootstrap';
-import './print-handler';
 
 // Configuración del sistema de logs
 window.APP_DEBUG = true;
