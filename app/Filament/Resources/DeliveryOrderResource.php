@@ -69,6 +69,7 @@ class DeliveryOrderResource extends Resource
         return $form
             ->schema([
                 Forms\Components\Section::make('Información del Pedido')
+                    ->compact()
                     ->schema([
                         Forms\Components\TextInput::make('order_id')
                             ->label('Orden #')
@@ -112,6 +113,7 @@ class DeliveryOrderResource extends Resource
                     ])->columns(3),
 
                 Forms\Components\Section::make('Dirección de Entrega')
+                    ->compact()
                     ->schema([
                         Forms\Components\TextInput::make('delivery_address')
                             ->label('Dirección')
@@ -124,20 +126,16 @@ class DeliveryOrderResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                Forms\Components\Section::make('Tiempos')
+                Forms\Components\Section::make('Tiempos de Entrega')
+                    ->compact()
                     ->schema([
-                        Forms\Components\DateTimePicker::make('estimated_delivery_time')
-                            ->label('Tiempo Estimado de Entrega')
-                            ->seconds(false)
-                            ->timezone('America/Lima')
-                            ->displayFormat('d/m/Y H:i'),
-
                         Forms\Components\DateTimePicker::make('actual_delivery_time')
                             ->label('Tiempo Real de Entrega')
                             ->seconds(false)
                             ->timezone('America/Lima')
-                            ->displayFormat('d/m/Y H:i'),
-                    ])->columns(2),
+                            ->displayFormat('d/m/Y H:i')
+                            ->helperText('Solo se registra cuando el pedido sea entregado'),
+                    ]),
             ]);
     }
 
@@ -178,16 +176,10 @@ class DeliveryOrderResource extends Resource
                     ->view('filament.tables.columns.delivery-status-with-traffic-light')
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('estimated_delivery_time')
-                    ->label('Tiempo Estimado')
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Pedido Creado')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
@@ -229,6 +221,22 @@ class DeliveryOrderResource extends Resource
                     }),
             ])
             ->actions([
+                // 💳 ACCIÓN: PROCESAR PAGO EN POS
+                Tables\Actions\Action::make('process_payment_pos')
+                    ->label('💰 Procesar Pago')
+                    ->icon('heroicon-o-credit-card')
+                    ->color('warning')
+                    ->url(function (DeliveryOrder $record): string {
+                        // Redirigir al POS con la orden pre-cargada
+                        return '/admin/pos-interface?order_id=' . $record->order_id;
+                    })
+                    ->openUrlInNewTab()
+                    ->tooltip('Abrir en POS para procesar el pago del delivery')
+                    ->visible(function (DeliveryOrder $record): bool {
+                        // Mostrar solo si la orden aún no está pagada
+                        return $record->order && !$record->order->billed && in_array($record->status, ['pending', 'assigned', 'in_transit']);
+                    }),
+
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('assign_delivery')
                     ->label('Asignar Repartidor')

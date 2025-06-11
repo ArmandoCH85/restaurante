@@ -145,7 +145,7 @@ class AdminPanelProvider extends PanelProvider
             ->navigationItems([
                 // 🏪 OPERACIONES PRINCIPALES
                 NavigationItem::make('Venta Directa')
-                    ->url('/admin/punto-de-venta')
+                    ->url('/admin/pos-interface')
                     ->icon('heroicon-o-shopping-cart')
                     ->group('🏪 Operaciones Diarias')
                     ->sort(1)
