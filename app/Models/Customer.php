@@ -138,18 +138,22 @@ class Customer extends Model
      */
     public static function getGenericCustomer(): ?Customer
     {
-        // Buscar cliente genérico existente
-        $genericCustomer = static::where('document_type', 'DNI')
-            ->where('document_number', '00000000')
-            ->where('name', 'Cliente Genérico')
-            ->first();
+        // Buscar cliente genérico existente por ID 7 o por documento
+        $genericCustomer = static::where('id', 7)->first();
 
-        // Si no existe, crearlo
+        if (!$genericCustomer) {
+            // Si no existe el ID 7, buscar por documento
+            $genericCustomer = static::where('document_type', 'DNI')
+                ->where('document_number', '00000000')
+                ->first();
+        }
+
+        // Si no existe ninguno, crear "Publico en General"
         if (!$genericCustomer) {
             $genericCustomer = static::create([
                 'document_type' => 'DNI',
                 'document_number' => '00000000',
-                'name' => 'Cliente Genérico',
+                'name' => 'Publico en General',
                 'phone' => null,
                 'email' => null,
                 'address' => null,

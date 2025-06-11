@@ -195,9 +195,6 @@
                 @if(\App\Models\CompanyConfig::getTelefono())
                     <p>Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
                 @endif
-                @if(\App\Models\CompanyConfig::getEmail())
-                    <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
-                @endif
                 <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
             </div>
         </div>
@@ -239,19 +236,19 @@
             <table>
                 <tr>
                     <td width="20%"><strong>Cliente:</strong></td>
-                    <td width="30%">{{ $customer->name }}</td>
-                    <td width="20%"><strong>{{ $customer->document_type }}:</strong></td>
-                    <td width="30%">{{ $customer->document_number }}</td>
+                    <td width="30%">{{ $customer?->name ?? 'Cliente no especificado' }}</td>
+                    <td width="20%"><strong>{{ $customer?->document_type ?? 'Documento' }}:</strong></td>
+                    <td width="30%">{{ $customer?->document_number ?? 'No especificado' }}</td>
                 </tr>
                 <tr>
                     <td><strong>Dirección:</strong></td>
-                    <td>{{ $customer->address ?? 'No especificada' }}</td>
+                    <td>{{ $customer?->address ?? 'No especificada' }}</td>
                     <td><strong>Teléfono:</strong></td>
-                    <td>{{ $customer->phone ?? 'No especificado' }}</td>
+                    <td>{{ $customer?->phone ?? 'No especificado' }}</td>
                 </tr>
                 <tr>
                     <td><strong>Email:</strong></td>
-                    <td>{{ $customer->email ?? 'No especificado' }}</td>
+                    <td>{{ $customer?->email ?? 'No especificado' }}</td>
                     <td><strong>Atendido por:</strong></td>
                     <td>{{ $user->name }}</td>
                 </tr>

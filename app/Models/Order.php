@@ -767,6 +767,11 @@ class Order extends Model
             // 3. Obtener el cliente
             $customer = Customer::find($customerId);
 
+            // Verificar que el cliente existe
+            if (!$customer) {
+                throw new \Exception("No se encontró el cliente con ID: {$customerId}");
+            }
+
             // 4. Crear la factura
             $invoice = Invoice::create([
                 'order_id' => $this->id,

@@ -258,9 +258,6 @@
                         @if(\App\Models\CompanyConfig::getTelefono())
                             <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
                         @endif
-                        @if(\App\Models\CompanyConfig::getEmail())
-                            <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
-                        @endif
                     </div>
                 </div>
 
@@ -342,9 +339,6 @@
                         <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Lima' }}</p>
                         @if(\App\Models\CompanyConfig::getTelefono())
                             <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
-                        @endif
-                        @if(\App\Models\CompanyConfig::getEmail())
-                            <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
                         @endif
                     </div>
                 </div>

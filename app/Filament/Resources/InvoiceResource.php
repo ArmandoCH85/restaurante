@@ -13,6 +13,9 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Blade;
+use App\Models\CompanyConfig;
 
 class InvoiceResource extends Resource
 {
@@ -373,12 +376,38 @@ class InvoiceResource extends Resource
                                 ->send();
                         }
                     }),
-                Action::make('print')
+                                Action::make('print')
                     ->label('Imprimir')
                     ->icon('heroicon-o-printer')
                     ->color('success')
-                    ->url(fn (Invoice $record): string => route('pos.invoice.pdf', $record))
-                    ->openUrlInNewTab(),
+                    ->action(function (Invoice $record) {
+                        // Obtener configuración de empresa usando los métodos estáticos
+                        $company = [
+                            'ruc' => CompanyConfig::getRuc(),
+                            'razon_social' => CompanyConfig::getRazonSocial(),
+                            'nombre_comercial' => CompanyConfig::getNombreComercial(),
+                            'direccion' => CompanyConfig::getDireccion(),
+                            'telefono' => CompanyConfig::getTelefono(),
+                            'email' => CompanyConfig::getEmail(),
+                        ];
+
+                        // Datos para el PDF
+                        $data = [
+                            'invoice' => $record->load(['customer', 'details.product', 'order.table']),
+                            'company' => $company,
+                        ];
+
+                        // Determinar la vista según el tipo de documento
+                        $view = match($record->invoice_type) {
+                            'receipt' => 'pdf.receipt',
+                            'sales_note' => 'pdf.sales_note',
+                            default => 'pdf.invoice'
+                        };
+
+                        // Generar PDF y mostrarlo en navegador para impresión
+                        $pdf = Pdf::loadHtml(Blade::render($view, $data));
+                        return $pdf->stream($record->series . '-' . $record->number . '.pdf');
+                    }),
                 Action::make('download_xml')
                     ->label('Descargar XML')
                     ->icon('heroicon-o-document-text')

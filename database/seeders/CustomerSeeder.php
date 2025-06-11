@@ -21,7 +21,7 @@ class CustomerSeeder extends Seeder
 
         // Cliente genérico para notas de venta
         Customer::create([
-            'document_type' => 'GENERIC',
+            'document_type' => 'DNI',
             'document_number' => '00000000',
             'name' => 'Cliente Genérico',
             'address' => 'Consumidor Final',

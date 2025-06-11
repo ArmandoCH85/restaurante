@@ -68,6 +68,11 @@ class Invoice extends Model
     ];
 
     /**
+     * Relaciones a cargar automáticamente
+     */
+    protected $with = ['customer'];
+
+    /**
      * Constantes para estados con la autoridad tributaria
      */
     const STATUS_PENDING = 'pending';

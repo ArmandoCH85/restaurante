@@ -33,6 +33,19 @@ function handleEscKey(e) {
 function printModalContent() {
     const iframe = document.getElementById('modal-iframe');
     if (iframe && iframe.contentWindow) {
+        // Usar el sistema unificado de impresión si está disponible
+        if (window.printManager && iframe.src.includes('/invoices/print/')) {
+            // Extraer el ID de la factura de la URL
+            const matches = iframe.src.match(/\/invoices\/print\/([0-9]+)/);
+            if (matches && matches[1]) {
+                const invoiceId = matches[1];
+                console.log('🔄 Delegando impresión al sistema unificado, ID:', invoiceId);
+                window.printManager.printInvoice(invoiceId);
+                return;
+            }
+        }
+
+        // Fallback al método tradicional
         iframe.contentWindow.print();
     }
 }

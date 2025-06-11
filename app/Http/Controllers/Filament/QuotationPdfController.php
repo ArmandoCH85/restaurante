@@ -18,11 +18,17 @@ class QuotationPdfController extends Controller
         // Cargar relaciones necesarias
         $quotation->load('details.product', 'customer', 'user');
 
+        // Si no hay customer asociado, usar el cliente genérico
+        $customer = $quotation->customer;
+        if (!$customer) {
+            $customer = \App\Models\Customer::getGenericCustomer();
+        }
+
         // Generar PDF
         $pdf = Pdf::loadView('reports.quotation', [
             'quotation' => $quotation,
             'details' => $quotation->details,
-            'customer' => $quotation->customer,
+            'customer' => $customer,
             'user' => $quotation->user,
         ]);
 
@@ -41,11 +47,17 @@ class QuotationPdfController extends Controller
         // Cargar relaciones necesarias
         $quotation->load('details.product', 'customer', 'user');
 
+        // Si no hay customer asociado, usar el cliente genérico
+        $customer = $quotation->customer;
+        if (!$customer) {
+            $customer = \App\Models\Customer::getGenericCustomer();
+        }
+
         // Generar PDF
         $pdf = Pdf::loadView('reports.quotation', [
             'quotation' => $quotation,
             'details' => $quotation->details,
-            'customer' => $quotation->customer,
+            'customer' => $customer,
             'user' => $quotation->user,
         ]);
 
@@ -71,11 +83,17 @@ class QuotationPdfController extends Controller
         // Cargar relaciones necesarias
         $quotation->load('details.product', 'customer', 'user');
 
+        // Si no hay customer asociado, usar el cliente genérico
+        $customer = $quotation->customer;
+        if (!$customer) {
+            $customer = \App\Models\Customer::getGenericCustomer();
+        }
+
         // Generar PDF
         $pdf = Pdf::loadView('reports.quotation', [
             'quotation' => $quotation,
             'details' => $quotation->details,
-            'customer' => $quotation->customer,
+            'customer' => $customer,
             'user' => $quotation->user,
         ]);
 

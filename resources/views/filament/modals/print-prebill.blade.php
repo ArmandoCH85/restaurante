@@ -42,18 +42,27 @@
     <div class="ticket-container">
         <div class="header">
             <h1>PRE-CUENTA</h1>
-            <p>Razón Social de tu Restaurante</p>
-            <p>Dirección de tu Restaurante</p>
-            <p>Teléfono: (123) 456-7890</p>
+            @php
+                $nombreComercial = \App\Models\CompanyConfig::getNombreComercial();
+                $razonSocial = \App\Models\CompanyConfig::getRazonSocial();
+            @endphp
+            <p><strong>{{ $nombreComercial ?: $razonSocial }}</strong></p>
+            <p>{{ $razonSocial }}</p>
+            <p>RUC: {{ \App\Models\CompanyConfig::getRuc() }}</p>
+            <p>{{ \App\Models\CompanyConfig::getDireccion() }}</p>
+            @if(\App\Models\CompanyConfig::getTelefono())
+                <p>Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+            @endif
         </div>
         <hr>
+        @if($order)
         <table class="info-table">
             <tr>
-                <td><strong>Mesa:</strong> {{ $order->table ? $order->table->number : 'N/A' }}</td>
+                <td><strong>Mesa:</strong> {{ $order->table?->number ?? 'N/A' }}</td>
                 <td style="text-align: right;"><strong>Orden:</strong> #{{ $order->id }}</td>
             </tr>
             <tr>
-                <td><strong>Mesero:</strong> {{ $order->employee->name }}</td>
+                <td><strong>Mesero:</strong> {{ $order->employee?->name ?? 'N/A' }}</td>
                 <td style="text-align: right;">{{ $order->created_at->format('d/m/Y H:i:s') }}</td>
             </tr>
         </table>
@@ -68,10 +77,10 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($order->orderDetails as $detail)
+                @foreach($order->orderDetails ?? [] as $detail)
                 <tr>
                     <td class="col-qty">{{ $detail->quantity }}</td>
-                    <td class="col-desc">{{ $detail->product->name }}</td>
+                    <td class="col-desc">{{ $detail->product?->name ?? 'Producto no disponible' }}</td>
                     <td class="col-price">{{ number_format($detail->unit_price, 2) }}</td>
                     <td class="col-total">{{ number_format($detail->subtotal, 2) }}</td>
                 </tr>
@@ -82,17 +91,22 @@
         <div class="totals">
             <div class="row">
                 <span class="col-label">SUBTOTAL:</span>
-                <span class="col-value">S/ {{ number_format($order->subtotal, 2) }}</span>
+                <span class="col-value">S/ {{ number_format($order->subtotal ?? 0, 2) }}</span>
             </div>
             <div class="row">
                 <span class="col-label">IGV (18%):</span>
-                <span class="col-value">S/ {{ number_format($order->tax, 2) }}</span>
+                <span class="col-value">S/ {{ number_format($order->tax ?? 0, 2) }}</span>
             </div>
             <div class="row total-final" style="margin-top: 5px;">
                 <span class="col-label">TOTAL:</span>
-                <span class="col-value">S/ {{ number_format($order->total, 2) }}</span>
+                <span class="col-value">S/ {{ number_format($order->total ?? 0, 2) }}</span>
             </div>
         </div>
+        @else
+        <div style="text-align: center; margin: 20px 0;">
+            <p><strong>Error:</strong> No se pudo cargar la información de la orden.</p>
+        </div>
+        @endif
         <hr>
         <div class="footer">
             <p>ESTE DOCUMENTO NO ES UN COMPROBANTE DE PAGO.</p>
@@ -100,3 +114,5 @@
         </div>
     </div>
 </div>
+
+

@@ -566,7 +566,7 @@ class PosController extends Controller
 
         // Cargar cliente genérico para notas de venta
         $genericCustomer = \App\Models\Customer::firstOrCreate(
-            ['document_type' => 'GENERIC', 'document_number' => '00000000'],
+            ['document_type' => 'DNI', 'document_number' => '00000000'],
             [
                 'name' => 'Cliente Genérico',
                 'address' => 'Consumidor Final',
@@ -795,14 +795,14 @@ class PosController extends Controller
         if (!$customerId) {
             if ($validated['invoice_type'] === 'sales_note') {
                 // Para nota de venta, usar cliente genérico
-                $customer = \App\Models\Customer::where('document_type', 'GENERIC')
+                $customer = \App\Models\Customer::where('document_type', 'DNI')
                     ->where('document_number', '00000000')
                     ->first();
 
                 if (!$customer) {
                     // Crear cliente genérico si no existe
                     $customer = \App\Models\Customer::create([
-                        'document_type' => 'GENERIC',
+                        'document_type' => 'DNI',
                         'document_number' => '00000000',
                         'name' => 'Cliente Genérico',
                         'address' => 'Consumidor Final',
@@ -828,8 +828,8 @@ class PosController extends Controller
                     try {
                         $customer = \App\Models\Customer::create($customerData);
                     } catch (\Exception $e) {
-                        // Si falla la creación, usar cliente genérico
-                        $customer = \App\Models\Customer::where('document_type', 'GENERIC')->first();
+                                            // Si falla la creación, usar cliente genérico
+                    $customer = \App\Models\Customer::where('document_type', 'DNI')->where('document_number', '00000000')->first();
                     }
                 }
 

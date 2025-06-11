@@ -82,6 +82,44 @@ class PosInterface extends Page
     protected function getHeaderActions(): array
     {
         return [
+            // 🖨️ BOTÓN DE IMPRESIÓN ÚLTIMO COMPROBANTE
+            Action::make('printLastInvoice')
+                ->label('🖨️ Imprimir Último Comprobante')
+                ->icon('heroicon-o-printer')
+                ->color('success')
+                ->size('lg')
+                ->button()
+                ->outlined()
+                ->tooltip('Imprimir el último comprobante generado para esta orden')
+                ->action(function () {
+                    if ($this->order && $this->order->invoices()->exists()) {
+                        $lastInvoice = $this->order->invoices()->latest()->first();
+                        // Registrar intento de impresión en el log
+                        Log::info('🖨️ Intentando abrir ventana de impresión desde PosInterface', [
+                            'invoice_id' => $lastInvoice->id,
+                            'invoice_type' => $lastInvoice->invoice_type,
+                            'invoice_url' => route('filament.admin.resources.facturacion.comprobantes.print', ['record' => $lastInvoice->id])
+                        ]);
+
+                        $this->dispatch('open-print-window', ['id' => $lastInvoice->id]);
+
+                        Notification::make()
+                            ->title('🖨️ Abriendo impresión...')
+                            ->body('Se abrió la ventana de impresión del comprobante')
+                            ->success()
+                            ->duration(3000)
+                            ->send();
+                    } else {
+                        Notification::make()
+                            ->title('❌ Sin comprobantes')
+                            ->body('No hay comprobantes generados para imprimir')
+                            ->warning()
+                            ->duration(4000)
+                            ->send();
+                    }
+                })
+                ->visible(fn (): bool => $this->order && $this->order->invoices()->exists()),
+
             Action::make('backToTableMap')
                 ->label('Mapa de Mesas')
                 ->icon('heroicon-o-map')
@@ -265,7 +303,10 @@ class PosInterface extends Page
                         $this->order = $this->createOrderFromCart();
                     }
 
-                    // ✅ TERCERO: Abrir comanda en nueva ventana para imprimir
+                    // Obtener un cliente genérico para asegurar que siempre haya un cliente disponible
+                    $genericCustomer = \App\Models\Customer::getGenericCustomer();
+
+                    // ✅ TERCERO: Abrir comanda en nueva ventana para imprimir (con datos de empresa)
                     $url = route('orders.comanda.pdf', [
                         'order' => $this->order,
                         'customerName' => $this->customerNameForComanda
@@ -291,6 +332,7 @@ class PosInterface extends Page
                     }
                 })
                 ->modalContent(function (): \Illuminate\Contracts\View\View {
+                    // Obtener datos de empresa para la plantilla
                     return view('filament.modals.print-prebill', [
                         'order' => $this->order
                     ]);
@@ -590,19 +632,36 @@ class PosInterface extends Page
             $order = $this->createOrderFromCart();
 
             if ($order) {
-                // Limpiar carrito después de procesar
-                $this->clearCart();
+                // 🎯 ASIGNAR LA ORDEN CREADA PARA QUE APAREZCAN LOS BOTONES DE OPERACIONES
+                $this->order = $order;
 
                 Notification::make()
-                    ->title('Orden creada exitosamente')
+                    ->title('🎉 Orden creada exitosamente')
                     ->body('Orden #' . $order->id . ' creada con éxito')
                     ->success()
+                    ->actions([
+                        \Filament\Notifications\Actions\Action::make('process_payment')
+                            ->label('💳 Procesar Pago')
+                            ->button()
+                            ->color('success')
+                            ->action(function () {
+                                // Refrescar para abrir modal de pago
+                                $this->refreshOrderData();
+                            }),
+                        \Filament\Notifications\Actions\Action::make('view_tables')
+                            ->label('🪑 Ver Mesas')
+                            ->url('/admin/mapa-mesas')
+                            ->button()
+                            ->color('secondary'),
+                    ])
+                    ->persistent()
                     ->send();
 
-                // Redirigir al mapa de mesas si hay una mesa seleccionada
-                if ($this->selectedTableId) {
-                    $this->redirect('/admin/mapa-mesas');
-                }
+                // 🔄 REFRESCAR DATOS PARA MOSTRAR BOTONES DE OPERACIONES
+                $this->refreshOrderData();
+
+                // 🚀 FORZAR ACTUALIZACIÓN DE HEADER ACTIONS
+                $this->dispatch('$refresh');
             }
 
         } catch (\Exception $e) {
@@ -762,7 +821,7 @@ class PosInterface extends Page
             return;
         }
 
-        $this->order = $this->order->fresh(['orderDetails.product']);
+        $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
 
         if (!$this->order || $this->order->status !== Order::STATUS_OPEN) {
             $this->clearCart();
@@ -772,6 +831,7 @@ class PosInterface extends Page
             return;
         }
 
+        // 🔄 RECONSTRUIR CARRITO DESDE LA ORDEN
         $this->cartItems = [];
         foreach ($this->order->orderDetails as $detail) {
             $this->cartItems[] = [
@@ -784,6 +844,11 @@ class PosInterface extends Page
         }
 
         $this->calculateTotals();
+
+        // 🎯 ASEGURAR QUE LA MESA ESTÉ SELECCIONADA SI EXISTE
+        if ($this->order->table_id) {
+            $this->selectedTableId = $this->order->table_id;
+        }
     }
 
     public function processBillingAction(): Action
@@ -994,14 +1059,15 @@ class PosInterface extends Page
                                     ->afterStateUpdated(function (Forms\Set $set, Get $get, $state) {
                                         // ✅ LÓGICA PARA ALTERNAR DATOS DEL CLIENTE SEGÚN TIPO DE DOCUMENTO
                                         if ($state === 'sales_note') {
-                                            // Cambiar a Cliente Genérico
-                                            $set('customer_id', 1);
-                                            $set('customer_name', 'Cliente Genérico');
-                                            $set('customer_document_type', 'DNI');
-                                            $set('customer_document', '');
-                                            $set('customer_address', '');
-                                            $set('customer_phone', '');
-                                            $set('customer_email', '');
+                                            // SIEMPRE usar Cliente Genérico para Nota de Venta
+                                            $genericCustomer = \App\Models\Customer::getGenericCustomer();
+                                            $set('customer_id', $genericCustomer->id);
+                                            $set('customer_name', $genericCustomer->name);
+                                            $set('customer_document_type', $genericCustomer->document_type);
+                                            $set('customer_document', $genericCustomer->document_number);
+                                            $set('customer_address', $genericCustomer->address);
+                                            $set('customer_phone', $genericCustomer->phone ?? '');
+                                            $set('customer_email', $genericCustomer->email ?? '');
                                         } else {
                                             // Restaurar datos originales del cliente si existen
                                             if ($this->originalCustomerData) {
@@ -1052,25 +1118,99 @@ class PosInterface extends Page
 
                             // ✅ CAMPOS INDIVIDUALES DEL CLIENTE (VISIBLES SOLO PARA BOLETA/FACTURA)
                             Forms\Components\Grid::make(2)->schema([
-                                Forms\Components\TextInput::make('customer_name')
-                                    ->label('Nombre/Razón Social')
+                                Forms\Components\Select::make('customer_id')
+                                    ->label('Cliente')
                                     ->required(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
-                                    ->maxLength(255)
-                                    ->placeholder('Nombre completo del cliente')
+                                    ->searchable()
+                                    ->preload()
+                                    ->options(function (): array {
+                                        return Customer::limit(50)->pluck('name', 'id')->toArray();
+                                    })
+                                    ->getSearchResultsUsing(function (string $search): array {
+                                        return Customer::where('name', 'like', "%{$search}%")
+                                            ->orWhere('document_number', 'like', "%{$search}%")
+                                            ->limit(50)
+                                            ->pluck('name', 'id')
+                                            ->toArray();
+                                    })
+                                    ->getOptionLabelUsing(fn ($value): ?string => Customer::find($value)?->name)
+                                    ->createOptionForm([
+                                        Forms\Components\TextInput::make('name')
+                                            ->label('Nombre/Razón Social')
+                                            ->required()
+                                            ->maxLength(255),
+                                        Forms\Components\Select::make('document_type')
+                                            ->label('Tipo de Documento')
+                                            ->options([
+                                                'DNI' => 'DNI',
+                                                'RUC' => 'RUC',
+                                                'CE' => 'Carnet de Extranjería',
+                                                'PAS' => 'Pasaporte'
+                                            ])
+                                            ->default('DNI')
+                                            ->required(),
+                                        Forms\Components\TextInput::make('document_number')
+                                            ->label('Número de Documento')
+                                            ->maxLength(20),
+                                        Forms\Components\TextInput::make('phone')
+                                            ->label('Teléfono')
+                                            ->tel()
+                                            ->maxLength(20),
+                                        Forms\Components\TextInput::make('email')
+                                            ->label('Email')
+                                            ->email()
+                                            ->maxLength(255),
+                                        Forms\Components\Textarea::make('address')
+                                            ->label('Dirección')
+                                            ->maxLength(500)
+                                            ->rows(3),
+                                    ])
+                                    ->createOptionUsing(function (array $data): int {
+                                        return Customer::create($data)->getKey();
+                                    })
+                                    ->placeholder('Buscar cliente existente o crear nuevo...')
+                                    ->disabled(fn (Get $get) => $get('document_type') === 'sales_note')
                                     ->afterStateUpdated(function (Forms\Set $set, Get $get, $state) {
                                         // ✅ LÓGICA PARA ALTERNAR ENTRE CLIENTE REAL Y GENÉRICO
                                         if ($get('document_type') === 'sales_note') {
-                                            $set('customer_name', 'Cliente Genérico');
-                                            $set('customer_id', 1); // ID del cliente genérico
+                                            // SIEMPRE usar Cliente Genérico para Nota de Venta
+                                            $genericCustomer = \App\Models\Customer::getGenericCustomer();
+                                            $set('customer_id', $genericCustomer->id);
                                         } else {
+                                            // ✅ CARGAR DATOS DEL CLIENTE SELECCIONADO POR ID
+                                            if (!empty($state) && is_numeric($state)) {
+                                                $selectedCustomer = Customer::find($state);
+                                                if ($selectedCustomer) {
+                                                    $set('customer_document_type', $selectedCustomer->document_type ?: 'DNI');
+                                                    $set('customer_document', $selectedCustomer->document_number ?: '');
+                                                    $set('customer_phone', $selectedCustomer->phone ?: '');
+                                                    $set('customer_email', $selectedCustomer->email ?: '');
+                                                    $set('customer_address', $selectedCustomer->address ?: '');
+
+                                                    \Illuminate\Support\Facades\Log::info('✅ DATOS DEL CLIENTE CARGADOS AUTOMÁTICAMENTE', [
+                                                        'customer_id' => $selectedCustomer->id,
+                                                        'customer_name' => $selectedCustomer->name,
+                                                        'document_type' => $selectedCustomer->document_type,
+                                                        'document_number' => $selectedCustomer->document_number,
+                                                        'phone' => $selectedCustomer->phone,
+                                                        'email' => $selectedCustomer->email,
+                                                        'address' => $selectedCustomer->address,
+                                                    ]);
+                                                }
+                                            }
+
                                             // Si hay datos originales y volvemos a boleta/factura, restaurar
                                             if ($this->originalCustomerData && empty($state)) {
-                                                $set('customer_name', $this->originalCustomerData['customer_name']);
                                                 $set('customer_id', $this->originalCustomerData['customer_id']);
+                                                $set('customer_document_type', $this->originalCustomerData['customer_document_type']);
+                                                $set('customer_document', $this->originalCustomerData['customer_document']);
+                                                $set('customer_phone', $this->originalCustomerData['customer_phone']);
+                                                $set('customer_email', $this->originalCustomerData['customer_email']);
+                                                $set('customer_address', $this->originalCustomerData['customer_address']);
                                             }
                                         }
                                     })
-                                    ->live(),
+                                    ->live(onBlur: true),
 
                                 Forms\Components\Select::make('customer_document_type')
                                     ->label('Tipo Documento')
@@ -1353,19 +1493,69 @@ class PosInterface extends Page
             }
             $nextNumber = $series->getNextNumber();
 
-            // ✅ CORREGIR CAMPOS DE LA TABLA INVOICES
+            // ✅ OBTENER DATOS DEL CLIENTE PARA EL COMPROBANTE
+            if ($data['document_type'] === 'sales_note') {
+                // FORZAR Cliente Genérico para notas de venta
+                $customer = Customer::getGenericCustomer();
+                $customerId = $customer->id;
+
+                Log::info('🔍 FORZANDO CLIENTE GENÉRICO PARA NOTA DE VENTA', [
+                    'document_type' => $data['document_type'],
+                    'customer_id_original' => $data['customer_id'] ?? 'N/A',
+                    'customer_id_forzado' => $customerId,
+                    'customer_name_forzado' => $customer->name,
+                    'invoice_id_pendiente' => 'por crear'
+                ]);
+            } else {
+                $customer = Customer::find($customerId);
+                if (!$customer) {
+                    $customer = Customer::getGenericCustomer(); // Fallback al cliente genérico
+                }
+            }
+
+            // ✅ CREAR COMPROBANTE CON VERIFICACIÓN
             $invoice = Invoice::create([
                 'order_id' => $order->id,
                 'customer_id' => $customerId,
-                'invoice_type' => $data['document_type'], // ✅ CORREGIDO: era 'document_type'
+                'employee_id' => \Illuminate\Support\Facades\Auth::id(), // 🔥 CAMPO REQUERIDO
+                'invoice_type' => $data['document_type'],
                 'series' => $series->series,
                 'number' => $nextNumber,
-                'taxable_amount' => $this->subtotal, // ✅ AÑADIDO: faltaba
+                'taxable_amount' => $this->subtotal,
                 'tax' => $this->tax,
                 'total' => $this->total,
-                'tax_authority_status' => Invoice::STATUS_PENDING, // ✅ CORREGIDO: era InvoiceStatusEnum::PAID
-                'issue_date' => now(), // ✅ CORREGIDO: este es el campo correcto
+                'tax_authority_status' => Invoice::STATUS_PENDING,
+                'issue_date' => now(),
+                // 🔥 CAMPOS CRÍTICOS PARA IMPRESIÓN
+                'client_name' => $customer->name,
+                'client_document' => $customer->document_number,
+                'client_address' => $customer->address,
+                'payment_method' => $data['primary_payment_method'],
+                'payment_amount' => $data['primary_payment_amount'] ?? $this->total,
             ]);
+
+            // 🔍 VERIFICAR QUE LA FACTURA SE CREÓ CORRECTAMENTE
+            if (!$invoice || !$invoice->id) {
+                Notification::make()
+                    ->title('❌ Error al crear comprobante')
+                    ->body('No se pudo crear el comprobante. Intente nuevamente.')
+                    ->danger()
+                    ->duration(5000)
+                    ->send();
+                throw new Halt();
+            }
+
+            // 🔥 CREAR DETALLES DE LA FACTURA
+            foreach ($this->cartItems as $item) {
+                \App\Models\InvoiceDetail::create([
+                    'invoice_id' => $invoice->id,
+                    'product_id' => $item['product_id'],
+                    'description' => $item['name'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal' => $item['subtotal'],
+                ]);
+            }
 
             // Procesar el pago principal
             $paymentMethod = $data['primary_payment_method'];
@@ -1415,13 +1605,121 @@ class PosInterface extends Page
                 ->body("Se generó {$data['document_type']} {$series->series}-{$nextNumber} por S/ " . number_format($this->total, 2) . $changeMessage)
                 ->success()
                 ->duration(4000)
+                ->actions([
+                    \Filament\Notifications\Actions\Action::make('print')
+                        ->label('🖨️ Imprimir Comprobante')
+                        ->button()
+                        ->color('primary')
+                        ->action(function () use ($invoice) {
+                            // LOGS AMPLIADOS Y MEJORADOS PARA DIAGNÓSTICO DE IMPRESIÓN
+                            // Cargar relación del cliente si no está cargada
+                            if (!$invoice->relationLoaded('customer') && $invoice->customer_id) {
+                                $invoice->load('customer');
+                            }
+
+                            $debugData = [
+                                'invoice_id' => $invoice->id,
+                                'invoice_type' => $invoice->invoice_type,
+                                'series' => $invoice->series,
+                                'number' => $invoice->number,
+                                'total' => $invoice->total,
+                                'customer_id' => $invoice->customer_id,
+                                'customer_name' => $invoice->client_name ?? ($invoice->customer ? $invoice->customer->name : 'N/A'),
+                                'timestamp' => now()->format('Y-m-d H:i:s.u'),
+                                'route' => route('invoices.print', ['invoice' => $invoice->id]),
+                                'user_id' => auth()->id(),
+                                'user_name' => auth()->user()->name,
+                                'session_id' => session()->getId(),
+                                'request_id' => str()->random(8),
+                                'ip' => request()->ip()
+                            ];
+
+                            // 🔍 LOG DETALLADO DEL PROCESO
+                            \Illuminate\Support\Facades\Log::info('🖨️ INICIANDO PROCESO DE IMPRESIÓN DESDE NOTIFICACIÓN', $debugData);
+
+                            // Verificar que la factura exista en la base de datos
+                            $invoiceExists = \App\Models\Invoice::where('id', $invoice->id)->exists();
+                            if (!$invoiceExists) {
+                                \Illuminate\Support\Facades\Log::error('❌ ERROR CRÍTICO: La factura no existe en la base de datos', [
+                                    'invoice_id' => $invoice->id,
+                                    'timestamp' => now()->format('Y-m-d H:i:s.u')
+                                ]);
+                            } else {
+                                // Cargar relaciones necesarias
+                                $invoice->load('customer');
+
+                                \Illuminate\Support\Facades\Log::info('✅ Factura verificada en la base de datos', [
+                                    'invoice_id' => $invoice->id,
+                                    'cliente' => $invoice->customer ? $invoice->customer->name : 'Sin cliente',
+                                    'verificado_en' => now()->format('Y-m-d H:i:s.u')
+                                ]);
+                            }
+
+                            // 🖨️ LOGS PARA CADA PASO DEL PROCESO
+                            \Illuminate\Support\Facades\Log::info('🖨️ PREPARANDO EVENTO PARA FRONTEND', [
+                                'invoice_id' => $invoice->id,
+                                'evento' => 'open-print-window',
+                                'formato_datos' => 'ID directo: ' . $invoice->id,
+                                'timestamp' => now()->format('Y-m-d H:i:s.u'),
+                                'request_id' => $debugData['request_id']
+                            ]);
+
+                            // Emitir el evento con el ID del comprobante (formato consistente)
+                            \Illuminate\Support\Facades\Log::info('🖨️ ENVIANDO EVENTO AL FRONTEND', [
+                                'invoice_id' => $invoice->id,
+                                'timestamp' => now()->format('Y-m-d H:i:s.u'),
+                                'método' => 'dispatch directo'
+                            ]);
+                            $this->dispatch('open-print-window', $invoice->id);
+
+                            // Método alternativo de apertura de ventana como respaldo
+                            $printUrl = route('invoices.print', ['invoice' => $invoice->id, 'src' => 'fallback', 't' => time()]);
+                            \Illuminate\Support\Facades\Log::info('🖨️ CONFIGURANDO MÉTODO DE RESPALDO (JAVASCRIPT)', [
+                                'invoice_id' => $invoice->id,
+                                'url' => $printUrl,
+                                'timestamp' => now()->format('Y-m-d H:i:s.u'),
+                                'método' => 'javascript window.open'
+                            ]);
+                            $this->js("console.log('%c🖨️ EJECUTANDO MÉTODO DE RESPALDO PARA IMPRESIÓN', 'background: #8e44ad; color: white; padding: 4px;'); setTimeout(function() { const w = window.open('{$printUrl}', 'print_{$invoice->id}', 'width=800,height=600,scrollbars=yes'); if(w) console.log('%c✅ Ventana abierta por método de respaldo', 'color:#27ae60'); else console.error('%c❌ Falló apertura por método de respaldo', 'color:#e74c3c'); }, 800);");
+
+                            // ✅ NOTIFICACIÓN ADICIONAL DE CONFIRMACIÓN
+                            Notification::make()
+                                ->title('🖨️ Abriendo impresión...')
+                                ->body("Comprobante {$invoice->series}-{$invoice->number}")
+                                ->info()
+                                ->duration(3000)
+                                ->send();
+                        }),
+                    \Filament\Notifications\Actions\Action::make('view_tables')
+                        ->label('🪑 Ver Mesas')
+                        ->url(TableMap::getUrl())
+                        ->button()
+                        ->color('secondary'),
+                ])
+                ->persistent() // No auto-cerrar para que el usuario pueda elegir
                 ->send();
 
-            // Abrir ventana de impresión automáticamente
-            $this->dispatch('open-print-window', ['invoice_id' => $invoice->id]);
+            // 🎯 ACTUALIZAR ESTADO IN-SITU SIN REDIRECCIONAR
+            $this->clearCart();
+            $this->order = null;
+            $this->selectedTableId = null;
 
-            // Pequeño delay antes de redireccionar para permitir que se abra la ventana de impresión
-            $this->redirect(TableMap::getUrl());
+            // 🖨️ ABRIR VENTANA DE IMPRESIÓN AUTOMÁTICAMENTE
+            // Registrar información detallada para diagnóstico
+            Log::info('🖨️ Intentando abrir ventana de impresión desde procesamiento de pago', [
+                'invoice_id' => $invoice->id,
+                'invoice_type' => $invoice->invoice_type,
+                'invoice_status' => $invoice->tax_authority_status,
+                'print_url' => route('print.invoice', ['invoice' => $invoice->id]),
+                'invoice_exists' => Invoice::where('id', $invoice->id)->exists(),
+                'route_exists' => route('print.invoice', ['invoice' => $invoice->id])
+            ]);
+
+            // Mejorar la forma en que se pasa el ID para evitar errores de tipo
+            $this->dispatch('open-print-window', ['id' => $invoice->id]);
+
+            // 🔄 REFRESCAR DATOS SIN SALIR DE LA PÁGINA
+            $this->refreshOrderData();
         });
     }
 
