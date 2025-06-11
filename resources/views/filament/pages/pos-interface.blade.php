@@ -1,5 +1,4 @@
 <x-filament-panels::page>
-    <x-print-handler />
     <div class="h-screen flex flex-col bg-gray-50">
         {{-- HEADER SUPERIOR CON CATEGORÍAS (PROPORCIÓN ÁUREA) --}}
         <div class="bg-gradient-to-r from-gray-50 to-gray-100 shadow-sm border-b border-gray-200 px-8 py-6">

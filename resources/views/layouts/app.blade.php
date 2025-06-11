@@ -48,8 +48,6 @@
     </style>
     <!-- Scripts de la aplicación -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <!-- Script de impresión unificado -->
-    <script src="{{ asset('js/unified-print-handler.js') }}"></script>
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900">
     <header class="bg-white shadow dark:bg-gray-800">
