@@ -70,6 +70,9 @@ class PosInterface extends Page
     // Propiedades para datos originales del cliente (para preservar al cambiar tipo de documento)
     public ?array $originalCustomerData = null;
 
+    // Propiedad para el nombre del cliente en venta directa
+    public string $customerNameForComanda = '';
+
     // Datos cargados
     public $categories;
     public $products;
@@ -87,7 +90,8 @@ class PosInterface extends Page
                 ->button()
                 ->outlined()
                 ->tooltip('Volver a la vista del mapa de mesas')
-                ->url(fn (): string => TableMap::getUrl()),
+                ->url(fn (): string => TableMap::getUrl())
+                ->visible(fn (): bool => $this->order && $this->order->table_id !== null), // ✅ Solo para órdenes con mesa
 
             Action::make('releaseTable')
                 ->label('Liberar Mesa')
@@ -107,7 +111,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn (): bool => $this->order && $this->order->status === Order::STATUS_OPEN),
+                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN), // ✅ Solo para órdenes con mesa
 
             Action::make('cancelOrder')
                 ->label('Cancelar Orden')
@@ -127,7 +131,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn (): bool => $this->order && $this->order->status === Order::STATUS_OPEN),
+                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN), // ✅ Solo para órdenes con mesa
 
             Action::make('transferOrder')
                 ->label('Transferir')
@@ -230,79 +234,87 @@ class PosInterface extends Page
                 })
                 ->modalHeading('Separar Productos en Nueva Cuenta')
                 ->modalDescription('Los productos seleccionados se moverán a una cuenta nueva para ser pagados por separado.')
-                ->visible(fn (): bool => $this->order && $this->order->status === Order::STATUS_OPEN),
+                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN), // ✅ Solo para órdenes con mesa
 
-            \Filament\Actions\ActionGroup::make([
-                Action::make('printComanda')
-                    ->label('Imprimir Comanda')
-                    ->icon('heroicon-o-printer')
-                    ->action(null)
-                    ->modalContent(fn (): \Illuminate\Contracts\View\View => view(
-                        'filament.modals.print-comanda',
-                        ['order' => $this->order]
-                    ))
-                    ->modalSubmitAction(
-                        Action::make('printComandaSubmit')
-                            ->label('Imprimir')
-                            ->color('success')
-                            ->icon('heroicon-o-printer')
-                            ->extraAttributes([
-                                'onclick' => 'window.print(); return false;',
-                            ])
-                    )
-                    ->modalCancelActionLabel('Cerrar')
-                    ->modalHeading('Vista Previa de Comanda')
-                    ->visible(fn (): bool => (bool) $this->order),
+                        Action::make('printComanda')
+                ->label('Comanda')
+                ->icon('heroicon-o-printer')
+                ->form(function () {
+                    // ✅ Si es venta directa (sin mesa), solicitar nombre del cliente
+                    if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
+                        return [
+                            Forms\Components\TextInput::make('customerNameForComanda')
+                                ->label('Nombre del Cliente')
+                                ->placeholder('Ingrese el nombre del cliente')
+                                ->required()
+                                ->maxLength(100)
+                                ->helperText('Este nombre aparecerá en la comanda impresa')
+                                ->default($this->customerNameForComanda)
+                        ];
+                    }
+                    return [];
+                })
+                                ->action(function (array $data) {
+                    // ✅ PRIMERO: Guardar el nombre del cliente si es venta directa
+                    if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
+                        $this->customerNameForComanda = $data['customerNameForComanda'];
+                    }
 
-                Action::make('downloadComanda')
-                    ->label('Ver Comanda PDF')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->url(fn (): ?string => $this->order ? route('orders.comanda.pdf', ['order' => $this->order]) : null, shouldOpenInNewTab: true)
-                    ->visible(fn (): bool => (bool) $this->order),
-            ])
-            ->label('Comanda')
-            ->icon('heroicon-o-document-text')
-            ->button()
-            ->outlined()
-            ->color('warning')
-            ->size('lg'),
+                    // ✅ SEGUNDO: Crear la orden si no existe (ahora CON el nombre del cliente guardado)
+                    if (!$this->order && !empty($this->cartItems)) {
+                        $this->order = $this->createOrderFromCart();
+                    }
 
-            \Filament\Actions\ActionGroup::make([
-                Action::make('printPreBill')
-                    ->label('Imprimir Pre-Cuenta')
-                    ->icon('heroicon-o-printer')
-                    ->action(null)
-                    ->modalContent(fn (): \Illuminate\Contracts\View\View => view(
-                        'filament.modals.print-prebill',
-                        ['order' => $this->order]
-                    ))
-                    ->modalSubmitAction(
-                        Action::make('printPreBillSubmit')
-                            ->label('Imprimir')
-                            ->color('success')
-                            ->icon('heroicon-o-printer')
-                            ->extraAttributes([
-                                'onclick' => 'window.print(); return false;',
-                            ])
-                    )
-                    ->modalCancelActionLabel('Cerrar')
-                    ->modalHeading('Vista Previa de Pre-Cuenta')
-                    ->visible(fn (): bool => (bool) $this->order),
+                    // ✅ TERCERO: Abrir comanda en nueva ventana para imprimir
+                    $url = route('orders.comanda.pdf', [
+                        'order' => $this->order,
+                        'customerName' => $this->customerNameForComanda
+                    ]);
 
-                Action::make('downloadPreBill')
-                    ->label('Ver Pre-Cuenta PDF')
-                    ->icon('heroicon-o-document-arrow-down')
-                    ->url(fn (): ?string => $this->order ? route('pos.prebill.pdf', ['order' => $this->order]) : null, shouldOpenInNewTab: true)
-                    ->visible(fn (): bool => (bool) $this->order),
-            ])
-            ->label('Pre-Cuenta')
-            ->icon('heroicon-o-document-duplicate')
-            ->button()
-            ->outlined()
-            ->color('info')
-            ->size('lg'),
+                    $this->js("window.open('$url', '_blank', 'width=800,height=600')");
+                })
+                ->modalHeading('Imprimir Comanda')
+                ->modalSubmitActionLabel('Confirmar')
+                ->button()
+                ->outlined()
+                ->color('warning')
+                ->size('lg')
+                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Mostrar si hay orden O carrito con productos
+
+                        Action::make('printPreBill')
+                ->label('Pre-Cuenta')
+                ->icon('heroicon-o-printer')
+                ->action(function () {
+                    // ✅ Crear la orden si no existe antes de mostrar la pre-cuenta
+                    if (!$this->order && !empty($this->cartItems)) {
+                        $this->order = $this->createOrderFromCart();
+                    }
+                })
+                ->modalContent(function (): \Illuminate\Contracts\View\View {
+                    return view('filament.modals.print-prebill', [
+                        'order' => $this->order
+                    ]);
+                })
+                ->modalSubmitAction(
+                    Action::make('printPreBillSubmit')
+                        ->label('Imprimir')
+                        ->color('success')
+                        ->icon('heroicon-o-printer')
+                        ->extraAttributes([
+                            'onclick' => 'window.print(); return false;',
+                        ])
+                )
+                ->modalCancelActionLabel('Cerrar')
+                ->modalHeading('Vista Previa de Pre-Cuenta')
+                ->button()
+                ->outlined()
+                ->color('info')
+                ->size('lg')
+                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Mostrar si hay orden O carrito con productos
         ];
     }
+
+
 
     public function mount(): void
     {
@@ -792,7 +804,24 @@ class PosInterface extends Page
                             Forms\Components\Placeholder::make('order_summary')
                                 ->label('')
                                 ->content(function () {
-                                    if (!$this->order || !$this->order->orderDetails) {
+                                    // ✅ USAR CARRITO SI NO HAY ORDEN (VENTA DIRECTA)
+                                    $items = [];
+                                    if ($this->order && $this->order->orderDetails) {
+                                        // Usar orden existente
+                                        foreach ($this->order->orderDetails as $detail) {
+                                            $items[] = [
+                                                'name' => $detail->product->name ?? 'N/A',
+                                                'quantity' => $detail->quantity,
+                                                'unit_price' => $detail->unit_price,
+                                                'subtotal' => $detail->subtotal,
+                                            ];
+                                        }
+                                    } elseif (!empty($this->cartItems)) {
+                                        // Usar carrito para venta directa
+                                        $items = $this->cartItems;
+                                    }
+
+                                    if (empty($items)) {
                                         return new \Illuminate\Support\HtmlString('<div class="p-2 text-center text-gray-500 text-sm">❌ No hay productos</div>');
                                     }
 
@@ -805,12 +834,12 @@ class PosInterface extends Page
                                     $html .= '<th class="px-2 py-1 text-right">Total</th>';
                                     $html .= '</tr></thead><tbody>';
 
-                                    foreach ($this->order->orderDetails as $detail) {
+                                    foreach ($items as $item) {
                                         $html .= '<tr class="border-b border-gray-100">';
-                                        $html .= '<td class="px-2 py-1 text-sm">' . substr(htmlspecialchars($detail->product->name ?? 'N/A'), 0, 25) . '</td>';
-                                        $html .= '<td class="px-2 py-1 text-center text-sm">' . $detail->quantity . '</td>';
-                                        $html .= '<td class="px-2 py-1 text-right text-sm">S/ ' . number_format($detail->unit_price, 2) . '</td>';
-                                        $html .= '<td class="px-2 py-1 text-right text-sm font-medium">S/ ' . number_format($detail->subtotal, 2) . '</td>';
+                                        $html .= '<td class="px-2 py-1 text-sm">' . substr(htmlspecialchars($item['name']), 0, 25) . '</td>';
+                                        $html .= '<td class="px-2 py-1 text-center text-sm">' . $item['quantity'] . '</td>';
+                                        $html .= '<td class="px-2 py-1 text-right text-sm">S/ ' . number_format($item['unit_price'], 2) . '</td>';
+                                        $html .= '<td class="px-2 py-1 text-right text-sm font-medium">S/ ' . number_format($item['subtotal'], 2) . '</td>';
                                         $html .= '</tr>';
                                     }
 
@@ -1267,9 +1296,16 @@ class PosInterface extends Page
     {
         DB::transaction(function () use ($data) {
             $order = $this->order;
+
+            // ✅ CREAR ORDEN AUTOMÁTICAMENTE PARA VENTA DIRECTA
             if (!$order) {
-                Notification::make()->title('Error')->body('No se encontró la orden activa.')->danger()->send();
-                throw new Halt();
+                \Illuminate\Support\Facades\Log::info('🔍 CREANDO ORDEN AUTOMÁTICAMENTE PARA VENTA DIRECTA');
+                $order = $this->createOrderFromCart();
+                if (!$order) {
+                    Notification::make()->title('Error')->body('No se pudo crear la orden. Verifique que hay productos en el carrito.')->danger()->send();
+                    throw new Halt();
+                }
+                $this->order = $order;
             }
 
             $activeCashRegister = CashRegister::getOpenRegister();

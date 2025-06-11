@@ -50,12 +50,19 @@
     </style>
 
     <div class="ticket-container">
+        @if($order)
         <div class="header">
             <h1>COMANDA</h1>
             <hr>
             <div class="info">
                 @if($order->table)
                     <strong>Mesa: {{ $order->table->number }}</strong><br>
+                @else
+                    {{-- ✅ Mostrar nombre del cliente solo para venta directa --}}
+                    @if(!empty($customerNameForComanda))
+                        <strong>Cliente: {{ $customerNameForComanda }}</strong><br>
+                    @endif
+                    <strong>VENTA DIRECTA</strong><br>
                 @endif
                 <strong>Orden:</strong> #{{ $order->id }}<br>
                 <strong>Mesero:</strong> {{ $order->employee->name }}<br>
@@ -86,6 +93,17 @@
         <div class="notes">
             <p><strong>Notas:</strong></p>
             <p>{{ $order->notes }}</p>
+        </div>
+        @endif
+        @else
+        <div class="header">
+            <h1>COMANDA</h1>
+            <hr>
+            <div class="info">
+                <strong>Error:</strong> No se pudo crear la orden temporal.<br>
+                <strong>Motivo:</strong> Carrito vacío o error en el sistema.
+            </div>
+            <hr>
         </div>
         @endif
     </div>
