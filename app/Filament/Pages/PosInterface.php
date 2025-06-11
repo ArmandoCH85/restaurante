@@ -40,7 +40,7 @@ class PosInterface extends Page
     protected static ?string $title = 'Punto de Venta';
     protected static ?string $navigationLabel = 'Venta Directa';
     protected static ?string $navigationGroup = '🏪 Operaciones Diarias';
-    protected static ?string $slug = 'punto-de-venta';
+    protected static ?string $slug = 'pos-interface';
     protected static ?int $navigationSort = 1;
 
     // Propiedades del estado
@@ -66,6 +66,9 @@ class PosInterface extends Page
     public string $selectedPaymentMethod = 'cash';
     public float $paymentAmount = 0.0;
     public float $cashReceived = 0.0;
+
+    // Propiedades para datos originales del cliente (para preservar al cambiar tipo de documento)
+    public ?array $originalCustomerData = null;
 
     // Datos cargados
     public $categories;
@@ -303,11 +306,50 @@ class PosInterface extends Page
 
     public function mount(): void
     {
-        // Obtener table_id de la URL si existe
+        // Obtener parámetros de la URL
         $this->selectedTableId = request()->get('table_id');
+        $orderId = request()->get('order_id');
 
-        // *** LÓGICA PARA CARGAR ORDEN EXISTENTE ***
-        if ($this->selectedTableId) {
+        // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR ID ***
+        if ($orderId) {
+            $activeOrder = Order::with(['orderDetails.product', 'customer'])
+                ->where('id', $orderId)
+                ->where('status', Order::STATUS_OPEN)
+                ->first();
+
+            if ($activeOrder) {
+                $this->order = $activeOrder;
+                $this->selectedTableId = $activeOrder->table_id; // Establecer mesa si es una orden de mesa
+                $this->cartItems = []; // Limpiar por si acaso
+
+                foreach ($activeOrder->orderDetails as $detail) {
+                    $this->cartItems[] = [
+                        'product_id' => $detail->product_id,
+                        'name' => $detail->product->name,
+                        'quantity' => $detail->quantity,
+                        'unit_price' => $detail->unit_price,
+                        'subtotal' => $detail->subtotal,
+                    ];
+                }
+
+                // ✅ CARGAR DATOS ORIGINALES DEL CLIENTE DE LA ORDEN DE DELIVERY
+                if ($activeOrder->customer) {
+                    $this->originalCustomerData = [
+                        'customer_id' => $activeOrder->customer->id,
+                        'customer_name' => $activeOrder->customer->name,
+                        'customer_document_type' => $activeOrder->customer->document_type ?: 'DNI',
+                        'customer_document' => $activeOrder->customer->document_number ?: '',
+                        'customer_address' => $activeOrder->customer->address ?: '',
+                        'customer_phone' => $activeOrder->customer->phone ?: '',
+                        'customer_email' => $activeOrder->customer->email ?: '',
+                    ];
+
+                    \Illuminate\Support\Facades\Log::info('🔍 DATOS ORIGINALES DEL CLIENTE CARGADOS:', $this->originalCustomerData);
+                }
+            }
+        }
+        // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR MESA ***
+        elseif ($this->selectedTableId) {
             // Buscar la orden abierta para esta mesa
             $activeOrder = Order::with('orderDetails.product')
                 ->where('table_id', $this->selectedTableId)
@@ -920,6 +962,40 @@ class PosInterface extends Page
                                     ])
                                     ->default('sales_note')
                                     ->live()
+                                    ->afterStateUpdated(function (Forms\Set $set, Get $get, $state) {
+                                        // ✅ LÓGICA PARA ALTERNAR DATOS DEL CLIENTE SEGÚN TIPO DE DOCUMENTO
+                                        if ($state === 'sales_note') {
+                                            // Cambiar a Cliente Genérico
+                                            $set('customer_id', 1);
+                                            $set('customer_name', 'Cliente Genérico');
+                                            $set('customer_document_type', 'DNI');
+                                            $set('customer_document', '');
+                                            $set('customer_address', '');
+                                            $set('customer_phone', '');
+                                            $set('customer_email', '');
+                                        } else {
+                                            // Restaurar datos originales del cliente si existen
+                                            if ($this->originalCustomerData) {
+                                                $set('customer_id', $this->originalCustomerData['customer_id']);
+                                                $set('customer_name', $this->originalCustomerData['customer_name']);
+                                                $set('customer_document_type', $this->originalCustomerData['customer_document_type']);
+                                                $set('customer_document', $this->originalCustomerData['customer_document']);
+                                                $set('customer_address', $this->originalCustomerData['customer_address']);
+                                                $set('customer_phone', $this->originalCustomerData['customer_phone']);
+                                                $set('customer_email', $this->originalCustomerData['customer_email']);
+                                            } else {
+                                                // Sin datos originales, usar cliente genérico por defecto
+                                                $customer = Customer::find(1);
+                                                $set('customer_id', 1);
+                                                $set('customer_name', $customer?->name ?? 'Cliente General');
+                                                $set('customer_document_type', $customer?->document_type ?? 'DNI');
+                                                $set('customer_document', $customer?->document_number ?? '');
+                                                $set('customer_address', $customer?->address ?? '');
+                                                $set('customer_phone', $customer?->phone ?? '');
+                                                $set('customer_email', $customer?->email ?? '');
+                                            }
+                                        }
+                                    })
                                     ->columnSpan(3)
                                     ->extraAttributes(['class' => 'text-base'])
                                     ->inline(),
@@ -931,72 +1007,80 @@ class PosInterface extends Page
                         ]),
 
                     Section::make('👤 ¿Para quién es la venta?')
-                        ->description('Busque un cliente o cree uno nuevo con el botón +')
+                        ->description(function (Get $get) {
+                            return $get('document_type') === 'sales_note'
+                                ? '💡 Nota de Venta: Se usará "Cliente Genérico"'
+                                : '🧾 Ingrese o modifique los datos del cliente';
+                        })
                         ->compact()
                         ->schema([
-                            Forms\Components\Select::make('customer_id')
+                            // ✅ LÓGICA CONDICIONAL SEGÚN TIPO DE DOCUMENTO
+                            Forms\Components\Placeholder::make('generic_customer_info')
                                 ->label('Cliente')
-                                ->options(function () {
-                                    return Customer::query()
-                                        ->orderBy('name')
-                                        ->pluck('name', 'id')
-                                        ->toArray();
-                                })
-                                ->searchable()
-                                ->getSearchResultsUsing(function (string $search) {
-                                    return Customer::query()
-                                        ->where('name', 'like', "%{$search}%")
-                                        ->orWhere('document_number', 'like', "%{$search}%")
-                                        ->limit(50)
-                                        ->pluck('name', 'id')
-                                        ->toArray();
-                                })
-                                ->getOptionLabelUsing(fn ($value): ?string => Customer::find($value)?->name)
-                                ->createOptionForm([
-                                    Forms\Components\Grid::make(2)->schema([
-                                        Forms\Components\TextInput::make('name')
-                                            ->label('Nombre/Razón Social')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->placeholder('Nombre completo del cliente'),
-                                        Forms\Components\Select::make('document_type')
-                                            ->label('Tipo Documento')
-                                            ->options([
-                                                'DNI' => 'DNI',
-                                                'RUC' => 'RUC',
-                                                'CE' => 'Carnet Extranjería',
-                                                'PAS' => 'Pasaporte',
-                                            ])
-                                            ->default('DNI')
-                                            ->required(),
-                                    ]),
-                                    Forms\Components\Grid::make(3)->schema([
-                                        Forms\Components\TextInput::make('document_number')
-                                            ->label('N° Documento')
-                                            ->placeholder('12345678')
-                                            ->maxLength(20),
-                                        Forms\Components\TextInput::make('phone')
-                                            ->label('Teléfono')
-                                            ->tel()
-                                            ->placeholder('999 888 777'),
-                                        Forms\Components\TextInput::make('email')
-                                            ->label('Email')
-                                            ->email()
-                                            ->placeholder('cliente@email.com'),
-                                    ]),
-                                    Forms\Components\TextInput::make('address')
-                                        ->label('Dirección')
-                                        ->placeholder('Dirección del cliente')
-                                        ->columnSpanFull(),
-                                ])
-                                ->createOptionUsing(function (array $data): int {
-                                    $customer = Customer::create($data);
-                                    return $customer->id;
-                                })
-                                ->default(1)
-                                ->required()
-                                ->placeholder('🔍 Buscar cliente o crear nuevo con ➕')
-                                ->helperText('💡 Use el botón ➕ para crear un cliente nuevo rápidamente'),
+                                ->content('👤 Cliente Genérico')
+                                ->extraAttributes(['class' => 'text-lg font-medium text-gray-700'])
+                                ->visible(fn (Get $get) => $get('document_type') === 'sales_note'),
+
+                            // ✅ CAMPOS INDIVIDUALES DEL CLIENTE (VISIBLES SOLO PARA BOLETA/FACTURA)
+                            Forms\Components\Grid::make(2)->schema([
+                                Forms\Components\TextInput::make('customer_name')
+                                    ->label('Nombre/Razón Social')
+                                    ->required(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
+                                    ->maxLength(255)
+                                    ->placeholder('Nombre completo del cliente')
+                                    ->afterStateUpdated(function (Forms\Set $set, Get $get, $state) {
+                                        // ✅ LÓGICA PARA ALTERNAR ENTRE CLIENTE REAL Y GENÉRICO
+                                        if ($get('document_type') === 'sales_note') {
+                                            $set('customer_name', 'Cliente Genérico');
+                                            $set('customer_id', 1); // ID del cliente genérico
+                                        } else {
+                                            // Si hay datos originales y volvemos a boleta/factura, restaurar
+                                            if ($this->originalCustomerData && empty($state)) {
+                                                $set('customer_name', $this->originalCustomerData['customer_name']);
+                                                $set('customer_id', $this->originalCustomerData['customer_id']);
+                                            }
+                                        }
+                                    })
+                                    ->live(),
+
+                                Forms\Components\Select::make('customer_document_type')
+                                    ->label('Tipo Documento')
+                                    ->options([
+                                        'DNI' => 'DNI',
+                                        'RUC' => 'RUC',
+                                        'CE' => 'Carnet Extranjería',
+                                        'PAS' => 'Pasaporte',
+                                    ])
+                                    ->default('DNI')
+                                    ->required(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+                            ])
+                            ->visible(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+
+                            Forms\Components\Grid::make(3)->schema([
+                                Forms\Components\TextInput::make('customer_document')
+                                    ->label('N° Documento')
+                                    ->placeholder('12345678')
+                                    ->maxLength(20),
+                                Forms\Components\TextInput::make('customer_phone')
+                                    ->label('Teléfono')
+                                    ->tel()
+                                    ->placeholder('999 888 777'),
+                                Forms\Components\TextInput::make('customer_email')
+                                    ->label('Email')
+                                    ->email()
+                                    ->placeholder('cliente@email.com'),
+                            ])
+                            ->visible(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+
+                            Forms\Components\TextInput::make('customer_address')
+                                ->label('Dirección')
+                                ->placeholder('Dirección del cliente')
+                                ->columnSpanFull()
+                                ->visible(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+
+                            // ✅ CAMPO OCULTO PARA CUSTOMER_ID
+                            Forms\Components\Hidden::make('customer_id')
+                                ->default(1),
                         ]),
 
                     Section::make('🔄 Pagos Mixtos (Opcional)')
@@ -1081,6 +1165,27 @@ class PosInterface extends Page
                 ];
             })
             ->fillForm(function () {
+                // ✅ SI HAY DATOS ORIGINALES DEL CLIENTE DE DELIVERY, USARLOS
+                if ($this->originalCustomerData) {
+                    \Illuminate\Support\Facades\Log::info('🔍 USANDO DATOS ORIGINALES DEL CLIENTE:', $this->originalCustomerData);
+                    return [
+                        'primary_payment_method' => 'cash',
+                        'primary_payment_amount' => $this->total,
+                        'document_type' => 'receipt', // ✅ Iniciar con Boleta para mostrar datos del cliente
+                        'customer_id' => $this->originalCustomerData['customer_id'],
+                        'customer_name' => $this->originalCustomerData['customer_name'],
+                        'customer_document_type' => $this->originalCustomerData['customer_document_type'],
+                        'customer_document' => $this->originalCustomerData['customer_document'],
+                        'customer_address' => $this->originalCustomerData['customer_address'],
+                        'customer_phone' => $this->originalCustomerData['customer_phone'],
+                        'customer_email' => $this->originalCustomerData['customer_email'],
+                        'payments' => [
+                            ['payment_method' => 'cash', 'amount' => $this->total]
+                        ],
+                    ];
+                }
+
+                // ✅ CASO DEFAULT PARA POS NORMAL (SIN DELIVERY)
                 $customer = Customer::find(1);
                 return [
                     'primary_payment_method' => 'cash',
