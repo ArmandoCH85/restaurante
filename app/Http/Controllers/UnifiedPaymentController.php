@@ -31,10 +31,7 @@ class UnifiedPaymentController extends Controller
         $customers = Customer::orderBy('name')->get();
 
         // Obtener el cliente genérico (para notas de venta)
-        $genericCustomer = Customer::where('document_number', '00000000')->first();
-        if (!$genericCustomer) {
-            $genericCustomer = Customer::first(); // Usar el primer cliente si no hay uno genérico
-        }
+        $genericCustomer = Customer::getGenericCustomer();
 
         // Obtener las series configuradas desde DocumentSeries
         $salesNoteSeries = \App\Models\DocumentSeries::where('document_type', 'sales_note')->where('active', true)->first();
@@ -87,7 +84,9 @@ class UnifiedPaymentController extends Controller
             'service_type' => $order->service_type,
             'table_id' => $order->table_id,
             'has_table_relation' => $order->table ? 'YES' : 'NO',
-            'table_type' => $order->table ? gettype($order->table) : 'NULL'
+            'table_type' => $order->table ? gettype($order->table) : 'NULL',
+            'received_customer_id' => $request->customer_id,
+            'invoice_type' => $request->invoice_type
         ]);
 
         try {
@@ -148,14 +147,31 @@ class UnifiedPaymentController extends Controller
             // 2. Recalcular totales según el tipo de comprobante
             $this->recalculateOrderTotalsForInvoiceType($order, $request->invoice_type);
 
-            // 3. Generar el comprobante
+            // 3. Validar y preparar el customer_id
+            $customerId = $request->customer_id;
+
+            // Verificar que el customer_id sea válido antes de generar el comprobante
+            $customer = Customer::find($customerId);
+            if (!$customer) {
+                // Si el customer_id no es válido, usar el cliente genérico
+                $customer = Customer::getGenericCustomer();
+                $customerId = $customer->id;
+
+                Log::warning('Customer ID inválido, usando cliente genérico', [
+                    'original_customer_id' => $request->customer_id,
+                    'generic_customer_id' => $customerId,
+                    'order_id' => $order->id
+                ]);
+            }
+
+            // 4. Generar el comprobante
             // Obtener la serie desde DocumentSeries
             $series = $this->getNextSeries($request->invoice_type);
 
             $invoice = $order->generateInvoice(
                 $request->invoice_type,
                 $series,
-                $request->customer_id
+                $customerId
             );
 
             if (!$invoice) {

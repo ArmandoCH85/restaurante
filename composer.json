@@ -13,6 +13,7 @@
         "greenter/lite": "^5.1",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
+        "maatwebsite/excel": "*",
         "phpoffice/phpspreadsheet": "*",
         "solutionforest/filamentloginscreen": "^0.0.1",
         "tomatophp/filament-users": "^2.0"

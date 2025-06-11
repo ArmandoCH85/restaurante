@@ -33,7 +33,7 @@
             margin: 0;
             padding: 0;
         }
-        
+
         /* Container principal responsivo */
         .unified-container {
             width: 100%;
@@ -44,25 +44,25 @@
             border-radius: 10px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
-        
+
         /* Media queries para diferentes resoluciones de pantalla */
         @media (max-width: 1366px) {
             body {
                 font-size: 14px;
             }
-            
+
             h2 {
                 font-size: 1.5rem;
             }
-            
+
             h3 {
                 font-size: 1.3rem;
             }
-            
+
             h4 {
                 font-size: 1.1rem;
             }
-            
+
             .payment-method span, .invoice-type-option span {
                 font-size: 0.9rem;
                 display: block;
@@ -73,43 +73,43 @@
                 line-height: 1.2;
             }
         }
-        
+
         @media (max-width: 992px) {
             .unified-container {
                 padding: 12px;
                 margin: 12px auto;
             }
-            
+
             body {
                 font-size: 13px;
             }
-            
+
             .payment-methods, .invoice-type {
                 gap: 8px;
             }
         }
-        
+
         @media (max-width: 768px) {
             .unified-container {
                 padding: 10px;
                 margin: 10px auto;
             }
-            
+
             body {
                 font-size: 13px;
             }
-            
+
             .row {
                 margin-left: -8px;
                 margin-right: -8px;
             }
-            
+
             .row > [class*='col-'] {
                 padding-left: 8px;
                 padding-right: 8px;
             }
         }
-        
+
         /* Encabezado de orden mejorado */
         .order-header {
             background-color: #f1f8ff;
@@ -118,7 +118,7 @@
             margin-bottom: 20px;
             overflow: hidden; /* Prevenir desbordamiento */
         }
-        
+
         /* Métodos de pago - Grid responsivo optimizado para pantallas pequeñas */
         .payment-methods {
             display: grid;
@@ -126,7 +126,7 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-        
+
         .payment-method {
             display: flex;
             flex-direction: column;
@@ -153,24 +153,24 @@
             justify-content: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         }
-        
+
         .payment-method:hover {
             background-color: #f1f3f5;
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        
+
         .payment-method.active {
             background-color: #e7f5ff;
             border-color: #4dabf7;
             box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.5);
         }
-        
+
         .payment-method img {
             max-width: 100%;
             height: auto;
         }
-        
+
         /* Botones de monto predefinidos */
         .amount-buttons {
             display: grid;
@@ -178,7 +178,7 @@
             gap: 8px;
             margin-bottom: 16px;
         }
-        
+
         .amount-button {
             padding: 8px 4px;
             border: 1px solid #dee2e6;
@@ -187,7 +187,7 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         /* Grid responsivo optimizado para los tipos de comprobantes */
         .invoice-type {
             display: grid;
@@ -195,7 +195,7 @@
             gap: 10px;
             margin-bottom: 20px;
         }
-        
+
         .invoice-type-option {
             display: flex;
             flex-direction: column;
@@ -222,25 +222,25 @@
             justify-content: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.04);
         }
-        
+
         .invoice-type-option:hover {
             background-color: #f1f3f5;
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        
+
         .invoice-type-option.active {
             background-color: #e7f5ff;
             border-color: #4dabf7;
             box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.5);
         }
-        
+
         .invoice-type-option img {
             max-width: 100%;
             height: auto;
             margin-bottom: 8px;
         }
-        
+
         /* Información sobre balances y resumen */
         .balance-info {
             background-color: #e9ecef;
@@ -250,15 +250,15 @@
             width: 100%;
             box-sizing: border-box;
         }
-        
+
         .balance-info.paid {
             background-color: #d4edda;
         }
-        
+
         .balance-info.pending {
             background-color: #fff3cd;
         }
-        
+
         /* Datos del cliente */
         .client-data {
             background-color: #f8f9fa;
@@ -268,7 +268,7 @@
             width: 100%;
             box-sizing: border-box;
         }
-        
+
         /* Documento siguiente */
         .next-document {
             background-color: #e7f5ff;
@@ -281,7 +281,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         /* Detalles de la orden */
         .order-details {
             margin-top: 20px;
@@ -289,46 +289,46 @@
             padding-top: 20px;
             width: 100%;
         }
-        
+
         .product-row {
             padding: 8px 0;
             border-bottom: 1px solid #f0f0f0;
         }
-        
+
         /* Tablas responsivas */
         .table-responsive {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
-        
+
         /* Botones y controles de formulario */
         .form-control {
             border-radius: 6px;
         }
-        
+
         .btn {
             border-radius: 6px;
         }
-        
+
         /* Media queries adicionales */
         @media (max-width: 1024px) {
             .invoice-type-option span, .payment-method span {
                 font-size: 0.85rem;
             }
-            
+
             .payment-method img, .invoice-type-option img {
                 max-height: 28px;
                 min-height: 24px;
                 margin-bottom: 8px;
             }
         }
-        
+
         /* Fix específicos para resoluciones entre 800px y 1280px donde suelen cortarse textos */
         @media (max-width: 1280px) and (min-width: 800px) {
             .payment-methods, .invoice-type {
                 grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             }
-            
+
             .payment-method img, .invoice-type-option img {
                 max-width: 90%;
                 object-fit: contain;
@@ -342,28 +342,28 @@
             font-weight: 500;
             color: #198754;
         }
-        
+
         /* Clases de utilidad para textos - restaurados */
         .text-nowrap {
             white-space: nowrap;
         }
-        
+
         .text-ellipsis {
             text-overflow: ellipsis;
             overflow: hidden;
         }
-        
+
         .alert-sm {
             padding: 0.5rem 0.75rem;
             font-size: 0.875rem;
         }
-        
+
         .alert-info {
             background-color: #e7f3ff;
             border-color: #b8daff;
             color: #0c5460;
         }
-        
+
         /* Arregla el botón principal - restaurado */
         .btn-process {
             width: 100%;
@@ -378,79 +378,79 @@
             .payment-method, .invoice-type-option {
                 padding: 8px 6px;
             }
-            
+
             .payment-method span, .invoice-type-option span {
                 font-size: 0.95rem;
                 line-height: 1.2;
                 margin-top: 4px;
             }
-            
+
             .table {
                 font-size: 0.95rem;
             }
         }
-        
+
         /* Fix específicos para resoluciones intermedias donde suelen cortarse textos */
         @media (max-width: 1280px) and (min-width: 800px) {
             .payment-methods, .invoice-type {
                 grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             }
-            
+
             .payment-method img, .invoice-type-option img {
                 max-width: 90%;
                 object-fit: contain;
             }
         }
-        
+
         /* Optimizaciones específicas para dispositivos móviles pequeños - restauradas */
         @media (max-width: 576px) {
             .row > [class*='col-'] {
                 padding-right: 10px;
                 padding-left: 10px;
             }
-            
+
             h4 {
                 font-size: 1.2rem;
                 margin-top: 15px;
             }
-            
+
             .payment-method, .invoice-type-option {
                 padding: 10px 5px;
             }
-            
+
             .order-header .col-md-6 {
                 margin-bottom: 10px;
             }
-            
+
             /* Mejoras para dispositivos móviles y resoluciones bajas */
             .unified-container {
                 padding: 12px;
                 margin: 0;
                 border-radius: 0;
             }
-            
+
             .order-header {
                 padding: 10px;
                 margin-bottom: 10px;
             }
-            
+
             .form-control, .btn {
                 font-size: 0.95rem;
                 padding: 0.375rem 0.5rem;
             }
-            
+
             .table td, .table th {
                 padding: 0.5rem 0.4rem;
                 font-size: 0.95rem;
             }
-            
+
             /* Evitar que las imágenes sean demasiado pequeñas en móviles */
             .payment-method img, .invoice-type-option img {
                 min-height: 28px;
                 max-height: 32px;
                 margin-bottom: 6px;
             }
-            
+
             /* Mejorar la visibilidad de los botones de acción */
             .btn-process {
                 padding: 12px;
@@ -616,7 +616,7 @@
                         <h5>3. Datos del Cliente</h5>
 
                         <!-- Campo oculto para el ID del cliente -->
-                        <input type="hidden" id="customer_id" name="customer_id" value="{{ $order->customer_id ?? $genericCustomer->id }}">
+                        <input type="hidden" id="customer_id" name="customer_id" value="{{ $order->customer_id ?? ($genericCustomer?->id ?? 1) }}">
 
                         <!-- Cliente genérico para Nota de Venta -->
                         <div id="generic_customer" class="mb-3" style="display: block;">
@@ -816,7 +816,7 @@
             // Mostrar/ocultar opciones según el tipo de comprobante
             if (type === 'sales_note') {
                 // Para nota de venta, seleccionar cliente genérico y ocultar búsqueda
-                document.getElementById('customer_id').value = {{ $genericCustomer?->id ?? 0 }};
+                document.getElementById('customer_id').value = {{ $genericCustomer?->id ?? 1 }};
                 document.getElementById('generic_customer').style.display = 'block';
                 document.getElementById('customer_search_container').style.display = 'none';
                 document.getElementById('customer_details').style.display = 'none';
@@ -832,7 +832,7 @@
 
                 // Si ya hay un cliente seleccionado que no es el genérico, mostrar sus detalles
                 const customerId = document.getElementById('customer_id').value;
-                if (customerId != {{ $genericCustomer?->id ?? 0 }}) {
+                if (customerId != {{ $genericCustomer?->id ?? 1 }}) {
                     updateCustomerDetails();
                     document.getElementById('customer_details').style.display = 'block';
                 } else {
@@ -1024,7 +1024,7 @@
 
             // Si hay un cliente seleccionado que no es el genérico, mostrar sus detalles
             const customerId = document.getElementById('customer_id').value;
-            if (customerId != {{ $genericCustomer?->id ?? 0 }}) {
+            if (customerId != {{ $genericCustomer?->id ?? 1 }}) {
                 updateCustomerDetails();
                 document.getElementById('customer_details').style.display = 'block';
 

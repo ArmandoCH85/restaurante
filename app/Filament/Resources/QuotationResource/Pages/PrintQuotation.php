@@ -21,7 +21,7 @@ class PrintQuotation extends Page
     public function mount(Quotation $record): void
     {
         $this->record = $record;
-        
+
         // Generar el PDF y mostrarlo directamente
         $this->generatePdf();
     }
@@ -30,24 +30,30 @@ class PrintQuotation extends Page
     {
         $quotation = $this->record;
         $details = $quotation->details()->with('product')->get();
-        
+
+        // Si no hay customer asociado, usar el cliente genérico
+        $customer = $quotation->customer;
+        if (!$customer) {
+            $customer = \App\Models\Customer::getGenericCustomer();
+        }
+
         $pdf = Pdf::loadView('reports.quotation', [
             'quotation' => $quotation,
             'details' => $details,
-            'customer' => $quotation->customer,
+            'customer' => $customer,
             'user' => $quotation->user,
         ]);
-        
+
         // Configurar el PDF
         $pdf->setPaper('a4');
-        
+
         // Generar un nombre de archivo único
         $filename = 'cotizacion_' . $quotation->quotation_number . '.pdf';
-        
+
         // Guardar temporalmente el PDF
         $tempPath = 'temp/' . $filename;
         Storage::put($tempPath, $pdf->output());
-        
+
         // Redirigir al archivo PDF
         return redirect(Storage::url($tempPath));
     }

@@ -40,18 +40,73 @@ class InvoiceController extends Controller
     /**
      * Muestra una factura para impresión.
      *
-     * @param  int  $invoiceId
+     * @param  Invoice  $invoice
      * @return \Illuminate\View\View
      */
-    public function printInvoice($invoiceId)
+    public function printInvoice(Invoice $invoice)
     {
-        $invoice = Invoice::with([
-            'order.orderDetails.product',
-            'order.table',
-            'order.deliveryOrder', // Agregar relación de delivery
-            'customer',
-            'details'
-        ])->findOrFail($invoiceId);
+        // Registrar la información del acceso antes de cualquier posible excepción
+        $requestId = request('rid', substr(md5(uniqid() . $invoice->id), 0, 8));
+        Log::info("🖨️ ACCESO AL CONTROLADOR DE IMPRESIÓN [$requestId]", [
+            'invoice_id' => $invoice->id,
+            'url' => request()->fullUrl(),
+            'method' => request()->method(),
+            'timestamp' => now()->format('Y-m-d H:i:s.u')
+        ]);
+
+        try {
+            // Log detallado para diagnosticar el error 404
+            Log::info('🔍 Iniciando impresión de comprobante', [
+                'invoice_id' => $invoice->id,
+                'invoice_type' => $invoice->invoice_type,
+                'series' => $invoice->series,
+                'number' => $invoice->number,
+                'url' => request()->fullUrl(),
+                'referer' => request()->header('referer'),
+                'user_id' => auth()->id() ?? 'guest',
+                'user_name' => auth()->user()?->name ?? 'guest',
+                'ip' => request()->ip(),
+                'user_agent' => request()->userAgent()
+            ]);
+
+            // Verificar que la factura existe
+            if (!$invoice) {
+                Log::error('💥 Factura no encontrada', ['invoice_id' => request()->route('invoice')]);
+                abort(404, 'Factura no encontrada');
+            }
+
+            // Cargar relaciones necesarias
+            $invoice->load([
+                'order.orderDetails.product',
+                'order.table',
+                'order.deliveryOrder',
+                'customer',
+                'details'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('💥 Error al cargar factura para impresión', [
+                'invoice_id' => $invoice->id ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Mostrar un error amigable en lugar de 500
+            return response()->view('errors.invoice-not-found', [
+                'error' => $e->getMessage()
+            ], 500);
+        }
+
+        // Obtener la referencia al cliente para usarla en la vista
+        $customer = $invoice->customer;
+
+        // ✅ VERIFICACIÓN ADICIONAL: Si no hay customer, usar cliente genérico
+        if (!$customer) {
+            $customer = Customer::getGenericCustomer();
+            Log::warning('🔄 Cliente no encontrado para factura, usando cliente genérico', [
+                'invoice_id' => $invoice->id,
+                'customer_id' => $invoice->customer_id
+            ]);
+        }
 
         // Obtener el cambio/vuelto de la sesión o calcularlo
         $changeAmount = session('change_amount', 0);
@@ -81,14 +136,34 @@ class InvoiceController extends Controller
 
         // Determinar la vista según el tipo de comprobante
         $view = match($invoice->invoice_type) {
-            'receipt' => 'pos.receipt-print',
-            'sales_note' => 'pos.sales-note-print',
-            default => 'pos.invoice-print'
+            'receipt' => 'pdf.receipt',
+            'sales_note' => 'pdf.sales_note',
+            default => 'pdf.invoice'
         };
+
+        // Registrar en el log que se está procesando la impresión
+        \Illuminate\Support\Facades\Log::info('🖨️ Procesando impresión de comprobante', [
+            'invoice_id' => $invoice->id,
+            'type' => $invoice->invoice_type,
+            'series' => $invoice->series,
+            'number' => $invoice->number
+        ]);
+
+        // Log de finalización del proceso de impresión
+        Log::info('🖨️ COMPROBANTE LISTO PARA IMPRESIÓN', [
+            'invoice_id' => $invoice->id,
+            'invoice_type' => $invoice->invoice_type,
+            'view_template' => $view,
+            'customer' => $invoice->customer ? $invoice->customer->name : 'Sin cliente',
+            'total' => $invoice->total,
+            'status' => $invoice->sunat_status ?? 'N/A',
+            'timestamp' => now()->format('Y-m-d H:i:s.u'),
+            'process_time_ms' => now()->diffInMilliseconds($invoice->created_at)
+        ]);
 
         return view($view, [
             'invoice' => $invoice,
-            'date' => $invoice->issue_date->format('d/m/Y'),
+            'customer' => $customer,
             'change_amount' => $changeAmount,
             'qr_code' => $invoice->qr_code ?? null,
             'prebill_url' => $preBillUrl // URL para generar automáticamente la pre-cuenta
@@ -152,8 +227,35 @@ class InvoiceController extends Controller
      */
     public function generatePdf($invoiceId)
     {
-        // Redirigir a la vista de impresión, que ya tiene la lógica para mostrar la factura
-        return $this->printInvoice($invoiceId);
+        $invoice = Invoice::with([
+            'order.orderDetails.product',
+            'order.table',
+            'order.deliveryOrder',
+            'customer',
+            'details'
+        ])->findOrFail($invoiceId);
+
+        // Calcular el cambio/vuelto si es pago en efectivo
+        $changeAmount = 0;
+        if ($invoice->payment_method === 'cash' && $invoice->payment_amount > $invoice->total) {
+            $changeAmount = $invoice->payment_amount - $invoice->total;
+        }
+
+        // Determinar la vista según el tipo de comprobante
+        $view = match($invoice->invoice_type) {
+            'receipt' => 'pdf.receipt',
+            'sales_note' => 'pdf.sales_note',
+            default => 'pdf.invoice'
+        };
+
+        // Obtener la referencia al cliente para usarla en la vista
+        $customer = $invoice->customer;
+
+        return view($view, [
+            'invoice' => $invoice,
+            'customer' => $customer,
+            'change_amount' => $changeAmount
+        ]);
     }
 
     /**
@@ -168,24 +270,25 @@ class InvoiceController extends Controller
             'customer',
             'details',
             'order.table',
-            'order.deliveryOrder' // Agregar relación de delivery
+            'order.deliveryOrder'
         ])->findOrFail($invoiceId);
-
-        $date = now()->format('d/m/Y H:i:s');
 
         // Determinar la vista según el tipo de comprobante
         $view = match($invoice->invoice_type) {
-            'receipt' => 'pos.receipt-print',
-            'sales_note' => 'pos.sales-note-print',
-            default => 'pos.invoice-print'
+            'receipt' => 'pdf.receipt',
+            'sales_note' => 'pdf.sales_note',
+            default => 'pdf.invoice'
         };
+
+        // Obtener la referencia al cliente para usarla en la vista
+        $customer = $invoice->customer;
 
         return view($view, [
             'invoice' => $invoice,
-            'date' => $date,
+            'customer' => $customer,
             'change_amount' => 0, // Para vista previa
             'thermal_preview' => true // Flag para identificar vista previa
-        ])->with('thermalPreviewMode', true);
+        ]);
     }
 
     /**

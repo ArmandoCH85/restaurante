@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <x-print-handler />
     <div class="h-screen flex flex-col bg-gray-50">
         {{-- HEADER SUPERIOR CON CATEGORÍAS (PROPORCIÓN ÁUREA) --}}
         <div class="bg-gradient-to-r from-gray-50 to-gray-100 shadow-sm border-b border-gray-200 px-8 py-6">
@@ -247,13 +248,14 @@
 
     {{-- MODAL DE IMPRESIÓN --}}
     <div
-        x-data="{
+                x-data="{
             open: false,
             type: '',
             url: '',
             title: '',
+            printProcessing: false,
             init() {
-                // Escuchar el evento de Livewire
+                // Escuchar el evento de Livewire SOLO UNA VEZ
                 $wire.on('open-print-modal', (event) => {
                     console.log('Evento recibido:', event);
                     this.type = event.type;
@@ -262,14 +264,33 @@
                     this.open = true;
                 });
 
-                // Escuchar evento para abrir automáticamente la ventana de impresión
-                $wire.on('open-print-window', (event) => {
-                    console.log('Abriendo ventana de impresión para invoice ID:', event.invoice_id);
-                    const printUrl = '/invoices/print/' + event.invoice_id;
-                    setTimeout(() => {
-                        window.open(printUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
-                    }, 500); // Pequeño delay para asegurar que la notificación aparezca primero
-                });
+                // LISTENER ÚNICO para impresión automática
+                if (!window.posInterfacePrintListenerAdded) {
+                    window.posInterfacePrintListenerAdded = true;
+                    $wire.on('open-print-window', (event) => {
+                        if (this.printProcessing) return;
+                        this.printProcessing = true;
+
+                        console.log('🖨️ POS Interface - Imprimiendo comprobante...', event);
+
+                        // Extraer ID del evento
+                        let invoiceId = Array.isArray(event) ? (event[0]?.id || event[0]) : (event?.id || event);
+
+                        if (!invoiceId) {
+                            console.error('❌ Error: ID de comprobante no encontrado');
+                            this.printProcessing = false;
+                            return;
+                        }
+
+                        // Delay para DB + abrir ventana
+                        setTimeout(() => {
+                            const printUrl = `/print/invoice/${invoiceId}`;
+                            console.log('🔗 Abriendo ventana de impresión:', printUrl);
+                            window.open(printUrl, 'invoice_print_' + invoiceId, 'width=800,height=600,scrollbars=yes,resizable=yes');
+                            this.printProcessing = false;
+                        }, 800);
+                    });
+                }
             }
         }"
         x-show="open"

@@ -56,7 +56,7 @@
                 font-size: 8px;
             }
 
-            .info-row, .customer-row, .total-row {
+            .info-row, .total-row {
                 font-size: 9px;
             }
         }
@@ -109,15 +109,7 @@
             margin-top: 5px;
         }
 
-        .customer-info {
-            margin: 10px 0;
-        }
 
-        .customer-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
 
         .order-info {
             margin: 10px 0;
@@ -191,23 +183,50 @@
             right: 20px;
             display: flex;
             gap: 10px;
+            z-index: 9999;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .print-button {
-            padding: 10px 20px;
+            padding: 12px 24px;
             background-color: #1a56db;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .print-button:hover {
             background-color: #1e429f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 📱 RESPONSIVE PARA MÓVILES */
+        @media (max-width: 768px) {
+            .action-buttons {
+                position: fixed;
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            .print-button {
+                flex: 1;
+                justify-content: center;
+                min-width: 140px;
+            }
         }
 
         .payment-info {
@@ -243,9 +262,6 @@
             @if(\App\Models\CompanyConfig::getTelefono())
                 <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
             @endif
-            @if(\App\Models\CompanyConfig::getEmail())
-                <p>Email: {{ \App\Models\CompanyConfig::getEmail() }}</p>
-            @endif
         </div>
     </div>
 
@@ -259,16 +275,6 @@
             <span class="label">Fecha:</span>
             <span>{{ $invoice->issue_date->format('d/m/Y') }}</span>
         </div>
-        <div class="info-row">
-            <span class="label">Cliente:</span>
-            <span>{{ $invoice->customer->name }}</span>
-        </div>
-        @if($invoice->customer->document_type != 'GENERIC')
-        <div class="info-row">
-            <span class="label">{{ $invoice->customer->document_type }}:</span>
-            <span>{{ $invoice->customer->document_number }}</span>
-        </div>
-        @endif
 
         @if($invoice->order->service_type === 'delivery')
             @php
@@ -284,11 +290,11 @@
 
                 // Si el DeliveryOrder tiene valores por defecto, usar información del cliente
                 if($deliveryAddress === 'Dirección pendiente de completar' || empty($deliveryAddress)) {
-                    $deliveryAddress = $invoice->customer->address ?? null;
+                    $deliveryAddress = $invoice->customer?->address ?? null;
                 }
 
                 if($deliveryReferences === 'Referencias pendientes' || empty($deliveryReferences)) {
-                    $deliveryReferences = $invoice->customer->address_references ?? null;
+                    $deliveryReferences = $invoice->customer?->address_references ?? null;
                 }
             @endphp
 
@@ -305,7 +311,7 @@
                 <span>{{ $deliveryReferences }}</span>
             </div>
             @endif
-            @if($invoice->customer->phone)
+            @if($invoice->customer?->phone)
             <div class="info-row">
                 <span class="label">Teléfono:</span>
                 <span>{{ $invoice->customer->phone }}</span>
@@ -444,19 +450,36 @@
 
 
 
+    <!-- 📝 BOTONES DE IMPRESIÓN MEJORADOS -->
     <div class="action-buttons no-print">
-        <button class="print-button" onclick="window.print()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <button class="print-button" onclick="window.print()" title="Imprimir nota de venta">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2H5zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1z"/>
                 <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2V7zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
             </svg>
-            Imprimir
+            📝 IMPRIMIR
         </button>
-        <button class="print-button" style="background-color: #10b981;" onclick="window.close()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <button class="print-button" style="background-color: #10b981;" onclick="window.close()" title="Cerrar ventana">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
             </svg>
-            Cerrar ventana
+            ✅ CERRAR
+        </button>
+    </div>
+
+    <!-- ⚠️ BOTONES ALTERNATIVOS (POR SI HAY PROBLEMAS DE JS) -->
+    <div class="no-print" style="text-align: center; margin: 20px 0; padding: 20px; background-color: #f0f9ff; border: 2px dashed #3b82f6; border-radius: 8px;">
+        <p style="font-size: 18px; font-weight: bold; color: #1e40af; margin-bottom: 15px;">
+            📝 ¿No ves los botones de impresión?
+        </p>
+        <p style="margin-bottom: 15px; color: #374151;">
+            Usa <strong>Ctrl+P</strong> (Windows) o <strong>Cmd+P</strong> (Mac) para imprimir
+        </p>
+        <button onclick="window.print()" style="background: #3b82f6; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; margin-right: 10px;">
+            📝 Imprimir Ahora
+        </button>
+        <button onclick="window.close()" style="background: #10b981; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer;">
+            ✅ Cerrar Ventana
         </button>
     </div>
 
