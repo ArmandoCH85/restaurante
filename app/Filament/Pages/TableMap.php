@@ -36,7 +36,7 @@ class TableMap extends Page
     // Nueva vista 100% Filament nativo
     protected static string $view = 'filament.pages.table-map-filament-native';
 
-        // 🔴 PROPIEDADES PARA EL MAPA DE MESAS
+    // PROPIEDADES PARA EL MAPA DE MESAS
     public $tables;
     public $selectedTable = null;
     public $deliveryOrders;
@@ -109,7 +109,7 @@ class TableMap extends Page
         if ($this->searchQuery) {
             $query->where(function ($q) {
                 $q->where('number', 'like', "%{$this->searchQuery}%")
-                  ->orWhere('location', 'like', "%{$this->searchQuery}%");
+                    ->orWhere('location', 'like', "%{$this->searchQuery}%");
             });
         }
 
@@ -168,10 +168,10 @@ class TableMap extends Page
         if ($this->searchQuery) {
             $query->where(function ($q) {
                 $q->where('delivery_address', 'like', "%{$this->searchQuery}%")
-                  ->orWhereHas('order.customer', function ($sq) {
-                      $sq->where('name', 'like', "%{$this->searchQuery}%")
-                        ->orWhere('phone', 'like', "%{$this->searchQuery}%");
-                  });
+                    ->orWhereHas('order.customer', function ($sq) {
+                        $sq->where('name', 'like', "%{$this->searchQuery}%")
+                            ->orWhere('phone', 'like', "%{$this->searchQuery}%");
+                    });
             });
         }
 
@@ -187,7 +187,7 @@ class TableMap extends Page
             ->modalDescription('Esta mesa tiene varias cuentas. Por favor, selecciona cuál deseas gestionar.')
             ->modalWidth('md')
             ->modalSubmitAction(false) // Ocultar botón de "Aceptar" por defecto
-            ->modalCancelAction(fn (StaticAction $action) => $action->label('Cerrar'))
+            ->modalCancelAction(fn(StaticAction $action) => $action->label('Cerrar'))
             ->form(function (array $arguments) {
                 $table = Table::find($arguments['tableId'] ?? null);
                 if (!$table) return [];
@@ -202,7 +202,7 @@ class TableMap extends Page
                         ->label($label)
                         ->button()
                         ->color('primary')
-                        ->action(fn () => $this->goToPos($table->id, $order->id));
+                        ->action(fn() => $this->goToPos($table->id, $order->id));
                 }
 
                 return [
@@ -426,10 +426,41 @@ class TableMap extends Page
 
     public function goToPos(int $tableId, ?int $orderId = null): void
     {
+        // 🔍 DEBUGGING: Agregar logs para ver qué está pasando
+        Log::info('🎯 goToPos llamado', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()->name,
+            'user_roles' => Auth::user()->roles->pluck('name')->toArray(),
+            'table_id' => $tableId,
+            'order_id' => $orderId,
+        ]);
+
         $url = PosInterface::getUrl(
             ['table_id' => $tableId, 'order_id' => $orderId]
         );
-        $this->redirect($url);
+
+        // 🔍 DEBUGGING: Ver la URL generada
+        Log::info('🌐 URL generada para POS', [
+            'url' => $url,
+            'parameters' => ['table_id' => $tableId, 'order_id' => $orderId],
+        ]);
+
+        try {
+            $this->redirect($url);
+            Log::info('✅ Redirección ejecutada exitosamente');
+        } catch (\Exception $e) {
+            Log::error('❌ Error en redirección', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+
+            Notification::make()
+                ->title('Error de Navegación')
+                ->body('No se pudo abrir el POS. Error: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     // Método para determinar si se debe mostrar la navegación
@@ -575,9 +606,9 @@ class TableMap extends Page
                                 }
 
                                 return '✅ Cliente encontrado: ' . ($get('customer_name') ?? 'Sin nombre') .
-                                       ' (' . ($get('customer_document') ?? 'Sin documento') . ')';
+                                    ' (' . ($get('customer_document') ?? 'Sin documento') . ')';
                             })
-                            ->visible(fn (Forms\Get $get): bool => !empty($get('search_phone')))
+                            ->visible(fn(Forms\Get $get): bool => !empty($get('search_phone')))
                             ->extraAttributes(['class' => 'text-sm']),
 
                         // Campos para crear nuevo cliente (solo si no se encontró)
@@ -586,39 +617,39 @@ class TableMap extends Page
                                 'default' => 1,
                                 'lg' => 2,
                             ])
-                            ->schema([
-                                Forms\Components\TextInput::make('new_customer_name')
-                                    ->label('Nombre Completo')
-                                    ->placeholder('Ej: Juan Pérez')
-                                    ->maxLength(255)
-                                    ->columnSpan(1),
+                                ->schema([
+                                    Forms\Components\TextInput::make('new_customer_name')
+                                        ->label('Nombre Completo')
+                                        ->placeholder('Ej: Juan Pérez')
+                                        ->maxLength(255)
+                                        ->columnSpan(1),
 
-                                Forms\Components\Select::make('new_customer_document_type')
-                                    ->label('Tipo de Documento')
-                                    ->options([
-                                        'DNI' => 'DNI',
-                                        'RUC' => 'RUC',
-                                        'CE' => 'Carnet de Extranjería',
-                                    ])
-                                    ->default('DNI')
-                                    ->native(false)
-                                    ->columnSpan(1),
+                                    Forms\Components\Select::make('new_customer_document_type')
+                                        ->label('Tipo de Documento')
+                                        ->options([
+                                            'DNI' => 'DNI',
+                                            'RUC' => 'RUC',
+                                            'CE' => 'Carnet de Extranjería',
+                                        ])
+                                        ->default('DNI')
+                                        ->native(false)
+                                        ->columnSpan(1),
 
-                                Forms\Components\TextInput::make('new_customer_document_number')
-                                    ->label('Número de Documento')
-                                    ->placeholder('12345678')
-                                    ->maxLength(15)
-                                    ->columnSpan(1),
+                                    Forms\Components\TextInput::make('new_customer_document_number')
+                                        ->label('Número de Documento')
+                                        ->placeholder('12345678')
+                                        ->maxLength(15)
+                                        ->columnSpan(1),
 
-                                Forms\Components\TextInput::make('new_customer_email')
-                                    ->label('Email (Opcional)')
-                                    ->email()
-                                    ->placeholder('cliente@email.com')
-                                    ->maxLength(255)
-                                    ->columnSpan(1),
-                            ]),
+                                    Forms\Components\TextInput::make('new_customer_email')
+                                        ->label('Email (Opcional)')
+                                        ->email()
+                                        ->placeholder('cliente@email.com')
+                                        ->maxLength(255)
+                                        ->columnSpan(1),
+                                ]),
                         ])
-                        ->visible(fn (Forms\Get $get): bool => !$get('customer_found') && !empty($get('search_phone'))),
+                            ->visible(fn(Forms\Get $get): bool => !$get('customer_found') && !empty($get('search_phone'))),
                     ]),
 
                 // ============ PASO 2: DIRECCIÓN (COMPACTA) ============
@@ -647,7 +678,7 @@ class TableMap extends Page
                                     ->helperText('Puntos de referencia para encontrar fácilmente')
                                     ->columnSpan(1),
                             ]),
-                        ]),
+                    ]),
 
                 // ============ PASO 3: PRODUCTOS (REPEATER OPTIMIZADO) ============
                 Forms\Components\Section::make('🍽️ Productos del Pedido')
@@ -715,7 +746,7 @@ class TableMap extends Page
                                     ->columnSpanFull(),
                             ])
                             ->deleteAction(
-                                fn (Forms\Components\Actions\Action $action) => $action->requiresConfirmation()
+                                fn(Forms\Components\Actions\Action $action) => $action->requiresConfirmation()
                             )
                             ->reorderableWithButtons()
                             ->collapsible()
@@ -995,7 +1026,6 @@ class TableMap extends Page
                     'created_at' => now(),
                 ]);
             });
-
         } catch (\Exception $e) {
             // 🚨 NOTIFICACIÓN DE ERROR MEJORADA
             Notification::make()

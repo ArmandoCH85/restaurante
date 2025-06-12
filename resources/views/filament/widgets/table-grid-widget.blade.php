@@ -139,7 +139,7 @@
                         </div>
 
                         <div class="text-xs text-gray-400 dark:text-gray-500">
-                            Actualizado cada 5 segundos
+                            Actualizado: {{ now()->format('H:i:s') }}
                         </div>
                     </div>
                 </div>

@@ -42,8 +42,8 @@ Route::middleware(['auth', 'pos.access'])->group(function () {
     Route::post('/pos/create-order', [PosController::class, 'createOrderFromJS'])->name('pos.create-order');
 });
 
-// Rutas para pagos
-Route::middleware(['auth'])->group(function () {
+// Rutas para pagos - Solo cashiers, admin y super_admin
+Route::middleware(['auth', 'role:cashier|admin|super_admin'])->group(function () {
     Route::get('/pos/payment/form/{order}', [\App\Http\Controllers\PaymentController::class, 'showPaymentForm'])->name('pos.payment.form');
     Route::post('/pos/payment/process/{order}', [\App\Http\Controllers\PaymentController::class, 'processPayment'])->name('pos.payment.process');
     Route::get('/pos/payment/history/{order}', [\App\Http\Controllers\PaymentController::class, 'showPaymentHistory'])->name('pos.payment.history');

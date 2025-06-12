@@ -108,7 +108,7 @@
                                     @if($viewMode === 'grid')
                 <!-- Vista de cuadrícula simplificada -->
                                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-                     wire:poll.5s="refreshData">
+                     {{-- TEMPORALMENTE DESHABILITADO: wire:poll.5s="refreshData" --}}
                     @forelse($tables as $table)
                         @php
                             $config = match($table->status) {
