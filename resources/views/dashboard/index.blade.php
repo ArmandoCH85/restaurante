@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -82,7 +83,7 @@
                         <option value="custom" {{ $period == 'custom' ? 'selected' : '' }}>Personalizado</option>
                     </select>
                 </div>
-                
+
                 <div id="custom-dates" class="flex gap-4" style="{{ $period != 'custom' ? 'display: none;' : '' }}">
                     <div>
                         <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Fecha inicial</label>
@@ -93,7 +94,7 @@
                         <input type="date" id="end_date" name="end_date" value="{{ $endDate->format('Y-m-d') }}" class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                     </div>
                 </div>
-                
+
                 <div>
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-all duration-200 font-medium text-sm">
                         Aplicar filtros
@@ -118,7 +119,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="flex justify-between">
                     <div>
@@ -132,7 +133,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="flex justify-between">
                     <div>
@@ -146,7 +147,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="stat-card">
                 <div class="flex justify-between">
                     <div>
@@ -170,7 +171,7 @@
                     <canvas id="hourlyChart"></canvas>
                 </div>
             </div>
-            
+
             <div class="dashboard-card">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">Ventas por tipo de servicio</h3>
                 <div class="chart-container">
@@ -196,18 +197,18 @@
                         @foreach($topProducts as $product)
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        @if($product->product->image_path)
-                                            <div class="flex-shrink-0 h-10 w-10">
-                                                <img class="h-10 w-10 rounded-full object-cover" src="{{ asset($product->product->image_path) }}" alt="{{ $product->product->name }}">
-                                            </div>
-                                        @else
-                                            <div class="flex-shrink-0 h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                                                </svg>
-                                            </div>
-                                        @endif
+                                    <div class="flex items-center dashboard">
+                                        <div class="product-image-container flex-shrink-0">
+                                            @if($product->product->image_path)
+                                                <img class="product-image" src="{{ asset('storage/' . $product->product->image_path) }}" alt="{{ $product->product->name }}">
+                                            @else
+                                                <div class="product-image-fallback">
+                                                    <div class="product-initials" style="font-size: 0.75rem;">
+                                                        {{ strtoupper(substr($product->product->name, 0, 2)) }}
+                                                    </div>
+                                                </div>
+                                            @endif
+                                        </div>
                                         <div class="ml-4">
                                             <div class="text-sm font-medium text-gray-900">{{ $product->product->name }}</div>
                                         </div>
@@ -269,22 +270,22 @@
         function toggleCustomDates() {
             const period = document.getElementById('period').value;
             const customDates = document.getElementById('custom-dates');
-            
+
             if (period === 'custom') {
                 customDates.style.display = 'flex';
             } else {
                 customDates.style.display = 'none';
             }
         }
-        
+
         // Gráfico de ventas por hora
         const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
         const hourlyData = @json($hourlyStats);
-        
+
         const hours = hourlyData.map(item => item.hour + ':00');
         const hourlyTotals = hourlyData.map(item => item.total);
         const hourlyCounts = hourlyData.map(item => item.count);
-        
+
         new Chart(hourlyCtx, {
             type: 'bar',
             data: {
@@ -333,30 +334,30 @@
                 }
             }
         });
-        
+
         // Gráfico de ventas por tipo de servicio
         const serviceTypeCtx = document.getElementById('serviceTypeChart').getContext('2d');
         const serviceTypeData = @json($stats['salesByServiceType']);
-        
+
         const serviceTypeLabels = {
             'dine_in': 'En restaurante',
             'takeout': 'Para llevar',
             'delivery': 'Delivery',
             'drive_thru': 'Auto servicio'
         };
-        
+
         const serviceTypeColors = {
             'dine_in': 'rgba(79, 70, 229, 0.6)',
             'takeout': 'rgba(245, 158, 11, 0.6)',
             'delivery': 'rgba(16, 185, 129, 0.6)',
             'drive_thru': 'rgba(239, 68, 68, 0.6)'
         };
-        
+
         const serviceTypeKeys = Object.keys(serviceTypeData);
         const serviceTypeValues = Object.values(serviceTypeData);
         const serviceTypeLabelsMapped = serviceTypeKeys.map(key => serviceTypeLabels[key] || key);
         const serviceTypeColorsMapped = serviceTypeKeys.map(key => serviceTypeColors[key] || 'rgba(156, 163, 175, 0.6)');
-        
+
         new Chart(serviceTypeCtx, {
             type: 'pie',
             data: {

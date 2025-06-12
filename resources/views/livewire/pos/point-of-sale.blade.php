@@ -1752,25 +1752,28 @@
                         <div
                             wire:key="product-{{ $product->id }}"
                             wire:click="addToCart({{ $product->id }})"
-                            class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-700 flex flex-col relative scale-hover fade-in {{ !$product->available ? 'opacity-75' : '' }}"
+                            class="product-card bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden group transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer border border-gray-200 dark:border-gray-700 flex flex-col relative scale-hover fade-in pos-livewire {{ !$product->available ? 'opacity-75' : '' }}"
                         >
-                            <div class="relative overflow-hidden h-36">
+                            <div class="product-image-container {{ !$product->available ? 'product-image-unavailable' : '' }}">
                                 @if ($product->image_path)
                                     <img
                                         src="{{ asset('storage/' . $product->image_path) }}"
                                         alt="{{ $product->name }}"
-                                        class="object-cover w-full h-full"
+                                        class="product-image"
+                                        loading="lazy"
+                                        wire:key="product-image-{{ $product->id }}"
+                                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'product-image-fallback\'><div class=\'product-initials\'>{{ strtoupper(substr($product->name, 0, 2)) }}</div></div>';"
                                     >
                                 @else
-                                    <div class="flex items-center justify-center w-full h-full bg-gray-100 dark:bg-gray-700">
-                                        <span class="text-sm text-gray-500 dark:text-gray-400">Sin imagen</span>
-                                    </div>
-                                @endif
-                                @if (!$product->available)
-                                    <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                                        <span class="px-3 py-1 text-xs font-bold text-white transform bg-red-500 rounded-full shadow-md rotate-12">
-                                            Agotado
-                                        </span>
+                                    <div class="product-image-fallback">
+                                        <div class="product-initials">
+                                            {{ strtoupper(substr($product->name, 0, 2)) }}
+                                        </div>
+                                        @if($product->category ?? null)
+                                            <div class="product-category-badge">
+                                                {{ $product->category->name }}
+                                            </div>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
@@ -3983,3 +3986,22 @@
     });
   });
 </script>
+
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.on('products-updated', () => {
+            // Forzar recarga de imágenes
+            document.querySelectorAll('img[wire\\:key^="product-image-"]').forEach(img => {
+                const src = img.src;
+                img.src = '';
+                setTimeout(() => {
+                    img.src = src;
+                }, 100);
+            });
+        });
+    });
+</script>
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
+@endpush
