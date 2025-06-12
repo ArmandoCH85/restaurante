@@ -351,6 +351,20 @@ class PointOfSale extends Component
             Log::info('Dispatching open-command-modal', ['url' => $url]);
             $this->dispatch('open-command-modal', ['url' => $url]);
 
+                        // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay (TEMPORALMENTE DESHABILITADO)
+            /*
+            if (Auth::user()->hasRole('waiter')) {
+                $this->dispatch('notification', [
+                    'type' => 'success',
+                    'title' => 'Comanda Enviada',
+                    'message' => 'Pedido guardado correctamente. Regresando al mapa de mesas...'
+                ]);
+
+                // Redirigir después de un breve delay para que se abra la ventana de impresión
+                $this->dispatch('redirect-to-table-map');
+            }
+            */
+
             // NO limpiar carrito después de imprimir para mantener productos para venta
         } catch (\Exception $e) {
             $this->dispatch('notification', [
@@ -390,6 +404,20 @@ class PointOfSale extends Component
             $url = route('pos.prebill.pdf', ['order' => $order->id]);
             Log::info('Dispatching open-prebill-modal', ['url' => $url]);
             $this->dispatch('open-prebill-modal', ['url' => $url]);
+
+                        // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay (TEMPORALMENTE DESHABILITADO)
+            /*
+            if (Auth::user()->hasRole('waiter')) {
+                $this->dispatch('notification', [
+                    'type' => 'success',
+                    'title' => 'Pre-cuenta Impresa',
+                    'message' => 'Pre-cuenta generada correctamente. Regresando al mapa de mesas...'
+                ]);
+
+                // Redirigir después de un breve delay para que se abra la ventana de impresión
+                $this->dispatch('redirect-to-table-map');
+            }
+            */
 
             // NO limpiar carrito después de imprimir para mantener productos para venta
         } catch (\Exception $e) {
@@ -483,29 +511,29 @@ class PointOfSale extends Component
             'message' => 'La venta se ha completado correctamente'
         ]);
     }
-}
 
-/**
- * Métodos para controlar modales
- */
-public function openCommandModal(): void
-{
-    $this->showCommandModal = true;
-}
+    /**
+     * Métodos para controlar modales
+     */
+    public function openCommandModal(): void
+    {
+        $this->showCommandModal = true;
+    }
 
-public function openPreBillModal(): void
-{
-    $this->showPreBillModal = true;
-}
+    public function openPreBillModal(): void
+    {
+        $this->showPreBillModal = true;
+    }
 
-public function openInvoiceModal(): void
-{
-    $this->showInvoiceModal = true;
-}
+    public function openInvoiceModal(): void
+    {
+        $this->showInvoiceModal = true;
+    }
 
-public function closeModals(): void
-{
-    $this->showCommandModal = false;
-    $this->showPreBillModal = false;
-    $this->showInvoiceModal = false;
+    public function closeModals(): void
+    {
+        $this->showCommandModal = false;
+        $this->showPreBillModal = false;
+        $this->showInvoiceModal = false;
+    }
 }

@@ -21,17 +21,18 @@ class CheckPosAccess
         if (!$request->user()) {
             return redirect()->route('filament.admin.auth.login');
         }
-        
-        // Si el usuario es super_admin, permitir acceso
-        if ($request->user()->hasRole('super_admin')) {
+
+        // Si el usuario es super_admin, admin, cashier o waiter, permitir acceso completo
+        if ($request->user()->hasRole(['super_admin', 'admin', 'cashier', 'waiter'])) {
             return $next($request);
         }
-        
-        // Verificar si el usuario tiene el permiso específico
+
+        // Para otros roles, verificar si el usuario tiene el permiso específico
         if (!$request->user()->can('access_pos')) {
             abort(403, 'No tienes permiso para acceder al sistema POS');
         }
-        
+
         return $next($request);
     }
 }
+

@@ -324,6 +324,8 @@
             });
 
             // Actualizar los pedidos cada minuto
+            // TEMPORALMENTE DESHABILITADO: Auto-actualización
+            /*
             setInterval(() => {
                 try {
                     // Comprobar si estamos usando Livewire 2 o Livewire 3
@@ -340,6 +342,7 @@
                     console.error('Error al actualizar los pedidos:', e);
                 }
             }, 60000); // 60 segundos
+            */
         });
     </script>
 

@@ -43,6 +43,28 @@ class PosInterface extends Page
     protected static ?string $slug = 'pos-interface';
     protected static ?int $navigationSort = 1;
 
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return false;
+        }
+
+        // ✅ ARREGLO: Verificar primero si es waiter específicamente
+        if ($user->hasRole('waiter')) {
+            return true;
+        }
+
+        // Super admin, admin, cashier pueden acceder siempre
+        if ($user->hasRole(['super_admin', 'admin', 'cashier'])) {
+            return true;
+        }
+
+        // Para otros roles, verificar permisos
+        return $user->can('access_pos');
+    }
+
     // Propiedades del estado
     public ?int $selectedTableId = null;
     public ?int $selectedCategoryId = null;
@@ -118,7 +140,7 @@ class PosInterface extends Page
                             ->send();
                     }
                 })
-                ->visible(fn (): bool => $this->order && $this->order->invoices()->exists()),
+                ->visible(fn(): bool => $this->order && $this->order->invoices()->exists()),
 
             Action::make('backToTableMap')
                 ->label('Mapa de Mesas')
@@ -128,8 +150,8 @@ class PosInterface extends Page
                 ->button()
                 ->outlined()
                 ->tooltip('Volver a la vista del mapa de mesas')
-                ->url(fn (): string => TableMap::getUrl())
-                ->visible(fn (): bool => $this->order && $this->order->table_id !== null), // ✅ Solo para órdenes con mesa
+                ->url(fn(): string => TableMap::getUrl())
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null), // ✅ Solo para órdenes con mesa
 
             Action::make('releaseTable')
                 ->label('Liberar Mesa')
@@ -149,7 +171,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
 
             Action::make('cancelOrder')
                 ->label('Cancelar Orden')
@@ -169,7 +191,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
 
             Action::make('transferOrder')
                 ->label('Transferir')
@@ -200,16 +222,16 @@ class PosInterface extends Page
                             Forms\Components\Grid::make(3)->schema([
                                 Forms\Components\Placeholder::make('product_name')
                                     ->label('Producto')
-                                    ->content(fn ($state) => $state)
+                                    ->content(fn($state) => $state)
                                     ->columnSpan(2),
                                 Forms\Components\TextInput::make('quantity_to_move')
                                     ->label('Mover')
                                     ->numeric()
                                     ->minValue(0)
-                                    ->maxValue(fn (Get $get) => $get('original_quantity'))
+                                    ->maxValue(fn(Get $get) => $get('original_quantity'))
                                     ->required()
                                     ->default(0)
-                                    ->helperText(fn (Get $get) => 'Max: ' . $get('original_quantity'))
+                                    ->helperText(fn(Get $get) => 'Max: ' . $get('original_quantity'))
                                     ->columnSpan(1),
                             ]),
                             Forms\Components\Hidden::make('order_detail_id'),
@@ -233,7 +255,7 @@ class PosInterface extends Page
                 })
                 ->modalHeading('Transferir / Combinar Cuentas')
                 ->modalDescription('Selecciona los productos y la cantidad a mover a otra mesa.')
-                ->visible(fn (): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ No visible para waiter/cashier
+                ->visible(fn(): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ No visible para waiter/cashier
 
             Action::make('splitBill')
                 ->label('Dividir Cuenta')
@@ -254,7 +276,7 @@ class PosInterface extends Page
                     })->all();
 
                     return [
-                       'items_to_split' => $options
+                        'items_to_split' => $options
                     ];
                 })
                 ->form([
@@ -262,7 +284,7 @@ class PosInterface extends Page
                         ->content('Selecciona los productos que deseas mover a una nueva cuenta separada.'),
                     Forms\Components\CheckboxList::make('selected_details')
                         ->label('Productos en la cuenta actual')
-                        ->options(fn (Get $get) => $get('items_to_split'))
+                        ->options(fn(Get $get) => $get('items_to_split'))
                         ->required()
                         ->columns(1)
                         ->gridDirection('row'),
@@ -272,9 +294,9 @@ class PosInterface extends Page
                 })
                 ->modalHeading('Separar Productos en Nueva Cuenta')
                 ->modalDescription('Los productos seleccionados se moverán a una cuenta nueva para ser pagados por separado.')
-                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
 
-                        Action::make('printComanda')
+            Action::make('printComanda')
                 ->label('Comanda')
                 ->icon('heroicon-o-printer')
                 ->form(function () {
@@ -292,7 +314,7 @@ class PosInterface extends Page
                     }
                     return [];
                 })
-                                ->action(function (array $data) {
+                ->action(function (array $data) {
                     // ✅ PRIMERO: Guardar el nombre del cliente si es venta directa
                     if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
                         $this->customerNameForComanda = $data['customerNameForComanda'];
@@ -313,6 +335,19 @@ class PosInterface extends Page
                     ]);
 
                     $this->js("window.open('$url', '_blank', 'width=800,height=600')");
+
+                    // ✅ CUARTO: Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay
+                    if (Auth::user()->hasRole('waiter')) {
+                        Notification::make()
+                            ->title('Comanda Enviada')
+                            ->body('Pedido guardado correctamente. Regresando al mapa de mesas...')
+                            ->success()
+                            ->duration(2000)
+                            ->send();
+
+                        // Redirigir después de un breve delay para que se abra la ventana de impresión
+                        $this->js("setTimeout(function() { window.location.href = '" . TableMap::getUrl() . "'; }, 2000);");
+                    }
                 })
                 ->modalHeading('Imprimir Comanda')
                 ->modalSubmitActionLabel('Confirmar')
@@ -320,9 +355,9 @@ class PosInterface extends Page
                 ->outlined()
                 ->color('warning')
                 ->size('lg')
-                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
+                ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
 
-                        Action::make('printPreBill')
+            Action::make('printPreBill')
                 ->label('Pre-Cuenta')
                 ->icon('heroicon-o-printer')
                 ->action(function () {
@@ -345,6 +380,20 @@ class PosInterface extends Page
                         ->extraAttributes([
                             'onclick' => 'window.print(); return false;',
                         ])
+                        ->action(function () {
+                            // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de imprimir
+                            if (Auth::user()->hasRole('waiter')) {
+                                Notification::make()
+                                    ->title('Pre-cuenta Impresa')
+                                    ->body('Pre-cuenta generada correctamente. Regresando al mapa de mesas...')
+                                    ->success()
+                                    ->duration(2000)
+                                    ->send();
+
+                                // Redirigir después de un breve delay para que se complete la impresión
+                                $this->js("setTimeout(function() { window.location.href = '" . TableMap::getUrl() . "'; }, 2000);");
+                            }
+                        })
                 )
                 ->modalCancelActionLabel('Cerrar')
                 ->modalHeading('Vista Previa de Pre-Cuenta')
@@ -352,7 +401,7 @@ class PosInterface extends Page
                 ->outlined()
                 ->color('info')
                 ->size('lg')
-                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
+                ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
         ];
     }
 
@@ -574,9 +623,9 @@ class PosInterface extends Page
         try {
             // Iniciar una transacción para garantizar la atomicidad
             return DB::transaction(function () {
-                            // Crear la orden
-            $order = Order::create([
-                'table_id' => $this->selectedTableId,
+                // Crear la orden
+                $order = Order::create([
+                    'table_id' => $this->selectedTableId,
                     'employee_id' => Auth::id(),
                     'customer_id' => null, // Por ahora sin cliente específico
                     'service_type' => $this->selectedTableId ? 'dine_in' : 'takeout',
@@ -609,7 +658,6 @@ class PosInterface extends Page
 
                 return $order;
             });
-
         } catch (\Exception $e) {
             // Si algo falla, la transacción hará rollback automáticamente
             throw new \Exception('Error al crear la orden: ' . $e->getMessage());
@@ -663,7 +711,6 @@ class PosInterface extends Page
                 // 🚀 FORZAR ACTUALIZACIÓN DE HEADER ACTIONS
                 $this->dispatch('$refresh');
             }
-
         } catch (\Exception $e) {
             Notification::make()
                 ->title('Error al crear la orden')
@@ -694,7 +741,9 @@ class PosInterface extends Page
                     [
                         'employee_id' => Auth::id(),
                         'service_type' => 'dine_in',
-                        'subtotal' => 0, 'tax' => 0, 'total' => 0,
+                        'subtotal' => 0,
+                        'tax' => 0,
+                        'total' => 0,
                         'order_datetime' => now()
                     ]
                 );
@@ -773,7 +822,7 @@ class PosInterface extends Page
 
                 // Opcional: si la orden original queda vacía, cancelarla
                 if ($originalOrder->orderDetails()->count() === 0) {
-                     $originalOrder->update(['status' => Order::STATUS_CANCELLED]);
+                    $originalOrder->update(['status' => Order::STATUS_CANCELLED]);
                 }
             });
 
@@ -781,7 +830,6 @@ class PosInterface extends Page
 
             // Forzar actualización de la interfaz
             $this->refreshOrderData(true);
-
         } catch (\Exception $e) {
             Log::error('Error al dividir cuenta (simple): ' . $e->getMessage());
             Notification::make()->title('Error al Separar la Cuenta')->body('Ocurrió un error inesperado. Por favor, intenta de nuevo.')->danger()->send();
@@ -857,7 +905,7 @@ class PosInterface extends Page
             ->label('💳 Procesar Pago')
             ->slideOver()
             ->modalWidth('4xl')
-            ->visible(fn () => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
+            ->visible(fn() => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
             ->form(function () {
                 return [
                     // 🛒 RESUMEN COMPACTO: PRODUCTOS + TOTAL
@@ -957,25 +1005,25 @@ class PosInterface extends Page
                                         if ($change > 0) {
                                             return new \Illuminate\Support\HtmlString(
                                                 "<div class='p-2 bg-green-50 border border-green-200 rounded text-center'>" .
-                                                "<span class='text-green-700 font-bold text-lg'>S/ " . number_format($change, 2) . "</span>" .
-                                                "</div>"
+                                                    "<span class='text-green-700 font-bold text-lg'>S/ " . number_format($change, 2) . "</span>" .
+                                                    "</div>"
                                             );
                                         } elseif ($change < 0) {
                                             return new \Illuminate\Support\HtmlString(
                                                 "<div class='p-2 bg-red-50 border border-red-200 rounded text-center'>" .
-                                                "<span class='text-red-700 font-bold text-sm'>Falta: S/ " . number_format(abs($change), 2) . "</span>" .
-                                                "</div>"
+                                                    "<span class='text-red-700 font-bold text-sm'>Falta: S/ " . number_format(abs($change), 2) . "</span>" .
+                                                    "</div>"
                                             );
                                         } else {
                                             return new \Illuminate\Support\HtmlString(
                                                 "<div class='p-2 bg-blue-50 border border-blue-200 rounded text-center'>" .
-                                                "<span class='text-blue-700 font-bold text-sm'>Exacto ✓</span>" .
-                                                "</div>"
+                                                    "<span class='text-blue-700 font-bold text-sm'>Exacto ✓</span>" .
+                                                    "</div>"
                                             );
                                         }
                                     })
                                     ->live()
-                                    ->visible(fn (Get $get) => $get('primary_payment_method') === 'cash'),
+                                    ->visible(fn(Get $get) => $get('primary_payment_method') === 'cash'),
                             ]),
 
                             // DENOMINACIONES RÁPIDAS PARA EFECTIVO
@@ -1023,12 +1071,12 @@ class PosInterface extends Page
                                         $set('primary_payment_amount', 200);
                                     }),
                             ])
-                            ->visible(fn (Get $get) => $get('primary_payment_method') === 'cash')
-                            ->extraAttributes(['class' => 'flex flex-wrap gap-2']),
+                                ->visible(fn(Get $get) => $get('primary_payment_method') === 'cash')
+                                ->extraAttributes(['class' => 'flex flex-wrap gap-2']),
 
                             Forms\Components\Placeholder::make('payment_helper')
                                 ->label('')
-                                ->content(fn (Get $get) => match($get('primary_payment_method')) {
+                                ->content(fn(Get $get) => match ($get('primary_payment_method')) {
                                     'cash' => '💡 Use los botones de denominaciones para ir más rápido',
                                     'card' => '💳 El pago será por el monto exacto',
                                     'yape' => '📱 El cliente debe transferir el monto exacto',
@@ -1038,7 +1086,7 @@ class PosInterface extends Page
                                 ->extraAttributes(['class' => 'text-sm text-gray-600']),
                         ]),
 
-                                        Section::make('📄 ¿Qué tipo de comprobante necesita?')
+                    Section::make('📄 ¿Qué tipo de comprobante necesita?')
                         ->description('Elija el documento que va a entregar al cliente')
                         ->compact()
                         ->schema([
@@ -1115,13 +1163,13 @@ class PosInterface extends Page
                                 ->label('Cliente')
                                 ->content('👤 Cliente Genérico')
                                 ->extraAttributes(['class' => 'text-lg font-medium text-gray-700'])
-                                ->visible(fn (Get $get) => $get('document_type') === 'sales_note'),
+                                ->visible(fn(Get $get) => $get('document_type') === 'sales_note'),
 
                             // ✅ CAMPOS INDIVIDUALES DEL CLIENTE (VISIBLES SOLO PARA BOLETA/FACTURA)
                             Forms\Components\Grid::make(2)->schema([
                                 Forms\Components\Select::make('customer_id')
                                     ->label('Cliente')
-                                    ->required(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
+                                    ->required(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
                                     ->searchable()
                                     ->preload()
                                     ->options(function (): array {
@@ -1134,7 +1182,7 @@ class PosInterface extends Page
                                             ->pluck('name', 'id')
                                             ->toArray();
                                     })
-                                    ->getOptionLabelUsing(fn ($value): ?string => Customer::find($value)?->name)
+                                    ->getOptionLabelUsing(fn($value): ?string => Customer::find($value)?->name)
                                     ->createOptionForm([
                                         Forms\Components\TextInput::make('name')
                                             ->label('Nombre/Razón Social')
@@ -1170,7 +1218,7 @@ class PosInterface extends Page
                                         return Customer::create($data)->getKey();
                                     })
                                     ->placeholder('Buscar cliente existente o crear nuevo...')
-                                    ->disabled(fn (Get $get) => $get('document_type') === 'sales_note')
+                                    ->disabled(fn(Get $get) => $get('document_type') === 'sales_note')
                                     ->afterStateUpdated(function (Forms\Set $set, Get $get, $state) {
                                         // ✅ LÓGICA PARA ALTERNAR ENTRE CLIENTE REAL Y GENÉRICO
                                         if ($get('document_type') === 'sales_note') {
@@ -1222,9 +1270,9 @@ class PosInterface extends Page
                                         'PAS' => 'Pasaporte',
                                     ])
                                     ->default('DNI')
-                                    ->required(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+                                    ->required(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
                             ])
-                            ->visible(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+                                ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
 
                             Forms\Components\Grid::make(3)->schema([
                                 Forms\Components\TextInput::make('customer_document')
@@ -1240,13 +1288,13 @@ class PosInterface extends Page
                                     ->email()
                                     ->placeholder('cliente@email.com'),
                             ])
-                            ->visible(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+                                ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
 
                             Forms\Components\TextInput::make('customer_address')
                                 ->label('Dirección')
                                 ->placeholder('Dirección del cliente')
                                 ->columnSpanFull()
-                                ->visible(fn (Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+                                ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
 
                             // ✅ CAMPO OCULTO PARA CUSTOMER_ID
                             Forms\Components\Hidden::make('customer_id')
@@ -1291,9 +1339,10 @@ class PosInterface extends Page
                                 ->defaultItems(1)
                                 ->minItems(1)
                                 ->maxItems(3)
-                                ->itemLabel(fn (array $state): ?string =>
+                                ->itemLabel(
+                                    fn(array $state): ?string =>
                                     isset($state['payment_method']) && isset($state['amount'])
-                                        ? match($state['payment_method']) {
+                                        ? match ($state['payment_method']) {
                                             'cash' => '💵 S/ ' . number_format($state['amount'], 2),
                                             'card' => '💳 S/ ' . number_format($state['amount'], 2),
                                             'yape' => '📱 S/ ' . number_format($state['amount'], 2),
@@ -1313,20 +1362,20 @@ class PosInterface extends Page
                                     if ($remaining > 0) {
                                         return new \Illuminate\Support\HtmlString(
                                             "<div class='p-2 bg-red-50 border border-red-200 rounded text-center'>" .
-                                            "<span class='text-red-700 font-semibold text-sm'>⚠️ Falta: S/ " . number_format($remaining, 2) . "</span>" .
-                                            "</div>"
+                                                "<span class='text-red-700 font-semibold text-sm'>⚠️ Falta: S/ " . number_format($remaining, 2) . "</span>" .
+                                                "</div>"
                                         );
                                     } elseif ($remaining < 0) {
                                         return new \Illuminate\Support\HtmlString(
                                             "<div class='p-2 bg-orange-50 border border-orange-200 rounded text-center'>" .
-                                            "<span class='text-orange-700 font-semibold text-sm'>💰 Vuelto: S/ " . number_format(abs($remaining), 2) . "</span>" .
-                                            "</div>"
+                                                "<span class='text-orange-700 font-semibold text-sm'>💰 Vuelto: S/ " . number_format(abs($remaining), 2) . "</span>" .
+                                                "</div>"
                                         );
                                     } else {
                                         return new \Illuminate\Support\HtmlString(
                                             "<div class='p-2 bg-green-50 border border-green-200 rounded text-center'>" .
-                                            "<span class='text-green-700 font-semibold text-sm'>✅ Pago exacto</span>" .
-                                            "</div>"
+                                                "<span class='text-green-700 font-semibold text-sm'>✅ Pago exacto</span>" .
+                                                "</div>"
                                         );
                                     }
                                 })
@@ -1373,7 +1422,7 @@ class PosInterface extends Page
                     ],
                 ];
             })
-                        ->action(function (array $data) {
+            ->action(function (array $data) {
                 try {
                     // DEBUG: Ver qué datos están llegando
                     \Illuminate\Support\Facades\Log::info('🔍 DATOS DEL FORMULARIO COMPLETOS:', $data);
@@ -1398,8 +1447,10 @@ class PosInterface extends Page
                     }
 
                     // Validar monto para efectivo
-                    if ($data['primary_payment_method'] === 'cash' &&
-                        (!isset($data['primary_payment_amount']) || $data['primary_payment_amount'] < $this->total)) {
+                    if (
+                        $data['primary_payment_method'] === 'cash' &&
+                        (!isset($data['primary_payment_amount']) || $data['primary_payment_amount'] < $this->total)
+                    ) {
                         Notification::make()
                             ->title('⚠️ Monto Insuficiente')
                             ->body('El monto recibido debe ser mayor o igual al total de la orden.')
@@ -1748,8 +1799,8 @@ class PosInterface extends Page
         if (!$tableId) return;
 
         $openOrdersCount = Order::where('table_id', $tableId)
-                                ->where('status', Order::STATUS_OPEN)
-                                ->count();
+            ->where('status', Order::STATUS_OPEN)
+            ->count();
 
         if ($openOrdersCount === 0) {
             $table = TableModel::find($tableId);

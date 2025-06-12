@@ -3025,6 +3025,29 @@
                 console.log('Carrito limpiado exitosamente - Redirigiendo a mapa de mesas');
             }
         });
+
+                // ✅ Listener para redirección automática de waiters al mapa de mesas (TEMPORALMENTE DESHABILITADO)
+        /*
+        document.addEventListener('livewire:init', function () {
+            Livewire.on('redirect-to-table-map', function () {
+                console.log('🔄 Evento redirect-to-table-map recibido - Verificando si es waiter...');
+
+                // Solo redirigir si es waiter y no estamos ya en el mapa de mesas
+                @if(Auth::user()->hasRole('waiter'))
+                if (!window.location.href.includes('/admin/mapa-mesas')) {
+                    console.log('✅ Es waiter y no está en mapa de mesas - Redirigiendo...');
+                    setTimeout(function() {
+                        window.location.href = '{{ url("/admin/mapa-mesas") }}';
+                    }, 2000); // Dar tiempo para que se abra la ventana de impresión
+                } else {
+                    console.log('❌ Ya está en mapa de mesas - No redirigir');
+                }
+                @else
+                console.log('❌ No es waiter - No redirigir');
+                @endif
+            });
+        });
+        */
     </script>
 
     <!-- Scripts para abrir ventanas -->
@@ -3401,6 +3424,17 @@
             .then(orderId => {
                 // Mostrar la comanda en un modal
                 showCommandModal('{{ url("pos/command-pdf") }}/' + orderId);
+
+                // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay (TEMPORALMENTE DESHABILITADO)
+                /*
+                @if(Auth::user()->hasRole('waiter'))
+                setTimeout(function() {
+                    console.log('🔄 Redirigiendo waiter al mapa de mesas desde comanda...');
+                    window.location.href = '{{ url("/admin/mapa-mesas") }}';
+                }, 2000); // Dar tiempo para que se abra la ventana de impresión
+                @endif
+                */
+
                 // NO vaciar el carrito después de generar la comanda
             })
             .catch(error => {
@@ -3479,6 +3513,17 @@
             .then(orderId => {
                 // Mostrar la pre-cuenta en un modal
                 showPreBillModal('{{ url("pos/prebill-pdf") }}/' + orderId);
+
+                // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay (TEMPORALMENTE DESHABILITADO)
+                /*
+                @if(Auth::user()->hasRole('waiter'))
+                setTimeout(function() {
+                    console.log('🔄 Redirigiendo waiter al mapa de mesas desde pre-cuenta...');
+                    window.location.href = '{{ url("/admin/mapa-mesas") }}';
+                }, 2000); // Dar tiempo para que se abra la ventana de impresión
+                @endif
+                */
+
                 // NO vaciar el carrito después de generar la pre-cuenta
             })
             .catch(error => {

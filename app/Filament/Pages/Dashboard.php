@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Filament\Widgets;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Illuminate\Support\Facades\Auth;
 
 class Dashboard extends BaseDashboard
 {
@@ -22,6 +23,13 @@ class Dashboard extends BaseDashboard
 
     public static function canAccess(): bool
     {
+        $user = Auth::user();
+
+        // El rol waiter no puede acceder al Dashboard
+        if ($user && $user->hasRole('waiter')) {
+            return false;
+        }
+
         return true;
     }
 }

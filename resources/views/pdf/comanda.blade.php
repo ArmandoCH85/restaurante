@@ -2,247 +2,372 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Comanda #{{ $order->id }}</title>
-    <style>
-        /* Estilos optimizados para impresora térmica de 80mm */
-        @page {
-            margin: 5mm;
-        }
-        body {
-            font-family: 'monospace', sans-serif;
-            font-size: 10pt;
-            color: #000;
-            line-height: 1.4;
-            width: 70mm; /* Ancho aproximado para papel de 80mm */
-        }
-        .container {
-            width: 100%;
-            padding: 0;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 14pt;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .header .info {
-            font-size: 9pt;
-        }
-        hr {
-            border: 0;
-            border-top: 1px dashed #000;
-            margin: 10px 0;
-        }
-        .item-table {
-            width: 100%;
-        }
-        .item-table th, .item-table td {
-            padding: 2px 0;
-            vertical-align: top;
-        }
-        .item-table .col-qty { width: 15%; text-align: left; }
-        .item-table .col-desc { width: 85%; }
-        .notes {
-            margin-top: 10px;
-            font-size: 9pt;
-        }
-        .notes p {
-            margin: 0;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>COMANDA</h1>
-            <hr>
-            <div class="info">
-                @if($order->table)
-                    <strong>Mesa: {{ $order->table->number }}</strong><br>
-                @else
-                    {{-- ✅ Mostrar nombre del cliente solo para venta directa --}}
-                    @if(isset($customerNameForComanda) && !empty($customerNameForComanda))
-                        <strong>Cliente: {{ $customerNameForComanda }}</strong><br>
-                    @endif
-                    <strong>VENTA DIRECTA</strong><br>
-                @endif
-                <strong>Orden:</strong> #{{ $order->id }}<br>
-                <strong>Mesero:</strong> {{ $order->employee->name }}<br>
-                <strong>Fecha:</strong> {{ $order->created_at->format('d/m/Y H:i:s') }}
-            </div>
-            <hr>
-        </div>
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Comanda #{{ $order->id }}</title>
     <style>
-        body {
-            font-family: 'monospace', sans-serif;
-            font-size: 10pt;
+        /* ===== OPTIMIZACIÓN PARA PAPEL TÉRMICO 80MM ===== */
+        @page {
+            margin: 0;
+            size: 80mm auto;
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', 'Liberation Mono', monospace;
+            font-size: 11px;
+            line-height: 1.3;
+            color: #000;
             width: 80mm;
+            margin: 0;
+            padding: 4mm;
+            background: white;
         }
-        .ticket-container {
-            width: 100%;
-            padding: 3mm;
-        }
-        .header {
+
+        /* ===== HEADER EMPRESA ===== */
+        .company-header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 6px;
         }
-        .header h1 {
-            margin: 5px 0;
-            font-size: 14pt;
+
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        .company-address {
+            font-size: 9px;
+            margin-bottom: 1px;
+        }
+
+        .document-type {
+            font-size: 14px;
+            font-weight: bold;
+            background: #000;
+            color: white;
+            padding: 4px 8px;
+            margin: 6px 0;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        /* ===== INFORMACIÓN DE LA ORDEN ===== */
+        .order-info {
+            margin: 8px 0;
+            border: 1px solid #000;
+            padding: 6px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            font-size: 10px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            font-weight: bold;
+            min-width: 35mm;
+        }
+
+        .info-value {
+            text-align: right;
+            flex: 1;
+        }
+
+        /* ===== MESA/CLIENTE DESTACADO ===== */
+        .table-info {
+            text-align: center;
+            background: #f0f0f0;
+            border: 2px solid #000;
+            padding: 8px;
+            margin: 8px 0;
+            font-size: 14px;
             font-weight: bold;
         }
-        .header p {
-            margin: 3px 0;
-            font-size: 9pt;
+
+        .table-number {
+            font-size: 20px;
+            color: #000;
         }
-        hr {
-            border: 0;
+
+        /* ===== SEPARADORES ===== */
+        .separator {
+            border: none;
             border-top: 1px dashed #000;
+            margin: 8px 0;
+        }
+
+        .separator-thick {
+            border: none;
+            border-top: 2px solid #000;
             margin: 10px 0;
         }
-        .info-table {
-            width: 100%;
-            font-size: 9pt;
-            margin-bottom: 10px;
+
+        /* ===== TABLA DE PRODUCTOS ===== */
+        .products-section {
+            margin: 10px 0;
         }
-        .info-table td {
-            padding: 2px 0;
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            background: #000;
+            color: white;
+            padding: 4px;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
         }
-        .items-table {
+
+        .products-table {
             width: 100%;
             border-collapse: collapse;
         }
-        .items-table th {
-            text-align: left;
-            border-bottom: 1px solid #000;
-            padding: 3px 0;
-            font-size: 9pt;
+
+        .products-table th {
+            background: #e0e0e0;
+            border: 1px solid #000;
+            padding: 4px 2px;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
         }
-        .items-table td {
-            padding: 4px 0;
-            font-size: 10pt;
+
+        .products-table td {
+            border: 1px solid #000;
+            padding: 6px 4px;
             vertical-align: top;
         }
+
+        .qty-col {
+            width: 15%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .product-col {
+            width: 85%;
+            font-size: 11px;
+        }
+
+        .product-name {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+
+        /* ===== NOTAS ===== */
+        .notes-section {
+            margin: 10px 0;
+            border: 1px solid #000;
+            padding: 6px;
+            background: #f9f9f9;
+        }
+
+        .notes-title {
+            font-weight: bold;
+            font-size: 11px;
+            margin-bottom: 4px;
+            text-decoration: underline;
+        }
+
+        .notes-content {
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        /* ===== FOOTER ===== */
         .footer {
             text-align: center;
-            margin-top: 15px;
-            font-size: 9pt;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 2px solid #000;
+            font-size: 9px;
         }
-        .type-title {
+
+        .timestamp {
             font-weight: bold;
-            font-size: 14pt;
-            text-align: center;
-            text-transform: uppercase;
-            margin: 10px 0;
+            margin-bottom: 4px;
         }
+
+        .footer-message {
+            font-style: italic;
+            margin-top: 6px;
+        }
+
+        /* ===== EFECTOS DE IMPRESIÓN ===== */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+        }
+
+        /* ===== ESPACIADO MEJORADO ===== */
+        .spacer-sm { margin: 4px 0; }
+        .spacer-md { margin: 8px 0; }
+        .spacer-lg { margin: 12px 0; }
     </style>
 </head>
 <body>
-    <div class="ticket-container">
-        <div class="header">
-            @php
-                $nombreComercial = \App\Models\CompanyConfig::getNombreComercial();
-                $razonSocial = \App\Models\CompanyConfig::getRazonSocial();
-            @endphp
-            <h1>{{ $nombreComercial ?: $razonSocial }}</h1>
-            <p>{{ \App\Models\CompanyConfig::getDireccion() }}</p>
-            <p>COMANDA - COCINA</p>
+    <!-- HEADER DE LA EMPRESA -->
+    <div class="company-header">
+        @php
+            $nombreComercial = \App\Models\CompanyConfig::getNombreComercial();
+            $razonSocial = \App\Models\CompanyConfig::getRazonSocial();
+            $direccion = \App\Models\CompanyConfig::getDireccion();
+        @endphp
+
+        <div class="company-name">
+            {{ $nombreComercial ?: $razonSocial ?: 'RESTAURANTE' }}
         </div>
 
-        <hr>
-
-        <table class="info-table">
-            <tr>
-                <td><strong>Mesa:</strong> {{ $order->table?->number ?? 'VENTA DIRECTA' }}</td>
-                <td style="text-align: right;"><strong>Orden:</strong> #{{ $order->id }}</td>
-            </tr>
-            <tr>
-                <td><strong>Atendido:</strong> {{ $order->employee?->name ?? 'N/A' }}</td>
-                <td style="text-align: right;">{{ $order->created_at->format('d/m/Y H:i') }}</td>
-            </tr>
-            @if(!empty($customerNameForComanda) && $order->table_id === null)
-            <tr>
-                <td colspan="2"><strong>Cliente:</strong> {{ $customerNameForComanda }}</td>
-            </tr>
-            @elseif($order->customer)
-            <tr>
-                <td colspan="2"><strong>Cliente:</strong> {{ $order->customer->name }}</td>
-            </tr>
-            @elseif(isset($customer))
-            <tr>
-                <td colspan="2"><strong>Cliente:</strong> {{ $customer?->name ?? 'Cliente general' }}</td>
-            </tr>
-            @endif
-        </table>
-
-        <div class="type-title">COMANDA</div>
-
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th style="width: 15%">Cant</th>
-                    <th style="width: 85%">Producto</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($order->orderDetails ?? [] as $detail)
-                <tr>
-                    <td>{{ $detail->quantity }}</td>
-                    <td><strong>{{ $detail->product?->name ?? 'Producto no disponible' }}</strong></td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-
-        <hr>
-
-        <div class="footer">
-            <p>{{ now()->format('d/m/Y H:i:s') }}</p>
-        </div>
+        @if($direccion)
+        <div class="company-address">{{ $direccion }}</div>
+        @endif
     </div>
-</body>
-</html>
-        <table class="item-table">
-            <thead>
-                <tr>
-                    <th class="col-qty">Cant</th>
-                    <th class="col-desc">Producto</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($order->orderDetails as $detail)
-                <tr>
-                    <td class="col-qty">{{ $detail->quantity }}</td>
-                    <td class="col-desc">{{ $detail->product->name }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
 
-        @if($order->notes)
-        <hr>
-        <div class="notes">
-            <p><strong>Notas:</strong></p>
-            <p>{{ $order->notes }}</p>
+    <!-- TIPO DE DOCUMENTO -->
+    <div class="document-type">COMANDA - COCINA</div>
+
+    <!-- INFORMACIÓN DE MESA/CLIENTE -->
+    <div class="table-info">
+        @if($order->table)
+            <div>MESA</div>
+            <div class="table-number">{{ $order->table->number }}</div>
+        @else
+            <div>VENTA DIRECTA</div>
+            @if(!empty($customerNameForComanda))
+                <div style="font-size: 12px; margin-top: 4px;">
+                    {{ strtoupper($customerNameForComanda) }}
+                </div>
+            @endif
+        @endif
+    </div>
+
+    <!-- INFORMACIÓN DE LA ORDEN -->
+    <div class="order-info">
+        <div class="info-row">
+            <span class="info-label">ORDEN:</span>
+            <span class="info-value">#{{ str_pad($order->id, 6, '0', STR_PAD_LEFT) }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">MESERO:</span>
+            <span class="info-value">{{ strtoupper($order->employee?->name ?? 'N/A') }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">FECHA:</span>
+            <span class="info-value">{{ $order->created_at->format('d/m/Y') }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="info-label">HORA:</span>
+            <span class="info-value">{{ $order->created_at->format('H:i:s') }}</span>
+        </div>
+
+        @if($order->customer && empty($customerNameForComanda))
+        <div class="info-row">
+            <span class="info-label">CLIENTE:</span>
+            <span class="info-value">{{ strtoupper($order->customer->name) }}</span>
         </div>
         @endif
     </div>
+
+    <!-- SEPARADOR -->
+    <hr class="separator-thick">
+
+    <!-- PRODUCTOS -->
+    <div class="products-section">
+        <div class="section-title">PRODUCTOS SOLICITADOS</div>
+
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th class="qty-col">CANT</th>
+                    <th class="product-col">PRODUCTO</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($order->orderDetails ?? [] as $detail)
+                <tr>
+                    <td class="qty-col">{{ $detail->quantity }}</td>
+                    <td class="product-col">
+                        <div class="product-name">
+                            {{ strtoupper($detail->product?->name ?? 'PRODUCTO NO DISPONIBLE') }}
+                        </div>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="2" style="text-align: center; font-style: italic; padding: 12px;">
+                        No hay productos en esta orden
+                    </td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+
+    <!-- NOTAS (SI EXISTEN) -->
+    @if($order->notes)
+    <div class="notes-section">
+        <div class="notes-title">NOTAS ESPECIALES:</div>
+        <div class="notes-content">{{ strtoupper($order->notes) }}</div>
+    </div>
+    @endif
+
+    <!-- SEPARADOR FINAL -->
+    <hr class="separator-thick">
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <div class="timestamp">
+            IMPRESO: {{ now()->format('d/m/Y H:i:s') }}
+        </div>
+
+        <div class="footer-message">
+            ¡GRACIAS POR SU PREFERENCIA!
+        </div>
+    </div>
+
+    <!-- SCRIPT DE IMPRESIÓN AUTOMÁTICA -->
     <script>
-        window.onload = function() {
-            window.print();
-        }
+        window.addEventListener('load', function() {
+            // Delay para asegurar que todo esté cargado
+            setTimeout(function() {
+                console.log('🖨️ Iniciando impresión automática de comanda...');
+                window.print();
+
+                // Cerrar ventana después de imprimir (opcional)
+                window.addEventListener('afterprint', function() {
+                    setTimeout(() => {
+                        console.log('✅ Impresión completada, cerrando ventana...');
+                        window.close();
+                    }, 1000);
+                });
+            }, 500);
+        });
     </script>
 </body>
 </html>

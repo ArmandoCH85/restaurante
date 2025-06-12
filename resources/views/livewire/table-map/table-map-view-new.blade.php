@@ -168,7 +168,7 @@
                             <div class="text-3xl font-bold text-blue-700">{{ $stats['total'] }}</div>
                             <div class="text-xs text-blue-600">Total Mesas</div>
                         </div>
-                        
+
                         <!-- Disponibles -->
                         <div class="text-center">
                             <div class="flex justify-center mb-1">
@@ -177,7 +177,7 @@
                             <div class="text-3xl font-bold text-green-700">{{ $stats['available'] }}</div>
                             <div class="text-xs text-green-600">Disponibles</div>
                         </div>
-                        
+
                         <!-- Ocupadas -->
                         <div class="text-center">
                             <div class="flex justify-center mb-1">
@@ -186,7 +186,7 @@
                             <div class="text-3xl font-bold text-red-700">{{ $stats['occupied'] }}</div>
                             <div class="text-xs text-red-600">Ocupadas</div>
                         </div>
-                        
+
                         <!-- Reservadas -->
                         <div class="text-center">
                             <div class="flex justify-center mb-1">
@@ -195,7 +195,7 @@
                             <div class="text-3xl font-bold text-yellow-700">{{ $stats['reserved'] }}</div>
                             <div class="text-xs text-yellow-600">Reservadas</div>
                         </div>
-                        
+
                         <!-- Mantenimiento -->
                         <div class="text-center">
                             <div class="flex justify-center mb-1">
@@ -832,6 +832,8 @@
 
             // SISTEMA DE ACTUALIZACIONES EN TIEMPO REAL
             // Actualizar los indicadores de tiempo y semáforos cada 30 segundos
+            // TEMPORALMENTE DESHABILITADO: Auto-actualización cada 30 segundos
+            /*
             setInterval(() => {
                 try {
                     // Comprobar si estamos usando Livewire 2 o Livewire 3
@@ -851,6 +853,7 @@
                     console.error('Error al actualizar los indicadores de tiempo:', e);
                 }
             }, 30000); // 30 segundos para actualizaciones más frecuentes
+            */
 
             // Función para actualizar animaciones del semáforo
             function updateTrafficLightAnimations() {

@@ -35,7 +35,13 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(LoginScreenPage::class)
             ->sidebarCollapsibleOnDesktop()
-            ->homeUrl('/admin')
+            ->homeUrl(function () {
+                $user = Auth::user();
+                if ($user && $user->hasRole('waiter')) {
+                    return '/admin/mapa-mesas';
+                }
+                return '/admin';
+            })
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('') // Ocultar el nombre de la aplicación
             ->brandLogo('/images/logoWayna.svg')
@@ -141,7 +147,8 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier']));
+                        // KISS: Excluir explícitamente a waiter
+                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier']) && !$user->hasRole('waiter'));
                     }),
                 NavigationItem::make('Mapa de Mesas')
                     ->url('/admin/mapa-mesas')
@@ -277,7 +284,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier', 'delivery']));
+                        return $user && ($user->hasRole(['super_admin', 'admin', 'delivery']));
                     }),
 
                 // 👨‍💼 GESTIÓN DE PERSONAL
