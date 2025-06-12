@@ -62,12 +62,15 @@ class PointOfSale extends Component
 
     public function loadProductsByCategory(string $categoryId): void
     {
+        Log::info('Iniciando carga de productos por categoría', ['category_id' => $categoryId]);
+
         $this->selectedCategoryId = $categoryId;
 
         $query = Product::where('category_id', $categoryId)
             ->where('active', true)
             ->where('available', true)
-            ->where('product_type', '!=', 'ingredient');
+            ->where('product_type', '!=', 'ingredient')
+            ->select(['id', 'name', 'sale_price', 'image_path', 'available', 'category_id']);
 
         // Aplicar filtro de búsqueda si existe
         if (!empty($this->searchQuery)) {
@@ -76,10 +79,29 @@ class PointOfSale extends Component
 
         $this->products = $query->orderBy('name')->get();
 
+                // Log detallado de cada producto
+        foreach ($this->products as $product) {
+            Log::info('Producto cargado', [
+                'id' => $product->id,
+                'name' => $product->name,
+                'image_path' => $product->image_path,
+                'full_image_url' => $product->image_path ? url('storage/' . $product->image_path) : null
+            ]);
+        }
+
         // Asegurar que $products nunca sea null
         if ($this->products === null) {
             $this->products = collect();
+            Log::warning('No se encontraron productos para la categoría', ['category_id' => $categoryId]);
         }
+
+        Log::info('Carga de productos completada', [
+            'category_id' => $categoryId,
+            'total_products' => $this->products->count()
+        ]);
+
+        // Forzar actualización de la vista
+        $this->dispatch('products-updated');
     }
 
     public function searchProducts(): void

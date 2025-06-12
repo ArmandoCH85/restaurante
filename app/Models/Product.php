@@ -69,6 +69,19 @@ class Product extends Model
     }
 
     /**
+     * Accessor para el campo 'image' - genera la URL completa de la imagen
+     * Esto mantiene compatibilidad con diferentes vistas que esperan $product->image
+     */
+    public function getImageAttribute()
+    {
+        if (!$this->image_path) {
+            return null;
+        }
+
+        return asset('storage/' . $this->image_path);
+    }
+
+    /**
      * Obtiene la categoría del producto.
      */
     public function category(): BelongsTo

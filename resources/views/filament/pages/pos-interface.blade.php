@@ -50,18 +50,29 @@
                         {{-- PRODUCTO CARD - CLICKEABLE COMPLETA --}}
                         <div
                             wire:click="addToCart({{ $product->id }})"
-                            class="group bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.03] hover:border-green-300 active:scale-[0.97] h-[200px] flex flex-col"
+                            class="group bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.03] hover:border-green-300 active:scale-[0.97] h-[200px] flex flex-col pos-interface"
                         >
                             {{-- IMAGEN DEL PRODUCTO --}}
-                            <div class="relative h-24 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden">
+                            <div class="product-image-container">
                                 @if($product->image)
-                                    <img src="{{ $product->image }}" alt="{{ $product->name }}" class="h-full w-full object-cover group-hover:scale-110 transition-transform duration-200">
+                                    <img src="{{ $product->image }}" alt="{{ $product->name }}" class="product-image">
                                 @else
-                                    <x-heroicon-o-photo class="h-8 w-8 text-gray-400 group-hover:text-gray-500 transition-colors" />
+                                    <div class="product-image-fallback">
+                                        <div class="product-initials">
+                                            {{ strtoupper(substr($product->name, 0, 2)) }}
+                                        </div>
+                                        @if($product->category ?? null)
+                                            <div class="product-category-badge">
+                                                {{ $product->category->name ?? 'Sin categoría' }}
+                                            </div>
+                                        @endif
+                                    </div>
                                 @endif
 
                                 {{-- OVERLAY DE HOVER --}}
-                                <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                                <div class="product-image-overlay">
+                                    <x-heroicon-o-plus class="h-8 w-8 text-white" />
+                                </div>
                             </div>
 
                             {{-- INFORMACIÓN DEL PRODUCTO --}}
@@ -84,11 +95,6 @@
                                         <span class="text-lg font-bold text-green-600 group-hover:text-green-700 transition-colors">
                                             S/ {{ number_format($product->price, 2) }}
                                         </span>
-                                    </div>
-
-                                    {{-- INDICADOR VISUAL DE ACCIÓN --}}
-                                    <div class="bg-green-50 group-hover:bg-green-100 p-1.5 rounded-full transition-all duration-200">
-                                        <x-heroicon-o-plus class="h-4 w-4 text-green-600 group-hover:text-green-700 transition-colors" />
                                     </div>
                                 </div>
                             </div>
@@ -360,3 +366,7 @@
         </div>
     </div>
 </x-filament-panels::page>
+
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
+@endpush

@@ -113,20 +113,26 @@
                             @if($products && $products->count() > 0)
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                     @foreach($products as $product)
-                                        <div class="product-card p-3 border rounded-lg dark:border-gray-700 hover:shadow-md transition cursor-pointer bg-white dark:bg-gray-800">
+                                        <div class="product-card p-3 border rounded-lg dark:border-gray-700 hover:shadow-md transition cursor-pointer bg-white dark:bg-gray-800 table-map">
                                             <div class="flex flex-col h-full">
                                                 <!-- Imagen del producto o placeholder -->
-                                                <div class="mb-2 h-32 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
+                                                <div class="product-image-container mb-2">
                                                     @if($product->image_path)
-                                                        <img src="{{ asset($product->image_path) }}"
+                                                        <img src="{{ asset('storage/' . $product->image_path) }}"
                                                             alt="{{ $product->name }}"
-                                                            class="object-cover h-full w-full"
+                                                            class="product-image"
                                                         >
                                                     @else
-                                                        <x-filament::icon
-                                                            icon="heroicon-o-shopping-bag"
-                                                            class="h-12 w-12 text-gray-400"
-                                                        />
+                                                        <div class="product-image-fallback">
+                                                            <div class="product-initials">
+                                                                {{ strtoupper(substr($product->name, 0, 2)) }}
+                                                            </div>
+                                                            @if($product->category ?? null)
+                                                                <div class="product-category-badge">
+                                                                    {{ $product->category->name }}
+                                                                </div>
+                                                            @endif
+                                                        </div>
                                                     @endif
                                                 </div>
 

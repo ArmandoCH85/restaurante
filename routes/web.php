@@ -373,4 +373,20 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
     ]);
 })->middleware(['web'])->name('print.invoice');
 
+// Ruta de prueba para verificar URL de imagen
+Route::get('/test-image-url', function() {
+    $product = \App\Models\Product::where('image_path', 'productos/01JXC0MBGKBM6V4WY9TMBQEDPT.png')->first();
+    if ($product) {
+        return [
+            'image_path' => $product->image_path,
+            'full_url' => asset('storage/' . $product->image_path),
+            'storage_path' => storage_path('app/public/' . $product->image_path),
+            'exists' => file_exists(storage_path('app/public/' . $product->image_path))
+        ];
+    }
+    return 'Producto no encontrado';
+});
+
+
+
 

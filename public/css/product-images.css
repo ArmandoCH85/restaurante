@@ -1,42 +1,390 @@
-/* Estilos para las imágenes de productos */
+/* ===== ESTILOS ESTANDARIZADOS PARA IMÁGENES DE PRODUCTOS ===== */
+
+
+/* Variables CSS para consistencia */
+
+:root {
+    --product-image-radius: 0.75rem;
+    --product-image-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --product-image-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --product-image-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --product-image-gradient: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+}
+
+
+/* ===== CONTENEDOR BASE PARA IMÁGENES DE PRODUCTOS ===== */
+
 .product-image-container {
     position: relative;
     width: 100%;
     height: 100%;
     overflow: hidden;
+    border-radius: var(--product-image-radius);
+    background: var(--product-image-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--product-image-shadow);
+    transition: var(--product-image-transition);
 }
+
+.product-image-container:hover {
+    box-shadow: var(--product-image-shadow-hover);
+    transform: translateY(-2px);
+}
+
+
+/* ===== IMAGEN PRINCIPAL ESTANDARIZADA ===== */
 
 .product-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
+    object-position: center;
+    transition: var(--product-image-transition);
+    border-radius: var(--product-image-radius);
+    background-color: #f9fafb;
 }
 
 .product-image:hover {
-    transform: scale(1.05);
+    transform: scale(1.08);
 }
 
-.product-fallback {
+
+/* ===== ESTILOS ESPECÍFICOS POR VISTA ===== */
+
+
+/* POS Interface Filament - Tarjetas de productos */
+
+.pos-interface .product-card .product-image-container {
+    height: 7rem;
+    /* 112px - Tamaño estándar para POS Filament */
+    aspect-ratio: 16/9;
+    margin-bottom: 0.75rem;
+}
+
+
+/* POS Livewire - Grid de productos */
+
+.pos-livewire .product-card .product-image-container {
+    height: 9rem;
+    /* 144px - Tamaño estándar para POS Livewire */
+    aspect-ratio: 4/3;
+}
+
+
+/* Table Map - Productos en modal */
+
+.table-map .product-card .product-image-container {
+    height: 8rem;
+    /* 128px - Tamaño estándar para mapa de mesas */
+    aspect-ratio: 16/10;
+}
+
+
+/* Dashboard - Productos destacados */
+
+.dashboard .product-image-container {
+    height: 2.5rem;
+    /* 40px - Tamaño pequeño para dashboard */
+    width: 2.5rem;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+}
+
+
+/* Admin Table - Lista de productos */
+
+.admin-table .product-image-container {
+    height: 3rem;
+    /* 48px - Tamaño medio para tablas admin */
+    width: 3rem;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+}
+
+
+/* ===== FALLBACK PARA PRODUCTOS SIN IMAGEN ===== */
+
+.product-image-fallback {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
     height: 100%;
-    text-align: center;
+    background: var(--product-image-gradient);
+    border-radius: var(--product-image-radius);
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image-fallback::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 51, 234, 0.1) 100%);
+    animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0%,
+    100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 0.8;
+    }
 }
 
 .product-initials {
-    font-size: 2rem;
-    font-weight: bold;
-    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    z-index: 1;
+    position: relative;
 }
 
-.product-category {
-    font-size: 0.75rem;
+.product-category-badge {
+    position: absolute;
+    bottom: 0.25rem;
+    right: 0.25rem;
+    font-size: 0.625rem;
     color: white;
-    margin-top: 0.25rem;
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.25rem;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.375rem;
+    backdrop-filter: blur(4px);
+    z-index: 2;
+}
+
+
+/* ===== CLASES UTILITARIAS ESPECÍFICAS ===== */
+
+
+/* Tamaños predefinidos */
+
+.product-image-xs {
+    height: 2rem;
+    width: 2rem;
+}
+
+
+/* 32px */
+
+.product-image-sm {
+    height: 3rem;
+    width: 3rem;
+}
+
+
+/* 48px */
+
+.product-image-md {
+    height: 4rem;
+    width: 4rem;
+}
+
+
+/* 64px */
+
+.product-image-lg {
+    height: 6rem;
+    width: 6rem;
+}
+
+
+/* 96px */
+
+.product-image-xl {
+    height: 8rem;
+    width: 8rem;
+}
+
+
+/* 128px */
+
+
+/* Aspectos específicos */
+
+.product-image-square {
+    aspect-ratio: 1/1;
+}
+
+.product-image-wide {
+    aspect-ratio: 16/9;
+}
+
+.product-image-portrait {
+    aspect-ratio: 3/4;
+}
+
+.product-image-landscape {
+    aspect-ratio: 4/3;
+}
+
+
+/* Efectos especiales */
+
+.product-image-polaroid {
+    padding: 0.5rem;
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+    transform: rotate(-1deg);
+    transition: var(--product-image-transition);
+}
+
+.product-image-polaroid:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+.product-image-circle {
+    border-radius: 50% !important;
+    aspect-ratio: 1/1;
+}
+
+.product-image-rounded {
+    border-radius: var(--product-image-radius);
+}
+
+
+/* ===== OVERLAYS Y ESTADOS ===== */
+
+.product-image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    transition: var(--product-image-transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--product-image-radius);
+}
+
+.product-image-container:hover .product-image-overlay {
+    opacity: 1;
+}
+
+.product-image-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    z-index: 10;
+}
+
+
+/* Estados especiales */
+
+.product-image-loading {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.product-image-unavailable {
+    filter: grayscale(100%) opacity(0.6);
+    position: relative;
+}
+
+.product-image-unavailable::after {
+    content: 'Agotado';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    background: #ef4444;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+
+/* ===== MODO OSCURO ===== */
+
+@media (prefers-color-scheme: dark) {
+     :root {
+        --product-image-gradient: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+    }
+    .product-image-container {
+        background: var(--product-image-gradient);
+        border: 1px solid #374151;
+    }
+    .product-image-fallback {
+        background: var(--product-image-gradient);
+    }
+    .product-initials {
+        color: #9ca3af;
+    }
+}
+
+
+/* ===== RESPONSIVO ===== */
+
+@media (max-width: 768px) {
+    .pos-interface .product-card .product-image-container {
+        height: 5rem;
+        /* Más pequeño en móviles */
+    }
+    .pos-livewire .product-card .product-image-container {
+        height: 6rem;
+        /* Más pequeño en móviles */
+    }
+    .product-initials {
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pos-interface .product-card .product-image-container,
+    .pos-livewire .product-card .product-image-container {
+        height: 4rem;
+        /* Muy pequeño en móviles pequeños */
+    }
+    .product-initials {
+        font-size: 1rem;
+    }
+}
+
+
+/* ===== ANIMACIONES SUAVES ===== */
+
+@media (prefers-reduced-motion: no-preference) {
+    .product-image-container {
+        transition: var(--product-image-transition);
+    }
+    .product-image {
+        transition: var(--product-image-transition);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .product-image-container,
+    .product-image {
+        transition: none;
+    }
+    .product-image:hover {
+        transform: none;
+    }
 }
