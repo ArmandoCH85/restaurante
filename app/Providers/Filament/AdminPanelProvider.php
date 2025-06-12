@@ -35,17 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(LoginScreenPage::class)
             ->sidebarCollapsibleOnDesktop()
-            ->homeUrl(function () {
-                $user = Auth::user();
-
-                // Si el usuario tiene rol delivery, redirigir directamente a /tables
-                if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                    return '/tables';
-                }
-
-                // Para otros usuarios, redirigir al dashboard por defecto
-                return '/admin';
-            })
+            ->homeUrl('/admin')
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('') // Ocultar el nombre de la aplicación
             ->brandLogo('/images/logoWayna.svg')
@@ -151,10 +141,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasCustomAccess('access_pos');
+                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier']));
                     }),
                 NavigationItem::make('Mapa de Mesas')
                     ->url('/admin/mapa-mesas')
@@ -163,34 +150,8 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasCustomAccess('access_tables');
+                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier', 'waiter']));
                     }),
-
-
-                // 🚚 DELIVERY (solo para usuarios delivery)
-                NavigationItem::make('Mis Pedidos')
-                    ->url('/delivery/my-orders')
-                    ->icon('heroicon-o-truck')
-                    ->group('🏪 Operaciones Diarias')
-                    ->sort(4)
-                    ->visible(function () {
-                        $user = Auth::user();
-                        return $user && $user->roles->where('name', 'delivery')->count() > 0;
-                    }),
-                NavigationItem::make('Mapa de Pedidos')
-                    ->url('/admin/mapa-mesas')
-                    ->icon('heroicon-o-map')
-                    ->group('🏪 Operaciones Diarias')
-                    ->sort(5)
-                    ->visible(function () {
-                        $user = Auth::user();
-                        return $user && $user->roles->where('name', 'delivery')->count() > 0;
-                    }),
-
-
 
                 // 📦 MENÚ Y PRODUCTOS
                 NavigationItem::make('Productos')
@@ -200,10 +161,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_product');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Categorías')
                     ->url('/admin/resources/product-categories')
@@ -212,10 +170,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_product::category');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Recetas')
                     ->url('/admin/resources/recipes')
@@ -224,10 +179,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_recipe');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
 
                 // 🛒 INVENTARIO Y COMPRAS
@@ -238,10 +190,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_ingredient');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Almacenes')
                     ->url('/admin/resources/warehouses')
@@ -250,10 +199,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_warehouse');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Compras')
                     ->url('/admin/resources/purchases')
@@ -262,10 +208,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_purchase');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Proveedores')
                     ->url('/admin/resources/suppliers')
@@ -274,10 +217,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(4)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_supplier');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
 
                 // 📄 FACTURACIÓN
@@ -288,10 +228,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_invoice');
+                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier']));
                     }),
                 NavigationItem::make('Series de Comprobantes')
                     ->url('/admin/document-series')
@@ -300,23 +237,8 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_document::series');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
-                // NavigationItem::make('Caja')
-                //     ->url('/admin/resources/cash-registers')
-                //     ->icon('heroicon-o-banknotes')
-                //     ->group('📄 Facturación y Ventas')
-                //     ->sort(3)
-                //     ->visible(function() {
-                //         $user = Auth::user();
-                //         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                //             return false;
-                //         }
-                //         return PermissionHelper::hasPermission('view_any_cash::register');
-                //     }),
 
                 // 📅 RESERVAS Y COTIZACIONES
                 NavigationItem::make('Reservas')
@@ -326,10 +248,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_reservation');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Calendario de Reservas')
                     ->url('/admin/reservation-calendar')
@@ -338,10 +257,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(2)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_reservation');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Cotizaciones')
                     ->url('/admin/resources/quotations')
@@ -350,10 +266,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_quotation');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
 
                 // 👥 CLIENTES
@@ -364,10 +277,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_customer');
+                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier', 'delivery']));
                     }),
 
                 // 👨‍💼 GESTIÓN DE PERSONAL
@@ -378,32 +288,8 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_employee');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
-                // NavigationItem::make('Usuarios')
-                //     ->url('/admin/resources/users')
-                //     ->icon('heroicon-o-users')
-                //     ->group('Personal')
-                //     ->sort(2)
-                //     ->visible(function() {
-                //         $user = Auth::user();
-                //         if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                //             return false;
-                //         }
-                //         return PermissionHelper::hasPermission('view_any_user');
-                //     }),
-                // NavigationItem::make('Roles y Permisos')
-                //     ->url('/admin/resources/roles')
-                //     ->icon('heroicon-o-shield-check')
-                //     ->group('Personal')
-                //     ->sort(3)
-                //     ->visible(function() {
-                //         $user = Auth::user();
-                //         return $user && $user->hasRole('super_admin');
-                //     }),
 
                 // 📊 REPORTES Y ANÁLISIS
                 NavigationItem::make('Reportes')
@@ -413,7 +299,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        return $user && ($user->hasRole('super_admin') || $user->hasRole('admin'));
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
 
                 // ⚙️ CONFIGURACIÓN DEL SISTEMA
@@ -423,7 +309,8 @@ class AdminPanelProvider extends PanelProvider
                     ->group('⚙️ Configuración')
                     ->sort(1)
                     ->visible(function () {
-                        return PermissionHelper::hasPermission('view_any_company::config');
+                        $user = Auth::user();
+                        return $user && ($user->hasRole(['super_admin']));
                     }),
                 NavigationItem::make('Facturación Electrónica')
                     ->url('/admin/resources/electronic-billing-configs')
@@ -431,7 +318,8 @@ class AdminPanelProvider extends PanelProvider
                     ->group('⚙️ Configuración')
                     ->sort(2)
                     ->visible(function () {
-                        return PermissionHelper::hasPermission('view_any_electronic::billing::config');
+                        $user = Auth::user();
+                        return $user && ($user->hasRole(['super_admin']));
                     }),
                 NavigationItem::make('Mesas')
                     ->url('/admin/resources/tables')
@@ -440,10 +328,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(3)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_table');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
                 NavigationItem::make('Pisos')
                     ->url('/admin/resources/floors')
@@ -452,10 +337,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(4)
                     ->visible(function () {
                         $user = Auth::user();
-                        if ($user && $user->roles->where('name', 'delivery')->count() > 0) {
-                            return false;
-                        }
-                        return PermissionHelper::hasPermission('view_any_floor');
+                        return $user && ($user->hasRole(['super_admin', 'admin']));
                     }),
 
             ])

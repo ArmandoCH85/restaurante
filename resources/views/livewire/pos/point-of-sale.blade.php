@@ -14,27 +14,27 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        
+
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        
+
         /* Mejorar las tarjetas de productos */
         .product-card {
             min-height: 280px;
             display: flex;
             flex-direction: column;
         }
-        
+
         .product-card h3 {
             word-wrap: break-word;
             hyphens: auto;
             line-height: 1.3;
         }
-        
+
         /* ===== SISTEMA POS OPTIMIZADO - PALETA PROFESIONAL ===== */
         :root {
             /* Colores principales optimizados para POS */
@@ -1083,11 +1083,6 @@
             border-color: var(--color-primary-light);
         }
 
-        .dark .edit-price-btn:hover {
-            background: var(--color-primary-light);
-            color: white;
-        }
-
         /* ===== ESTILOS COMPACTOS PARA CARRITO OPTIMIZADO ===== */
 
         /* Contenedor de item compacto */
@@ -1885,8 +1880,8 @@
                 </div>
 
                 <!-- Botones principales con diseño responsivo -->
-                <div class="grid {{ Auth::user()->hasRole('waiter') ? 'grid-cols-1' : 'grid-cols-3' }} gap-1 sm:gap-2 mb-2">
-                    <!-- Botón Comanda (siempre visible) -->
+                <div class="grid grid-cols-3 gap-1 sm:gap-2 mb-2">
+                    <!-- Botón Comanda (visible para todos) -->
                     <button
                         onclick="abrirComanda()"
                         type="button"
@@ -1897,8 +1892,7 @@
                         <span class="text-xs font-medium sm:text-sm">Comanda</span>
                     </button>
 
-                    @if(!Auth::user()->hasRole('waiter'))
-                    <!-- Botón Pre-Cuenta (no visible para meseros) -->
+                    <!-- Botón Pre-Cuenta (visible para todos) -->
                     <button
                         onclick="abrirPreCuenta()"
                         type="button"
@@ -1909,23 +1903,29 @@
                         <span class="text-xs font-medium sm:text-sm">Pre-Cuenta</span>
                     </button>
 
-                    <!-- Botón Facturar (no visible para meseros) -->
+                    <!-- Botón Facturar (visible para todos, pero con restricción funcional) -->
                     <button
-                        onclick="abrirFactura()"
+                        onclick="@if(Auth::user()->hasRole('waiter'))
+                                    alert('⚠️ Solo un cajero puede facturar la venta. Contacta a un cajero para procesar el pago.');
+                                 @else
+                                    abrirFactura();
+                                 @endif"
                         type="button"
-                        class="px-2 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] scale-hover"
+                        class="px-2 py-2 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] scale-hover {{ Auth::user()->hasRole('waiter') ? 'opacity-75' : '' }}"
                         {{ count($cart) === 0 ? 'disabled' : '' }}
                     >
                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /> </svg>
                         <span class="text-xs font-medium sm:text-sm">Facturar</span>
+                        @if(Auth::user()->hasRole('waiter'))
+                        <span class="text-xs opacity-75">(Solo Cajero)</span>
+                        @endif
                     </button>
-                    @endif
                 </div>
 
                 <!-- Botones de acciones adicionales responsivos -->
                 <div class="grid grid-cols-2 gap-1 mt-1 mb-1 sm:grid-cols-3 sm:gap-2">
-                    @if($table)
-                        <!-- Botón Transferir Mesa -->
+                    @if($table && !Auth::user()->hasRole(['waiter', 'cashier']))
+                        <!-- Botón Transferir Mesa (no visible para waiter y cashier) -->
                         <button
                             type="button"
                             onclick="abrirModalTransferencia()"
@@ -1937,8 +1937,8 @@
                         </button>
                     @endif
 
-                    @if(!Auth::user()->hasRole('waiter'))
-                    <!-- Botón Cancelar Pedido (no visible para meseros) -->
+                    @if(!Auth::user()->hasRole(['waiter', 'cashier']))
+                    <!-- Botón Cancelar Pedido (no visible para waiter y cashier) -->
                     <button
                         @if(count($cart) > 0)
                         onclick="if(confirm('¿Estás seguro de que deseas cancelar este pedido? Esta acción no se puede deshacer.')) { @this.cancelOrder(); }"
@@ -1952,8 +1952,8 @@
                     </button>
                     @endif
 
-                    <!-- Botón Liberar Mesa (solo para consumo en tienda y no visible para meseros) -->
-                    @if($table && ($serviceType === 'dine_in' || !$serviceType) && !Auth::user()->hasRole('waiter'))
+                    <!-- Botón Liberar Mesa (no visible para waiter y cashier) -->
+                    @if($table && ($serviceType === 'dine_in' || !$serviceType) && !Auth::user()->hasRole(['waiter', 'cashier']))
                     <button
                         onclick="if(confirm('¿Estás seguro de que deseas liberar esta mesa? Esta acción cambiará el estado de la mesa a disponible y cancelará cualquier orden asociada. Esta acción es solo para casos excepcionales cuando un cliente se va sin consumir.')) { @this.releaseTable(); }"
                         class="px-2 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs min-h-[44px] scale-hover"
@@ -3011,10 +3011,10 @@
             if (event.data === 'invoice-completed' ||
                 (event.data && event.data.type === 'invoice-completed')) {
 
-                console.log('Factura completada - Iniciando limpieza del carrito');
+                console.log('Factura completada - Iniciando limpieza del carrito y redirección');
 
                 // Vaciar el carrito
-                vaciarCarrito();
+                vaciarCarritoYRedirigirAMesas();
 
                 // Cerrar cualquier modal activo
                 if (typeof closeModal === 'function') {
@@ -3022,7 +3022,7 @@
                 }
 
                 // Mostrar mensaje de éxito
-                console.log('Carrito limpiado exitosamente');
+                console.log('Carrito limpiado exitosamente - Redirigiendo a mapa de mesas');
             }
         });
     </script>
@@ -3106,6 +3106,31 @@
                 console.error('❌ Livewire no está disponible');
                 // Plan B: Recargar la página
                 window.location.href = '{{ url("/tables") }}?refresh=' + Date.now();
+            }
+        }
+
+        // Función específica para vaciar carrito y redirigir al mapa de mesas de Filament después de facturar
+        function vaciarCarritoYRedirigirAMesas() {
+            console.log('🧹 Ejecutando vaciarCarritoYRedirigirAMesas() - Limpiando carrito y redirigiendo a Filament');
+
+            // Llamar al método clearSale del componente Livewire que limpia el carrito y libera la mesa
+            if (window.Livewire) {
+                console.log('✅ Livewire disponible - Enviando evento clearSale');
+
+                // Usar dispatch para llamar al método clearSale
+                Livewire.dispatch('clearSale');
+                console.log('📤 Evento clearSale enviado correctamente');
+
+                // Esperar a que se complete la actualización antes de redirigir
+                setTimeout(function() {
+                    console.log('🔄 Redirigiendo al mapa de mesas de Filament...');
+                    // Redirigir al mapa de mesas de Filament
+                    window.location.href = '{{ url("/admin/mapa-mesas") }}';
+                }, 2000); // Dar tiempo para que se complete la actualización
+            } else {
+                console.error('❌ Livewire no está disponible');
+                // Plan B: Redirigir directamente al mapa de mesas de Filament
+                window.location.href = '{{ url("/admin/mapa-mesas") }}';
             }
         }
 

@@ -1,4 +1,4 @@
-<div class="flex flex-col h-screen overflow-hidden" x-data>  
+<div class="flex flex-col h-screen overflow-hidden" x-data>
     <!-- Cargar nuevos estilos CSS basados en proporción áurea -->
     <link href="{{ asset('css/golden-ratio-variables.css') }}" rel="stylesheet">
     <link href="{{ asset('css/table-card-enhanced.css') }}" rel="stylesheet">
@@ -19,12 +19,14 @@
                         </svg>
                         Almacén
                     </a>
+                    @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
                     <a href="{{ route('pos.index') }}" class="btn-primary flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                         </svg>
                         POS
                     </a>
+                    @endif
                     <a href="{{ route('filament.admin.pages.dashboard') }}" class="btn-secondary flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -127,7 +129,7 @@
                             <div class="stat-value text-xl font-bold text-blue-700">{{ count($tables) }}</div>
                             <div class="stat-label text-xs text-blue-600">Total</div>
                         </div>
-                        
+
                         <!-- Disponibles -->
                         <div class="stat-block text-center">
                             <div class="flex justify-center mb-1">
@@ -136,7 +138,7 @@
                             <div class="stat-value text-xl font-bold text-green-700">{{ count($tables->where('status', 'available')) }}</div>
                             <div class="stat-label text-xs text-green-600">Disponibles</div>
                         </div>
-                        
+
                         <!-- Ocupadas -->
                         <div class="stat-block text-center">
                             <div class="flex justify-center mb-1">
@@ -145,7 +147,7 @@
                             <div class="stat-value text-xl font-bold text-red-700">{{ count($tables->where('status', 'occupied')) }}</div>
                             <div class="stat-label text-xs text-red-600">Ocupadas</div>
                         </div>
-                        
+
                         <!-- Reservadas -->
                         <div class="stat-block text-center">
                             <div class="flex justify-center mb-1">
@@ -154,7 +156,7 @@
                             <div class="stat-value text-xl font-bold text-yellow-700">{{ count($tables->where('status', 'reserved')) }}</div>
                             <div class="stat-label text-xs text-yellow-600">Reservadas</div>
                         </div>
-                        
+
                         <!-- Mantenimiento -->
                         <div class="stat-block text-center">
                             <div class="flex justify-center mb-1">
@@ -165,7 +167,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Filtros rápidos -->
                 <div class="quick-filters">
                     <span class="filter-pill {{ !$statusFilter ? 'bg-blue-100 text-blue-800 border border-blue-300' : 'bg-white border border-gray-300 text-gray-700' }}" wire:click="$set('statusFilter', null)">
@@ -187,14 +189,16 @@
                         Reservadas
                     </span>
                 </div>
-                
+
                 <!-- Tables Grid -->
                 <div class="tables-grid">
                         @forelse($tables as $table)
                             <div wire:key="table-{{ $table->id }}" class="table-card {{ $table->status }}{{ $selectedTable && $selectedTable->id === $table->id ? ' selected' : '' }}">
-                                <!-- Enlace al POS para toda la tarjeta -->
+                                <!-- Enlace al POS para toda la tarjeta - Solo para cashiers, admin y super_admin -->
+                                @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
                                 <a href="{{ route('pos.index', ['table_id' => $table->id]) }}" class="table-link"></a>
-                                
+                                @endif
+
                                 <!-- Cabecera de la tarjeta -->
                                 <div class="table-card-header">
                                     <h3 class="table-number">Mesa {{ $table->number }}</h3>
@@ -202,7 +206,7 @@
                                         {{ $this->getStatusText($table->status) }}
                                     </span>
                                 </div>
-                                
+
                                 <!-- Cuerpo de la tarjeta -->
                                 <div class="table-card-body" wire:click="selectTable({{ $table->id }})">
                                     <!-- Visualización de la mesa -->
@@ -217,7 +221,7 @@
                                             <div class="chair" style="left: calc(50% + {{ $x }}%); top: calc(50% - {{ $y }}%);"></div>
                                         @endfor
                                     </div>
-                                    
+
                                     <!-- Indicador de capacidad -->
                                     <div class="capacity-indicator">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -225,7 +229,7 @@
                                         </svg>
                                         <span>{{ $table->capacity }} personas</span>
                                     </div>
-                                    
+
                                     @if ($table->status == 'occupied')
                                     <!-- Tiempo de ocupación (solo si está ocupada) -->
                                     <div class="occupation-time-container">
@@ -238,7 +242,7 @@
                                     </div>
                                     @endif
                                 </div>
-                                
+
                                 <!-- Pie de la tarjeta -->
                                 <div class="table-card-footer">
                                     <div class="text-xs text-gray-600">{{ $table->location }}</div>
@@ -265,7 +269,7 @@
 
             </div>
         </div>
-        
+
         <!-- Panel lateral de detalles de mesa -->
         <div class="flex">
             @if($selectedTable)
@@ -297,7 +301,7 @@
                                         {{ $this->getStatusText($selectedTable->status) }}
                                     </span>
                                 </div>
-                                
+
                                 <!-- Ubicación con icono -->
                                 <div>
                                     <span class="block text-sm font-medium text-gray-500 mb-1">Ubicación</span>
@@ -309,7 +313,7 @@
                                         <span class="text-sm text-gray-700">{{ $selectedTable->location }}</span>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Capacidad con icono -->
                                 <div>
                                     <span class="block text-sm font-medium text-gray-500 mb-1">Capacidad</span>
@@ -346,11 +350,28 @@
                                 <button wire:click="changeTableStatus({{ $selectedTable->id }}, 'maintenance')" class="transition-all px-3 py-2 text-sm rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-500 text-gray-700 hover:text-white flex items-center justify-center">
                                     <span class="w-3 h-3 rounded-full bg-gray-500 mr-2"></span>
                                     Mantenimiento
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Acciones de la mesa -->
+                        <div class="mb-6">
+                            <h4 class="text-base font-semibold text-gray-800 mb-3 flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                Acciones
+                            </h4>
+                            <div class="space-y-3">
+                                @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
+                                <a href="{{ route('pos.index', ['table_id' => $selectedTable->id]) }}" class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                                     </svg>
                                     Ir al POS para esta mesa
                                 </a>
-                                
+                                @endif
+
                                 <button wire:click="showQrCode({{ $selectedTable->id }})" class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-all">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1z" />
@@ -359,7 +380,7 @@
                                 </button>
                             </div>
                         </div>
-                        
+
                         <!-- Visualización gráfica de la mesa -->
                         <div class="mb-6 bg-gray-50 rounded-lg p-5 flex flex-col items-center border border-gray-100">
                             <div class="table-visual {{ $selectedTable->shape == 'round' ? 'table-round' : 'table-square' }}" style="width: 100px; height: 100px; margin-bottom: 1rem;">
@@ -432,7 +453,7 @@
                     </svg>
                 </button>
             </div>
-            
+
             <!-- Contenido del modal -->
             <div class="p-6">
                 <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-lg flex items-center justify-center mb-4">
@@ -450,7 +471,7 @@
                     </div>
                     @endif
                 </div>
-                
+
                 <div class="text-center space-y-4">
                     <div class="flex items-center justify-center gap-2 text-gray-600">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -458,7 +479,7 @@
                         </svg>
                         <p class="text-sm">Escanea este código para acceder al menú digital</p>
                     </div>
-                    
+
                     @if($currentQrCode)
                     <div class="flex justify-center gap-3 pt-3">
                         <button wire:click="closeQrModal" class="px-5 py-2.5 text-sm font-medium rounded-md border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-all">

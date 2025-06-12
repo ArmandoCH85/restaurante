@@ -6,6 +6,7 @@ use App\Models\Table;
 use Filament\Widgets\Widget;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class TableGridWidget extends Widget
 {
@@ -40,7 +41,10 @@ class TableGridWidget extends Widget
     public static function canView(): bool
     {
         Log::info('🔍 TableGridWidget::canView() ejecutado');
-        return true; // Permitir que se cargue, el control está en la vista
+
+                // Principio de menor privilegio: solo admin y super_admin pueden ver las mesas del dashboard
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
     }
 
     /**
