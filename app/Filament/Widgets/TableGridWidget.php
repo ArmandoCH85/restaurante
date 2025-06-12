@@ -42,9 +42,29 @@ class TableGridWidget extends Widget
     {
         Log::info('🔍 TableGridWidget::canView() ejecutado');
 
-                // Principio de menor privilegio: solo admin y super_admin pueden ver las mesas del dashboard
+        // SOLO mostrar en la página específica del mapa de mesas, NO en el dashboard
+        $currentUrl = request()->getPathInfo();
+        $isTableMapPage = str_contains($currentUrl, 'mapa-mesas');
+
+        if (!$isTableMapPage) {
+            Log::info('🚫 TableGridWidget - No mostrar: no es página de mapa de mesas', [
+                'current_url' => $currentUrl,
+                'is_table_map_page' => $isTableMapPage
+            ]);
+            return false;
+        }
+
+        // Principio de menor privilegio: solo admin y super_admin pueden ver las mesas del dashboard
         $user = Auth::user();
-        return $user && ($user->hasRole(['super_admin', 'admin']));
+        $canView = $user && ($user->hasRole(['super_admin', 'admin']));
+
+        Log::info('✅ TableGridWidget - Verificación de permisos', [
+            'current_url' => $currentUrl,
+            'is_table_map_page' => $isTableMapPage,
+            'can_view' => $canView
+        ]);
+
+        return $canView;
     }
 
     /**

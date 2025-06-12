@@ -31,9 +31,10 @@ class ListOrders extends ListRecords
         return [
             'default' => 1,  // Móvil: 1 columna
             'sm' => 2,       // Tablet: 2 columnas
-            'md' => 4,       // Desktop: 4 columnas
-            'xl' => 6,       // Desktop grande: 6 columnas
-            '2xl' => 8,      // Desktop extra: 8 columnas
+            'md' => 3,       // Desktop pequeño: 3 columnas
+            'lg' => 4,       // Desktop: 4 columnas (REQUERIMIENTO ESPECÍFICO)
+            'xl' => 4,       // Desktop grande: 4 columnas
+            '2xl' => 4,      // Desktop extra: 4 columnas
         ];
     }
 
@@ -222,111 +223,48 @@ class ListOrders extends ListRecords
     private function getCustomCss(): string
     {
         return "
-        <style>
-            /* 🎨 GRID RESPONSIVO OPTIMIZADO */
-            .fi-page-content .fi-section-content-ctn {
-                gap: 1.5rem;
-            }
-
-            /* 📊 WIDGETS CON DISEÑO PREMIUM */
-            .fi-wi-stats-overview-card {
-                background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-                border-radius: 16px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                border: 1px solid rgba(148, 163, 184, 0.2);
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            .fi-wi-stats-overview-card:hover {
-                box-shadow: 0 8px 30px rgba(0,0,0,0.12);
-                transform: translateY(-2px);
-            }
-
-            /* 📈 CHARTS CON BORDES SUAVES */
-            .fi-wi-chart {
-                border-radius: 16px;
-                overflow: hidden;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-                border: 1px solid rgba(148, 163, 184, 0.15);
-            }
-
-            /* 🏆 TABLAS CON MEJOR PRESENTACIÓN */
-            .fi-ta-table {
-                border-radius: 12px;
-                overflow: hidden;
-                box-shadow: 0 2px 12px rgba(0,0,0,0.04);
-            }
-
-            /* 🎯 BOTONES CON ANIMACIONES FLUIDAS */
-            .fi-ac-btn-action {
-                border-radius: 10px;
-                font-weight: 600;
-                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            }
-
-            .fi-ac-btn-action:hover {
-                box-shadow: 0 4px 16px rgba(0,0,0,0.15);
-            }
-
-            /* 🎨 TÍTULO CON GRADIENTE ELEGANTE */
-            .fi-header-heading {
-                background: linear-gradient(135deg, #1e293b, #475569);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-                font-weight: 900;
-                letter-spacing: -0.025em;
-            }
-
-            /* 📱 RESPONSIVE MEJORADO */
-            @media (max-width: 768px) {
-                .fi-header-actions {
-                    flex-wrap: wrap;
-                    gap: 0.75rem;
-                    justify-content: center;
+            <link rel=\"stylesheet\" href=\"" . asset('css/dashboard-widgets.css') . "\">
+            <style>
+                /* 🎯 ESTILOS ESPECÍFICOS PARA DASHBOARD DE VENTAS */
+                .fi-header-heading {
+                    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    font-weight: 800;
                 }
 
-                .fi-ac-btn-action {
-                    min-width: auto;
-                    padding: 0.625rem 1.25rem;
-                    font-size: 0.875rem;
+                .fi-header-subheading {
+                    color: #6b7280;
+                    font-weight: 500;
                 }
 
-                .fi-page-content .fi-section-content-ctn {
-                    gap: 1rem;
+                /* 📊 CONTENEDOR DE WIDGETS OPTIMIZADO */
+                .fi-section-content-ctn {
+                    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                    border-radius: 1rem;
+                    padding: 1.5rem;
                 }
-            }
 
-            /* 🌟 ANIMACIONES SUAVES AL CARGAR */
-            .fi-wi {
-                animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            @keyframes fadeInUp {
-                from {
-                    opacity: 0;
-                    transform: translateY(20px);
+                /* 🚀 BOTONES DE ACCIÓN MEJORADOS */
+                .fi-btn {
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    font-weight: 600;
                 }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
+
+                .fi-btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
                 }
-            }
 
-            /* 🎨 MEJORAS ESPECÍFICAS PARA DARK MODE */
-            .dark .fi-wi-stats-overview-card {
-                background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-                border-color: rgba(148, 163, 184, 0.1);
-            }
-
-            .dark .fi-header-heading {
-                background: linear-gradient(135deg, #f1f5f9, #cbd5e1);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
-            }
-        </style>
+                /* 📱 RESPONSIVE OPTIMIZATIONS */
+                @media (max-width: 768px) {
+                    .fi-section-content-ctn {
+                        padding: 1rem;
+                        margin: 0.5rem;
+                    }
+                }
+            </style>
         ";
     }
 

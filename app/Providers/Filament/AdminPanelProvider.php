@@ -42,6 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 }
                 return '/admin';
             })
+            ->maxContentWidth('7xl')
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('') // Ocultar el nombre de la aplicación
             ->brandLogo('/images/logoWayna.svg')
@@ -71,10 +72,23 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\ReservationCalendar::class,
                 \App\Filament\Pages\ReportesPage::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
+            // COMENTADO: Auto-descubrimiento de widgets deshabilitado para control granular
+            // ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                \App\Filament\Widgets\ReservationStats::class
+                \App\Filament\Widgets\ReservationStats::class,
+                \App\Filament\Widgets\PaymentMethodsWidget::class,
+                \App\Filament\Widgets\SalesStatsWidget::class,
+                \App\Filament\Widgets\SalesChartWidget::class,
+                \App\Filament\Widgets\TopProductsWidget::class,
+                \App\Filament\Widgets\SalesHoursWidget::class,
+                \App\Filament\Widgets\TableStatsWidget::class,
+                \App\Filament\Widgets\SuppliersCountWidget::class,
+                \App\Filament\Widgets\SunatConfigurationOverview::class,
+                \App\Filament\Widgets\ProfitChartWidget::class,
+                \App\Filament\Widgets\CashRegisterStatsWidget::class,
+                \App\Filament\Widgets\PaymentMethodsChart::class,
+                \App\Filament\Widgets\CashRegisterPerformanceChart::class,
             ])
             ->navigationGroups([
                 // 🏪 OPERACIONES PRINCIPALES - DIARIAS (Más usadas - Siempre expandidas)
