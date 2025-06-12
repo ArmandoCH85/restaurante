@@ -30,13 +30,12 @@ Route::middleware(['auth', 'pos.access'])->group(function () {
     Route::get('/pos', [App\Http\Controllers\PosController::class, 'index'])->name('pos.index');
     Route::get('/pos/table/{table}', [PosController::class, 'showTable'])->name('pos.table');
 
-    // Rutas para PDFs
+    // Rutas para PDFs - Accesibles para todos los roles autenticados
     Route::get('/pos/command-pdf/{order}', [PosController::class, 'generateCommandPdf'])->name('pos.command.pdf');
     Route::get('/pos/prebill-pdf/{order}', [PosController::class, 'generatePreBillPdf'])->name('pos.prebill.pdf');
-
-    // Nuevas rutas directas para generar y mostrar documentos
     Route::get('/pos/command/generate', [PosController::class, 'createAndShowCommand'])->name('pos.command.generate');
     Route::get('/pos/prebill/generate', [PosController::class, 'createAndShowPreBill'])->name('pos.prebill.generate');
+
     Route::get('/pos/invoice/generate', [PosController::class, 'createAndShowInvoiceForm'])->name('pos.invoice.create');
 
     // Ruta para crear orden desde JavaScript
@@ -51,8 +50,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/pos/payment/void/{payment}', [\App\Http\Controllers\PaymentController::class, 'voidPayment'])->name('pos.payment.void');
 });
 
-// Rutas para facturación
-Route::middleware(['auth'])->group(function () {
+// Rutas para facturación - Solo cashiers, admin y super_admin
+Route::middleware(['auth', 'role:cashier|admin|super_admin'])->group(function () {
     Route::get('/pos/invoice/form/{order}', [\App\Http\Controllers\InvoiceController::class, 'showInvoiceForm'])->name('pos.invoice.form');
     Route::post('/pos/invoice/generate/{order}', [\App\Http\Controllers\InvoiceController::class, 'generateInvoice'])->name('pos.invoice.generate');
     Route::get('/pos/invoice/pdf/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'generatePdf'])->name('pos.invoice.pdf');
@@ -70,19 +69,21 @@ Route::get('/thermal-preview/demo', function() {
     return view('thermal-preview');
 })->name('thermal.preview.demo');
 
-// Rutas para el proceso unificado de pago y facturación
-Route::middleware(['auth'])->group(function () {
+// Rutas para el proceso unificado de pago y facturación - Solo cashiers, admin y super_admin
+Route::middleware(['auth', 'role:cashier|admin|super_admin'])->group(function () {
     Route::get('/pos/unified/{order}', [\App\Http\Controllers\UnifiedPaymentController::class, 'showUnifiedForm'])->name('pos.unified.form');
     Route::post('/pos/unified/process/{order}', [\App\Http\Controllers\UnifiedPaymentController::class, 'processUnified'])->name('pos.unified.process');
 });
 
 // Rutas para anulación de comprobantes (legacy) y gestión de clientes
 Route::middleware(['auth', 'pos.access'])->group(function () {
-    // Rutas para anulación de comprobantes
-    Route::get('/pos/invoices', [PosController::class, 'invoicesList'])->name('pos.invoices.list');
-    Route::get('/pos/invoice/void/{invoice}', [PosController::class, 'showVoidForm'])->name('pos.void.form');
-    Route::post('/pos/invoice/void/{invoice}', [PosController::class, 'processVoid'])->name('pos.void.process');
-    Route::get('/pos/invoice/void-success/{invoice}', [PosController::class, 'voidSuccess'])->name('pos.void.success');
+    // Rutas para anulación de comprobantes - Solo cashiers, admin y super_admin
+    Route::middleware(['role:cashier|admin|super_admin'])->group(function () {
+        Route::get('/pos/invoices', [PosController::class, 'invoicesList'])->name('pos.invoices.list');
+        Route::get('/pos/invoice/void/{invoice}', [PosController::class, 'showVoidForm'])->name('pos.void.form');
+        Route::post('/pos/invoice/void/{invoice}', [PosController::class, 'processVoid'])->name('pos.void.process');
+        Route::get('/pos/invoice/void-success/{invoice}', [PosController::class, 'voidSuccess'])->name('pos.void.success');
+    });
 
     // Rutas para gestión de clientes
     Route::get('/pos/customers/find', [PosController::class, 'findCustomer'])->name('pos.customers.find');

@@ -149,7 +149,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN), // ✅ Solo para órdenes con mesa
+                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
 
             Action::make('cancelOrder')
                 ->label('Cancelar Orden')
@@ -169,7 +169,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN), // ✅ Solo para órdenes con mesa
+                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
 
             Action::make('transferOrder')
                 ->label('Transferir')
@@ -233,7 +233,7 @@ class PosInterface extends Page
                 })
                 ->modalHeading('Transferir / Combinar Cuentas')
                 ->modalDescription('Selecciona los productos y la cantidad a mover a otra mesa.')
-                ->visible(fn (): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN),
+                ->visible(fn (): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ No visible para waiter/cashier
 
             Action::make('splitBill')
                 ->label('Dividir Cuenta')
@@ -272,7 +272,7 @@ class PosInterface extends Page
                 })
                 ->modalHeading('Separar Productos en Nueva Cuenta')
                 ->modalDescription('Los productos seleccionados se moverán a una cuenta nueva para ser pagados por separado.')
-                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN), // ✅ Solo para órdenes con mesa
+                ->visible(fn (): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
 
                         Action::make('printComanda')
                 ->label('Comanda')
@@ -320,7 +320,7 @@ class PosInterface extends Page
                 ->outlined()
                 ->color('warning')
                 ->size('lg')
-                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Mostrar si hay orden O carrito con productos
+                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
 
                         Action::make('printPreBill')
                 ->label('Pre-Cuenta')
@@ -352,7 +352,7 @@ class PosInterface extends Page
                 ->outlined()
                 ->color('info')
                 ->size('lg')
-                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Mostrar si hay orden O carrito con productos
+                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
         ];
     }
 
@@ -857,6 +857,7 @@ class PosInterface extends Page
             ->label('💳 Procesar Pago')
             ->slideOver()
             ->modalWidth('4xl')
+            ->visible(fn () => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
             ->form(function () {
                 return [
                     // 🛒 RESUMEN COMPACTO: PRODUCTOS + TOTAL
@@ -1434,6 +1435,17 @@ class PosInterface extends Page
 
     public function handlePayment(array $data): void
     {
+        // Verificar que solo cashiers puedan generar comprobantes
+        if (!Auth::user()->hasRole(['cashier', 'admin', 'super_admin'])) {
+            Notification::make()
+                ->title('❌ Acceso Denegado')
+                ->body('No tienes permisos para generar comprobantes. Solo los cajeros pueden realizar esta acción.')
+                ->danger()
+                ->duration(5000)
+                ->send();
+            throw new Halt();
+        }
+
         DB::transaction(function () use ($data) {
             $order = $this->order;
 
@@ -1713,6 +1725,14 @@ class PosInterface extends Page
                 'print_url' => route('print.invoice', ['invoice' => $invoice->id]),
                 'invoice_exists' => Invoice::where('id', $invoice->id)->exists(),
                 'route_exists' => route('print.invoice', ['invoice' => $invoice->id])
+            ]);
+
+            // Establecer flags de sesión para redirección al mapa de mesas después de imprimir
+            session([
+                'clear_cart_after_print' => true,
+                'table_id' => $order->table_id,
+                'order_id' => $order->id,
+                'generate_prebill' => true
             ]);
 
             // Mejorar la forma en que se pasa el ID para evitar errores de tipo

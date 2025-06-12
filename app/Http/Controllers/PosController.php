@@ -719,6 +719,11 @@ class PosController extends Controller
      */
     public function generateInvoice(Request $request, Order $order)
     {
+        // Verificar que solo cashiers puedan generar comprobantes
+        if (!Auth::user()->hasRole(['cashier', 'admin', 'super_admin'])) {
+            return back()->with('error', 'No tienes permisos para generar comprobantes. Solo los cajeros pueden realizar esta acción.');
+        }
+
         // Validaciones según tipo de comprobante
         $rules = [
             'invoice_type' => 'required|in:receipt,invoice,sales_note',
@@ -967,6 +972,14 @@ class PosController extends Controller
             // Generar URL de pre-cuenta automáticamente para pagos divididos
             $preBillUrl = route('pos.prebill.pdf', ['order' => $order->id]);
 
+            // Establecer flags de sesión para redirección al mapa de mesas
+            session([
+                'clear_cart_after_print' => true,
+                'table_id' => $order->table_id,
+                'order_id' => $order->id,
+                'generate_prebill' => true
+            ]);
+
             return view($view, [
                 'invoice' => $invoice,
                 'date' => now()->format('d/m/Y H:i:s'),
@@ -1058,6 +1071,14 @@ class PosController extends Controller
 
             // Generar URL de pre-cuenta automáticamente
             $preBillUrl = route('pos.prebill.pdf', ['order' => $order->id]);
+
+            // Establecer flags de sesión para redirección al mapa de mesas
+            session([
+                'clear_cart_after_print' => true,
+                'table_id' => $order->table_id,
+                'order_id' => $order->id,
+                'generate_prebill' => true
+            ]);
 
             return view($view, [
                 'invoice' => $invoice,

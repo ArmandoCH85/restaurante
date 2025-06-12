@@ -14,6 +14,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Filament\Notifications\Notification;
 use Filament\Tables\Actions\Action;
+use Illuminate\Support\Facades\Auth;
 
 class QuotationResource extends Resource
 {
@@ -36,6 +37,31 @@ class QuotationResource extends Resource
     protected static ?string $recordTitleAttribute = 'quotation_number';
 
     protected static int $globalSearchResultsLimit = 10;
+
+    // Protección de acceso - Principio de menor privilegio
+    public static function canViewAny(): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
+
+    public static function canEdit($record): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
+
+    public static function canDelete($record): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
 
     public static function getGloballySearchableAttributes(): array
     {
@@ -129,7 +155,7 @@ class QuotationResource extends Resource
                                     ]),
 
                                 Forms\Components\Hidden::make('user_id')
-                                    ->default(fn () => auth()->id()),
+                                    ->default(fn () => Auth::id()),
                             ]),
 
                         Forms\Components\Section::make('Cliente')

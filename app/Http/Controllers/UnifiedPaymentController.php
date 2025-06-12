@@ -65,6 +65,12 @@ class UnifiedPaymentController extends Controller
      */
     public function processUnified(Request $request, $orderId)
     {
+        // Verificar que solo cashiers puedan generar comprobantes
+        if (!Auth::user()->hasRole(['cashier', 'admin', 'super_admin'])) {
+            return redirect()->route('pos.unified.form', ['order' => $orderId])
+                ->with('error', 'No tienes permisos para generar comprobantes. Solo los cajeros pueden realizar esta acción.');
+        }
+
         $request->validate([
             'payment_method' => 'required|string',
             'amount' => 'required|numeric|min:0.01',

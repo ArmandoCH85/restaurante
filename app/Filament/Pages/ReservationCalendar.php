@@ -6,6 +6,7 @@ use App\Models\Reservation;
 use App\Models\Table as TableModel;
 use Carbon\Carbon;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ReservationCalendar extends Page
@@ -19,6 +20,13 @@ class ReservationCalendar extends Page
     protected static ?string $navigationLabel = 'Calendario de Reservas';
 
     protected static ?int $navigationSort = 5;
+
+    // Protección de acceso - Principio de menor privilegio
+    public static function canAccess(): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
 
     public $currentDate;
     public $viewType = 'week'; // 'day', 'week', 'month'

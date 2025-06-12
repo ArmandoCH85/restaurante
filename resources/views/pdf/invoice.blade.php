@@ -169,6 +169,17 @@
     <script>
         window.onload = function() {
             window.print();
+
+            // Notificar a la ventana padre que se ha completado la facturación
+            if (window.opener) {
+                window.opener.postMessage('invoice-completed', '*');
+                console.log('Notificación enviada: invoice-completed');
+            }
+
+            // Cerrar esta ventana después de imprimir
+            setTimeout(function() {
+                window.close();
+            }, 2000);
         }
     </script>
 </body>

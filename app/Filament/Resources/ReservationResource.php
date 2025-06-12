@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Notifications\Notification;
 use Filament\Support\Enums\FontWeight;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ReservationResource extends Resource
 {
@@ -33,6 +34,31 @@ class ReservationResource extends Resource
     protected static ?string $pluralModelLabel = 'Reservas';
 
     protected static ?int $navigationSort = 4;
+
+    // Protección de acceso - Principio de menor privilegio
+    public static function canViewAny(): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
+
+    public static function canCreate(): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
+
+    public static function canEdit($record): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
+
+    public static function canDelete($record): bool
+    {
+        $user = Auth::user();
+        return $user && ($user->hasRole(['super_admin', 'admin']));
+    }
 
     public static function form(Form $form): Form
     {
