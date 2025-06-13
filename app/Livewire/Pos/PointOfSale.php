@@ -8,6 +8,7 @@ use App\Models\ProductCategory;
 use App\Models\Table;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\CashRegister;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -266,6 +267,13 @@ class PointOfSale extends Component
         $taxAmount = $subtotal * 0.18; // Asumiendo 18% IGV
         $totalAmount = $subtotal + $taxAmount;
 
+        // Obtener la caja registradora activa
+        $activeCashRegister = CashRegister::getOpenRegister();
+
+        if (!$activeCashRegister) {
+            throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+        }
+
         // Buscar orden existente para la mesa que no esté facturada
         $order = Order::where('table_id', $this->tableId)
             ->where('status', '!=', 'billed') // Que no esté facturada
@@ -273,41 +281,22 @@ class PointOfSale extends Component
             ->first();
 
         if ($order) {
-            // Si existe, actualizarla
+            // Si existe, actualizar los detalles
             Log::info('Updating existing order', ['order_id' => $order->id]);
-            $order->subtotal = $subtotal;
-            $order->tax_amount = $taxAmount;
-            $order->total_amount = $totalAmount;
-            $order->notes = $this->customerNote;
-            // No cambiar estado aquí, se maneja al facturar
-            $order->save();
+            $order->orderDetails()->delete(); // Eliminar detalles existentes
 
-            // Actualizar o añadir detalles
-            $existingDetailIds = $order->details()->pluck('product_id')->toArray();
-            $cartProductIds = array_keys($this->cart);
-
-            // Detalles a eliminar
-            $detailsToRemove = array_diff($existingDetailIds, $cartProductIds);
-            if (!empty($detailsToRemove)) {
-                OrderDetail::where('order_id', $order->id)->whereIn('product_id', $detailsToRemove)->delete();
-                Log::info('Removed order details', ['product_ids' => $detailsToRemove]);
-            }
-
-            // Detalles a actualizar o añadir
             foreach ($this->cart as $productId => $item) {
-                OrderDetail::updateOrCreate(
-                    ['order_id' => $order->id, 'product_id' => $productId],
-                    [
-                        'quantity' => $item['quantity'],
-                        'unit_price' => $item['price'],
-                        'total_price' => $item['subtotal'],
-                        'notes' => $item['notes'] ?? null,
-                        'status' => 'pending' // Asegurar estado inicial
-                    ]
-                );
+                $orderDetail = new OrderDetail();
+                $orderDetail->order_id = $order->id;
+                $orderDetail->product_id = $productId;
+                $orderDetail->quantity = $item['quantity'];
+                $orderDetail->unit_price = $item['price'];
+                $orderDetail->total_price = $item['subtotal'];
+                $orderDetail->notes = $item['notes'] ?? null;
+                $orderDetail->status = 'pending';
+                $orderDetail->save();
             }
-            Log::info('Updated/Created order details', ['product_ids' => $cartProductIds]);
-
+            Log::info('Updated details for existing order', ['product_ids' => array_keys($this->cart)]);
         } else {
             // Si no existe, crear una nueva
             Log::info('Creating new order');
@@ -320,6 +309,7 @@ class PointOfSale extends Component
             $order->tax_amount = $taxAmount;
             $order->total_amount = $totalAmount;
             $order->notes = $this->customerNote;
+            $order->cash_register_id = $activeCashRegister->id;
             $order->save();
             Log::info('New order created', ['order_id' => $order->id]);
 

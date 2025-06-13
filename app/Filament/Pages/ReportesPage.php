@@ -14,6 +14,7 @@ use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Filament\Support\Exceptions\Halt;
@@ -64,6 +65,8 @@ class ReportesPage extends Page implements HasForms
                         'profits' => 'Ganancias',
                         'products' => 'Productos Vendidos',
                         'service_types' => 'Ventas por Tipo de Servicio',
+                        'cash_register' => 'Movimientos de Caja',
+                        'sales_by_user' => 'Ventas por Usuario',
                     ])
                     ->default('sales')
                     ->required(),
@@ -102,17 +105,15 @@ class ReportesPage extends Page implements HasForms
                     ->label('Fecha Inicio')
                     ->format('Y-m-d')
                     ->displayFormat('d/m/Y')
-                    ->default(Carbon::today())
-                    ->visible(fn ($get) => $get('dateRange') === 'custom')
-                    ->required(),
+                    ->default(now()->startOfDay())
+                    ->visible(fn ($get) => $get('dateRange') === 'custom'),
 
                 DatePicker::make('endDate')
                     ->label('Fecha Fin')
                     ->format('Y-m-d')
                     ->displayFormat('d/m/Y')
-                    ->default(Carbon::today())
-                    ->visible(fn ($get) => $get('dateRange') === 'custom')
-                    ->required(),
+                    ->default(now()->endOfDay())
+                    ->visible(fn ($get) => $get('dateRange') === 'custom'),
 
                 Select::make('format')
                     ->label('Formato')
@@ -125,7 +126,16 @@ class ReportesPage extends Page implements HasForms
             ]);
     }
 
-    public function exportReport()
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Widgets\SalesOverviewWidget::class,
+            \App\Filament\Widgets\ProfitChartWidget::class,
+            \App\Filament\Widgets\SalesByUserWidget::class,
+        ];
+    }
+
+    public function generate(): void
     {
         // Obtener datos del formulario
         $formData = $this->form->getState();
@@ -177,6 +187,12 @@ class ReportesPage extends Page implements HasForms
                 case 'service_types':
                     $this->exportServiceTypesReport($startDate, $endDate);
                     break;
+                case 'cash_register':
+                    $this->exportCashRegisterReport($startDate, $endDate);
+                    break;
+                case 'sales_by_user':
+                    $this->exportSalesByUserReport($startDate, $endDate);
+                    break;
             }
 
             // Mostrar notificación usando la API de Filament
@@ -186,7 +202,7 @@ class ReportesPage extends Page implements HasForms
                 ->send();
         } catch (\Exception $e) {
             // Registrar el error para depuración
-            \Log::error('Error al generar reporte: ' . $e->getMessage(), [
+            Log::error('Error al generar reporte: ' . $e->getMessage(), [
                 'exception' => $e,
                 'reportType' => $this->reportType,
                 'startDate' => $this->startDate,
@@ -667,6 +683,181 @@ class ReportesPage extends Page implements HasForms
                 filename: $filename,
                 id: uniqid('excel_')
             );
+        }
+    }
+
+    private function exportCashRegisterReport(Carbon $startDate, Carbon $endDate): void
+    {
+        // Obtener datos de caja
+        $cashData = \App\Models\CashRegister::whereBetween('opened_at', [$startDate, $endDate])
+            ->with(['user', 'cashMovements', 'orders'])
+            ->get();
+
+        // Calcular totales
+        $totalInitial = $cashData->sum('initial_amount');
+        $totalFinal = $cashData->sum('final_amount');
+        $totalMovements = $cashData->sum(function ($register) {
+            return $register->cashMovements->sum('amount');
+        });
+        $totalSales = $cashData->sum(function ($register) {
+            return $register->orders->sum('total');
+        });
+
+        // Generar el reporte según el formato seleccionado
+        if ($this->format === 'pdf') {
+            $pdf = PDF::loadView('reports.cash_register', [
+                'cashData' => $cashData,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'totalInitial' => $totalInitial,
+                'totalFinal' => $totalFinal,
+                'totalMovements' => $totalMovements,
+                'totalSales' => $totalSales,
+            ]);
+
+            $filename = 'caja_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $this->dispatch('download-pdf', [
+                'content' => base64_encode($pdf->output()),
+                'filename' => $filename
+            ]);
+        } else {
+            // Crear archivo Excel
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Encabezados
+            $sheet->setCellValue('A1', 'Reporte de Caja');
+            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A4', 'Fecha Apertura');
+            $sheet->setCellValue('B4', 'Fecha Cierre');
+            $sheet->setCellValue('C4', 'Usuario');
+            $sheet->setCellValue('D4', 'Monto Inicial');
+            $sheet->setCellValue('E4', 'Monto Final');
+            $sheet->setCellValue('F4', 'Total Movimientos');
+            $sheet->setCellValue('G4', 'Total Ventas');
+            $sheet->setCellValue('H4', 'Diferencia');
+
+            // Datos
+            $row = 5;
+            foreach ($cashData as $register) {
+                $totalMovements = $register->cashMovements->sum('amount');
+                $totalSales = $register->orders->sum('total');
+                $expected = $register->initial_amount + $totalMovements + $totalSales;
+                $difference = $register->final_amount - $expected;
+
+                $sheet->setCellValue('A' . $row, $register->opened_at->format('d/m/Y H:i'));
+                $sheet->setCellValue('B' . $row, $register->closed_at ? $register->closed_at->format('d/m/Y H:i') : 'En curso');
+                $sheet->setCellValue('C' . $row, $register->user->name);
+                $sheet->setCellValue('D' . $row, $register->initial_amount);
+                $sheet->setCellValue('E' . $row, $register->final_amount);
+                $sheet->setCellValue('F' . $row, $totalMovements);
+                $sheet->setCellValue('G' . $row, $totalSales);
+                $sheet->setCellValue('H' . $row, $difference);
+                $row++;
+            }
+
+            // Totales
+            $sheet->setCellValue('A' . ($row + 1), 'TOTALES');
+            $sheet->setCellValue('D' . ($row + 1), $totalInitial);
+            $sheet->setCellValue('E' . ($row + 1), $totalFinal);
+            $sheet->setCellValue('F' . ($row + 1), $totalMovements);
+            $sheet->setCellValue('G' . ($row + 1), $totalSales);
+
+            // Guardar archivo
+            $filename = 'caja_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $writer = new Xlsx($spreadsheet);
+            ob_start();
+            $writer->save('php://output');
+            $content = ob_get_clean();
+
+            $this->dispatch('download-excel', [
+                'content' => base64_encode($content),
+                'filename' => $filename
+            ]);
+        }
+    }
+
+    private function exportSalesByUserReport(Carbon $startDate, Carbon $endDate): void
+    {
+        // Obtener ventas por usuario
+        $salesData = Order::whereBetween('order_datetime', [$startDate, $endDate])
+            ->where('billed', true)
+            ->join('users', 'orders.user_id', '=', 'users.id')
+            ->select(
+                'users.name as user_name',
+                DB::raw('COUNT(*) as total_orders'),
+                DB::raw('SUM(total) as total_sales'),
+                DB::raw('AVG(total) as average_ticket')
+            )
+            ->groupBy('users.id', 'users.name')
+            ->orderByDesc('total_sales')
+            ->get();
+
+        $totalSales = $salesData->sum('total_sales');
+        $totalOrders = $salesData->sum('total_orders');
+        $averageTicket = $totalOrders > 0 ? $totalSales / $totalOrders : 0;
+
+        // Generar el reporte según el formato seleccionado
+        if ($this->format === 'pdf') {
+            $pdf = PDF::loadView('reports.sales_by_user', [
+                'salesData' => $salesData,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'totalSales' => $totalSales,
+                'totalOrders' => $totalOrders,
+                'averageTicket' => $averageTicket,
+            ]);
+
+            $filename = 'ventas_por_usuario_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $this->dispatch('download-pdf', [
+                'content' => base64_encode($pdf->output()),
+                'filename' => $filename
+            ]);
+        } else {
+            // Crear archivo Excel
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+
+            // Encabezados
+            $sheet->setCellValue('A1', 'Reporte de Ventas por Usuario');
+            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A4', 'Usuario');
+            $sheet->setCellValue('B4', 'N° Ventas');
+            $sheet->setCellValue('C4', 'Total Ventas (S/)');
+            $sheet->setCellValue('D4', 'Ticket Promedio (S/)');
+            $sheet->setCellValue('E4', '% del Total');
+
+            // Datos
+            $row = 5;
+            foreach ($salesData as $data) {
+                $percentage = $totalSales > 0 ? ($data->total_sales / $totalSales) * 100 : 0;
+
+                $sheet->setCellValue('A' . $row, $data->user_name);
+                $sheet->setCellValue('B' . $row, $data->total_orders);
+                $sheet->setCellValue('C' . $row, $data->total_sales);
+                $sheet->setCellValue('D' . $row, $data->average_ticket);
+                $sheet->setCellValue('E' . $row, number_format($percentage, 2));
+                $row++;
+            }
+
+            // Totales
+            $sheet->setCellValue('A' . ($row + 1), 'TOTALES');
+            $sheet->setCellValue('B' . ($row + 1), $totalOrders);
+            $sheet->setCellValue('C' . ($row + 1), $totalSales);
+            $sheet->setCellValue('D' . ($row + 1), $averageTicket);
+            $sheet->setCellValue('E' . ($row + 1), '100.00');
+
+            // Guardar archivo
+            $filename = 'ventas_por_usuario_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $writer = new Xlsx($spreadsheet);
+            ob_start();
+            $writer->save('php://output');
+            $content = ob_get_clean();
+
+            $this->dispatch('download-excel', [
+                'content' => base64_encode($content),
+                'filename' => $filename
+            ]);
         }
     }
 

@@ -9,6 +9,7 @@ use App\Models\Table;
 use App\Models\Order;
 use App\Models\Invoice;
 use App\Models\InvoiceDetail;
+use App\Models\CashRegister;
 
 class PosController extends Controller
 {
@@ -51,6 +52,13 @@ class PosController extends Controller
                     ->first();
 
                 if (!$order) {
+                    // Obtener la caja registradora activa
+                    $activeCashRegister = CashRegister::getOpenRegister();
+
+                    if (!$activeCashRegister) {
+                        throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+                    }
+
                     // Crear una nueva orden para esta mesa
                     $order = new \App\Models\Order();
                     $order->table_id = $tableId;
@@ -62,6 +70,7 @@ class PosController extends Controller
                     $order->tax = 0;
                     $order->total = 0;
                     $order->billed = false;
+                    $order->cash_register_id = $activeCashRegister->id;
                     $order->save();
 
                     Log::info('Nueva orden creada para la mesa desde el controlador', [
@@ -414,12 +423,20 @@ class PosController extends Controller
             return null;
         }
 
+        // Obtener la caja registradora activa
+        $activeCashRegister = CashRegister::getOpenRegister();
+
+        if (!$activeCashRegister) {
+            throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+        }
+
         // Crear la orden
         $order = new Order();
         $order->order_datetime = now(); // Usando el campo correcto order_datetime
         $order->table_id = $tableId;
         $order->status = 'open'; // Usando 'open' que es un valor válido según la definición de la tabla
         $order->billed = false;
+        $order->cash_register_id = $activeCashRegister->id;
 
         // Asignar el ID del empleado (usuario autenticado) o usar un valor predeterminado
         if (Auth::check()) {

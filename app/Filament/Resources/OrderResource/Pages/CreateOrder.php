@@ -27,6 +27,13 @@ class CreateOrder extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        // Obtener la caja registradora activa
+        $activeCashRegister = \App\Models\CashRegister::getOpenRegister();
+
+        if (!$activeCashRegister) {
+            throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+        }
+
         // Establecer valores por defecto
         $data['employee_id'] = $data['employee_id'] ?? Auth::id();
         $data['order_datetime'] = now();
@@ -36,6 +43,7 @@ class CreateOrder extends CreateRecord
         $data['total'] = 0;
         $data['discount'] = $data['discount'] ?? 0;
         $data['billed'] = false;
+        $data['cash_register_id'] = $activeCashRegister->id;
 
         // Si viene table_id desde el mapa de mesas, pre-asignar
         if (request()->has('table_id') && !isset($data['table_id'])) {

@@ -41,6 +41,7 @@ class Order extends Model
         'table_id',
         'customer_id',
         'employee_id',
+        'cash_register_id',
         'order_datetime',
         'status',
         'subtotal',
@@ -109,6 +110,15 @@ class Order extends Model
     }
 
     /**
+     * Obtiene el usuario que registró la orden.
+     * Esta es una relación alternativa que apunta a la misma columna que employee.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'employee_id');
+    }
+
+    /**
      * Obtiene los detalles de la orden.
      */
     public function orderDetails(): HasMany
@@ -122,6 +132,14 @@ class Order extends Model
     public function deliveryOrder(): HasOne
     {
         return $this->hasOne(DeliveryOrder::class);
+    }
+
+    /**
+     * Obtiene la caja registradora asociada a la orden.
+     */
+    public function cashRegister(): BelongsTo
+    {
+        return $this->belongsTo(CashRegister::class);
     }
 
     /**

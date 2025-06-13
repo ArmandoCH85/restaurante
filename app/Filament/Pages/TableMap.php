@@ -20,6 +20,7 @@ use Filament\Actions\StaticAction;
 use Filament\Forms;
 use App\Filament\Pages\PosInterface;
 use Illuminate\Support\Facades\DB;
+use App\Models\CashRegister;
 
 class TableMap extends Page
 {
@@ -940,12 +941,20 @@ class TableMap extends Page
                 $subtotalWithoutIgv = round($totalWithIgv / 1.18, 2);
                 $includedIgv = round(($totalWithIgv / 1.18) * 0.18, 2);
 
+                // Obtener la caja registradora activa
+                $activeCashRegister = CashRegister::getOpenRegister();
+
+                if (!$activeCashRegister) {
+                    throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+                }
+
                 // Crear la orden con cálculos correctos
                 $order = Order::create([
                     'service_type' => 'delivery',
                     'table_id' => null,
                     'customer_id' => $customer->id,
                     'employee_id' => Auth::id(),
+                    'cash_register_id' => $activeCashRegister->id,
                     'order_datetime' => now(),
                     'status' => Order::STATUS_OPEN,
                     'subtotal' => $subtotalWithoutIgv,
