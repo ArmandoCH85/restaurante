@@ -6,6 +6,7 @@ use App\Livewire\TableMap\TableMapView;
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\TableController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CashRegisterReportController;
 use App\Models\Invoice;
 use App\Models\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -23,6 +24,11 @@ Route::get('/', function () {
 Route::get('/delivery-redirect', [\App\Http\Controllers\DeliveryRedirectController::class, 'redirectBasedOnRole'])
     ->name('delivery.redirect')
     ->middleware(['auth']);
+
+// Ruta para exportar detalle de caja a PDF
+Route::get('/cash-register-reports/{cashRegister}/export-pdf', [CashRegisterReportController::class, 'exportDetailPdf'])
+    ->name('cash.register.reports.export.pdf')
+    ->middleware(['auth']); // Asegurar que solo usuarios autenticados puedan acceder
 
 // Rutas del sistema POS
 // Usar el middleware personalizado para verificar el permiso 'access_pos'
@@ -234,7 +240,7 @@ Route::middleware(['web'])->group(function () {
     Route::get('/print/invoice/{invoice}', function(\App\Models\Invoice $invoice) {
         Log::info('🖨️ ACCESO A RUTA DE IMPRESIÓN', [
             'invoice_id' => $invoice->id,
-            'user_id' => auth()->id(),
+            'user_id' => auth()->check() ? auth()->user()->id : null,
             'timestamp' => now()
         ]);
 
