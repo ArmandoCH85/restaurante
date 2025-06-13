@@ -71,17 +71,17 @@ class ReservationStats extends BaseWidget
             Stat::make('Reservas Mañana', $tomorrowReservations)
                 ->description('Planifica con anticipación')
                 ->descriptionIcon('heroicon-m-calendar')
-                ->color('warning'),
+                ->color('success'),
 
             Stat::make('Mesas Disponibles', "{$availableTables} de {$totalTables}")
                 ->description(round(($availableTables / max(1, $totalTables)) * 100) . '% disponibilidad')
                 ->descriptionIcon('heroicon-m-squares-2x2')
-                ->color('info'),
+                ->color('success'),
 
             Stat::make('Próxima Reserva', $nextReservationText)
                 ->description('Prepárate')
                 ->descriptionIcon('heroicon-m-clock')
-                ->color('primary'),
+                ->color('success'),
         ];
     }
 }
