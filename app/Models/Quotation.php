@@ -283,6 +283,13 @@ class Quotation extends Model
         // Iniciar transacción para asegurar la integridad de los datos
         return \Illuminate\Support\Facades\DB::transaction(function () use ($serviceType, $tableId) {
             try {
+                // Obtener la caja registradora activa
+                $activeCashRegister = CashRegister::getOpenRegister();
+
+                if (!$activeCashRegister) {
+                    throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+                }
+
                 // Crear el pedido
                 $order = new Order([
                     'service_type' => $serviceType,
@@ -296,7 +303,8 @@ class Quotation extends Model
                     'discount' => $this->discount,
                     'total' => $this->total,
                     'notes' => $this->buildOrderNotes(),
-                    'billed' => false
+                    'billed' => false,
+                    'cash_register_id' => $activeCashRegister->id
                 ]);
 
                 $order->save();

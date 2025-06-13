@@ -74,6 +74,14 @@ class CashRegister extends Model
     /**
      * Obtiene el usuario que abrió la caja.
      */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'opened_by');
+    }
+
+    /**
+     * Obtiene el usuario que abrió la caja.
+     */
     public function openedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'opened_by');
@@ -101,6 +109,22 @@ class CashRegister extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Obtiene los movimientos de efectivo asociados a esta caja.
+     */
+    public function cashMovements(): HasMany
+    {
+        return $this->hasMany(CashMovement::class);
+    }
+
+    /**
+     * Obtiene las órdenes asociadas a esta caja.
+     */
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
     }
 
     /**

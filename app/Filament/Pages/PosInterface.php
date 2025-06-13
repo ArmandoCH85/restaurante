@@ -621,13 +621,21 @@ class PosInterface extends Page
         }
 
         try {
+            // Obtener la caja registradora activa
+            $activeCashRegister = CashRegister::getOpenRegister();
+
+            if (!$activeCashRegister) {
+                throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+            }
+
             // Iniciar una transacción para garantizar la atomicidad
-            return DB::transaction(function () {
+            return DB::transaction(function () use ($activeCashRegister) {
                 // Crear la orden
                 $order = Order::create([
                     'table_id' => $this->selectedTableId,
                     'employee_id' => Auth::id(),
                     'customer_id' => null, // Por ahora sin cliente específico
+                    'cash_register_id' => $activeCashRegister->id,
                     'service_type' => $this->selectedTableId ? 'dine_in' : 'takeout',
                     'subtotal' => $this->subtotal,
                     'tax' => $this->tax,
@@ -736,6 +744,13 @@ class PosInterface extends Page
                     return;
                 }
 
+                // Obtener la caja registradora activa
+                $activeCashRegister = CashRegister::getOpenRegister();
+
+                if (!$activeCashRegister) {
+                    throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+                }
+
                 $destinationOrder = Order::firstOrCreate(
                     ['table_id' => $newTableId, 'status' => Order::STATUS_OPEN],
                     [
@@ -744,7 +759,8 @@ class PosInterface extends Page
                         'subtotal' => 0,
                         'tax' => 0,
                         'total' => 0,
-                        'order_datetime' => now()
+                        'order_datetime' => now(),
+                        'cash_register_id' => $activeCashRegister->id
                     ]
                 );
 
