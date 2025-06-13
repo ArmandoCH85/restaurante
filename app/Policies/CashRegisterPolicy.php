@@ -15,7 +15,7 @@ class CashRegisterPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_cash::register');
+        return $user->can('view_any_cash::register::report');
     }
 
     /**
@@ -23,7 +23,7 @@ class CashRegisterPolicy
      */
     public function view(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('view_cash::register');
+        return $user->can('view_cash::register::report');
     }
 
     /**
@@ -31,7 +31,7 @@ class CashRegisterPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_cash::register');
+        return $user->can('create_cash::register::report');
     }
 
     /**
@@ -39,7 +39,7 @@ class CashRegisterPolicy
      */
     public function update(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('update_cash::register');
+        return $user->can('update_cash::register::report');
     }
 
     /**
@@ -47,7 +47,7 @@ class CashRegisterPolicy
      */
     public function delete(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('delete_cash::register');
+        return $user->can('delete_cash::register::report');
     }
 
     /**
@@ -55,7 +55,7 @@ class CashRegisterPolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_cash::register');
+        return $user->can('delete_any_cash::register::report');
     }
 
     /**
@@ -63,7 +63,7 @@ class CashRegisterPolicy
      */
     public function forceDelete(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('force_delete_cash::register');
+        return $user->can('force_delete_cash::register::report');
     }
 
     /**
@@ -71,7 +71,7 @@ class CashRegisterPolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_cash::register');
+        return $user->can('force_delete_any_cash::register::report');
     }
 
     /**
@@ -79,7 +79,7 @@ class CashRegisterPolicy
      */
     public function restore(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('restore_cash::register');
+        return $user->can('restore_cash::register::report');
     }
 
     /**
@@ -87,7 +87,7 @@ class CashRegisterPolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_cash::register');
+        return $user->can('restore_any_cash::register::report');
     }
 
     /**
@@ -95,7 +95,7 @@ class CashRegisterPolicy
      */
     public function replicate(User $user, CashRegister $cashRegister): bool
     {
-        return $user->can('replicate_cash::register');
+        return $user->can('replicate_cash::register::report');
     }
 
     /**
@@ -103,6 +103,6 @@ class CashRegisterPolicy
      */
     public function reorder(User $user): bool
     {
-        return $user->can('reorder_cash::register');
+        return $user->can('reorder_cash::register::report');
     }
 }
