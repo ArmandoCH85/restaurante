@@ -89,6 +89,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\CashRegisterStatsWidget::class,
                 \App\Filament\Widgets\PaymentMethodsChart::class,
                 \App\Filament\Widgets\CashRegisterPerformanceChart::class,
+                \App\Filament\Widgets\SalesByUserWidget::class,
             ])
             ->navigationGroups([
                 // 🏪 OPERACIONES PRINCIPALES - DIARIAS (Más usadas - Siempre expandidas)
