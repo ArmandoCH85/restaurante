@@ -28,6 +28,7 @@ use Filament\Tables\Columns\Layout\Grid;
 use Filament\Tables\Columns\Layout\Card;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Filament\Tables\Actions\Action;
 use Filament\Forms\Components\Section;
 
@@ -41,6 +42,21 @@ class CashRegisterReportResource extends Resource
     protected static ?string $modelLabel = 'Reporte de Caja';
     protected static ?string $pluralModelLabel = 'Reportes de Caja';
     protected static ?int $navigationSort = 6;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager']);
+    }
+
+    public static function canViewAny(): bool
+    {
+        return Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager']);
+    }
+
+    public static function canView(mixed $record): bool
+    {
+        return Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager']);
+    }
 
     public static function form(Form $form): Form
     {
