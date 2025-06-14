@@ -336,8 +336,17 @@ class PosInterface extends Page
 
                     $this->js("window.open('$url', '_blank', 'width=800,height=600')");
 
-                    // ✅ CUARTO: Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay
-                    if (Auth::user()->hasRole('waiter')) {
+                    // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
+                    if ($this->selectedTableId) {
+                        $redirectUrl = TableMap::getUrl();
+                        
+                        \Illuminate\Support\Facades\Log::debug('🔴 REDIRECCIÓN DESDE IMPRIMIR COMANDA', [
+                            'table_id' => $this->selectedTableId,
+                            'order_id' => $this->order?->id,
+                            'redirect_url' => $redirectUrl,
+                            'timestamp' => now()->format('Y-m-d H:i:s.u')
+                        ]);
+
                         Notification::make()
                             ->title('Comanda Enviada')
                             ->body('Pedido guardado correctamente. Regresando al mapa de mesas...')
@@ -345,8 +354,12 @@ class PosInterface extends Page
                             ->duration(2000)
                             ->send();
 
-                        // Redirigir después de un breve delay para que se abra la ventana de impresión
-                        $this->js("setTimeout(function() { window.location.href = '" . TableMap::getUrl() . "'; }, 2000);");
+                        $this->js("
+                            console.log('Redirigiendo a mapa de mesas desde imprimir comanda');
+                            setTimeout(function() {
+                                window.location.href = '{$redirectUrl}';
+                            }, 500);
+                        ");
                     }
                 })
                 ->modalHeading('Imprimir Comanda')
@@ -428,7 +441,7 @@ class PosInterface extends Page
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
-                        'name' => $detail->product->name,
+                        'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
                         'quantity' => $detail->quantity,
                         'unit_price' => $detail->unit_price,
                         'subtotal' => $detail->subtotal,
@@ -466,7 +479,7 @@ class PosInterface extends Page
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
-                        'name' => $detail->product->name,
+                        'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
                         'quantity' => $detail->quantity,
                         'unit_price' => $detail->unit_price,
                         'subtotal' => $detail->subtotal,
@@ -713,11 +726,30 @@ class PosInterface extends Page
                     ->persistent()
                     ->send();
 
-                // 🔄 REFRESCAR DATOS PARA MOSTRAR BOTONES DE OPERACIONES
-                $this->refreshOrderData();
+            // 🔄 REFRESCAR DATOS PARA MOSTRAR BOTONES DE OPERACIONES
+            $this->refreshOrderData();
 
-                // 🚀 FORZAR ACTUALIZACIÓN DE HEADER ACTIONS
-                $this->dispatch('$refresh');
+            // 🚀 FORZAR ACTUALIZACIÓN DE HEADER ACTIONS
+            $this->dispatch('$refresh');
+
+                // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
+                if ($this->selectedTableId) {
+                    $redirectUrl = TableMap::getUrl();
+                    
+                    \Illuminate\Support\Facades\Log::debug('🔴 REDIRECCIÓN DESDE GUARDAR ORDEN', [
+                        'table_id' => $this->selectedTableId,
+                        'order_id' => $order->id,
+                        'redirect_url' => $redirectUrl,
+                        'timestamp' => now()->format('Y-m-d H:i:s.u')
+                    ]);
+
+                    $this->js("
+                        console.log('Redirigiendo a mapa de mesas desde guardar orden');
+                        setTimeout(function() {
+                            window.location.href = '{$redirectUrl}';
+                        }, 500);
+                    ");
+                }
             }
         } catch (\Exception $e) {
             Notification::make()
@@ -1317,12 +1349,20 @@ class PosInterface extends Page
                                 ->default(1),
                         ]),
 
-                    Section::make('🔄 Pagos Mixtos (Opcional)')
-                        ->description('Solo si necesita combinar métodos de pago - Total: S/ ' . number_format($this->total, 2))
+                    Section::make('🔄 Pagos Mixtos')
+                        ->description(fn(Get $get) => $get('use_only_mixed') 
+                            ? 'Pago completo con métodos combinados - Total: S/ ' . number_format($this->total, 2)
+                            : 'Opcional: Combinar métodos de pago - Total: S/ ' . number_format($this->total, 2))
                         ->compact()
                         ->collapsible()
-                        ->collapsed(true)
+                        ->collapsed(false)
                         ->schema([
+                            Forms\Components\Toggle::make('use_only_mixed')
+                                ->label('Usar solo pagos mixtos')
+                                ->inline(false)
+                                ->default(false)
+                                ->live()
+                                ->columnSpanFull(),
                             Repeater::make('payments')
                                 ->label('')
                                 ->schema([
@@ -1359,11 +1399,11 @@ class PosInterface extends Page
                                     fn(array $state): ?string =>
                                     isset($state['payment_method']) && isset($state['amount'])
                                         ? match ($state['payment_method']) {
-                                            'cash' => '💵 S/ ' . number_format($state['amount'], 2),
-                                            'card' => '💳 S/ ' . number_format($state['amount'], 2),
-                                            'yape' => '📱 S/ ' . number_format($state['amount'], 2),
-                                            'plin' => '💙 S/ ' . number_format($state['amount'], 2),
-                                            default => '💳 S/ ' . number_format($state['amount'], 2),
+                                            'cash' => '💵 S/ ' . number_format((float)$state['amount'], 2),
+                                            'card' => '💳 S/ ' . number_format((float)$state['amount'], 2),
+                                            'yape' => '📱 S/ ' . number_format((float)$state['amount'], 2),
+                                            'plin' => '💙 S/ ' . number_format((float)$state['amount'], 2),
+                                            default => '💳 S/ ' . number_format((float)$state['amount'], 2),
                                         }
                                         : '💳 Método de pago'
                                 ),
@@ -1372,7 +1412,9 @@ class PosInterface extends Page
                                 ->label('')
                                 ->content(function (Get $get) {
                                     $payments = collect($get('payments') ?? []);
-                                    $paidAmount = $payments->sum('amount');
+                                    $paidAmount = $payments->sum(function($payment) {
+                                        return is_numeric($payment['amount']) ? (float)$payment['amount'] : 0;
+                                    });
                                     $remaining = $this->total - $paidAmount;
 
                                     if ($remaining > 0) {
@@ -1462,14 +1504,14 @@ class PosInterface extends Page
                         return;
                     }
 
-                    // Validar monto para efectivo
+                    // Validar monto mínimo para efectivo
                     if (
                         $data['primary_payment_method'] === 'cash' &&
-                        (!isset($data['primary_payment_amount']) || $data['primary_payment_amount'] < $this->total)
+                        (!isset($data['primary_payment_amount']) || $data['primary_payment_amount'] <= 0)
                     ) {
                         Notification::make()
-                            ->title('⚠️ Monto Insuficiente')
-                            ->body('El monto recibido debe ser mayor o igual al total de la orden.')
+                            ->title('⚠️ Monto Inválido')
+                            ->body('El monto recibido debe ser mayor a cero.')
                             ->danger()
                             ->duration(5000)
                             ->send();
@@ -1640,29 +1682,68 @@ class PosInterface extends Page
             $paymentMethod = $data['primary_payment_method'];
             $paymentAmount = $data['primary_payment_amount'] ?? $this->total;
 
-            $activeCashRegister->registerSale($paymentMethod, $this->total);
+            // Determinar si hay pagos mixtos válidos para procesar
+            $hasValidMixedPayments = false;
+            $totalMixedPayments = 0;
+            
+            if (isset($data['payments']) && count($data['payments']) > 0) {
+                $validPayments = array_filter($data['payments'], function($payment) {
+                    return isset($payment['amount']) && $payment['amount'] > 0;
+                });
+                
+                $hasValidMixedPayments = count($validPayments) > 0;
+                $totalMixedPayments = array_sum(array_column($validPayments, 'amount'));
+            }
 
-            CashMovement::create([
-                'cash_register_id' => $activeCashRegister->id,
-                'movement_type' => 'income',
-                'amount' => $this->total,
-                'reason' => "Pago {$paymentMethod} - {$data['document_type']} {$series->series}-{$nextNumber}",
-                'approved_by' => Auth::id(),
-            ]);
-
-            // Procesar pagos mixtos adicionales si existen
-            if (!empty($data['payments'])) {
+            // Procesar solo pagos mixtos si existen y cubren el total
+            if ($hasValidMixedPayments && abs($totalMixedPayments - $this->total) < 0.01) {
                 foreach ($data['payments'] as $payment) {
+                    if (!isset($payment['amount']) || $payment['amount'] <= 0) {
+                        continue;
+                    }
+
                     $activeCashRegister->registerSale($payment['payment_method'], $payment['amount']);
 
                     CashMovement::create([
                         'cash_register_id' => $activeCashRegister->id,
                         'movement_type' => 'income',
                         'amount' => $payment['amount'],
-                        'reason' => "Pago mixto {$payment['payment_method']} - {$data['document_type']} {$series->series}-{$nextNumber}",
+                        'reason' => "Pago {$payment['payment_method']} - {$data['document_type']} {$series->series}-{$nextNumber}",
                         'approved_by' => Auth::id(),
                     ]);
+
+                    \App\Models\Payment::create([
+                        'order_id' => $order->id,
+                        'cash_register_id' => $activeCashRegister->id,
+                        'payment_method' => $payment['payment_method'],
+                        'amount' => $payment['amount'],
+                        'reference_number' => "Pago {$payment['payment_method']} - {$data['document_type']} {$series->series}-{$nextNumber}",
+                        'payment_datetime' => now(),
+                        'received_by' => Auth::id(),
+                    ]);
                 }
+            } 
+            // Procesar solo el pago principal si no hay pagos mixtos válidos
+            else {
+                $activeCashRegister->registerSale($paymentMethod, $paymentAmount);
+
+                CashMovement::create([
+                    'cash_register_id' => $activeCashRegister->id,
+                    'movement_type' => 'income',
+                    'amount' => $paymentAmount,
+                    'reason' => "Pago {$paymentMethod} - {$data['document_type']} {$series->series}-{$nextNumber}",
+                    'approved_by' => Auth::id(),
+                ]);
+
+                \App\Models\Payment::create([
+                    'order_id' => $order->id,
+                    'cash_register_id' => $activeCashRegister->id,
+                    'payment_method' => $paymentMethod,
+                    'amount' => $paymentAmount,
+                    'reference_number' => "Pago {$paymentMethod} - {$data['document_type']} {$series->series}-{$nextNumber}",
+                    'payment_datetime' => now(),
+                    'received_by' => Auth::id(),
+                ]);
             }
 
             $order->update(['status' => Order::STATUS_COMPLETED, 'billed' => true]);
@@ -1778,10 +1859,33 @@ class PosInterface extends Page
                 ->persistent() // No auto-cerrar para que el usuario pueda elegir
                 ->send();
 
-            // 🎯 ACTUALIZAR ESTADO IN-SITU SIN REDIRECCIONAR
+            // 🎯 ACTUALIZAR ESTADO Y REDIRIGIR
+            $tableId = $this->order->table_id ?? null;
             $this->clearCart();
             $this->order = null;
             $this->selectedTableId = null;
+
+            // ✅ FORZAR REDIRECCIÓN INMEDIATA CON MÁS LOGS
+            $redirectUrl = $tableId ? TableMap::getUrl() : '/admin';
+            
+            \Illuminate\Support\Facades\Log::debug('🔴 ANTES DE REDIRECCIÓN', [
+                'table_id' => $tableId,
+                'order_id' => $this->order?->id,
+                'redirect_url' => $redirectUrl,
+                'timestamp' => now()->format('Y-m-d H:i:s.u')
+            ]);
+
+            $this->js("
+                console.log('Iniciando redirección a: {$redirectUrl}');
+                setTimeout(function() {
+                    window.location.href = '{$redirectUrl}';
+                }, 500);
+            ");
+
+            \Illuminate\Support\Facades\Log::debug('🟢 DESPUÉS DE REDIRECCIÓN', [
+                'status' => 'Redirección programada',
+                'timestamp' => now()->format('Y-m-d H:i:s.u')
+            ]);
 
             // 🖨️ ABRIR VENTANA DE IMPRESIÓN AUTOMÁTICAMENTE
             // Registrar información detallada para diagnóstico
