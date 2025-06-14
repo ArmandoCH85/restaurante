@@ -8,6 +8,7 @@ use App\Models\Table as TableModel;
 use App\Models\Customer;
 use App\Models\Order;
 use App\Models\DocumentSeries;
+use App\Models\Employee;
 use Filament\Pages\Page;
 use Filament\Actions\Action;
 use Filament\Support\Colors\Color;
@@ -644,9 +645,21 @@ class PosInterface extends Page
             // Iniciar una transacción para garantizar la atomicidad
             return DB::transaction(function () use ($activeCashRegister) {
                 // Crear la orden
+                $userId = Auth::id();
+                $employee = DB::table('employees')->where('user_id', $userId)->first();
+                
+                if (!$employee) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('El usuario no tiene un empleado asociado en la tabla employees')
+                        ->danger()
+                        ->send();
+                    return null;
+                }
+
                 $order = Order::create([
                     'table_id' => $this->selectedTableId,
-                    'employee_id' => Auth::id(),
+                    'employee_id' => $employee->id,
                     'customer_id' => null, // Por ahora sin cliente específico
                     'cash_register_id' => $activeCashRegister->id,
                     'service_type' => $this->selectedTableId ? 'dine_in' : 'takeout',

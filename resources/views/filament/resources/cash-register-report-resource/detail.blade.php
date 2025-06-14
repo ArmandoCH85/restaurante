@@ -51,6 +51,41 @@
         </x-filament::card>
     </div>
 
+    <!-- Desglose por métodos de pago -->
+    <div class="mb-6">
+        <h3 class="text-lg font-medium mb-2">Desglose por Métodos de Pago</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            @php
+                $paymentMethods = [
+                    'cash' => 'Efectivo',
+                    'credit_card' => 'Tarjeta Crédito', 
+                    'debit_card' => 'Tarjeta Débito',
+                    'bank_transfer' => 'Transferencia',
+                    'digital_wallet' => 'Billetera Digital'
+                ];
+                
+                $paymentTotals = [];
+                foreach($record->payments as $payment) {
+                    $paymentTotals[$payment->payment_method] = ($paymentTotals[$payment->payment_method] ?? 0) + $payment->total;
+                }
+            @endphp
+
+            @foreach($paymentMethods as $method => $label)
+                @if(isset($paymentTotals[$method]))
+                    <x-filament::card>
+                        <div class="p-4">
+                            <p class="text-sm font-medium text-gray-500">{{ $label }}</p>
+                            <p class="text-xl font-bold">S/ {{ number_format($paymentTotals[$method], 2) }}</p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                {{ number_format(($paymentTotals[$method] / $orders->sum('total')) * 100, 1) }}% del total
+                            </p>
+                        </div>
+                    </x-filament::card>
+                @endif
+            @endforeach
+        </div>
+    </div>
+
     <!-- Pestañas para mejor organización -->
     <div x-data="{ activeTab: 'movements' }" class="space-y-6">
         <!-- Navegación de pestañas -->

@@ -83,6 +83,10 @@ class CashRegisterReportResource extends Resource
                         DB::raw('COALESCE(o_del.total_del, 0) as delivery_total'),
                         DB::raw('COALESCE(o_self.total_self, 0) as self_service_total')
                     ])
+                    ->with(['payments' => function($q) {
+                        $q->selectRaw('cash_register_id, payment_method, SUM(amount) as total')
+                          ->groupBy('cash_register_id', 'payment_method');
+                    }])
                     ->leftJoin(
                         DB::raw('(SELECT cash_register_id, SUM(amount) as total_movements FROM cash_movements GROUP BY cash_register_id) as cm'),
                         'cm.cash_register_id', '=', 'cash_registers.id'
