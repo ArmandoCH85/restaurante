@@ -1651,7 +1651,7 @@ class PosInterface extends Page
             $invoice = Invoice::create([
                 'order_id' => $order->id,
                 'customer_id' => $customerId,
-                'employee_id' => \Illuminate\Support\Facades\Auth::id(), // 🔥 CAMPO REQUERIDO
+                'employee_id' => DB::table('employees')->where('user_id', Auth::id())->value('id'), // Obtener ID de empleado directamente
                 'invoice_type' => $data['document_type'],
                 'series' => $series->series,
                 'number' => $nextNumber,
