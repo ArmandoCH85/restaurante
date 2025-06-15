@@ -854,10 +854,17 @@ class PosInterface extends Page
                     throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
                 }
 
+                // Obtener el empleado asociado al usuario autenticado
+                $employee = Employee::where('user_id', Auth::id())->first();
+
+                if (!$employee) {
+                    throw new \Exception('No se encontró un empleado asociado al usuario actual. Por favor, contacte al administrador.');
+                }
+
                 $destinationOrder = Order::firstOrCreate(
                     ['table_id' => $newTableId, 'status' => Order::STATUS_OPEN],
                     [
-                        'employee_id' => Auth::id(),
+                        'employee_id' => $employee->id,
                         'service_type' => 'dine_in',
                         'subtotal' => 0,
                         'tax' => 0,
