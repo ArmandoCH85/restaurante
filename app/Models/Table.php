@@ -5,6 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class Table extends Model
 {
@@ -236,11 +239,26 @@ class Table extends Model
             return $this->activeOrder()->first();
         }
 
+        // Si no se proporciona employeeId, obtener el empleado del usuario autenticado
+        if (!$employeeId) {
+            $user = Auth::user();
+            if ($user) {
+                $employee = \App\Models\Employee::where('user_id', $user->id)->first();
+                if ($employee) {
+                    $employeeId = $employee->id;
+                } else {
+                    throw new \Exception('No se encontró un empleado asociado al usuario actual.');
+                }
+            } else {
+                throw new \Exception('No hay un usuario autenticado.');
+            }
+        }
+
         // Create a new order for this table without changing the table status
         $order = new Order([
             'service_type' => 'dine_in',
             'table_id' => $this->id,
-            'employee_id' => $employeeId ?? 1, // Default to ID 1 if no employee ID provided
+            'employee_id' => $employeeId,
             'order_datetime' => now(),
             'status' => Order::STATUS_OPEN,
             'subtotal' => 0,

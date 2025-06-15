@@ -948,12 +948,19 @@ class TableMap extends Page
                     throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
                 }
 
+                // Obtener el empleado asociado al usuario autenticado
+                $employee = Employee::where('user_id', Auth::id())->first();
+
+                if (!$employee) {
+                    throw new \Exception('No se encontró un empleado asociado al usuario actual. Por favor, contacte al administrador.');
+                }
+
                 // Crear la orden con cálculos correctos
                 $order = Order::create([
                     'service_type' => 'delivery',
                     'table_id' => null,
                     'customer_id' => $customer->id,
-                    'employee_id' => Auth::id(),
+                    'employee_id' => $employee->id,
                     'cash_register_id' => $activeCashRegister->id,
                     'order_datetime' => now(),
                     'status' => Order::STATUS_OPEN,

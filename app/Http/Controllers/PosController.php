@@ -10,6 +10,7 @@ use App\Models\Order;
 use App\Models\Invoice;
 use App\Models\InvoiceDetail;
 use App\Models\CashRegister;
+use App\Models\Employee;
 
 class PosController extends Controller
 {
@@ -438,13 +439,17 @@ class PosController extends Controller
         $order->billed = false;
         $order->cash_register_id = $activeCashRegister->id;
 
-        // Asignar el ID del empleado (usuario autenticado) o usar un valor predeterminado
+        // Obtener el empleado asociado al usuario autenticado
         if (Auth::check()) {
-            $order->employee_id = Auth::id();
+            $employee = Employee::where('user_id', Auth::id())->first();
+
+            if (!$employee) {
+                throw new \Exception('No se encontró un empleado asociado al usuario actual. Por favor, contacte al administrador.');
+            }
+
+            $order->employee_id = $employee->id;
         } else {
-            // Obtener el primer empleado disponible o un ID predeterminado
-            $firstEmployee = \App\Models\Employee::first();
-            $order->employee_id = $firstEmployee ? $firstEmployee->id : 1;
+            throw new \Exception('No hay un usuario autenticado.');
         }
 
         // Si se proporcionó un nombre de cliente, guardarlo en las notas de la orden
