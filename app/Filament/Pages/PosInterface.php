@@ -105,6 +105,17 @@ class PosInterface extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('reopen_order')
+                ->label('Reabrir Orden')
+                ->icon('heroicon-o-arrow-path')
+                ->color('warning')
+                ->button()
+                ->url(fn () => $this->order instanceof Order ? url("/admin/pos-interface?table_id={$this->selectedTableId}&order_id={$this->order->getKey()}") : '')
+                ->visible(fn () =>
+                    $this->order instanceof Order &&
+                    !$this->order->invoices()->exists()
+                ),
+
             // 🖨️ BOTÓN DE IMPRESIÓN ÚLTIMO COMPROBANTE
             Action::make('printLastInvoice')
                 ->label('🖨️ Imprimir Último Comprobante')
@@ -340,7 +351,7 @@ class PosInterface extends Page
                     // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
                     if ($this->selectedTableId) {
                         $redirectUrl = TableMap::getUrl();
-                        
+
                         \Illuminate\Support\Facades\Log::debug('🔴 REDIRECCIÓN DESDE IMPRIMIR COMANDA', [
                             'table_id' => $this->selectedTableId,
                             'order_id' => $this->order?->id,
@@ -415,7 +426,7 @@ class PosInterface extends Page
                 ->outlined()
                 ->color('info')
                 ->size('lg')
-                ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
+                ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles,
         ];
     }
 
@@ -429,15 +440,41 @@ class PosInterface extends Page
 
         // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR ID ***
         if ($orderId) {
-            $activeOrder = Order::with(['orderDetails.product', 'customer'])
+            $activeOrder = Order::with(['orderDetails.product', 'customer', 'invoices'])
                 ->where('id', $orderId)
-                ->where('status', Order::STATUS_OPEN)
                 ->first();
 
             if ($activeOrder) {
+                // Solo verificar si tiene comprobantes
+                if ($activeOrder->invoices()->exists()) {
+                    Notification::make()
+                        ->title('No se puede reabrir')
+                        ->body('Esta orden ya tiene un comprobante emitido.')
+                        ->danger()
+                        ->send();
+
+                    $this->redirect(TableMap::getUrl());
+                    return;
+                }
+
+                // Reabrir la orden sin importar su estado previo
+                $activeOrder->status = Order::STATUS_OPEN;
+                $activeOrder->billed = false;
+                $activeOrder->save();
+
+                // Actualizar estado de la mesa si existe
+                if ($activeOrder->table) {
+                    $activeOrder->table->update(['status' => TableModel::STATUS_OCCUPIED]);
+                }
+
+                Notification::make()
+                    ->title('Orden reabierta')
+                    ->success()
+                    ->send();
+
                 $this->order = $activeOrder;
-                $this->selectedTableId = $activeOrder->table_id; // Establecer mesa si es una orden de mesa
-                $this->cartItems = []; // Limpiar por si acaso
+                $this->selectedTableId = $activeOrder->table_id;
+                $this->cartItems = [];
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
@@ -647,7 +684,7 @@ class PosInterface extends Page
                 // Crear la orden
                 $userId = Auth::id();
                 $employee = DB::table('employees')->where('user_id', $userId)->first();
-                
+
                 if (!$employee) {
                     Notification::make()
                         ->title('Error')
@@ -710,64 +747,85 @@ class PosInterface extends Page
         }
 
         try {
-            // Crear la orden
-            $order = $this->createOrderFromCart();
+            if ($this->order) {
+                // Actualizar orden existente
+                DB::transaction(function () {
+                    // Agregar nuevos productos a la orden existente
+                    foreach ($this->cartItems as $item) {
+                        // Verificar si el producto ya existe en la orden
+                        $existingDetail = $this->order->orderDetails()
+                            ->where('product_id', $item['product_id'])
+                            ->first();
 
-            if ($order) {
-                // 🎯 ASIGNAR LA ORDEN CREADA PARA QUE APAREZCAN LOS BOTONES DE OPERACIONES
-                $this->order = $order;
+                        if ($existingDetail) {
+                            // Si existe, actualizar la cantidad directamente con la del carrito
+                            $existingDetail->update([
+                                'quantity' => $item['quantity'],
+                                'subtotal' => $item['quantity'] * $item['unit_price']
+                            ]);
+                        } else {
+                            // Si no existe, agregar como nuevo
+                            $this->order->addProduct(
+                                $item['product_id'],
+                                $item['quantity'],
+                                $item['unit_price']
+                            );
+                        }
+                    }
 
-                Notification::make()
-                    ->title('🎉 Orden creada exitosamente')
-                    ->body('Orden #' . $order->id . ' creada con éxito')
-                    ->success()
-                    ->actions([
-                        \Filament\Notifications\Actions\Action::make('process_payment')
-                            ->label('💳 Procesar Pago')
-                            ->button()
-                            ->color('success')
-                            ->action(function () {
-                                // Refrescar para abrir modal de pago
-                                $this->refreshOrderData();
-                            }),
-                        \Filament\Notifications\Actions\Action::make('view_tables')
-                            ->label('🪑 Ver Mesas')
-                            ->url('/admin/mapa-mesas')
-                            ->button()
-                            ->color('secondary'),
-                    ])
-                    ->persistent()
-                    ->send();
+                    // Recalcular totales
+                    $this->order->recalculateTotals();
 
-            // 🔄 REFRESCAR DATOS PARA MOSTRAR BOTONES DE OPERACIONES
-            $this->refreshOrderData();
-
-            // 🚀 FORZAR ACTUALIZACIÓN DE HEADER ACTIONS
-            $this->dispatch('$refresh');
-
-                // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
-                if ($this->selectedTableId) {
-                    $redirectUrl = TableMap::getUrl();
-                    
-                    \Illuminate\Support\Facades\Log::debug('🔴 REDIRECCIÓN DESDE GUARDAR ORDEN', [
-                        'table_id' => $this->selectedTableId,
-                        'order_id' => $order->id,
-                        'redirect_url' => $redirectUrl,
-                        'timestamp' => now()->format('Y-m-d H:i:s.u')
+                    // Asegurar que la orden esté abierta
+                    $this->order->update([
+                        'status' => Order::STATUS_OPEN,
+                        'billed' => false
                     ]);
 
-                    $this->js("
-                        console.log('Redirigiendo a mapa de mesas desde guardar orden');
-                        setTimeout(function() {
-                            window.location.href = '{$redirectUrl}';
-                        }, 500);
-                    ");
+                    // Actualizar estado de la mesa si es necesario
+                    if ($this->selectedTableId) {
+                        $table = TableModel::find($this->selectedTableId);
+                        if ($table) {
+                            $table->update(['status' => TableModel::STATUS_OCCUPIED]);
+                        }
+                    }
+                });
+
+                // Limpiar el carrito después de guardar
+                $this->cartItems = [];
+                $this->calculateTotals();
+
+                Notification::make()
+                    ->title('🎉 Orden actualizada exitosamente')
+                    ->body('Orden #' . $this->order->id . ' actualizada con éxito')
+                    ->success()
+                    ->send();
+
+                // Forzar recarga de la orden para actualizar el estado
+                $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
+            } else {
+                // Crear nueva orden
+                $order = $this->createOrderFromCart();
+
+                if ($order) {
+                    $this->order = $order;
+
+                    Notification::make()
+                        ->title('🎉 Orden creada exitosamente')
+                        ->body('Orden #' . $order->id . ' creada con éxito')
+                        ->success()
+                        ->send();
                 }
             }
+
+            // Refrescar datos y UI
+            $this->refreshOrderData();
+            $this->dispatch('$refresh');
+
         } catch (\Exception $e) {
             Notification::make()
-                ->title('Error al crear la orden')
-                ->body('Error: ' . $e->getMessage())
+                ->title('Error')
+                ->body($e->getMessage())
                 ->danger()
                 ->send();
         }
@@ -1363,7 +1421,7 @@ class PosInterface extends Page
                         ]),
 
                     Section::make('🔄 Pagos Mixtos')
-                        ->description(fn(Get $get) => $get('use_only_mixed') 
+                        ->description(fn(Get $get) => $get('use_only_mixed')
                             ? 'Pago completo con métodos combinados - Total: S/ ' . number_format($this->total, 2)
                             : 'Opcional: Combinar métodos de pago - Total: S/ ' . number_format($this->total, 2))
                         ->compact()
@@ -1698,12 +1756,12 @@ class PosInterface extends Page
             // Determinar si hay pagos mixtos válidos para procesar
             $hasValidMixedPayments = false;
             $totalMixedPayments = 0;
-            
+
             if (isset($data['payments']) && count($data['payments']) > 0) {
                 $validPayments = array_filter($data['payments'], function($payment) {
                     return isset($payment['amount']) && $payment['amount'] > 0;
                 });
-                
+
                 $hasValidMixedPayments = count($validPayments) > 0;
                 $totalMixedPayments = array_sum(array_column($validPayments, 'amount'));
             }
@@ -1735,7 +1793,7 @@ class PosInterface extends Page
                         'received_by' => Auth::id(),
                     ]);
                 }
-            } 
+            }
             // Procesar solo el pago principal si no hay pagos mixtos válidos
             else {
                 $activeCashRegister->registerSale($paymentMethod, $paymentAmount);
@@ -1880,7 +1938,7 @@ class PosInterface extends Page
 
             // ✅ FORZAR REDIRECCIÓN INMEDIATA CON MÁS LOGS
             $redirectUrl = $tableId ? TableMap::getUrl() : '/admin';
-            
+
             \Illuminate\Support\Facades\Log::debug('🔴 ANTES DE REDIRECCIÓN', [
                 'table_id' => $tableId,
                 'order_id' => $this->order?->id,
