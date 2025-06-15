@@ -923,12 +923,19 @@ class PosInterface extends Page
 
         try {
             DB::transaction(function () use ($originalOrder, $selectedDetailIds) {
+                // Obtener el empleado asociado al usuario autenticado
+                $employee = Employee::where('user_id', Auth::id())->first();
+
+                if (!$employee) {
+                    throw new \Exception('No se encontró un empleado asociado al usuario actual. Por favor, contacte al administrador.');
+                }
+
                 // Crear la nueva orden "hija"
                 $childOrder = Order::create([
                     'parent_id' => $originalOrder->id,
                     'table_id' => $originalOrder->table_id,
                     'customer_id' => $originalOrder->customer_id,
-                    'employee_id' => Auth::id(),
+                    'employee_id' => $employee->id,
                     'service_type' => $originalOrder->service_type,
                     'status' => Order::STATUS_OPEN,
                     'order_datetime' => now(),
@@ -956,6 +963,7 @@ class PosInterface extends Page
 
             // Forzar actualización de la interfaz
             $this->refreshOrderData(true);
+
         } catch (\Exception $e) {
             Log::error('Error al dividir cuenta (simple): ' . $e->getMessage());
             Notification::make()->title('Error al Separar la Cuenta')->body('Ocurrió un error inesperado. Por favor, intenta de nuevo.')->danger()->send();
