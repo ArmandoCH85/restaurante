@@ -161,8 +161,7 @@ class AdminPanelProvider extends PanelProvider
                     ->sort(1)
                     ->visible(function () {
                         $user = Auth::user();
-                        // KISS: Excluir explícitamente a waiter
-                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier']) && !$user->hasRole('waiter'));
+                        return $user && !$user->hasRole('waiter');
                     }),
                 NavigationItem::make('Mapa de Mesas')
                     ->url('/admin/mapa-mesas')
