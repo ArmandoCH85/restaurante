@@ -68,7 +68,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 TableMap::class,
                 \App\Filament\Pages\PosInterface::class,
-                Pages\Dashboard::class,
+                \App\Filament\Pages\Dashboard::class, // ✅ Dashboard personalizado por roles
                 \App\Filament\Pages\ReservationCalendar::class,
                 \App\Filament\Pages\ReportesPage::class,
             ])

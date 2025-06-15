@@ -13,14 +13,14 @@ class SalesStatsWidget extends BaseWidget
 {
     protected static ?int $sort = 1;
 
-    // �� GRID RESPONSIVO - 5 WIDGETS POR FILA
+    // 📐 GRID RESPONSIVO - 3 ESTADÍSTICAS PRINCIPALES
     protected int | string | array $columnSpan = [
         'default' => 'full',  // Móvil: ancho completo
         'sm' => 'full',       // Tablet pequeña: ancho completo
-        'md' => 2.4,          // Desktop pequeño: 2.4 columnas (5 por fila)
-        'lg' => 2.4,          // Desktop: 2.4 columnas (5 por fila)
-        'xl' => 2.4,          // Desktop grande: 2.4 columnas (5 por fila)
-        '2xl' => 2.4,         // Desktop extra: 2.4 columnas (5 por fila)
+        'md' => 'full',       // Tablet: ancho completo (3 estadísticas en línea)
+        'lg' => 'full',       // Desktop: ancho completo
+        'xl' => 'full',       // Desktop grande: ancho completo
+        '2xl' => 'full',      // Desktop extra: ancho completo
     ];
 
     protected function getStats(): array
@@ -29,18 +29,10 @@ class SalesStatsWidget extends BaseWidget
         $today = Carbon::today();
 
         return [
-            // 📊 FILA 1: OPERACIONES Y VENTAS PRINCIPALES (5 widgets)
-            $this->getOperationsCountStat($today),
-            $this->getTotalSalesStat($today),
-            $this->getSalesNotesStat($today),
-            $this->getBoletasStat($today),
-            $this->getFacturasStat($today),
-
-            // 📊 FILA 2: ANULADOS Y TIPOS DE SERVICIO (4 widgets)
-            $this->getAnuladosStat($today),
-            $this->getMesaSalesStat($today),
-            $this->getTakeawaySalesStat($today),
-            $this->getDeliverySalesStat($today),
+            // 📊 SOLO LAS 3 MÉTRICAS MÁS IMPORTANTES
+            $this->getTotalSalesStat($today),          // 💰 Total Ventas (LO MÁS IMPORTANTE)
+            $this->getOperationsCountStat($today),      // 🔢 N° Operaciones
+            $this->getMesaSalesStat($today),           // 🍽️ Ventas Mesa (principal tipo de servicio)
         ];
     }
 
