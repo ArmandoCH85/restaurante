@@ -26,6 +26,33 @@
                     </x-filament::button>
                 @endforeach
             </div>
+
+            {{-- SUBCATEGORÍAS (SEGUNDA FILA) --}}
+            @if($selectedCategoryId && $subcategories->isNotEmpty())
+                <div class="flex items-center space-x-6 overflow-x-auto pt-4 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 1rem;">
+                    {{-- Botón Todos de subcategorías --}}
+                    <x-filament::button
+                        wire:click="selectSubcategory(null)"
+                        :color="$selectedSubcategoryId === null ? 'info' : 'gray'"
+                        size="sm"
+                        class="flex-shrink-0 px-8 py-2 text-xs font-medium whitespace-nowrap min-w-[90px] transition-all duration-200 hover:scale-105"
+                    >
+                        Todos
+                    </x-filament::button>
+
+                    {{-- Botones de subcategorías --}}
+                    @foreach($subcategories as $subcat)
+                        <x-filament::button
+                            wire:click="selectSubcategory({{ $subcat->id }})"
+                            :color="$selectedSubcategoryId === $subcat->id ? 'info' : 'gray'"
+                            size="sm"
+                            class="flex-shrink-0 px-8 py-2 text-xs font-medium whitespace-nowrap min-w-[90px] transition-all duration-200 hover:scale-105"
+                        >
+                            {{ $subcat->name }}
+                        </x-filament::button>
+                    @endforeach
+                </div>
+            @endif
         </div>
 
         {{-- CONTENIDO PRINCIPAL: PRODUCTOS + CARRITO (PROPORCIÓN ÁUREA) --}}
