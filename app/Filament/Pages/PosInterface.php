@@ -69,6 +69,7 @@ class PosInterface extends Page
     // Propiedades del estado
     public ?int $selectedTableId = null;
     public ?int $selectedCategoryId = null;
+    public ?int $selectedSubcategoryId = null;
     public array $cartItems = [];
     public float $total = 0.0;
     public float $subtotal = 0.0;
@@ -101,6 +102,7 @@ class PosInterface extends Page
     public $products;
     public $tables;
     public $customers;
+    public $subcategories;
 
     protected function getHeaderActions(): array
     {
@@ -526,15 +528,22 @@ class PosInterface extends Page
             }
         }
 
-        // Cargar datos generales
-        $this->categories = ProductCategory::with('products')->get();
+        // Cargar categorías con sus subcategorías
+        $this->categories = ProductCategory::with('children')->whereNull('parent_category_id')->get();
+
+        // Obtener todos los productos inicialmente
         $this->products = Product::with('category')->get();
-        $this->tables = TableModel::all();
-        $this->customers = Customer::all();
+
+        // Inicializar subcategorías según la categoría activa (si existe)
+        $this->subcategories = $this->selectedCategoryId
+            ? ProductCategory::where('parent_category_id', $this->selectedCategoryId)->get()
+            : collect();
 
         // Filtrar productos si hay categoría seleccionada
         if ($this->selectedCategoryId) {
-            $this->products = $this->products->where('category_id', $this->selectedCategoryId);
+            $this->products = Product::where('category_id', $this->selectedCategoryId)->with('category')->get();
+        } else {
+            $this->products = Product::with('category')->get();
         }
 
         // Calcular totales (se hará con el carrito cargado si existe)
@@ -544,11 +553,45 @@ class PosInterface extends Page
     public function selectCategory(?int $categoryId): void
     {
         $this->selectedCategoryId = $categoryId;
+        // Resetear subcategoría al cambiar de categoría
+        $this->selectedSubcategoryId = null;
 
+        // Recargar lista de subcategorías
+        $this->subcategories = $categoryId
+            ? ProductCategory::where('parent_category_id', $categoryId)->get()
+            : collect();
+
+        // Cambiar lógica de filtrado: si hay subcategorías, mostrar todos los productos de esas subcategorías;
+        // en caso contrario, filtrar por la categoría principal.
         if ($categoryId) {
-            $this->products = Product::where('category_id', $categoryId)->with('category')->get();
+            if ($this->subcategories->isNotEmpty()) {
+                $subIds = $this->subcategories->pluck('id');
+                $this->products = Product::whereIn('category_id', $subIds)->with('category')->get();
+            } else {
+                $this->products = Product::where('category_id', $categoryId)->with('category')->get();
+            }
         } else {
             $this->products = Product::with('category')->get();
+        }
+    }
+
+    /**
+     * Selecciona una subcategoría y filtra productos.
+     */
+    public function selectSubcategory(?int $subcategoryId): void
+    {
+        $this->selectedSubcategoryId = $subcategoryId;
+
+        if ($subcategoryId) {
+            $this->products = Product::where('category_id', $subcategoryId)->with('category')->get();
+        } else {
+            // Mostrar todos los productos de las subcategorías de la categoría actual
+            if ($this->selectedCategoryId) {
+                $subIds = ProductCategory::where('parent_category_id', $this->selectedCategoryId)->pluck('id');
+                $this->products = Product::whereIn('category_id', $subIds)->with('category')->get();
+            } else {
+                $this->products = Product::with('category')->get();
+            }
         }
     }
 
