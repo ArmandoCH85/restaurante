@@ -33,6 +33,7 @@ use App\Models\CashRegister;
 use Filament\Support\Exceptions\Halt;
 use Filament\Forms\Components\Section;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class PosInterface extends Page
 {
@@ -103,6 +104,8 @@ class PosInterface extends Page
     public $tables;
     public $customers;
     public $subcategories;
+    public bool $productsLoaded = false;
+    public string $search = '';
 
     protected function getHeaderActions(): array
     {
@@ -528,26 +531,47 @@ class PosInterface extends Page
             }
         }
 
-        // Cargar categorías con sus subcategorías
-        $this->categories = ProductCategory::with('children')->whereNull('parent_category_id')->get();
+        // 🏎️ OPTIMIZACIÓN KISS: cachear el árbol de categorías por 1 h
+        $this->categories = Cache::remember('pos_categories', 3600, fn () =>
+            ProductCategory::with('children')->whereNull('parent_category_id')->get()
+        );
 
-        // Obtener todos los productos inicialmente
-        $this->products = Product::with('category')->get();
+        // Lazy loading: no cargamos productos aquí, lo haremos vía wire:init
+        $this->products = collect();
 
         // Inicializar subcategorías según la categoría activa (si existe)
         $this->subcategories = $this->selectedCategoryId
             ? ProductCategory::where('parent_category_id', $this->selectedCategoryId)->get()
             : collect();
 
-        // Filtrar productos si hay categoría seleccionada
-        if ($this->selectedCategoryId) {
-            $this->products = Product::where('category_id', $this->selectedCategoryId)->with('category')->get();
+        // Productos se cargarán luego con loadProductsLazy()
+
+        // Calcular totales basados en el carrito (si lo hubiera)
+        $this->calculateTotals();
+    }
+
+    /**
+     * Carga diferida de productos usando wire:init para mejorar TTFB.
+     */
+    public function loadProductsLazy(): void
+    {
+        // Evitar llamada doble
+        if ($this->productsLoaded) return;
+
+        if ($this->selectedSubcategoryId) {
+            $this->selectSubcategory($this->selectedSubcategoryId);
+        } elseif ($this->selectedCategoryId) {
+            $this->selectCategory($this->selectedCategoryId);
         } else {
-            $this->products = Product::with('category')->get();
+            $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+                ->with('category:id,name')
+                ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+                ->orderBy('id')
+                ->limit(150)
+                ->get();
         }
 
-        // Calcular totales (se hará con el carrito cargado si existe)
-        $this->calculateTotals();
+        $this->productsLoaded = true;
     }
 
     public function selectCategory(?int $categoryId): void
@@ -566,12 +590,29 @@ class PosInterface extends Page
         if ($categoryId) {
             if ($this->subcategories->isNotEmpty()) {
                 $subIds = $this->subcategories->pluck('id');
-                $this->products = Product::whereIn('category_id', $subIds)->with('category')->get();
+                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+                    ->with('category:id,name')
+                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+                    ->whereIn('category_id', $subIds)
+                    ->orderBy('id')
+                    ->limit(150)
+                    ->get();
             } else {
-                $this->products = Product::where('category_id', $categoryId)->with('category')->get();
+                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+                    ->with('category:id,name')
+                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+                    ->where('category_id', $categoryId)
+                    ->orderBy('id')
+                    ->limit(150)
+                    ->get();
             }
         } else {
-            $this->products = Product::with('category')->get();
+            $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+                ->with('category:id,name')
+                ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+                ->orderBy('id')
+                ->limit(150)
+                ->get();
         }
     }
 
@@ -583,14 +624,31 @@ class PosInterface extends Page
         $this->selectedSubcategoryId = $subcategoryId;
 
         if ($subcategoryId) {
-            $this->products = Product::where('category_id', $subcategoryId)->with('category')->get();
+            $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+                ->with('category:id,name')
+                ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+                ->where('category_id', $subcategoryId)
+                ->orderBy('id')
+                ->limit(150)
+                ->get();
         } else {
             // Mostrar todos los productos de las subcategorías de la categoría actual
             if ($this->selectedCategoryId) {
                 $subIds = ProductCategory::where('parent_category_id', $this->selectedCategoryId)->pluck('id');
-                $this->products = Product::whereIn('category_id', $subIds)->with('category')->get();
+                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+                    ->with('category:id,name')
+                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+                    ->whereIn('category_id', $subIds)
+                    ->orderBy('id')
+                    ->limit(150)
+                    ->get();
             } else {
-                $this->products = Product::with('category')->get();
+                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+                    ->with('category:id,name')
+                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+                    ->orderBy('id')
+                    ->limit(150)
+                    ->get();
             }
         }
     }
@@ -629,8 +687,8 @@ class PosInterface extends Page
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'quantity' => 1,
-                'unit_price' => $product->price,
-                'subtotal' => $product->price,
+                'unit_price' => $product->sale_price,
+                'subtotal' => $product->sale_price,
             ];
         }
 
