@@ -64,7 +64,7 @@
                     <x-filament::input.wrapper class="mb-4">
                         <x-filament::input
                             type="text"
-                            wire:model.live="search"
+                            wire:model.debounce.300ms="search"
                             placeholder="Buscar productos..."
                             class="w-full text-base py-3"
                         />
@@ -72,7 +72,7 @@
                 </div>
 
                 {{-- GRID DE PRODUCTOS RESPONSIVO --}}
-                <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));">
+                <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));" wire:init="loadProductsLazy">
                     @forelse($this->products as $product)
                         {{-- PRODUCTO CARD - CLICKEABLE COMPLETA --}}
                         <div

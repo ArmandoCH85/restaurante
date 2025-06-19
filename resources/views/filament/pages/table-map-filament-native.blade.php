@@ -74,14 +74,25 @@
                                 }" class="w-4 h-4 text-gray-400" />
                             </div>
 
-                            {{-- Badge de estado nativo --}}
-                            <x-filament::badge :color="match ($table->status) {
-                                'available' => 'success',
-                                'occupied' => 'danger',
-                                'reserved' => 'warning',
-                                'maintenance' => 'gray',
-                                default => 'gray',
-                            }" size="sm">
+                            {{-- Badge de estado nativo (tamaño grande + icono) --}}
+                            <x-filament::badge
+                                :color="match ($table->status) {
+                                    'available' => 'success',
+                                    'occupied' => 'danger',
+                                    'reserved' => 'warning',
+                                    'maintenance' => 'gray',
+                                    default => 'gray',
+                                }"
+                                :icon="match ($table->status) {
+                                    'available' => 'heroicon-m-check-circle',
+                                    'occupied' => 'heroicon-m-users',
+                                    'reserved' => 'heroicon-m-clock',
+                                    'maintenance' => 'heroicon-m-wrench-screwdriver',
+                                    default => 'heroicon-m-question-mark-circle',
+                                }"
+                                size="lg"
+                                class="font-bold tracking-wide px-3 py-1.5"
+                            >
                                 {{ match ($table->status) {
                                     'available' => 'Disponible',
                                     'occupied' => 'Ocupada',
