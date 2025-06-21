@@ -1702,3 +1702,4 @@ class PosInterface extends Page
         );
     }
 }
+//solucion
