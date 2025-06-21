@@ -15,7 +15,7 @@
                 </x-filament::button>
 
                 {{-- Botones de categorías --}}
-                @foreach($this->categories as $category)
+                @foreach($this->getCategoriesProperty() as $category)
                     <x-filament::button
                         wire:click="selectCategory({{ $category->id }})"
                         :color="$selectedCategoryId === $category->id ? 'success' : 'gray'"
@@ -76,8 +76,8 @@
                     @forelse($this->products as $product)
                         {{-- PRODUCTO CARD - CLICKEABLE COMPLETA --}}
                         <div
-                            wire:click="addToCart({{ $product->id }})"
-                            class="group bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.03] hover:border-green-300 active:scale-[0.97] h-[200px] flex flex-col pos-interface"
+                            wire:click="{{ $canClearCart ? 'addToCart('.$product->id.')' : null }}"
+                            class="group bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden {{ $canClearCart ? 'cursor-pointer hover:shadow-lg hover:scale-[1.03] hover:border-green-300 active:scale-[0.97]' : 'opacity-50 cursor-not-allowed' }} transition-all duration-200 h-[200px] flex flex-col pos-interface"
                         >
                             {{-- IMAGEN DEL PRODUCTO --}}
                             <div class="product-image-container">
@@ -170,7 +170,7 @@
                                     color="danger"
                                     size="sm"
                                     outlined
-                                    :disabled="$this->order?->exists"
+                                    :disabled="!$canClearCart"
                                 >
                                     <x-heroicon-m-trash class="h-4 w-4" />
                                 </x-filament::button>
@@ -200,6 +200,7 @@
                                                 class="h-6 w-6"
                                                 tag="button"
                                                 label="Restar uno"
+                                                :disabled="!$canClearCart"
                                             />
                                             <span class="text-sm font-semibold min-w-[1.5rem] text-center">{{ $item['quantity'] }}</span>
                                             <x-filament::icon-button
@@ -210,6 +211,7 @@
                                                 class="h-6 w-6"
                                                 tag="button"
                                                 label="Añadir uno"
+                                                :disabled="!$canClearCart"
                                             />
                                         </div>
 

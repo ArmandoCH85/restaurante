@@ -75,7 +75,8 @@ class PosInterface extends Page
     public float $total = 0.0;
     public float $subtotal = 0.0;
     public float $tax = 0.0;
-    public int $numberOfGuests = 1; // ✨ NUEVA PROPIEDAD
+    public int $numberOfGuests = 1;
+    public bool $canClearCart = true;
 
     // Propiedades para la transferencia
     public array $transferItems = [];
@@ -100,13 +101,45 @@ class PosInterface extends Page
     public string $customerNameForComanda = '';
 
     // Datos cargados
-    public $categories;
-    public $products;
-    public $tables;
-    public $customers;
-    public $subcategories;
     public bool $productsLoaded = false;
     public string $search = '';
+    public ?string $customerNote = null;
+    public ?Collection $products = null;
+    public ?Collection $categories = null;
+    public ?Collection $subcategories = null;
+    public ?Collection $tables = null;
+    public ?TableModel $selectedTable = null;
+
+    // Propiedades de modales
+    public bool $showTransferModal = false;
+    public bool $showSplitModal = false;
+    public bool $showBillingModal = false;
+    public bool $showPrintModal = false;
+    public bool $showPreBillModal = false;
+    public bool $showPaymentModal = false;
+    public bool $showOrderDetailsModal = false;
+    public bool $showOrderHistoryModal = false;
+    public bool $showOrderNotesModal = false;
+    public bool $showTableSelectionModal = false;
+    public bool $showGuestSelectionModal = false;
+    public bool $showCustomerNoteModal = false;
+
+    // Propiedades de datos
+    public array $selectedProductsForTransfer = [];
+    public array $selectedProductsForSplit = [];
+    public array $splitGroups = [];
+    public array $paymentData = [];
+    public array $orderHistory = [];
+    public array $orderNotes = [];
+    public array $tableStatus = [];
+    public array $guestCounts = [];
+    public array $customerNotes = [];
+    public array $printData = [];
+    public array $preBillData = [];
+    public array $orderDetailsData = [];
+    public array $transferData = [];
+    public array $splitData = [];
+    public array $billingData = [];
 
     protected function getHeaderActions(): array
     {
@@ -116,7 +149,14 @@ class PosInterface extends Page
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->button()
-                ->url(fn () => $this->order instanceof Order ? url("/admin/pos-interface?table_id={$this->selectedTableId}&order_id={$this->order->getKey()}") : '')
+                ->action(function () {
+                    $this->canClearCart = true;
+                    Notification::make()
+                        ->title('Orden reabierta')
+                        ->body('Ahora puede modificar los productos')
+                        ->success()
+                        ->send();
+                })
                 ->visible(fn () =>
                     $this->order instanceof Order &&
                     !$this->order->invoices()->exists()
@@ -476,6 +516,9 @@ class PosInterface extends Page
         $this->selectedTableId = request()->get('table_id');
         $orderId = request()->get('order_id');
 
+        // Inicializar canClearCart como true por defecto
+        $this->canClearCart = true;
+
         // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR ID ***
         if ($orderId) {
             $activeOrder = Order::with(['orderDetails.product', 'customer', 'invoices'])
@@ -513,6 +556,7 @@ class PosInterface extends Page
                 $this->order = $activeOrder;
                 $this->selectedTableId = $activeOrder->table_id;
                 $this->cartItems = [];
+                $this->canClearCart = false;
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
@@ -553,6 +597,7 @@ class PosInterface extends Page
             if ($activeOrder) {
                 $this->order = $activeOrder;
                 $this->cartItems = []; // Limpiar por si acaso
+                $this->canClearCart = false;
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
@@ -690,6 +735,17 @@ class PosInterface extends Page
 
     public function addToCart(int $productId): void
     {
+        // Verificar si se puede agregar al carrito
+        if (!$this->canClearCart) {
+            Notification::make()
+                ->title('No se pueden agregar productos')
+                ->body('La orden está guardada. Debe reabrir la orden primero.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
         $product = Product::find($productId);
 
         if (!$product) {
@@ -739,6 +795,17 @@ class PosInterface extends Page
 
     public function removeFromCart(int $index): void
     {
+        // Verificar si se puede modificar el carrito
+        if (!$this->canClearCart) {
+            Notification::make()
+                ->title('No se puede eliminar el producto')
+                ->body('La orden está guardada. Debe reabrir la orden primero.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
         if (isset($this->cartItems[$index])) {
             $productName = $this->cartItems[$index]['name'];
             unset($this->cartItems[$index]);
@@ -756,6 +823,17 @@ class PosInterface extends Page
 
     public function updateQuantity(int $index, int $quantity): void
     {
+        // Verificar si se puede modificar el carrito
+        if (!$this->canClearCart) {
+            Notification::make()
+                ->title('No se puede modificar la cantidad')
+                ->body('La orden está guardada. Debe reabrir la orden primero.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
         if (isset($this->cartItems[$index])) {
             if ($quantity <= 0) {
                 $this->removeFromCart($index);
@@ -920,6 +998,7 @@ class PosInterface extends Page
                 // Limpiar el carrito después de guardar
                 $this->cartItems = [];
                 $this->calculateTotals();
+                $this->canClearCart = false;
 
                 Notification::make()
                     ->title('🎉 Orden actualizada exitosamente')
@@ -1999,8 +2078,8 @@ class PosInterface extends Page
                                 'customer_name' => $invoice->client_name ?? ($invoice->customer ? $invoice->customer->name : 'N/A'),
                                 'timestamp' => now()->format('Y-m-d H:i:s.u'),
                                 'route' => route('invoices.print', ['invoice' => $invoice->id]),
-                                'user_id' => auth()->id(),
-                                'user_name' => auth()->user()->name,
+                                'user_id' => Auth::id(),
+                                'user_name' => Auth::user()->name,
                                 'session_id' => session()->getId(),
                                 'request_id' => str()->random(8),
                                 'ip' => request()->ip()
