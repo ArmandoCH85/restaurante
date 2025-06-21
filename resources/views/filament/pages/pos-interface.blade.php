@@ -138,6 +138,40 @@
                             {{ count($cartItems) }} items
                         </x-filament::badge>
                     </div>
+
+
+                    <!-- Controles del Carrito: Comensales y Limpiar -->
+                    <div class="flex items-end justify-between gap-4">
+                        <!-- Selector de Comensales Compacto -->
+                        <div class="flex-1" style="max-width: 120px;">
+                            <label for="number_of_guests" class="text-xs font-medium text-gray-600">Comensales</label>
+                            <x-filament::input.wrapper class="mt-1">
+                                <x-filament::input
+                                    type="number"
+                                    id="number_of_guests"
+                                    wire:model.live="numberOfGuests"
+                                    min="1"
+                                    :disabled="$isCartDisabled"
+                                />
+                            </x-filament::input.wrapper>
+                        </div>
+
+                        <!-- Botón Limpiar Carrito Compacto -->
+                        @if(count($cartItems) > 0)
+                            <div class="flex-shrink-0">
+                                <x-filament::button
+                                    wire:click="clearCart"
+                                    color="danger"
+                                    size="sm"
+                                    outlined
+                                    :disabled="$isCartDisabled"
+                                >
+                                    <x-heroicon-m-trash class="h-4 w-4" />
+                                </x-filament::button>
+                            </div>
+                        @endif
+                    </div>
+
                 </div>
 
                 {{-- ITEMS DEL CARRITO --}}
@@ -176,7 +210,7 @@
 
                                         {{-- SUBTOTAL COMPACTO --}}
                                         <span class="text-sm font-bold text-green-600">
-                                            S/ {{ number_format($item['subtotal'], 2) }}
+                                            S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                         </span>
                                     </div>
                                 </div>

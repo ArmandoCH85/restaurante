@@ -39,7 +39,7 @@
     {{-- Panel principal de mesas --}}
     <x-filament::section>
         <x-slot name="heading">
-            Mapa de Mesas
+           Mapa de Mesas para cholos
         </x-slot>
 
         <x-slot name="description">
@@ -53,15 +53,24 @@
             <div
                 class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
                 @forelse($tables as $table)
+                    @php
+                        $style = match($table->status) {
+                            'available' => 'background-color: #d1fae5 !important; color: #065f46 !important; border: 1px solid #6ee7b7 !important;',
+                            'occupied'  => 'background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important;',
+                            'reserved'  => 'background-color: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important;',
+                            default     => 'background-color: #f3f4f6 !important; color: #1f2937 !important; border: 1px solid #d1d5db !important;',
+                        };
+                    @endphp
                     <div wire:click="openPOS({{ $table->id }})" wire:key="table-{{ $table->id }}"
-                        class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer">
+                        class="rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                        style="{{ $style }}">
                         {{-- Header de la mesa con componentes nativos --}}
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center space-x-2">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-3">
                                 {{-- Número de mesa destacado --}}
                                 <div
-                                    class="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-800 rounded-full">
-                                    <span class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                                    class="flex items-center justify-center w-12 h-12 bg-black/10 rounded-lg">
+                                    <span class="text-xl font-bold">
                                         #{{ $table->number ?? str_replace('Mesa ', '', $table->name) }}
                                     </span>
                                 </div>
@@ -71,7 +80,7 @@
                                     'round' => 'heroicon-o-stop',
                                     'oval' => 'heroicon-o-stop',
                                     default => 'heroicon-o-square-3-stack-3d',
-                                }" class="w-4 h-4 text-gray-400" />
+                                }" class="w-5 h-5 opacity-60" />
                             </div>
 
                             {{-- Badge de estado nativo (tamaño grande + icono) --}}
@@ -104,25 +113,25 @@
                         </div>
 
                         {{-- Información de la mesa con iconos nativos --}}
-                        <div class="space-y-2">
+                        <div class="space-y-2.5">
                             {{-- Capacidad --}}
-                            <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                                <x-filament::icon icon="heroicon-o-users" class="w-4 h-4" />
+                            <div class="flex items-center space-x-2 text-sm font-medium opacity-90">
+                                <x-filament::icon icon="heroicon-o-users" class="w-5 h-5" />
                                 <span>{{ $table->capacity }} personas</span>
                             </div>
 
                             {{-- Piso --}}
                             @if ($table->floor)
-                                <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <x-filament::icon icon="heroicon-o-building-storefront" class="w-4 h-4" />
+                                <div class="flex items-center space-x-2 text-sm font-medium opacity-90">
+                                    <x-filament::icon icon="heroicon-o-building-storefront" class="w-5 h-5" />
                                     <span>{{ $table->floor->name }}</span>
                                 </div>
                             @endif
 
                             {{-- Ubicación --}}
                             @if ($table->location)
-                                <div class="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <x-filament::icon icon="heroicon-o-map-pin" class="w-4 h-4" />
+                                <div class="flex items-center space-x-2 text-sm font-medium opacity-90">
+                                    <x-filament::icon icon="heroicon-o-map-pin" class="w-5 h-5" />
                                     <span>
                                         {{ match ($table->location) {
                                             'interior' => 'Interior',
@@ -136,26 +145,6 @@
                                     </span>
                                 </div>
                             @endif
-                        </div>
-
-                        {{-- Footer con icono de estado nativo --}}
-                        <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center justify-center">
-                                <x-filament::icon :icon="match ($table->status) {
-                                    'available' => 'heroicon-o-check-circle',
-                                    'occupied' => 'heroicon-o-users',
-                                    'reserved' => 'heroicon-o-clock',
-                                    'maintenance' => 'heroicon-o-wrench-screwdriver',
-                                    default => 'heroicon-o-question-mark-circle',
-                                }" :class="'w-5 h-5 ' .
-                                    match ($table->status) {
-                                        'available' => 'text-green-500',
-                                        'occupied' => 'text-red-500',
-                                        'reserved' => 'text-yellow-500',
-                                        'maintenance' => 'text-gray-500',
-                                        default => 'text-gray-400',
-                                    }" />
-                            </div>
                         </div>
                     </div>
                 @empty
@@ -210,33 +199,32 @@
                     @php
                         $mapStyles = match ($table->status) {
                             'available' => [
-                                'gradient' =>
-                                    'from-emerald-100 to-emerald-200 dark:from-emerald-900 dark:to-emerald-800',
-                                'border' => 'border-emerald-300 dark:border-emerald-700',
+                                'gradient' => 'from-emerald-500 to-emerald-600 dark:from-emerald-600 dark:to-emerald-700',
+                                'border' => 'border-emerald-700 dark:border-emerald-800',
                                 'text' => 'text-emerald-900 dark:text-emerald-100',
                                 'shadow' => 'hover:shadow-emerald-500/30',
                                 'pulse' => 'group-hover:ring-4 group-hover:ring-emerald-500/20',
                             ],
                             'occupied' => [
-                                'gradient' => 'from-red-100 to-red-200 dark:from-red-900 dark:to-red-800',
-                                'border' => 'border-red-300 dark:border-red-700',
+                                'gradient' => 'from-red-500 to-red-600 dark:from-red-600 dark:to-red-700',
+                                'border' => 'border-red-700 dark:border-red-800',
                                 'text' => 'text-red-900 dark:text-red-100',
                                 'shadow' => 'hover:shadow-red-500/30',
                                 'pulse' => 'group-hover:ring-4 group-hover:ring-red-500/20',
                             ],
                             'reserved' => [
-                                'gradient' => 'from-amber-100 to-amber-200 dark:from-amber-900 dark:to-amber-800',
-                                'border' => 'border-amber-300 dark:border-amber-700',
+                                'gradient' => 'from-amber-400 to-amber-500 dark:from-amber-600 dark:to-amber-700',
+                                'border' => 'border-amber-700 dark:border-amber-800',
                                 'text' => 'text-amber-900 dark:text-amber-100',
                                 'shadow' => 'hover:shadow-amber-500/30',
                                 'pulse' => 'group-hover:ring-4 group-hover:ring-amber-500/20',
                             ],
                             default => [
-                                'gradient' => 'from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800',
-                                'border' => 'border-gray-300 dark:border-gray-700',
-                                'text' => 'text-gray-900 dark:text-gray-100',
-                                'shadow' => 'hover:shadow-gray-500/30',
-                                'pulse' => 'group-hover:ring-4 group-hover:ring-gray-500/20',
+                                'gradient' => 'from-emerald-100 to-emerald-200 dark:from-emerald-900 dark:to-emerald-800',
+                                'border' => 'border-emerald-300 dark:border-emerald-700',
+                                'text' => 'text-emerald-900 dark:text-emerald-100',
+                                'shadow' => 'hover:shadow-emerald-500/30',
+                                'pulse' => 'group-hover:ring-4 group-hover:ring-emerald-500/20',
                             ],
                         };
                     @endphp
@@ -265,7 +253,7 @@
                         <div
                             class="absolute top-2 right-2 w-3 h-3 rounded-full {{ match ($table->status) {
                                 'available' => 'bg-emerald-500',
-                                'occupied' => 'bg-red-500 animate-pulse',
+                                'occupied' => 'bg-rose-500 animate-pulse',
                                 'reserved' => 'bg-amber-500',
                                 default => 'bg-gray-500',
                             } }}">
@@ -376,3 +364,4 @@
         </x-slot>
     </x-filament::modal>
 </x-filament-panels::page>
+  {{-- Resumen de filtros activos --}}
