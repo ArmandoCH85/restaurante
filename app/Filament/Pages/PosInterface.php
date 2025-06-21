@@ -571,10 +571,23 @@ class PosInterface extends Page
 
         try {
             DB::transaction(function () {
+                // ✅ PASO 1: Buscar el empleado correspondiente al usuario logueado.
+                $employee = Employee::where('user_id', Auth::id())->first();
+
+                // Si no se encuentra un empleado, detener la operación.
+                if (!$employee) {
+                    Notification::make()
+                        ->title('Error de Empleado')
+                        ->body('El usuario actual no tiene un registro de empleado válido para crear órdenes.')
+                        ->danger()
+                        ->send();
+                    throw new Halt();
+                }
+
                 $orderData = [
                     'table_id' => $this->selectedTableId,
                     'customer_id' => null,
-                    'employee_id' => Auth::id(),
+                    'employee_id' => $employee->id, // ✅ PASO 2: Usar el ID correcto del empleado.
                     'status' => Order::STATUS_OPEN,
                     'total_price' => $this->total,
                     'order_datetime' => now(),
@@ -605,6 +618,8 @@ class PosInterface extends Page
 
             Notification::make()->title('Orden guardada correctamente')->success()->send();
 
+        } catch (Halt $e) {
+            // Detiene la ejecución sin registrar un error grave, ya que la notificación ya se envió.
         } catch (\Exception $e) {
             Log::error('Error al procesar la orden en TPV: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
             Notification::make()->title('Error al guardar la orden')->body('Ocurrió un error inesperado. Revisa los logs.')->danger()->send();
