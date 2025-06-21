@@ -75,6 +75,7 @@ class PosInterface extends Page
     public float $total = 0.0;
     public float $subtotal = 0.0;
     public float $tax = 0.0;
+    public int $numberOfGuests = 1; // ✨ NUEVA PROPIEDAD
 
     // Propiedades para la transferencia
     public array $transferItems = [];
@@ -432,10 +433,42 @@ class PosInterface extends Page
                 ->color('info')
                 ->size('lg')
                 ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles,
+
+            Action::make('close_register_and_logout')
+                ->label('Cerrar Caja y Salir')
+                ->icon('heroicon-o-lock-closed')
+                ->color('danger')
+                ->requiresConfirmation()
+                ->modalHeading('Cerrar Caja')
+                ->modalDescription('¿Estás seguro de que deseas cerrar la caja actual y cerrar sesión?')
+                ->action(function () {
+                    $cashRegister = CashRegister::find(session('active_cash_register_id'));
+                    if ($cashRegister) {
+                        $cashRegister->update([
+                            'closing_time' => now(),
+                            'status' => 'closed',
+                            'closed_by' => Auth::id(),
+                        ]);
+
+                        // Obtener el usuario antes de hacer logout
+                        $user = Auth::user();
+                        Auth::logout();
+                        request()->session()->invalidate();
+                        request()->session()->regenerateToken();
+
+                        // Enviar notificación de éxito después del logout
+                        if ($user) {
+                             Notification::make()
+                                ->title('Caja Cerrada Exitosamente')
+                                ->success()
+                                ->sendToDatabase($user);
+                        }
+
+                        return redirect('/');
+                    }
+                })
         ];
     }
-
-
 
     public function mount(): void
     {
@@ -505,6 +538,8 @@ class PosInterface extends Page
 
                     \Illuminate\Support\Facades\Log::info('🔍 DATOS ORIGINALES DEL CLIENTE CARGADOS:', $this->originalCustomerData);
                 }
+
+                $this->numberOfGuests = $activeOrder->number_of_guests ?? 1; // ✨ CARGAR COMENSALES
             }
         }
         // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR MESA ***
@@ -769,71 +804,61 @@ class PosInterface extends Page
     protected function createOrderFromCart(): ?Order
     {
         if (empty($this->cartItems)) {
+            return $this->order;
+        }
+
+        // Obtener el ID del empleado a partir del usuario autenticado
+        $employeeId = Employee::where('user_id', Auth::id())->value('id');
+        if (!$employeeId) {
+            Notification::make()
+                ->title('Error de Empleado')
+                ->body('El usuario actual no tiene un empleado asociado. No se puede crear la orden.')
+                ->danger()
+                ->send();
             return null;
         }
 
-        try {
-            // Obtener la caja registradora activa
-            $activeCashRegister = CashRegister::getOpenRegister();
+        // Prepara los datos del pedido
+        $orderData = [
+            'status' => Order::STATUS_OPEN,
+            'user_id' => Auth::id(),
+            'employee_id' => $employeeId, // ✨ AÑADIR EMPLOYEE_ID
+            'table_id' => $this->selectedTableId,
+            'order_datetime' => now(), // ✨ AÑADIR FECHA Y HORA
+            'subtotal' => $this->subtotal,
+            'tax' => $this->tax,
+            'total' => $this->total,
+            'cash_register_id' => CashRegister::getActiveCashRegisterId(),
+            'number_of_guests' => $this->numberOfGuests, // ✨ GUARDAR COMENSALES
+        ];
 
-            if (!$activeCashRegister) {
-                throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
-            }
+        // Actualiza o crea el pedido
+        $this->order = Order::updateOrCreate(
+            ['id' => $this->order ? $this->order->id : null],
+            $orderData
+        );
 
-            // Iniciar una transacción para garantizar la atomicidad
-            return DB::transaction(function () use ($activeCashRegister) {
-                // Crear la orden
-                $userId = Auth::id();
-                $employee = DB::table('employees')->where('user_id', $userId)->first();
-
-                if (!$employee) {
-                    Notification::make()
-                        ->title('Error')
-                        ->body('El usuario no tiene un empleado asociado en la tabla employees')
-                        ->danger()
-                        ->send();
-                    return null;
-                }
-
-                $order = Order::create([
-                    'table_id' => $this->selectedTableId,
-                    'employee_id' => $employee->id,
-                    'customer_id' => null, // Por ahora sin cliente específico
-                    'cash_register_id' => $activeCashRegister->id,
-                    'service_type' => $this->selectedTableId ? 'dine_in' : 'takeout',
-                    'subtotal' => $this->subtotal,
-                    'tax' => $this->tax,
-                    'total' => $this->total,
-                    'status' => Order::STATUS_OPEN,
-                    'order_datetime' => now(),
-                ]);
-
-                // Agregar productos a la orden usando el método del modelo
-                foreach ($this->cartItems as $item) {
-                    $order->addProduct(
-                        $item['product_id'],
-                        $item['quantity'],
-                        $item['unit_price']
-                    );
-                }
-
-                // Recalcular totales de la orden
-                $order->recalculateTotals();
-
-                // *** MEJORA DE UX: Cambiar estado de la mesa a ocupada ***
-                if ($this->selectedTableId) {
-                    $table = TableModel::find($this->selectedTableId);
-                    if ($table && $table->status === TableModel::STATUS_AVAILABLE) {
-                        $table->update(['status' => TableModel::STATUS_OCCUPIED]);
-                    }
-                }
-
-                return $order;
-            });
-        } catch (\Exception $e) {
-            // Si algo falla, la transacción hará rollback automáticamente
-            throw new \Exception('Error al crear la orden: ' . $e->getMessage());
+        // Agregar productos a la orden usando el método del modelo
+        foreach ($this->cartItems as $item) {
+            $this->order->addProduct(
+                $item['product_id'],
+                $item['quantity'],
+                $item['unit_price']
+            );
         }
+
+        // Recalcular totales de la orden
+        $this->order->recalculateTotals();
+
+        // *** MEJORA DE UX: Cambiar estado de la mesa a ocupada ***
+        if ($this->selectedTableId) {
+            $table = TableModel::find($this->selectedTableId);
+            if ($table && $table->status === TableModel::STATUS_AVAILABLE) {
+                $table->update(['status' => TableModel::STATUS_OCCUPIED]);
+            }
+        }
+
+        return $this->order;
     }
 
     public function processOrder(): void

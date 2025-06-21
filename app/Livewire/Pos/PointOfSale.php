@@ -26,10 +26,16 @@ class PointOfSale extends Component
     public array $cartItems = [];
     public float $cartTotal = 0;
     public ?string $customerNote = null;
+    public int $numberOfGuests = 1;
     public ?Order $currentOrder = null;
     public bool $showEditPriceModal = false;
     public ?string $editingProductId = null;
     public ?float $newPrice = null;
+
+    // Control de modales
+    public bool $showCommandModal = false;
+    public bool $showPreBillModal = false;
+    public bool $showInvoiceModal = false;
 
     protected $queryString = [
         'tableId' => ['except' => ''],
@@ -284,6 +290,7 @@ class PointOfSale extends Component
             // Si existe, actualizar los detalles
             Log::info('Updating existing order', ['order_id' => $order->id]);
             $order->orderDetails()->delete(); // Eliminar detalles existentes
+            $order->number_of_guests = $this->numberOfGuests;
 
             foreach ($this->cart as $productId => $item) {
                 $orderDetail = new OrderDetail();
@@ -310,6 +317,7 @@ class PointOfSale extends Component
             $order->total_amount = $totalAmount;
             $order->notes = $this->customerNote;
             $order->cash_register_id = $activeCashRegister->id;
+            $order->number_of_guests = $this->numberOfGuests;
             $order->save();
             Log::info('New order created', ['order_id' => $order->id]);
 

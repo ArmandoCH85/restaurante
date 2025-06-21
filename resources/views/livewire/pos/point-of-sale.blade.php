@@ -986,11 +986,6 @@
             color: var(--color-gray-900);
         }
 
-        .dark .cart-item-standard-price {
-            color: var(--color-gray-600);
-            background: var(--color-surface-hover);
-        }
-
         .dark .cart-item-standard-price span {
             color: var(--color-primary-light);
         }
@@ -1390,7 +1385,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: var(--spacing-xs);
-            margin-bottom: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
         }
 
         /* Item individual en la fila */
@@ -1831,6 +1826,25 @@
                         </svg>
                         Vaciar
                     </button>
+                </div>
+
+                <!-- ✨ Nuevo: Selector de número de comensales -->
+                <div class="mb-2">
+                    <label for="number_of_guests" class="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.124-1.282-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.124-1.282.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                        Nº de Comensales
+                    </label>
+                    <input
+                        id="number_of_guests"
+                        type="number"
+                        wire:model.live="numberOfGuests"
+                        min="1"
+                        max="50"
+                        class="mt-1 block w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Nº de personas"
+                    >
                 </div>
 
                 <!-- Selector de tipo de servicio compacto -->
