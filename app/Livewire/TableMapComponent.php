@@ -24,28 +24,51 @@ class TableMapComponent extends Component
     public ?string $searchQuery = null;
     public bool $showTodayReservations = false;
     public string $viewMode = 'grid'; // 'grid' o 'layout'
-    
+
     // Propiedades para la selección y manejo de mesas
     public ?Table $selectedTable = null;
     public ?int $selectedTableId = null;
-    
+
     // Propiedades para modales
     public bool $showChangeStatusModal = false;
     public bool $showAssignOrderModal = false;
     public bool $showReservationInfoModal = false;
     public ?string $newStatus = null;
-    
+    public ?int $current_diners = null;
+
     // Propiedades para operaciones
     public ?int $orderIdToAssign = null;
     public ?array $tablePositions = [];
     public bool $isEditingLayout = false;
-    
+
+    protected function rules()
+    {
+        return [
+            'current_diners' => [
+                'required_if:newStatus,occupied',
+                'integer',
+                'min:1',
+                'max:' . ($this->selectedTable?->capacity ?? 1)
+            ],
+        ];
+    }
+
+    protected function messages()
+    {
+        return [
+            'current_diners.required_if' => 'El número de comensales es requerido cuando se ocupa una mesa.',
+            'current_diners.integer' => 'El número de comensales debe ser un número entero.',
+            'current_diners.min' => 'El número de comensales debe ser al menos 1.',
+            'current_diners.max' => 'El número de comensales no puede exceder la capacidad de la mesa (:max).',
+        ];
+    }
+
     public function mount(): void
     {
         // Inicialización del componente
         $this->loadTablePositions();
     }
-    
+
     /**
      * Carga las posiciones guardadas de las mesas para el modo layout
      */
@@ -55,7 +78,7 @@ class TableMapComponent extends Component
         // Por ahora simplemente asignaremos posiciones por defecto para pruebas
         $tables = $this->loadTables();
         $this->tablePositions = [];
-        
+
         // Asignar posiciones estáticas iniciales por categoría en un grid
         $interiorX = 50;
         $interiorY = 50;
@@ -63,11 +86,11 @@ class TableMapComponent extends Component
         $exteriorY = 50;
         $terrazaX = 550;
         $terrazaY = 50;
-        
+
         foreach ($tables as $table) {
             $x = 50;
             $y = 50;
-            
+
             switch ($table->location) {
                 case 'interior':
                     $x = $interiorX;
@@ -85,7 +108,7 @@ class TableMapComponent extends Component
                     $terrazaY += 100;
                     break;
             }
-            
+
             $this->tablePositions[$table->id] = [
                 'x' => $x,
                 'y' => $y,
@@ -93,7 +116,7 @@ class TableMapComponent extends Component
             ];
         }
     }
-    
+
     /**
      * Carga las mesas con filtros aplicados
      */
@@ -120,7 +143,7 @@ class TableMapComponent extends Component
                   ->orWhere('location', 'like', "%{$this->searchQuery}%");
             });
         }
-        
+
         // Cargar relaciones necesarias
         $query->with([
             'activeReservations' => function ($query) {
@@ -128,17 +151,17 @@ class TableMapComponent extends Component
             },
             'activeOrders'
         ]);
-        
+
         // Mostrar solo mesas con reservas para hoy si el filtro está activo
         if ($this->showTodayReservations) {
             $query->whereHas('activeReservations', function ($query) {
                 $query->whereDate('reservation_date', Carbon::today());
             });
         }
-        
+
         return $query->orderBy('location')->orderBy('number')->get();
     }
-    
+
     /**
      * Selecciona una mesa para mostrar sus detalles
      * @param int $tableId ID de la mesa seleccionada
@@ -148,15 +171,15 @@ class TableMapComponent extends Component
     {
         $this->selectedTableId = $tableId;
         $this->selectedTable = Table::with(['activeReservations', 'activeOrders'])->find($tableId);
-        
+
         // Si se solicita redirección, ir directamente al POS
         if ($redirect) {
             return redirect()->route('pos.index', ['table_id' => $tableId, 'preserve_cart' => 'true']);
         }
-        
+
         return null;
     }
-    
+
     /**
      * Redirecciona directamente al POS para una mesa específica
      * @param int $tableId ID de la mesa a la que se quiere ir en el POS
@@ -166,7 +189,7 @@ class TableMapComponent extends Component
     {
         return redirect()->route('pos.index', ['table_id' => $tableId, 'preserve_cart' => 'true']);
     }
-    
+
     /**
      * Deselecciona la mesa actual
      */
@@ -176,7 +199,7 @@ class TableMapComponent extends Component
         $this->selectedTable = null;
         $this->resetModals();
     }
-    
+
     /**
      * Limpia todos los filtros aplicados
      */
@@ -187,50 +210,73 @@ class TableMapComponent extends Component
         $this->floorFilter = null;
         $this->searchQuery = null;
     }
-    
+
     /**
      * Abre el modal para cambiar el estado de una mesa
      */
     public function openChangeStatusModal(string $status): void
     {
         if (!$this->selectedTable) return;
-        
+
         $this->newStatus = $status;
+        $this->current_diners = null;
         $this->showChangeStatusModal = true;
     }
-    
+
     /**
      * Cambia el estado de la mesa seleccionada
      */
     public function changeTableStatus(): void
     {
         if (!$this->selectedTable || !$this->newStatus) return;
-        
+
+        // Validar si se está ocupando la mesa
+        if ($this->newStatus === 'occupied') {
+            $this->validate();
+        }
+
         $this->selectedTable->status = $this->newStatus;
+
+        // Actualizar el número de comensales y la hora de ocupación
+        if ($this->newStatus === 'occupied') {
+            $this->selectedTable->current_diners = $this->current_diners;
+            $this->selectedTable->occupied_at = now();
+        } else {
+            $this->selectedTable->current_diners = null;
+            $this->selectedTable->occupied_at = null;
+        }
+
         $this->selectedTable->save();
-        
+
         $this->showChangeStatusModal = false;
         $this->newStatus = null;
-        
+        $this->current_diners = null;
+
         // Notificar al usuario
         Notification::make()
             ->title('Estado actualizado')
             ->body("La mesa {$this->selectedTable->number} ahora está {$this->getStatusLabel($this->selectedTable->status)}.")
             ->success()
             ->send();
-        
+
         // Recargar la mesa seleccionada
         $this->selectTable($this->selectedTable->id);
     }
-    
+
     /**
      * Devuelve la etiqueta legible para un estado
      */
-    public function getStatusLabel(string $status): string
+    protected function getStatusLabel(string $status): string
     {
-        return $this->getStatusOptions()[$status] ?? $status;
+        return match ($status) {
+            'available' => 'disponible',
+            'occupied' => 'ocupada',
+            'reserved' => 'reservada',
+            'maintenance' => 'en mantenimiento',
+            default => $status,
+        };
     }
-    
+
     /**
      * Alterna entre los modos de visualización
      */
@@ -238,7 +284,7 @@ class TableMapComponent extends Component
     {
         $this->viewMode = $this->viewMode === 'grid' ? 'layout' : 'grid';
     }
-    
+
     /**
      * Activa/desactiva el modo de edición de layout
      */
@@ -246,7 +292,7 @@ class TableMapComponent extends Component
     {
         $this->isEditingLayout = !$this->isEditingLayout;
     }
-    
+
     /**
      * Guarda la posición de una mesa en el modo layout
      */
@@ -257,24 +303,24 @@ class TableMapComponent extends Component
             'y' => $y,
             'rotation' => $rotation
         ];
-        
+
         // Aquí se podría guardar en la base de datos si se implementa un modelo de Layout
     }
-    
+
     /**
      * Resetea todas las posiciones de las mesas a su valor por defecto
      */
     public function resetLayout(): void
     {
         $this->loadTablePositions();
-        
+
         Notification::make()
             ->title('Layout reiniciado')
             ->body("Se han reiniciado las posiciones de todas las mesas.")
             ->info()
             ->send();
     }
-    
+
     /**
      * Obtiene los pisos disponibles
      */
@@ -284,7 +330,7 @@ class TableMapComponent extends Component
             ->orderBy('name')
             ->get();
     }
-    
+
     /**
      * Obtiene los posibles estados de las mesas
      */
@@ -297,7 +343,7 @@ class TableMapComponent extends Component
             'maintenance' => 'Mantenimiento',
         ];
     }
-    
+
     /**
      * Obtiene las posibles ubicaciones de las mesas
      */
@@ -309,7 +355,7 @@ class TableMapComponent extends Component
             'terraza' => 'Terraza',
         ];
     }
-    
+
     /**
      * Métodos que se activan cuando cambian los filtros
      */
@@ -317,22 +363,22 @@ class TableMapComponent extends Component
     {
         // Se usará el refresco automático por LiveWire
     }
-    
+
     public function updatedLocationFilter(): void
     {
         // Se usará el refresco automático por LiveWire
     }
-    
+
     public function updatedFloorFilter(): void
     {
         // Se usará el refresco automático por LiveWire
     }
-    
+
     public function updatedSearchQuery(): void
     {
         // Se usará el refresco automático por LiveWire
     }
-    
+
     /**
      * Reinicia todos los filtros a su valor por defecto
      */
@@ -344,7 +390,7 @@ class TableMapComponent extends Component
         $this->searchQuery = null;
         $this->showTodayReservations = false;
     }
-    
+
     /**
      * Reinicia todos los modales a su estado cerrado
      */
@@ -356,11 +402,11 @@ class TableMapComponent extends Component
         $this->newStatus = null;
         $this->orderIdToAssign = null;
     }
-    
+
     /**
      * Obtiene las órdenes pendientes para asignar a mesas
      */
-    #[Computed] 
+    #[Computed]
     public function getPendingOrders(): Collection
     {
         return Order::where('status', 'pending')
@@ -370,7 +416,7 @@ class TableMapComponent extends Component
             ->take(10)
             ->get();
     }
-    
+
     /**
      * Renderiza el componente
      */

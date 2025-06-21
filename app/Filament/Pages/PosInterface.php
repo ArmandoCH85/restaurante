@@ -75,6 +75,9 @@ class PosInterface extends Page
     public float $total = 0.0;
     public float $subtotal = 0.0;
     public float $tax = 0.0;
+    public ?int $current_diners = null; // Número de comensales
+    public bool $canClearCart = true; // Propiedad para controlar el botón Limpiar Carrito
+    public bool $canAddProducts = true; // Nueva propiedad para controlar si se pueden agregar productos
 
     // Propiedades para la transferencia
     public array $transferItems = [];
@@ -480,14 +483,16 @@ class PosInterface extends Page
                 $this->order = $activeOrder;
                 $this->selectedTableId = $activeOrder->table_id;
                 $this->cartItems = [];
+                $this->canClearCart = true; // Habilitar el botón Limpiar Carrito al reabrir
+                $this->canAddProducts = true; // Habilitar la adición de productos al reabrir
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
-                        'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
-                        'quantity' => $detail->quantity,
+                        'name'       => $detail->product->name,
+                        'quantity'   => $detail->quantity,
                         'unit_price' => $detail->unit_price,
-                        'subtotal' => $detail->subtotal,
+                        'subtotal'   => $detail->subtotal,
                     ];
                 }
 
@@ -502,8 +507,6 @@ class PosInterface extends Page
                         'customer_phone' => $activeOrder->customer->phone ?: '',
                         'customer_email' => $activeOrder->customer->email ?: '',
                     ];
-
-                    \Illuminate\Support\Facades\Log::info('🔍 DATOS ORIGINALES DEL CLIENTE CARGADOS:', $this->originalCustomerData);
                 }
             }
         }
@@ -536,15 +539,20 @@ class PosInterface extends Page
             ProductCategory::with('children')->whereNull('parent_category_id')->get()
         );
 
-        // Lazy loading: no cargamos productos aquí, lo haremos vía wire:init
-        $this->products = collect();
+        // Cargar productos iniciales (sin filtro de categoría)
+        $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+            ->with('category:id,name')
+            ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->orderBy('id')
+            ->limit(150)
+            ->get();
+
+        $this->productsLoaded = true; // Marcar como cargados
 
         // Inicializar subcategorías según la categoría activa (si existe)
         $this->subcategories = $this->selectedCategoryId
             ? ProductCategory::where('parent_category_id', $this->selectedCategoryId)->get()
             : collect();
-
-        // Productos se cargarán luego con loadProductsLazy()
 
         // Calcular totales basados en el carrito (si lo hubiera)
         $this->calculateTotals();
@@ -655,6 +663,17 @@ class PosInterface extends Page
 
     public function addToCart(int $productId): void
     {
+        // Si no se pueden agregar productos, retornar
+        if (!$this->canAddProducts) {
+            Notification::make()
+                ->title('No se pueden agregar productos')
+                ->body('La orden ya está guardada. Debe reabrir la orden para agregar más productos.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
         $product = Product::find($productId);
 
         if (!$product) {
@@ -773,65 +792,44 @@ class PosInterface extends Page
         }
 
         try {
-            // Obtener la caja registradora activa
-            $activeCashRegister = CashRegister::getOpenRegister();
+            DB::beginTransaction();
 
-            if (!$activeCashRegister) {
-                throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
+            // Crear la orden
+            $order = Order::create([
+                'table_id' => $this->selectedTableId,
+                'customer_name' => $this->customerNameForComanda,
+                'status' => Order::STATUS_OPEN,
+                'total' => $this->total,
+                'subtotal' => $this->subtotal,
+                'tax' => $this->tax,
+                'created_by' => auth()->id(),
+                'current_diners' => $this->current_diners, // Agregar número de comensales
+            ]);
+
+            // Si hay mesa seleccionada, actualizarla
+            if ($this->selectedTableId) {
+                TableModel::where('id', $this->selectedTableId)->update([
+                    'status' => TableModel::STATUS_OCCUPIED,
+                    'current_diners' => $this->current_diners, // Actualizar número de comensales en la mesa
+                ]);
             }
 
-            // Iniciar una transacción para garantizar la atomicidad
-            return DB::transaction(function () use ($activeCashRegister) {
-                // Crear la orden
-                $userId = Auth::id();
-                $employee = DB::table('employees')->where('user_id', $userId)->first();
+            // Agregar los productos
+            foreach ($this->cartItems as $item) {
+                $order->addProduct(
+                    $item['product_id'],
+                    $item['quantity'],
+                    $item['unit_price']
+                );
+            }
 
-                if (!$employee) {
-                    Notification::make()
-                        ->title('Error')
-                        ->body('El usuario no tiene un empleado asociado en la tabla employees')
-                        ->danger()
-                        ->send();
-                    return null;
-                }
+            // Recalcular totales de la orden
+            $order->recalculateTotals();
 
-                $order = Order::create([
-                    'table_id' => $this->selectedTableId,
-                    'employee_id' => $employee->id,
-                    'customer_id' => null, // Por ahora sin cliente específico
-                    'cash_register_id' => $activeCashRegister->id,
-                    'service_type' => $this->selectedTableId ? 'dine_in' : 'takeout',
-                    'subtotal' => $this->subtotal,
-                    'tax' => $this->tax,
-                    'total' => $this->total,
-                    'status' => Order::STATUS_OPEN,
-                    'order_datetime' => now(),
-                ]);
-
-                // Agregar productos a la orden usando el método del modelo
-                foreach ($this->cartItems as $item) {
-                    $order->addProduct(
-                        $item['product_id'],
-                        $item['quantity'],
-                        $item['unit_price']
-                    );
-                }
-
-                // Recalcular totales de la orden
-                $order->recalculateTotals();
-
-                // *** MEJORA DE UX: Cambiar estado de la mesa a ocupada ***
-                if ($this->selectedTableId) {
-                    $table = TableModel::find($this->selectedTableId);
-                    if ($table && $table->status === TableModel::STATUS_AVAILABLE) {
-                        $table->update(['status' => TableModel::STATUS_OCCUPIED]);
-                    }
-                }
-
-                return $order;
-            });
+            DB::commit();
+            return $order;
         } catch (\Exception $e) {
-            // Si algo falla, la transacción hará rollback automáticamente
+            DB::rollBack();
             throw new \Exception('Error al crear la orden: ' . $e->getMessage());
         }
     }
@@ -851,27 +849,24 @@ class PosInterface extends Page
             if ($this->order) {
                 // Actualizar orden existente
                 DB::transaction(function () {
-                    // Agregar nuevos productos a la orden existente
-                    foreach ($this->cartItems as $item) {
-                        // Verificar si el producto ya existe en la orden
-                        $existingDetail = $this->order->orderDetails()
-                            ->where('product_id', $item['product_id'])
-                            ->first();
+                    // Primero, obtener los IDs de los productos en el carrito
+                    $cartProductIds = collect($this->cartItems)->pluck('product_id')->toArray();
 
-                        if ($existingDetail) {
-                            // Si existe, actualizar la cantidad directamente con la del carrito
-                            $existingDetail->update([
+                    // Eliminar detalles de productos que ya no están en el carrito
+                    $this->order->orderDetails()
+                        ->whereNotIn('product_id', $cartProductIds)
+                        ->delete();
+
+                    // Actualizar o crear detalles para los productos en el carrito
+                    foreach ($this->cartItems as $item) {
+                        $this->order->orderDetails()->updateOrCreate(
+                            ['product_id' => $item['product_id']],
+                            [
                                 'quantity' => $item['quantity'],
+                                'unit_price' => $item['unit_price'],
                                 'subtotal' => $item['quantity'] * $item['unit_price']
-                            ]);
-                        } else {
-                            // Si no existe, agregar como nuevo
-                            $this->order->addProduct(
-                                $item['product_id'],
-                                $item['quantity'],
-                                $item['unit_price']
-                            );
-                        }
+                            ]
+                        );
                     }
 
                     // Recalcular totales
@@ -890,26 +885,32 @@ class PosInterface extends Page
                             $table->update(['status' => TableModel::STATUS_OCCUPIED]);
                         }
                     }
+
+                    // Deshabilitar el botón Limpiar Carrito y la adición de productos después de guardar
+                    $this->canClearCart = false;
+                    $this->canAddProducts = false;
+
+                    // Limpiar el carrito después de guardar
+                    $this->cartItems = [];
+                    $this->calculateTotals();
+
+                    Notification::make()
+                        ->title('🎉 Orden actualizada exitosamente')
+                        ->body('Orden #' . $this->order->id . ' actualizada con éxito')
+                        ->success()
+                        ->send();
+
+                    // Forzar recarga de la orden para actualizar el estado
+                    $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
                 });
-
-                // Limpiar el carrito después de guardar
-                $this->cartItems = [];
-                $this->calculateTotals();
-
-                Notification::make()
-                    ->title('🎉 Orden actualizada exitosamente')
-                    ->body('Orden #' . $this->order->id . ' actualizada con éxito')
-                    ->success()
-                    ->send();
-
-                // Forzar recarga de la orden para actualizar el estado
-                $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
             } else {
                 // Crear nueva orden
                 $order = $this->createOrderFromCart();
 
                 if ($order) {
                     $this->order = $order;
+                    $this->canClearCart = false;
+                    $this->canAddProducts = false;
 
                     Notification::make()
                         ->title('🎉 Orden creada exitosamente')
