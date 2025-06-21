@@ -48,8 +48,7 @@ class DatabaseSeeder extends Seeder
         // 5️⃣ PRODUCTOS Y MENÚ
         $this->command->info('🍽️ Productos y menú...');
         $this->call([
-            ProductCategorySeeder::class,
-            ProductSeeder::class,
+            RestaurantMenuSeeder::class,
             // RecipeSeeder::class, // Temporalmente comentado - problema de foreign key
         ]);
 

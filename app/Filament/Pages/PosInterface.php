@@ -78,8 +78,14 @@ class PosInterface extends Page
     public float $total = 0.0;
     public float $subtotal = 0.0;
     public float $tax = 0.0;
+
+    public ?int $current_diners = null; // Número de comensales
+    public bool $canClearCart = true; // Propiedad para controlar el botón Limpiar Carrito
+    public bool $canAddProducts = true; // Nueva propiedad para controlar si se pueden agregar productos
+
     public int $numberOfGuests = 1; // ✨ NUEVA PROPIEDAD
     public bool $isCartDisabled = false; // ✨ NUEVA PROPIEDAD PARA BLOQUEAR CARRITO
+
 
     // Propiedades para la transferencia
     public array $transferItems = [];
@@ -455,10 +461,86 @@ class PosInterface extends Page
 
     public function mount(): void
     {
+
+        // Obtener parámetros de la URL
+        $this->selectedTableId = request()->get('table_id');
+        $orderId = request()->get('order_id');
+
+        // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR ID ***
+        if ($orderId) {
+            $activeOrder = Order::with(['orderDetails.product', 'customer', 'invoices'])
+                ->where('id', $orderId)
+                ->first();
+
+            if ($activeOrder) {
+                // Solo verificar si tiene comprobantes
+                if ($activeOrder->invoices()->exists()) {
+                    Notification::make()
+                        ->title('No se puede reabrir')
+                        ->body('Esta orden ya tiene un comprobante emitido.')
+                        ->danger()
+                        ->send();
+
+                    $this->redirect(TableMap::getUrl());
+                    return;
+                }
+
+                // Reabrir la orden sin importar su estado previo
+                $activeOrder->status = Order::STATUS_OPEN;
+                $activeOrder->billed = false;
+                $activeOrder->save();
+
+                // Actualizar estado de la mesa si existe
+                if ($activeOrder->table) {
+                    $activeOrder->table->update(['status' => TableModel::STATUS_OCCUPIED]);
+                }
+
+                Notification::make()
+                    ->title('Orden reabierta')
+                    ->success()
+                    ->send();
+
+                $this->order = $activeOrder;
+                $this->selectedTableId = $activeOrder->table_id;
+                $this->cartItems = [];
+                $this->canClearCart = true; // Habilitar el botón Limpiar Carrito al reabrir
+                $this->canAddProducts = true; // Habilitar la adición de productos al reabrir
+
+                foreach ($activeOrder->orderDetails as $detail) {
+                    $this->cartItems[] = [
+                        'product_id' => $detail->product_id,
+                        'name'       => $detail->product->name,
+                        'quantity'   => $detail->quantity,
+                        'unit_price' => $detail->unit_price,
+                        'subtotal'   => $detail->subtotal,
+                    ];
+                }
+
+                // ✅ CARGAR DATOS ORIGINALES DEL CLIENTE DE LA ORDEN DE DELIVERY
+                if ($activeOrder->customer) {
+                    $this->originalCustomerData = [
+                        'customer_id' => $activeOrder->customer->id,
+                        'customer_name' => $activeOrder->customer->name,
+                        'customer_document_type' => $activeOrder->customer->document_type ?: 'DNI',
+                        'customer_document' => $activeOrder->customer->document_number ?: '',
+                        'customer_address' => $activeOrder->customer->address ?: '',
+                        'customer_phone' => $activeOrder->customer->phone ?: '',
+                        'customer_email' => $activeOrder->customer->email ?: '',
+                    ];
+                }
+            }
+        }
+        // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR MESA ***
+        elseif ($this->selectedTableId) {
+            // Buscar la orden abierta para esta mesa
+            $activeOrder = Order::with('orderDetails.product')
+                ->where('table_id', $this->selectedTableId)
+
         $this->selectedTableId = request()->query('table_id');
 
         if ($this->selectedTableId) {
             $this->order = Order::where('table_id', $this->selectedTableId)
+
                 ->where('status', Order::STATUS_OPEN)
                 ->with('orderDetails.product')
                 ->first();
@@ -478,6 +560,28 @@ class PosInterface extends Page
                 $this->isCartDisabled = true;
             }
         }
+
+        // 🏎️ OPTIMIZACIÓN KISS: cachear el árbol de categorías por 1 h
+        $this->categories = Cache::remember('pos_categories', 3600, fn () =>
+            ProductCategory::with('children')->whereNull('parent_category_id')->get()
+        );
+
+        // Cargar productos iniciales (sin filtro de categoría)
+        $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+            ->with('category:id,name')
+            ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->orderBy('id')
+            ->limit(150)
+            ->get();
+
+        $this->productsLoaded = true; // Marcar como cargados
+
+        // Inicializar subcategorías según la categoría activa (si existe)
+        $this->subcategories = $this->selectedCategoryId
+            ? ProductCategory::where('parent_category_id', $this->selectedCategoryId)->get()
+            : collect();
+
+        // Calcular totales basados en el carrito (si lo hubiera)
 
         $this->calculateTotals();
         $this->loadInitialData();
@@ -501,7 +605,22 @@ class PosInterface extends Page
 
     public function loadProductsLazy(): void
     {
+
+        // Si no se pueden agregar productos, retornar
+        if (!$this->canAddProducts) {
+            Notification::make()
+                ->title('No se pueden agregar productos')
+                ->body('La orden ya está guardada. Debe reabrir la orden para agregar más productos.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
+        $product = Product::find($productId);
+
         $query = Product::query();
+
 
         if ($this->search) {
             $query->where('name', 'like', '%' . $this->search . '%');
@@ -570,6 +689,139 @@ class PosInterface extends Page
         }
 
         try {
+
+            DB::beginTransaction();
+
+            // Crear la orden
+            $order = Order::create([
+                'table_id' => $this->selectedTableId,
+                'customer_name' => $this->customerNameForComanda,
+                'status' => Order::STATUS_OPEN,
+                'total' => $this->total,
+                'subtotal' => $this->subtotal,
+                'tax' => $this->tax,
+                'created_by' => auth()->id(),
+                'current_diners' => $this->current_diners, // Agregar número de comensales
+            ]);
+
+            // Si hay mesa seleccionada, actualizarla
+            if ($this->selectedTableId) {
+                TableModel::where('id', $this->selectedTableId)->update([
+                    'status' => TableModel::STATUS_OCCUPIED,
+                    'current_diners' => $this->current_diners, // Actualizar número de comensales en la mesa
+                ]);
+            }
+
+            // Agregar los productos
+            foreach ($this->cartItems as $item) {
+                $order->addProduct(
+                    $item['product_id'],
+                    $item['quantity'],
+                    $item['unit_price']
+                );
+            }
+
+            // Recalcular totales de la orden
+            $order->recalculateTotals();
+
+            DB::commit();
+            return $order;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Error al crear la orden: ' . $e->getMessage());
+        }
+    }
+
+    public function processOrder(): void
+    {
+        if (empty($this->cartItems)) {
+            Notification::make()
+                ->title('Error')
+                ->body('No hay productos en el carrito')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        try {
+            if ($this->order) {
+                // Actualizar orden existente
+                DB::transaction(function () {
+                    // Primero, obtener los IDs de los productos en el carrito
+                    $cartProductIds = collect($this->cartItems)->pluck('product_id')->toArray();
+
+                    // Eliminar detalles de productos que ya no están en el carrito
+                    $this->order->orderDetails()
+                        ->whereNotIn('product_id', $cartProductIds)
+                        ->delete();
+
+                    // Actualizar o crear detalles para los productos en el carrito
+                    foreach ($this->cartItems as $item) {
+                        $this->order->orderDetails()->updateOrCreate(
+                            ['product_id' => $item['product_id']],
+                            [
+                                'quantity' => $item['quantity'],
+                                'unit_price' => $item['unit_price'],
+                                'subtotal' => $item['quantity'] * $item['unit_price']
+                            ]
+                        );
+                    }
+
+                    // Recalcular totales
+                    $this->order->recalculateTotals();
+
+                    // Asegurar que la orden esté abierta
+                    $this->order->update([
+                        'status' => Order::STATUS_OPEN,
+                        'billed' => false
+                    ]);
+
+                    // Actualizar estado de la mesa si es necesario
+                    if ($this->selectedTableId) {
+                        $table = TableModel::find($this->selectedTableId);
+                        if ($table) {
+                            $table->update(['status' => TableModel::STATUS_OCCUPIED]);
+                        }
+                    }
+
+                    // Deshabilitar el botón Limpiar Carrito y la adición de productos después de guardar
+                    $this->canClearCart = false;
+                    $this->canAddProducts = false;
+
+                    // Limpiar el carrito después de guardar
+                    $this->cartItems = [];
+                    $this->calculateTotals();
+
+                    Notification::make()
+                        ->title('🎉 Orden actualizada exitosamente')
+                        ->body('Orden #' . $this->order->id . ' actualizada con éxito')
+                        ->success()
+                        ->send();
+
+                    // Forzar recarga de la orden para actualizar el estado
+                    $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
+                });
+            } else {
+                // Crear nueva orden
+                $order = $this->createOrderFromCart();
+
+                if ($order) {
+                    $this->order = $order;
+                    $this->canClearCart = false;
+                    $this->canAddProducts = false;
+
+                    Notification::make()
+                        ->title('🎉 Orden creada exitosamente')
+                        ->body('Orden #' . $order->id . ' creada con éxito')
+                        ->success()
+                        ->send();
+                }
+            }
+
+            // Refrescar datos y UI
+            $this->refreshOrderData();
+            $this->dispatch('$refresh');
+
             DB::transaction(function () {
                 // ✅ PASO 1: Buscar el empleado correspondiente al usuario logueado.
                 $employee = Employee::where('user_id', Auth::id())->first();
@@ -617,6 +869,7 @@ class PosInterface extends Page
             });
 
             Notification::make()->title('Orden guardada correctamente')->success()->send();
+
 
         } catch (Halt $e) {
             // Detiene la ejecución sin registrar un error grave, ya que la notificación ya se envió.
