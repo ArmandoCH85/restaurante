@@ -156,6 +156,17 @@ class CashRegister extends Model
     }
 
     /**
+     * Obtiene el ID de la caja registradora activa.
+     *
+     * @return int|null
+     */
+    public static function getActiveCashRegisterId(): ?int
+    {
+        $register = self::getOpenRegister();
+        return $register ? $register->id : null;
+    }
+
+    /**
      * Abre una nueva caja registradora.
      *
      * @param float $openingAmount Monto inicial
