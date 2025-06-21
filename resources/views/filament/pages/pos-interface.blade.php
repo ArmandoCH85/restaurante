@@ -158,6 +158,7 @@
                                     id="number_of_guests"
                                     wire:model.live="numberOfGuests"
                                     min="1"
+                                    :disabled="$isCartDisabled"
                                 />
                             </x-filament::input.wrapper>
                         </div>
@@ -170,7 +171,7 @@
                                     color="danger"
                                     size="sm"
                                     outlined
-                                    :disabled="$this->order?->exists"
+                                    :disabled="$isCartDisabled"
                                 >
                                     <x-heroicon-m-trash class="h-4 w-4" />
                                 </x-filament::button>
@@ -215,7 +216,7 @@
 
                                         {{-- SUBTOTAL COMPACTO --}}
                                         <span class="text-sm font-bold text-green-600">
-                                            S/ {{ number_format($item['subtotal'], 2) }}
+                                            S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                         </span>
                                     </div>
                                 </div>
