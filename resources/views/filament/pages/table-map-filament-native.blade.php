@@ -249,6 +249,16 @@
                             <span>{{ $table->capacity }}p</span>
                         </div>
 
+                        {{-- Forma de la mesa con icono --}}
+                        <div
+                            class="relative z-10 flex items-center gap-1 {{ $mapStyles['text'] }} text-sm font-semibold mt-2 opacity-80 group-hover:opacity-100 transition-opacity duration-300">
+                            <x-filament::icon :icon="match ($table->shape ?? 'square') {
+                                'round' => 'heroicon-o-stop',
+                                'oval' => 'heroicon-o-stop',
+                                default => 'heroicon-o-square-3-stack-3d',
+                            }" class="w-4 h-4" />
+                        </div>
+
                         {{-- Indicador de estado en la esquina --}}
                         <div
                             class="absolute top-2 right-2 w-3 h-3 rounded-full {{ match ($table->status) {

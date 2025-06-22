@@ -1,15 +1,15 @@
 <x-filament-panels::page>
-    <div class="h-screen flex flex-col bg-gray-50">
+    <div class="h-screen flex flex-col bg-gray-50 pos-interface">
         {{-- HEADER SUPERIOR CON CATEGORÍAS (PROPORCIÓN ÁUREA) --}}
-        <div class="bg-gradient-to-r from-gray-50 to-gray-100 shadow-sm border-b border-gray-200 px-8 py-6">
+        <div class="bg-gradient-to-r from-blue-100 to-blue-200 shadow-md border-b border-blue-300 px-8 py-6">
             {{-- CATEGORÍAS CON ESPACIADO ÁUREO --}}
-            <div class="flex items-center space-x-8 overflow-x-auto pb-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 1.618rem;">
+            <div class="flex items-center space-x-12 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 2.5rem;">
                 {{-- Botón Todos --}}
                 <x-filament::button
                     wire:click="selectCategory(null)"
-                    :color="$selectedCategoryId === null ? 'success' : 'gray'"
+                    :color="$selectedCategoryId === null ? 'primary' : 'gray'"
                     size="sm"
-                    class="flex-shrink-0 px-10 py-3 text-sm font-medium whitespace-nowrap min-w-[100px] transition-all duration-200 hover:scale-105"
+                    class="flex-shrink-0 px-14 py-4 text-sm font-medium whitespace-nowrap min-w-[140px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
                 >
                     Todos
                 </x-filament::button>
@@ -18,9 +18,9 @@
                 @foreach($this->getCategoriesProperty() as $category)
                     <x-filament::button
                         wire:click="selectCategory({{ $category->id }})"
-                        :color="$selectedCategoryId === $category->id ? 'success' : 'gray'"
+                        :color="$selectedCategoryId === $category->id ? 'primary' : 'gray'"
                         size="sm"
-                        class="flex-shrink-0 px-10 py-3 text-sm font-medium whitespace-nowrap min-w-[100px] transition-all duration-200 hover:scale-105"
+                        class="flex-shrink-0 px-14 py-4 text-sm font-medium whitespace-nowrap min-w-[140px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
                     >
                         {{ $category->name }}
                     </x-filament::button>
@@ -29,13 +29,13 @@
 
             {{-- SUBCATEGORÍAS (SEGUNDA FILA) --}}
             @if($selectedCategoryId && $subcategories->isNotEmpty())
-                <div class="flex items-center space-x-6 overflow-x-auto pt-4 pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 1rem;">
+                <div class="flex items-center space-x-10 overflow-x-auto pt-6 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 1.5rem;">
                     {{-- Botón Todos de subcategorías --}}
                     <x-filament::button
                         wire:click="selectSubcategory(null)"
-                        :color="$selectedSubcategoryId === null ? 'info' : 'gray'"
+                        :color="$selectedSubcategoryId === null ? 'primary' : 'gray'"
                         size="sm"
-                        class="flex-shrink-0 px-8 py-2 text-xs font-medium whitespace-nowrap min-w-[90px] transition-all duration-200 hover:scale-105"
+                        class="flex-shrink-0 px-12 py-3 text-xs font-medium whitespace-nowrap min-w-[120px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
                     >
                         Todos
                     </x-filament::button>
@@ -44,9 +44,9 @@
                     @foreach($subcategories as $subcat)
                         <x-filament::button
                             wire:click="selectSubcategory({{ $subcat->id }})"
-                            :color="$selectedSubcategoryId === $subcat->id ? 'info' : 'gray'"
+                            :color="$selectedSubcategoryId === $subcat->id ? 'primary' : 'gray'"
                             size="sm"
-                            class="flex-shrink-0 px-8 py-2 text-xs font-medium whitespace-nowrap min-w-[90px] transition-all duration-200 hover:scale-105"
+                            class="flex-shrink-0 px-12 py-3 text-xs font-medium whitespace-nowrap min-w-[120px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
                         >
                             {{ $subcat->name }}
                         </x-filament::button>
@@ -73,12 +73,12 @@
 
 
                 {{-- GRID DE PRODUCTOS --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 p-4">
                     @forelse ($products as $product)
                         <button
                             wire:click="addToCart({{ $product->id }})"
                             @class([
-                                'relative p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200',
+                                'relative p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-gray-200 hover:bg-gray-100 product-card',
                                 'cursor-not-allowed opacity-50' => !$canAddProducts,
                             ])
                             @if(!$canAddProducts)
@@ -88,10 +88,21 @@
 
                         >
                             <div class="text-center">
-                                <div class="font-medium text-gray-900 truncate">
+                                <div class="product-image-container mx-auto mb-2">
+                                    @if($product->image_path)
+                                        <img src="{{ $product->image }}" alt="{{ $product->name }}" class="product-image"/>
+                                    @else
+                                        <div class="product-image-fallback">
+                                            <span class="product-initials">
+                                                {{ strtoupper(substr($product->name, 0, 2)) }}
+                                            </span>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="font-medium text-gray-800 truncate">
                                     {{ $product->name }}
                                 </div>
-                                <div class="text-sm text-gray-500">
+                                <div class="text-sm text-gray-600">
                                     S/ {{ number_format($product->sale_price, 2) }}
                                 </div>
                             </div>
