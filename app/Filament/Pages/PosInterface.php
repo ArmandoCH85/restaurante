@@ -313,25 +313,173 @@ class PosInterface extends Page
                 ->modalDescription('Selecciona los productos y la cantidad a mover a otra mesa.')
                 ->visible(fn(): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ No visible para waiter/cashier
 
-            ActionGroup::make([
-                Action::make('split_equal')
-                    ->label('Dividir en Partes Iguales')
-                    ->icon('heroicon-o-bars-2')
-                    ->color('info')
-                    ->action(function () {
-                        $this->dispatch('open-split-equal-modal');
-                    })
-                    ->visible(fn (): bool => $this->order !== null && $this->total > 0),
+            Action::make('split_items')
+                ->label('Dividir Cuenta')
+                ->icon('heroicon-o-calculator')
+                ->color('warning')
+                ->size('lg')
+                ->button()
+                ->outlined()
+                ->slideOver()
+                ->modalWidth('2xl')
+                ->form([
+                    Forms\Components\Section::make('Productos a Dividir')
+                        ->description('Selecciona la cantidad de cada producto que deseas mover a la nueva cuenta')
+                        ->icon('heroicon-o-shopping-cart')
+                        ->schema([
+                            Forms\Components\Repeater::make('split_items')
+                                ->schema([
+                                    Forms\Components\Grid::make(12)
+                                        ->schema([
+                                            Forms\Components\Hidden::make('product_id'),
+                                            Forms\Components\Hidden::make('name'),
+                                            Forms\Components\Hidden::make('quantity'),
+                                            Forms\Components\Hidden::make('unit_price'),
+                                            Forms\Components\TextInput::make('product_name')
+                                                ->label('Producto')
+                                                ->disabled()
+                                                ->columnSpan(5),
+                                            Forms\Components\TextInput::make('available_quantity')
+                                                ->label('Disponible')
+                                                ->disabled()
+                                                ->columnSpan(3),
+                                            Forms\Components\TextInput::make('split_quantity')
+                                                ->label('Mover')
+                                                ->numeric()
+                                                ->default(0)
+                                                ->minValue(0)
+                                                ->columnSpan(4)
+                                        ])
+                                ])
+                                ->disabled(fn () => !$this->order)
+                                ->defaultItems(0)
+                        ])
+                ])
+                ->fillForm(function(): array {
+                    if (!$this->order) {
+                        return ['split_items' => []];
+                    }
 
-                Action::make('split_items')
-                    ->label('Dividir por Ítems')
-                    ->icon('heroicon-o-list-bullet')
-                    ->color('info')
-                    ->action(function () {
-                        $this->dispatch('open-split-modal');
-                    })
-                    ->visible(fn (): bool => $this->order !== null && count($this->cartItems) > 1),
-            ]),
+                    return [
+                        'split_items' => $this->order->orderDetails->map(function($detail) {
+                            return [
+                                'product_id' => $detail->product_id,
+                                'name' => $detail->product->name,
+                                'product_name' => $detail->product->name,
+                                'quantity' => $detail->quantity,
+                                'available_quantity' => $detail->quantity,
+                                'unit_price' => $detail->unit_price,
+                                'split_quantity' => 0,
+                            ];
+                        })->toArray()
+                    ];
+                })
+                ->action(function(array $data): void {
+                    // Validar que al menos un producto tenga cantidad mayor a 0
+                    $hasItemsToSplit = collect($data['split_items'])
+                        ->some(fn($item) => ($item['split_quantity'] ?? 0) > 0);
+
+                    if (!$hasItemsToSplit) {
+                        Notification::make()
+                            ->title('Error')
+                            ->body('Debes seleccionar al menos un producto para dividir')
+                            ->danger()
+                            ->send();
+                        return;
+                    }
+
+                    // Validar que las cantidades a dividir no excedan las disponibles
+                    foreach ($data['split_items'] as $item) {
+                        $splitQuantity = $item['split_quantity'] ?? 0;
+                        $availableQuantity = $item['quantity'] ?? 0;
+
+                        if ($splitQuantity > $availableQuantity) {
+                            Notification::make()
+                                ->title('Error')
+                                ->body("No puedes dividir más de {$availableQuantity} unidades de {$item['product_name']}")
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+                    }
+
+                    DB::beginTransaction();
+                    try {
+                        // Crear la nueva orden
+                        $newOrder = Order::create([
+                            'table_id' => $this->order->table_id,
+                            'customer_id' => $this->order->customer_id,
+                            'employee_id' => $this->order->employee_id,
+                            'status' => Order::STATUS_OPEN,
+                            'created_by' => auth()->guard('web')->id(),
+                            'order_datetime' => now(),
+                            'service_type' => $this->order->service_type,
+                            'number_of_guests' => 1,
+                            'parent_id' => $this->order->id,
+                            'subtotal' => 0,
+                            'tax' => 0,
+                            'total' => 0,
+                            'discount' => 0,
+                            'billed' => false,
+                        ]);
+
+                        // Mover los productos seleccionados a la nueva orden
+                        foreach ($data['split_items'] as $item) {
+                            $splitQuantity = $item['split_quantity'] ?? 0;
+                            if ($splitQuantity > 0) {
+                                // Crear el detalle en la nueva orden
+                                $newOrder->orderDetails()->create([
+                                    'product_id' => $item['product_id'],
+                                    'quantity' => $splitQuantity,
+                                    'unit_price' => $item['unit_price'],
+                                    'subtotal' => $splitQuantity * $item['unit_price'],
+                                ]);
+
+                                // Actualizar la cantidad en la orden original
+                                $this->order->orderDetails()
+                                    ->where('product_id', $item['product_id'])
+                                    ->update([
+                                        'quantity' => DB::raw("quantity - {$splitQuantity}")
+                                    ]);
+                            }
+                        }
+
+                        // Eliminar detalles con cantidad 0
+                        $this->order->orderDetails()->where('quantity', 0)->delete();
+
+                        // Recalcular totales
+                        $this->order->recalculateTotals();
+                        $newOrder->recalculateTotals();
+
+                        DB::commit();
+
+                        $this->refreshOrderData();
+
+                        Notification::make()
+                            ->title('Cuenta Dividida')
+                            ->body('La cuenta se ha dividido correctamente')
+                            ->success()
+                            ->send();
+
+                        // Redirigir al mapa de mesas después de dividir la cuenta
+                        $redirectUrl = TableMap::getUrl();
+                        $this->js("
+                            console.log('Redirigiendo a mapa de mesas después de dividir cuenta');
+                            setTimeout(function() {
+                                window.location.href = '{$redirectUrl}';
+                            }, 500);
+                        ");
+
+                    } catch (\Exception $e) {
+                        DB::rollBack();
+                        Notification::make()
+                            ->title('Error')
+                            ->body('Hubo un error al dividir la cuenta: ' . $e->getMessage())
+                            ->danger()
+                            ->send();
+                    }
+                })
+                ->visible(fn (): bool => $this->order !== null && count($this->order->orderDetails) > 0),
 
             Action::make('printComanda')
                 ->label('Comanda')
@@ -912,7 +1060,12 @@ class PosInterface extends Page
         ]);
 
         foreach ($orderItems as $item) {
-            $order->orderDetails()->create($item);
+            $order->orderDetails()->create([
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'unit_price' => $item['unit_price'],
+                'subtotal' => $item['quantity'] * $item['unit_price']
+            ]);
         }
 
         return $order;
@@ -1712,6 +1865,7 @@ class PosInterface extends Page
                     'product_id' => $item['product_id'],
                     'description' => $item['name'],
                     'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
                     'price' => $item['unit_price'],
                     'subtotal' => $item['quantity'] * $item['unit_price'],
                 ]);
