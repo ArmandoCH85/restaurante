@@ -15,7 +15,7 @@
                 </x-filament::button>
 
                 {{-- Botones de categorías --}}
-                @foreach($this->categories as $category)
+                @foreach($this->getCategoriesProperty() as $category)
                     <x-filament::button
                         wire:click="selectCategory({{ $category->id }})"
                         :color="$selectedCategoryId === $category->id ? 'success' : 'gray'"
@@ -71,6 +71,7 @@
                     </x-filament::input.wrapper>
                 </div>
 
+
                 {{-- GRID DE PRODUCTOS --}}
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
                     @forelse ($products as $product)
@@ -84,6 +85,7 @@
                                 disabled
                                 title="No se pueden agregar productos. La orden está guardada."
                             @endif
+
                         >
                             <div class="text-center">
                                 <div class="font-medium text-gray-900 truncate">
@@ -164,7 +166,9 @@
                                     color="danger"
                                     size="sm"
                                     outlined
+
                                     :disabled="$isCartDisabled"
+
                                 >
                                     <x-heroicon-m-trash class="h-4 w-4" />
                                 </x-filament::button>
@@ -195,6 +199,7 @@
                                                 class="h-6 w-6"
                                                 tag="button"
                                                 label="Restar uno"
+                                                :disabled="!$canClearCart"
                                             />
                                             <span class="text-sm font-semibold min-w-[1.5rem] text-center">{{ $item['quantity'] }}</span>
                                             <x-filament::icon-button
@@ -205,6 +210,7 @@
                                                 class="h-6 w-6"
                                                 tag="button"
                                                 label="Añadir uno"
+                                                :disabled="!$canClearCart"
                                             />
                                         </div>
 

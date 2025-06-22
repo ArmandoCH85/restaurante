@@ -79,12 +79,14 @@ class PosInterface extends Page
     public float $subtotal = 0.0;
     public float $tax = 0.0;
 
+
     public ?int $current_diners = null; // Número de comensales
     public bool $canClearCart = true; // Propiedad para controlar el botón Limpiar Carrito
     public bool $canAddProducts = true; // Nueva propiedad para controlar si se pueden agregar productos
 
     public int $numberOfGuests = 1; // ✨ NUEVA PROPIEDAD
     public bool $isCartDisabled = false; // ✨ NUEVA PROPIEDAD PARA BLOQUEAR CARRITO
+
 
 
     // Propiedades para la transferencia
@@ -110,6 +112,7 @@ class PosInterface extends Page
     public string $customerNameForComanda = '';
 
     // Datos cargados
+
     public $categories;
     public $products = [];
     public $tables;
@@ -117,6 +120,43 @@ class PosInterface extends Page
     public $subcategories;
     public bool $productsLoaded = false;
     public string $search = '';
+    public ?string $customerNote = null;
+    public ?Collection $products = null;
+    public ?Collection $categories = null;
+    public ?Collection $subcategories = null;
+    public ?Collection $tables = null;
+    public ?TableModel $selectedTable = null;
+
+    // Propiedades de modales
+    public bool $showTransferModal = false;
+    public bool $showSplitModal = false;
+    public bool $showBillingModal = false;
+    public bool $showPrintModal = false;
+    public bool $showPreBillModal = false;
+    public bool $showPaymentModal = false;
+    public bool $showOrderDetailsModal = false;
+    public bool $showOrderHistoryModal = false;
+    public bool $showOrderNotesModal = false;
+    public bool $showTableSelectionModal = false;
+    public bool $showGuestSelectionModal = false;
+    public bool $showCustomerNoteModal = false;
+
+    // Propiedades de datos
+    public array $selectedProductsForTransfer = [];
+    public array $selectedProductsForSplit = [];
+    public array $splitGroups = [];
+    public array $paymentData = [];
+    public array $orderHistory = [];
+    public array $orderNotes = [];
+    public array $tableStatus = [];
+    public array $guestCounts = [];
+    public array $customerNotes = [];
+    public array $printData = [];
+    public array $preBillData = [];
+    public array $orderDetailsData = [];
+    public array $transferData = [];
+    public array $splitData = [];
+    public array $billingData = [];
 
     protected function getHeaderActions(): array
     {
@@ -126,8 +166,20 @@ class PosInterface extends Page
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->button()
-                ->action('reopenOrderForEditing')
-                ->visible(fn (): bool => $this->isCartDisabled && $this->order && !$this->order->invoices()->exists()),
+
+                ->action(function () {
+                    $this->canClearCart = true;
+                    Notification::make()
+                        ->title('Orden reabierta')
+                        ->body('Ahora puede modificar los productos')
+                        ->success()
+                        ->send();
+                })
+                ->visible(fn () =>
+                    $this->order instanceof Order &&
+                    !$this->order->invoices()->exists()
+                ),
+
 
             // 🖨️ BOTÓN DE IMPRESIÓN ÚLTIMO COMPROBANTE
             Action::make('printLastInvoice')
@@ -466,6 +518,9 @@ class PosInterface extends Page
         $this->selectedTableId = request()->get('table_id');
         $orderId = request()->get('order_id');
 
+        // Inicializar canClearCart como true por defecto
+        $this->canClearCart = true;
+
         // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR ID ***
         if ($orderId) {
             $activeOrder = Order::with(['orderDetails.product', 'customer', 'invoices'])
@@ -503,8 +558,10 @@ class PosInterface extends Page
                 $this->order = $activeOrder;
                 $this->selectedTableId = $activeOrder->table_id;
                 $this->cartItems = [];
-                $this->canClearCart = true; // Habilitar el botón Limpiar Carrito al reabrir
+
+                $this->canClearCart = false; // Habilitar el botón Limpiar Carrito al reabrir
                 $this->canAddProducts = true; // Habilitar la adición de productos al reabrir
+
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
@@ -545,9 +602,14 @@ class PosInterface extends Page
                 ->with('orderDetails.product')
                 ->first();
 
-            if ($this->order) {
-                $this->cartItems = [];
-                foreach ($this->order->orderDetails as $detail) {
+
+            if ($activeOrder) {
+                $this->order = $activeOrder;
+                $this->cartItems = []; // Limpiar por si acaso
+                $this->canClearCart = false;
+
+                foreach ($activeOrder->orderDetails as $detail) {
+
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
                         'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
@@ -606,6 +668,20 @@ class PosInterface extends Page
     public function loadProductsLazy(): void
     {
 
+        // Verificar si se puede agregar al carrito
+        if (!$this->canClearCart) {
+            Notification::make()
+                ->title('No se pueden agregar productos')
+                ->body('La orden está guardada. Debe reabrir la orden primero.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
+        $product = Product::find($productId);
+
+
         // Si no se pueden agregar productos, retornar
         if (!$this->canAddProducts) {
             Notification::make()
@@ -652,6 +728,17 @@ class PosInterface extends Page
 
     public function updateQuantity(int $index, int $quantity)
     {
+        // Verificar si se puede modificar el carrito
+        if (!$this->canClearCart) {
+            Notification::make()
+                ->title('No se puede eliminar el producto')
+                ->body('La orden está guardada. Debe reabrir la orden primero.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
         if (isset($this->cartItems[$index])) {
             if ($quantity < 1) {
                 unset($this->cartItems[$index]);
@@ -665,11 +752,40 @@ class PosInterface extends Page
 
     public function calculateTotals()
     {
+
+        // Verificar si se puede modificar el carrito
+        if (!$this->canClearCart) {
+            Notification::make()
+                ->title('No se puede modificar la cantidad')
+                ->body('La orden está guardada. Debe reabrir la orden primero.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
+        if (isset($this->cartItems[$index])) {
+            if ($quantity <= 0) {
+                $this->removeFromCart($index);
+                return;
+            }
+
+            $this->cartItems[$index]['quantity'] = $quantity;
+            $this->cartItems[$index]['subtotal'] =
+                $quantity * $this->cartItems[$index]['unit_price'];
+
+            $this->calculateTotals();
+
+            // Sin notificación para actualización de cantidad (muy frecuente)
+            // Solo feedback visual automático
+        }
+
         $this->subtotal = collect($this->cartItems)->sum(function ($item) {
             return $item['unit_price'] * $item['quantity'];
         });
         $this->tax = $this->subtotal * 0.0;
         $this->total = $this->subtotal + $this->tax;
+
     }
 
     public function clearCart(): void
@@ -784,9 +900,11 @@ class PosInterface extends Page
                         }
                     }
 
-                    // Deshabilitar el botón Limpiar Carrito y la adición de productos después de guardar
-                    $this->canClearCart = false;
-                    $this->canAddProducts = false;
+                // Limpiar el carrito después de guardar
+                $this->cartItems = [];
+                $this->calculateTotals();
+                $this->canClearCart = false;
+
 
                     // Limpiar el carrito después de guardar
                     $this->cartItems = [];
@@ -1817,9 +1935,11 @@ class PosInterface extends Page
                                 'route' => route('invoices.print', ['invoice' => $invoice->id]),
                                 'user_id' => Auth::id(),
                                 'user_name' => Auth::user()->name,
-                                'session_id' => Session::getId(),
-                                'request_id' => Str::random(8),
-                                'ip' => Request::ip()
+
+                                'session_id' => session()->getId(),
+                                'request_id' => str()->random(8),
+                                'ip' => request()->ip()
+
                             ];
 
                             Log::info('🖨️ Datos de depuración para impresión', $debugData);
@@ -1970,4 +2090,3 @@ class PosInterface extends Page
         );
     }
 }
-//solucion
