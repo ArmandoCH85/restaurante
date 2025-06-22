@@ -648,6 +648,31 @@ class PosInterface extends Page
         $this->loadInitialData();
     }
 
+    /**
+     * Maneja la selección de una categoría y carga sus productos
+     */
+    public function selectCategory(?int $categoryId): void
+    {
+        $this->selectedCategoryId = $categoryId;
+        $this->selectedSubcategoryId = null; // Resetear subcategoría al cambiar categoría
+
+        // Cargar subcategorías si se seleccionó una categoría
+        $this->subcategories = $categoryId
+            ? ProductCategory::where('parent_category_id', $categoryId)->get()
+            : collect();
+
+        $this->loadProductsLazy();
+    }
+
+    /**
+     * Maneja la selección de una subcategoría y carga sus productos
+     */
+    public function selectSubcategory(?int $subcategoryId): void
+    {
+        $this->selectedSubcategoryId = $subcategoryId;
+        $this->loadProductsLazy();
+    }
+
     public function loadInitialData(): void
     {
         $this->categories = ProductCategory::orderBy('name')->get();
@@ -677,15 +702,25 @@ class PosInterface extends Page
             return;
         }
 
-        $query = Product::query();
+        $query = Product::query()
+            ->select('id', 'name', 'sale_price', 'category_id')
+            ->with('category:id,name');
 
         if ($this->search) {
             $query->where('name', 'like', '%' . $this->search . '%');
+        } elseif ($this->selectedSubcategoryId) {
+            $query->where('category_id', $this->selectedSubcategoryId);
         } elseif ($this->selectedCategoryId) {
-            $query->where('product_category_id', $this->selectedCategoryId);
+            // Si hay una categoría seleccionada, obtener todas las subcategorías
+            $subcategoryIds = ProductCategory::where('parent_category_id', $this->selectedCategoryId)
+                ->pluck('id')
+                ->push($this->selectedCategoryId) // Incluir también la categoría principal
+                ->toArray();
+
+            $query->whereIn('category_id', $subcategoryIds);
         }
 
-        $this->products = $query->limit(30)->get();
+        $this->products = $query->orderBy('name')->limit(150)->get();
         $this->productsLoaded = true;
     }
 
