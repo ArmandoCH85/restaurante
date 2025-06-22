@@ -364,3 +364,4 @@
         </x-slot>
     </x-filament::modal>
 </x-filament-panels::page>
+  {{-- Resumen de filtros activos --}}

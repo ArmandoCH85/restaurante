@@ -71,66 +71,34 @@
                     </x-filament::input.wrapper>
                 </div>
 
-                {{-- GRID DE PRODUCTOS RESPONSIVO --}}
-                <div class="grid gap-6" style="grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));" wire:init="loadProductsLazy">
-                    @forelse($this->products as $product)
-                        {{-- PRODUCTO CARD - CLICKEABLE COMPLETA --}}
-                        <div
-                            wire:click="{{ $canClearCart ? 'addToCart('.$product->id.')' : null }}"
-                            class="group bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden {{ $canClearCart ? 'cursor-pointer hover:shadow-lg hover:scale-[1.03] hover:border-green-300 active:scale-[0.97]' : 'opacity-50 cursor-not-allowed' }} transition-all duration-200 h-[200px] flex flex-col pos-interface"
+
+                {{-- GRID DE PRODUCTOS --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4">
+                    @forelse ($products as $product)
+                        <button
+                            wire:click="addToCart({{ $product->id }})"
+                            @class([
+                                'relative p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200',
+                                'cursor-not-allowed opacity-50' => !$canAddProducts,
+                            ])
+                            @if(!$canAddProducts)
+                                disabled
+                                title="No se pueden agregar productos. La orden está guardada."
+                            @endif
+
                         >
-                            {{-- IMAGEN DEL PRODUCTO --}}
-                            <div class="product-image-container">
-                                @if($product->image)
-                                    <img src="{{ $product->image }}" alt="{{ $product->name }}" class="product-image">
-                                @else
-                                    <div class="product-image-fallback">
-                                        <div class="product-initials">
-                                            {{ strtoupper(substr($product->name, 0, 2)) }}
-                                        </div>
-                                        @if($product->category ?? null)
-                                            <div class="product-category-badge">
-                                                {{ $product->category->name ?? 'Sin categoría' }}
-                                            </div>
-                                        @endif
-                                    </div>
-                                @endif
-
-                                {{-- OVERLAY DE HOVER --}}
-                                <div class="product-image-overlay">
-                                    <x-heroicon-o-plus class="h-8 w-8 text-white" />
+                            <div class="text-center">
+                                <div class="font-medium text-gray-900 truncate">
+                                    {{ $product->name }}
+                                </div>
+                                <div class="text-sm text-gray-500">
+                                    S/ {{ number_format($product->sale_price, 2) }}
                                 </div>
                             </div>
-
-                            {{-- INFORMACIÓN DEL PRODUCTO --}}
-                            <div class="p-3 flex-1 flex flex-col justify-between">
-                                {{-- NOMBRE Y DESCRIPCIÓN --}}
-                                <div class="mb-2">
-                                    <h3 class="font-semibold text-gray-900 text-sm line-clamp-2 mb-1 group-hover:text-green-700 transition-colors">
-                                        {{ $product->name }}
-                                    </h3>
-                                    @if($product->description)
-                                        <p class="text-xs text-gray-500 line-clamp-1">
-                                            {{ $product->description }}
-                                        </p>
-                                    @endif
-                                </div>
-
-                                {{-- PRECIO PROMINENTE --}}
-                                <div class="flex items-center justify-between mt-auto">
-                                    <div class="flex flex-col">
-                                        <span class="text-lg font-bold text-green-600 group-hover:text-green-700 transition-colors">
-                                            S/ {{ number_format($product->price, 2) }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        </button>
                     @empty
-                        <div class="col-span-full text-center py-16">
-                            <x-heroicon-o-cube class="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                            <p class="text-gray-500 text-lg">No se encontraron productos</p>
-                            <p class="text-gray-400 text-sm mt-1">Prueba con otra categoría o término de búsqueda</p>
+                        <div class="col-span-full text-center py-8 text-gray-500">
+                            No hay productos disponibles
                         </div>
                     @endforelse
                 </div>
@@ -141,11 +109,38 @@
                 {{-- HEADER DEL CARRITO --}}
                 <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
                     <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-lg font-bold text-gray-900">🛒 Carrito de Compras</h2>
+                        <div class="flex items-center gap-2">
+                            <x-filament::button
+                                wire:click="clearCart"
+                                color="danger"
+                                size="sm"
+                                outlined
+                                class="h-8 w-8 flex items-center justify-center p-0"
+                                title="Limpiar carrito"
+                                :disabled="!$canClearCart"
+                            >
+                                <x-heroicon-m-trash class="h-4 w-4" />
+                            </x-filament::button>
+
+                            <div class="flex items-center bg-white rounded-lg border border-gray-300 h-8 overflow-hidden">
+                                <div class="px-2 bg-gray-50 border-r border-gray-300 h-full flex items-center">
+                                    <x-heroicon-o-users class="h-4 w-4 text-gray-500" />
+                                </div>
+                                <x-filament::input
+                                    type="number"
+                                    wire:model="current_diners"
+                                    placeholder="# Com."
+                                    class="border-0 h-full text-sm w-16 px-2 focus:ring-0"
+                                    min="1"
+                                />
+                            </div>
+                        </div>
+
                         <x-filament::badge color="success" size="lg">
                             {{ count($cartItems) }} items
                         </x-filament::badge>
                     </div>
+
 
                     <!-- Controles del Carrito: Comensales y Limpiar -->
                     <div class="flex items-end justify-between gap-4">
@@ -158,6 +153,7 @@
                                     id="number_of_guests"
                                     wire:model.live="numberOfGuests"
                                     min="1"
+                                    :disabled="$isCartDisabled"
                                 />
                             </x-filament::input.wrapper>
                         </div>
@@ -170,13 +166,16 @@
                                     color="danger"
                                     size="sm"
                                     outlined
-                                    :disabled="!$canClearCart"
+
+                                    :disabled="$isCartDisabled"
+
                                 >
                                     <x-heroicon-m-trash class="h-4 w-4" />
                                 </x-filament::button>
                             </div>
                         @endif
                     </div>
+
                 </div>
 
                 {{-- ITEMS DEL CARRITO --}}
@@ -217,7 +216,7 @@
 
                                         {{-- SUBTOTAL COMPACTO --}}
                                         <span class="text-sm font-bold text-green-600">
-                                            S/ {{ number_format($item['subtotal'], 2) }}
+                                            S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                         </span>
                                     </div>
                                 </div>

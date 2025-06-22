@@ -34,6 +34,9 @@ use Filament\Support\Exceptions\Halt;
 use Filament\Forms\Components\Section;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Str;
 
 class PosInterface extends Page
 {
@@ -75,8 +78,16 @@ class PosInterface extends Page
     public float $total = 0.0;
     public float $subtotal = 0.0;
     public float $tax = 0.0;
-    public int $numberOfGuests = 1;
-    public bool $canClearCart = true;
+
+
+    public ?int $current_diners = null; // Número de comensales
+    public bool $canClearCart = true; // Propiedad para controlar el botón Limpiar Carrito
+    public bool $canAddProducts = true; // Nueva propiedad para controlar si se pueden agregar productos
+
+    public int $numberOfGuests = 1; // ✨ NUEVA PROPIEDAD
+    public bool $isCartDisabled = false; // ✨ NUEVA PROPIEDAD PARA BLOQUEAR CARRITO
+
+
 
     // Propiedades para la transferencia
     public array $transferItems = [];
@@ -101,6 +112,12 @@ class PosInterface extends Page
     public string $customerNameForComanda = '';
 
     // Datos cargados
+
+    public $categories;
+    public $products = [];
+    public $tables;
+    public $customers;
+    public $subcategories;
     public bool $productsLoaded = false;
     public string $search = '';
     public ?string $customerNote = null;
@@ -144,11 +161,12 @@ class PosInterface extends Page
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('reopen_order')
+            Action::make('reopen_order_for_editing')
                 ->label('Reabrir Orden')
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->button()
+
                 ->action(function () {
                     $this->canClearCart = true;
                     Notification::make()
@@ -161,6 +179,7 @@ class PosInterface extends Page
                     $this->order instanceof Order &&
                     !$this->order->invoices()->exists()
                 ),
+
 
             // 🖨️ BOTÓN DE IMPRESIÓN ÚLTIMO COMPROBANTE
             Action::make('printLastInvoice')
@@ -271,6 +290,7 @@ class PosInterface extends Page
                     }
                     return [
                         'transferItems' => $this->transferItems,
+                        'target_table_id' => null, // Añadido para inicializar el campo
                     ];
                 })
                 ->form([
@@ -315,44 +335,25 @@ class PosInterface extends Page
                 ->modalDescription('Selecciona los productos y la cantidad a mover a otra mesa.')
                 ->visible(fn(): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ No visible para waiter/cashier
 
-            Action::make('splitBill')
-                ->label('Dividir Cuenta')
-                ->icon('heroicon-o-scissors')
-                ->color('info')
-                ->slideOver()
-                ->modalWidth('xl')
-                ->fillForm(function (): array {
-                    if (!$this->order) return [];
+            ActionGroup::make([
+                Action::make('split_equal')
+                    ->label('Dividir en Partes Iguales')
+                    ->icon('heroicon-o-bars-2')
+                    ->color('info')
+                    ->action(function () {
+                        $this->dispatch('open-split-equal-modal');
+                    })
+                    ->visible(fn (): bool => $this->order !== null && $this->total > 0),
 
-                    $options = $this->order->orderDetails->mapWithKeys(function ($detail) {
-                        return [$detail->id => sprintf(
-                            '%d x %s  (Subtotal: S/. %s)',
-                            $detail->quantity,
-                            $detail->product->name,
-                            number_format($detail->quantity * $detail->unit_price, 2)
-                        )];
-                    })->all();
-
-                    return [
-                        'items_to_split' => $options
-                    ];
-                })
-                ->form([
-                    Forms\Components\Placeholder::make('info')
-                        ->content('Selecciona los productos que deseas mover a una nueva cuenta separada.'),
-                    Forms\Components\CheckboxList::make('selected_details')
-                        ->label('Productos en la cuenta actual')
-                        ->options(fn(Get $get) => $get('items_to_split'))
-                        ->required()
-                        ->columns(1)
-                        ->gridDirection('row'),
-                ])
-                ->action(function (array $data): void {
-                    $this->processSimpleSplit($data);
-                })
-                ->modalHeading('Separar Productos en Nueva Cuenta')
-                ->modalDescription('Los productos seleccionados se moverán a una cuenta nueva para ser pagados por separado.')
-                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
+                Action::make('split_items')
+                    ->label('Dividir por Ítems')
+                    ->icon('heroicon-o-list-bullet')
+                    ->color('info')
+                    ->action(function () {
+                        $this->dispatch('open-split-modal');
+                    })
+                    ->visible(fn (): bool => $this->order !== null && count($this->cartItems) > 1),
+            ]),
 
             Action::make('printComanda')
                 ->label('Comanda')
@@ -512,6 +513,7 @@ class PosInterface extends Page
 
     public function mount(): void
     {
+
         // Obtener parámetros de la URL
         $this->selectedTableId = request()->get('table_id');
         $orderId = request()->get('order_id');
@@ -556,15 +558,18 @@ class PosInterface extends Page
                 $this->order = $activeOrder;
                 $this->selectedTableId = $activeOrder->table_id;
                 $this->cartItems = [];
-                $this->canClearCart = false;
+
+                $this->canClearCart = false; // Habilitar el botón Limpiar Carrito al reabrir
+                $this->canAddProducts = true; // Habilitar la adición de productos al reabrir
+
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
-                        'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
-                        'quantity' => $detail->quantity,
+                        'name'       => $detail->product->name,
+                        'quantity'   => $detail->quantity,
                         'unit_price' => $detail->unit_price,
-                        'subtotal' => $detail->subtotal,
+                        'subtotal'   => $detail->subtotal,
                     ];
                 }
 
@@ -579,11 +584,7 @@ class PosInterface extends Page
                         'customer_phone' => $activeOrder->customer->phone ?: '',
                         'customer_email' => $activeOrder->customer->email ?: '',
                     ];
-
-                    \Illuminate\Support\Facades\Log::info('🔍 DATOS ORIGINALES DEL CLIENTE CARGADOS:', $this->originalCustomerData);
                 }
-
-                $this->numberOfGuests = $activeOrder->number_of_guests ?? 1; // ✨ CARGAR COMENSALES
             }
         }
         // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR MESA ***
@@ -591,8 +592,16 @@ class PosInterface extends Page
             // Buscar la orden abierta para esta mesa
             $activeOrder = Order::with('orderDetails.product')
                 ->where('table_id', $this->selectedTableId)
+
+        $this->selectedTableId = request()->query('table_id');
+
+        if ($this->selectedTableId) {
+            $this->order = Order::where('table_id', $this->selectedTableId)
+
                 ->where('status', Order::STATUS_OPEN)
+                ->with('orderDetails.product')
                 ->first();
+
 
             if ($activeOrder) {
                 $this->order = $activeOrder;
@@ -600,14 +609,17 @@ class PosInterface extends Page
                 $this->canClearCart = false;
 
                 foreach ($activeOrder->orderDetails as $detail) {
+
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
                         'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
                         'quantity' => $detail->quantity,
                         'unit_price' => $detail->unit_price,
-                        'subtotal' => $detail->subtotal,
+                        'notes' => $detail->notes,
                     ];
                 }
+                $this->numberOfGuests = $this->order->number_of_guests ?? 1;
+                $this->isCartDisabled = true;
             }
         }
 
@@ -616,125 +628,46 @@ class PosInterface extends Page
             ProductCategory::with('children')->whereNull('parent_category_id')->get()
         );
 
-        // Lazy loading: no cargamos productos aquí, lo haremos vía wire:init
-        $this->products = collect();
+        // Cargar productos iniciales (sin filtro de categoría)
+        $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
+            ->with('category:id,name')
+            ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
+            ->orderBy('id')
+            ->limit(150)
+            ->get();
+
+        $this->productsLoaded = true; // Marcar como cargados
 
         // Inicializar subcategorías según la categoría activa (si existe)
         $this->subcategories = $this->selectedCategoryId
             ? ProductCategory::where('parent_category_id', $this->selectedCategoryId)->get()
             : collect();
 
-        // Productos se cargarán luego con loadProductsLazy()
-
         // Calcular totales basados en el carrito (si lo hubiera)
+
         $this->calculateTotals();
+        $this->loadInitialData();
     }
 
-    /**
-     * Carga diferida de productos usando wire:init para mejorar TTFB.
-     */
+    public function loadInitialData(): void
+    {
+        $this->categories = ProductCategory::orderBy('name')->get();
+        $this->customers = Customer::all();
+    }
+
+    public function updatedSelectedCategoryId($value)
+    {
+        $this->loadProductsLazy();
+    }
+
+    public function updatedSearch()
+    {
+        $this->loadProductsLazy();
+    }
+
     public function loadProductsLazy(): void
     {
-        // Evitar llamada doble
-        if ($this->productsLoaded) return;
 
-        if ($this->selectedSubcategoryId) {
-            $this->selectSubcategory($this->selectedSubcategoryId);
-        } elseif ($this->selectedCategoryId) {
-            $this->selectCategory($this->selectedCategoryId);
-        } else {
-            $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
-                ->with('category:id,name')
-                ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                ->orderBy('id')
-                ->limit(150)
-                ->get();
-        }
-
-        $this->productsLoaded = true;
-    }
-
-    public function selectCategory(?int $categoryId): void
-    {
-        $this->selectedCategoryId = $categoryId;
-        // Resetear subcategoría al cambiar de categoría
-        $this->selectedSubcategoryId = null;
-
-        // Recargar lista de subcategorías
-        $this->subcategories = $categoryId
-            ? ProductCategory::where('parent_category_id', $categoryId)->get()
-            : collect();
-
-        // Cambiar lógica de filtrado: si hay subcategorías, mostrar todos los productos de esas subcategorías;
-        // en caso contrario, filtrar por la categoría principal.
-        if ($categoryId) {
-            if ($this->subcategories->isNotEmpty()) {
-                $subIds = $this->subcategories->pluck('id');
-                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
-                    ->with('category:id,name')
-                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                    ->whereIn('category_id', $subIds)
-                    ->orderBy('id')
-                    ->limit(150)
-                    ->get();
-            } else {
-                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
-                    ->with('category:id,name')
-                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                    ->where('category_id', $categoryId)
-                    ->orderBy('id')
-                    ->limit(150)
-                    ->get();
-            }
-        } else {
-            $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
-                ->with('category:id,name')
-                ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                ->orderBy('id')
-                ->limit(150)
-                ->get();
-        }
-    }
-
-    /**
-     * Selecciona una subcategoría y filtra productos.
-     */
-    public function selectSubcategory(?int $subcategoryId): void
-    {
-        $this->selectedSubcategoryId = $subcategoryId;
-
-        if ($subcategoryId) {
-            $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
-                ->with('category:id,name')
-                ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                ->where('category_id', $subcategoryId)
-                ->orderBy('id')
-                ->limit(150)
-                ->get();
-        } else {
-            // Mostrar todos los productos de las subcategorías de la categoría actual
-            if ($this->selectedCategoryId) {
-                $subIds = ProductCategory::where('parent_category_id', $this->selectedCategoryId)->pluck('id');
-                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
-                    ->with('category:id,name')
-                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                    ->whereIn('category_id', $subIds)
-                    ->orderBy('id')
-                    ->limit(150)
-                    ->get();
-            } else {
-                $this->products = Product::select('id', 'name', 'sale_price', 'category_id')
-                    ->with('category:id,name')
-                    ->when($this->search !== '', fn($q) => $q->where('name', 'like', "%{$this->search}%"))
-                    ->orderBy('id')
-                    ->limit(150)
-                    ->get();
-            }
-        }
-    }
-
-    public function addToCart(int $productId): void
-    {
         // Verificar si se puede agregar al carrito
         if (!$this->canClearCart) {
             Notification::make()
@@ -748,52 +681,52 @@ class PosInterface extends Page
 
         $product = Product::find($productId);
 
-        if (!$product) {
+
+        // Si no se pueden agregar productos, retornar
+        if (!$this->canAddProducts) {
             Notification::make()
-                ->title('Producto no encontrado')
-                ->danger()
+                ->title('No se pueden agregar productos')
+                ->body('La orden ya está guardada. Debe reabrir la orden para agregar más productos.')
+                ->warning()
                 ->duration(3000)
                 ->send();
             return;
         }
 
-        // Verificar si el producto ya está en el carrito
-        $existingItemKey = null;
-        foreach ($this->cartItems as $key => $item) {
-            if ($item['product_id'] === $productId) {
-                $existingItemKey = $key;
-                break;
-            }
+        $product = Product::find($productId);
+
+        $query = Product::query();
+
+
+        if ($this->search) {
+            $query->where('name', 'like', '%' . $this->search . '%');
+        } elseif ($this->selectedCategoryId) {
+            $query->where('product_category_id', $this->selectedCategoryId);
         }
 
-        if ($existingItemKey !== null) {
-            // Incrementar cantidad si ya existe
+        $this->products = $query->limit(30)->get();
+        $this->productsLoaded = true;
+    }
+
+    public function addToCart(Product $product)
+    {
+        $existingItemKey = collect($this->cartItems)->search(fn($item) => $item['product_id'] === $product->id);
+
+        if ($existingItemKey !== false) {
             $this->cartItems[$existingItemKey]['quantity']++;
-            $this->cartItems[$existingItemKey]['subtotal'] =
-                $this->cartItems[$existingItemKey]['quantity'] *
-                $this->cartItems[$existingItemKey]['unit_price'];
         } else {
-            // Agregar nuevo producto al carrito
             $this->cartItems[] = [
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'quantity' => 1,
-                'unit_price' => $product->sale_price,
-                'subtotal' => $product->sale_price,
+                'unit_price' => $product->price,
+                'notes' => '',
             ];
         }
-
         $this->calculateTotals();
-
-        // Notificación discreta y rápida
-        Notification::make()
-            ->title($product->name . ' agregado')
-            ->success()
-            ->duration(2000)
-            ->send();
     }
 
-    public function removeFromCart(int $index): void
+    public function updateQuantity(int $index, int $quantity)
     {
         // Verificar si se puede modificar el carrito
         if (!$this->canClearCart) {
@@ -807,22 +740,19 @@ class PosInterface extends Page
         }
 
         if (isset($this->cartItems[$index])) {
-            $productName = $this->cartItems[$index]['name'];
-            unset($this->cartItems[$index]);
-            $this->cartItems = array_values($this->cartItems);
-            $this->calculateTotals();
-
-            // Notificación muy breve para eliminación
-            Notification::make()
-                ->title('Producto eliminado')
-                ->warning()
-                ->duration(1500)
-                ->send();
+            if ($quantity < 1) {
+                unset($this->cartItems[$index]);
+                $this->cartItems = array_values($this->cartItems);
+            } else {
+                $this->cartItems[$index]['quantity'] = $quantity;
+            }
         }
+        $this->calculateTotals();
     }
 
-    public function updateQuantity(int $index, int $quantity): void
+    public function calculateTotals()
     {
+
         // Verificar si se puede modificar el carrito
         if (!$this->canClearCart) {
             Notification::make()
@@ -849,94 +779,73 @@ class PosInterface extends Page
             // Sin notificación para actualización de cantidad (muy frecuente)
             // Solo feedback visual automático
         }
+
+        $this->subtotal = collect($this->cartItems)->sum(function ($item) {
+            return $item['unit_price'] * $item['quantity'];
+        });
+        $this->tax = $this->subtotal * 0.0;
+        $this->total = $this->subtotal + $this->tax;
+
     }
 
     public function clearCart(): void
     {
         $this->cartItems = [];
         $this->calculateTotals();
-
-        Notification::make()
-            ->title('Carrito limpiado')
-            ->success()
-            ->duration(1500)
-            ->send();
+        $this->isCartDisabled = false;
+        $this->numberOfGuests = 1;
+        Notification::make()->title('Carrito limpiado')->success()->send();
     }
 
-    protected function calculateTotals(): void
-    {
-        // KISS: El precio del producto ya incluye IGV.
-        // 1. El total es la suma de los precios de los productos.
-        $this->total = collect($this->cartItems)->sum('subtotal');
-
-        // 2. Calculamos la base imponible (subtotal) dividiendo el total por 1.18.
-        $this->subtotal = $this->total / 1.18;
-
-        // 3. El impuesto es la diferencia.
-        $this->tax = $this->total - $this->subtotal;
-    }
-
-    /**
-     * Método para crear orden desde el carrito - reutilizable para comanda y pre-cuenta
-     */
-    protected function createOrderFromCart(): ?Order
+    public function processOrder(): void
     {
         if (empty($this->cartItems)) {
-            return $this->order;
+            Notification::make()->title('El carrito está vacío')->warning()->send();
+            return;
         }
 
-        // Obtener el ID del empleado a partir del usuario autenticado
-        $employeeId = Employee::where('user_id', Auth::id())->value('id');
-        if (!$employeeId) {
-            Notification::make()
-                ->title('Error de Empleado')
-                ->body('El usuario actual no tiene un empleado asociado. No se puede crear la orden.')
-                ->danger()
-                ->send();
-            return null;
-        }
+        try {
 
-        // Prepara los datos del pedido
-        $orderData = [
-            'status' => Order::STATUS_OPEN,
-            'user_id' => Auth::id(),
-            'employee_id' => $employeeId, // ✨ AÑADIR EMPLOYEE_ID
-            'table_id' => $this->selectedTableId,
-            'order_datetime' => now(), // ✨ AÑADIR FECHA Y HORA
-            'subtotal' => $this->subtotal,
-            'tax' => $this->tax,
-            'total' => $this->total,
-            'cash_register_id' => CashRegister::getActiveCashRegisterId(),
-            'number_of_guests' => $this->numberOfGuests, // ✨ GUARDAR COMENSALES
-        ];
+            DB::beginTransaction();
 
-        // Actualiza o crea el pedido
-        $this->order = Order::updateOrCreate(
-            ['id' => $this->order ? $this->order->id : null],
-            $orderData
-        );
+            // Crear la orden
+            $order = Order::create([
+                'table_id' => $this->selectedTableId,
+                'customer_name' => $this->customerNameForComanda,
+                'status' => Order::STATUS_OPEN,
+                'total' => $this->total,
+                'subtotal' => $this->subtotal,
+                'tax' => $this->tax,
+                'created_by' => auth()->id(),
+                'current_diners' => $this->current_diners, // Agregar número de comensales
+            ]);
 
-        // Agregar productos a la orden usando el método del modelo
-        foreach ($this->cartItems as $item) {
-            $this->order->addProduct(
-                $item['product_id'],
-                $item['quantity'],
-                $item['unit_price']
-            );
-        }
-
-        // Recalcular totales de la orden
-        $this->order->recalculateTotals();
-
-        // *** MEJORA DE UX: Cambiar estado de la mesa a ocupada ***
-        if ($this->selectedTableId) {
-            $table = TableModel::find($this->selectedTableId);
-            if ($table && $table->status === TableModel::STATUS_AVAILABLE) {
-                $table->update(['status' => TableModel::STATUS_OCCUPIED]);
+            // Si hay mesa seleccionada, actualizarla
+            if ($this->selectedTableId) {
+                TableModel::where('id', $this->selectedTableId)->update([
+                    'status' => TableModel::STATUS_OCCUPIED,
+                    'current_diners' => $this->current_diners, // Actualizar número de comensales en la mesa
+                ]);
             }
-        }
 
-        return $this->order;
+            // Agregar los productos
+            foreach ($this->cartItems as $item) {
+                $order->addProduct(
+                    $item['product_id'],
+                    $item['quantity'],
+                    $item['unit_price']
+                );
+            }
+
+            // Recalcular totales de la orden
+            $order->recalculateTotals();
+
+            DB::commit();
+            return $order;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw new \Exception('Error al crear la orden: ' . $e->getMessage());
+        }
     }
 
     public function processOrder(): void
@@ -954,27 +863,24 @@ class PosInterface extends Page
             if ($this->order) {
                 // Actualizar orden existente
                 DB::transaction(function () {
-                    // Agregar nuevos productos a la orden existente
-                    foreach ($this->cartItems as $item) {
-                        // Verificar si el producto ya existe en la orden
-                        $existingDetail = $this->order->orderDetails()
-                            ->where('product_id', $item['product_id'])
-                            ->first();
+                    // Primero, obtener los IDs de los productos en el carrito
+                    $cartProductIds = collect($this->cartItems)->pluck('product_id')->toArray();
 
-                        if ($existingDetail) {
-                            // Si existe, actualizar la cantidad directamente con la del carrito
-                            $existingDetail->update([
+                    // Eliminar detalles de productos que ya no están en el carrito
+                    $this->order->orderDetails()
+                        ->whereNotIn('product_id', $cartProductIds)
+                        ->delete();
+
+                    // Actualizar o crear detalles para los productos en el carrito
+                    foreach ($this->cartItems as $item) {
+                        $this->order->orderDetails()->updateOrCreate(
+                            ['product_id' => $item['product_id']],
+                            [
                                 'quantity' => $item['quantity'],
+                                'unit_price' => $item['unit_price'],
                                 'subtotal' => $item['quantity'] * $item['unit_price']
-                            ]);
-                        } else {
-                            // Si no existe, agregar como nuevo
-                            $this->order->addProduct(
-                                $item['product_id'],
-                                $item['quantity'],
-                                $item['unit_price']
-                            );
-                        }
+                            ]
+                        );
                     }
 
                     // Recalcular totales
@@ -993,27 +899,34 @@ class PosInterface extends Page
                             $table->update(['status' => TableModel::STATUS_OCCUPIED]);
                         }
                     }
-                });
 
                 // Limpiar el carrito después de guardar
                 $this->cartItems = [];
                 $this->calculateTotals();
                 $this->canClearCart = false;
 
-                Notification::make()
-                    ->title('🎉 Orden actualizada exitosamente')
-                    ->body('Orden #' . $this->order->id . ' actualizada con éxito')
-                    ->success()
-                    ->send();
 
-                // Forzar recarga de la orden para actualizar el estado
-                $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
+                    // Limpiar el carrito después de guardar
+                    $this->cartItems = [];
+                    $this->calculateTotals();
+
+                    Notification::make()
+                        ->title('🎉 Orden actualizada exitosamente')
+                        ->body('Orden #' . $this->order->id . ' actualizada con éxito')
+                        ->success()
+                        ->send();
+
+                    // Forzar recarga de la orden para actualizar el estado
+                    $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
+                });
             } else {
                 // Crear nueva orden
                 $order = $this->createOrderFromCart();
 
                 if ($order) {
                     $this->order = $order;
+                    $this->canClearCart = false;
+                    $this->canAddProducts = false;
 
                     Notification::make()
                         ->title('🎉 Orden creada exitosamente')
@@ -1027,152 +940,94 @@ class PosInterface extends Page
             $this->refreshOrderData();
             $this->dispatch('$refresh');
 
+            DB::transaction(function () {
+                // ✅ PASO 1: Buscar el empleado correspondiente al usuario logueado.
+                $employee = Employee::where('user_id', Auth::id())->first();
+
+                // Si no se encuentra un empleado, detener la operación.
+                if (!$employee) {
+                    Notification::make()
+                        ->title('Error de Empleado')
+                        ->body('El usuario actual no tiene un registro de empleado válido para crear órdenes.')
+                        ->danger()
+                        ->send();
+                    throw new Halt();
+                }
+
+                $orderData = [
+                    'table_id' => $this->selectedTableId,
+                    'customer_id' => null,
+                    'employee_id' => $employee->id, // ✅ PASO 2: Usar el ID correcto del empleado.
+                    'status' => Order::STATUS_OPEN,
+                    'total_price' => $this->total,
+                    'order_datetime' => now(),
+                    'number_of_guests' => $this->numberOfGuests,
+                    'order_type' => $this->selectedTableId ? 'in_place' : 'direct_sale',
+                ];
+
+                $this->order = Order::updateOrCreate(['id' => $this->order?->id], $orderData);
+
+                $this->order->orderDetails()->delete();
+                foreach ($this->cartItems as $item) {
+                    $this->order->orderDetails()->create([
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'unit_price' => $item['unit_price'],
+                        'subtotal' => $item['quantity'] * $item['unit_price'],
+                        'price' => $item['unit_price'] * $item['quantity'],
+                        'notes' => $item['notes'] ?? null,
+                    ]);
+                }
+
+                if ($this->selectedTableId) {
+                    TableModel::find($this->selectedTableId)->update(['status' => TableModel::STATUS_OCCUPIED]);
+                }
+
+                $this->isCartDisabled = true;
+            });
+
+            Notification::make()->title('Orden guardada correctamente')->success()->send();
+
+
+        } catch (Halt $e) {
+            // Detiene la ejecución sin registrar un error grave, ya que la notificación ya se envió.
         } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
+            Log::error('Error al procesar la orden en TPV: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
+            Notification::make()->title('Error al guardar la orden')->body('Ocurrió un error inesperado. Revisa los logs.')->danger()->send();
         }
     }
 
-    /**
-     * Procesa la lógica de transferencia de items entre mesas.
-     */
+    public function reopenOrderForEditing(): void
+    {
+        $this->isCartDisabled = false;
+        Notification::make()->title('Orden reabierta para edición')->warning()->send();
+    }
+
+    protected function createOrderFromCart(Customer $customer, array $orderItems): Order
+    {
+        $order = Order::create([
+            'customer_id' => $customer->id,
+            'employee_id' => Auth::id(),
+            'status' => Order::STATUS_OPEN,
+            'total_price' => collect($orderItems)->sum(fn($item) => $item['unit_price'] * $item['quantity']),
+            'order_datetime' => now(),
+            'order_type' => 'delivery',
+            'delivery_address' => session('delivery_address'),
+            'delivery_cost' => session('delivery_cost', 0),
+            'delivery_status' => 'pending', // ✅ CORREGIDO a un string simple
+            'number_of_guests' => 1,
+        ]);
+
+        foreach ($orderItems as $item) {
+            $order->orderDetails()->create($item);
+        }
+
+        return $order;
+    }
+
     public function processTransfer(array $data): void
     {
-        try {
-            DB::transaction(function () use ($data) {
-                $originOrder = $this->order;
-                $newTableId = $data['new_table_id'];
-                $itemsToMove = collect($data['transferItems'])->where('quantity_to_move', '>', 0);
-
-                if ($itemsToMove->isEmpty()) {
-                    Notification::make()->title('Nada que mover')->body('No has seleccionado productos para transferir.')->warning()->send();
-                    return;
-                }
-
-                // Obtener la caja registradora activa
-                $activeCashRegister = CashRegister::getOpenRegister();
-
-                if (!$activeCashRegister) {
-                    throw new \Exception('No hay una caja registradora abierta. Por favor, abra una caja antes de crear una orden.');
-                }
-
-                // Obtener el empleado asociado al usuario autenticado
-                $employee = Employee::where('user_id', Auth::id())->first();
-
-                if (!$employee) {
-                    throw new \Exception('No se encontró un empleado asociado al usuario actual. Por favor, contacte al administrador.');
-                }
-
-                $destinationOrder = Order::firstOrCreate(
-                    ['table_id' => $newTableId, 'status' => Order::STATUS_OPEN],
-                    [
-                        'employee_id' => $employee->id,
-                        'service_type' => 'dine_in',
-                        'subtotal' => 0,
-                        'tax' => 0,
-                        'total' => 0,
-                        'order_datetime' => now(),
-                        'cash_register_id' => $activeCashRegister->id
-                    ]
-                );
-
-                foreach ($itemsToMove as $item) {
-                    $originDetail = $originOrder->orderDetails()->find($item['order_detail_id']);
-                    $quantityToMove = (int)$item['quantity_to_move'];
-
-                    if ($quantityToMove >= $originDetail->quantity) {
-                        $originDetail->update(['order_id' => $destinationOrder->id]);
-                    } else {
-                        $originDetail->decrement('quantity', $quantityToMove);
-                        $destinationOrder->addProduct($originDetail->product_id, $quantityToMove, $originDetail->unit_price);
-                    }
-                }
-
-                $originOrder->recalculateTotals();
-                $destinationOrder->recalculateTotals();
-
-                // Forzar la recarga de la relación para obtener el conteo correcto
-                $originOrder->load('orderDetails');
-
-                if ($originOrder->orderDetails()->count() === 0) {
-                    $originOrder->update(['status' => Order::STATUS_CANCELLED]);
-                    if ($originOrder->table) {
-                        $originOrder->table->update(['status' => TableModel::STATUS_AVAILABLE]);
-                    }
-                }
-
-                if ($destinationOrder->wasRecentlyCreated && $destinationOrder->table) {
-                    $destinationOrder->table->update(['status' => TableModel::STATUS_OCCUPIED]);
-                }
-
-                Notification::make()->title('Transferencia Exitosa')->success()->send();
-                $this->refreshOrderData(true); // Forzar recarga completa
-            });
-        } catch (\Exception $e) {
-            Notification::make()->title('Error en la Transferencia')->body($e->getMessage())->danger()->send();
-        }
-    }
-
-    public function processSimpleSplit(array $data): void
-    {
-        $originalOrder = $this->order;
-        $selectedDetailIds = $data['selected_details'];
-
-        if (empty($selectedDetailIds)) {
-            Notification::make()->title('Error')->body('No has seleccionado ningún producto para separar.')->warning()->send();
-            return;
-        }
-
-        try {
-            DB::transaction(function () use ($originalOrder, $selectedDetailIds) {
-                // Obtener el empleado asociado al usuario autenticado
-                $employee = Employee::where('user_id', Auth::id())->first();
-
-                if (!$employee) {
-                    throw new \Exception('No se encontró un empleado asociado al usuario actual. Por favor, contacte al administrador.');
-                }
-
-                // Crear la nueva orden "hija"
-                $childOrder = Order::create([
-                    'parent_id' => $originalOrder->id,
-                    'table_id' => $originalOrder->table_id,
-                    'customer_id' => $originalOrder->customer_id,
-                    'employee_id' => $employee->id,
-                    'service_type' => $originalOrder->service_type,
-                    'status' => Order::STATUS_OPEN,
-                    'order_datetime' => now(),
-                    'notes' => 'Cuenta separada de la orden #' . $originalOrder->id,
-                ]);
-
-                // Mover los detalles de orden seleccionados
-                $detailsToMove = $originalOrder->orderDetails()->whereIn('id', $selectedDetailIds)->get();
-
-                foreach ($detailsToMove as $detail) {
-                    $detail->update(['order_id' => $childOrder->id]);
-                }
-
-                // Recalcular totales para ambas órdenes
-                $originalOrder->recalculateTotals();
-                $childOrder->recalculateTotals();
-
-                // Opcional: si la orden original queda vacía, cancelarla
-                if ($originalOrder->orderDetails()->count() === 0) {
-                    $originalOrder->update(['status' => Order::STATUS_CANCELLED]);
-                }
-            });
-
-            Notification::make()->title('¡Cuenta Separada!')->body('Se ha creado una nueva cuenta con los productos seleccionados.')->success()->send();
-
-            // Forzar actualización de la interfaz
-            $this->refreshOrderData(true);
-
-        } catch (\Exception $e) {
-            Log::error('Error al dividir cuenta (simple): ' . $e->getMessage());
-            Notification::make()->title('Error al Separar la Cuenta')->body('Ocurrió un error inesperado. Por favor, intenta de nuevo.')->danger()->send();
-        }
+        // ... existing code ...
     }
 
     // Getters para la vista
@@ -1225,7 +1080,7 @@ class PosInterface extends Page
                 'product_id' => $detail->product_id,
                 'name'       => $detail->product->name,
                 'quantity'   => $detail->quantity,
-                'unit_price' => $detail->unit_price,
+                'unit_price' => $detail->price,
                 'subtotal'   => $detail->subtotal,
             ];
         }
@@ -1265,7 +1120,7 @@ class PosInterface extends Page
                                             $items[] = [
                                                 'name' => $detail->product->name ?? 'N/A',
                                                 'quantity' => $detail->quantity,
-                                                'unit_price' => $detail->unit_price,
+                                                'price' => $detail->price,
                                                 'subtotal' => $detail->subtotal,
                                             ];
                                         }
@@ -1291,7 +1146,7 @@ class PosInterface extends Page
                                         $html .= '<tr class="border-b border-gray-100">';
                                         $html .= '<td class="px-2 py-1 text-sm">' . substr(htmlspecialchars($item['name']), 0, 25) . '</td>';
                                         $html .= '<td class="px-2 py-1 text-center text-sm">' . $item['quantity'] . '</td>';
-                                        $html .= '<td class="px-2 py-1 text-right text-sm">S/ ' . number_format($item['unit_price'], 2) . '</td>';
+                                        $html .= '<td class="px-2 py-1 text-right text-sm">S/ ' . number_format($item['price'], 2) . '</td>';
                                         $html .= '<td class="px-2 py-1 text-right text-sm font-medium">S/ ' . number_format($item['subtotal'], 2) . '</td>';
                                         $html .= '</tr>';
                                     }
@@ -1964,8 +1819,8 @@ class PosInterface extends Page
                     'product_id' => $item['product_id'],
                     'description' => $item['name'],
                     'quantity' => $item['quantity'],
-                    'unit_price' => $item['unit_price'],
-                    'subtotal' => $item['subtotal'],
+                    'price' => $item['unit_price'],
+                    'subtotal' => $item['quantity'] * $item['unit_price'],
                 ]);
             }
 
@@ -2080,10 +1935,14 @@ class PosInterface extends Page
                                 'route' => route('invoices.print', ['invoice' => $invoice->id]),
                                 'user_id' => Auth::id(),
                                 'user_name' => Auth::user()->name,
+
                                 'session_id' => session()->getId(),
                                 'request_id' => str()->random(8),
                                 'ip' => request()->ip()
+
                             ];
+
+                            Log::info('🖨️ Datos de depuración para impresión', $debugData);
 
                             // 🔍 LOG DETALLADO DEL PROCESO
                             \Illuminate\Support\Facades\Log::info('🖨️ INICIANDO PROCESO DE IMPRESIÓN DESDE NOTIFICACIÓN', $debugData);
@@ -2220,5 +2079,14 @@ class PosInterface extends Page
                 Notification::make()->title('Mesa Liberada')->body("La mesa #{$table->number} ahora está disponible.")->info()->send();
             }
         }
+    }
+
+    public function processSimpleSplit(array $data): void
+    {
+        $this->performSplit(
+            $data['split_type'],
+            $data['number_of_parts'] ?? 2,
+            $data['split_amounts'] ?? []
+        );
     }
 }
