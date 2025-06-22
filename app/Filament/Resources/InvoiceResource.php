@@ -247,6 +247,11 @@ class InvoiceResource extends Resource
                     ->date('d/m/Y')
                     ->visible(fn ($livewire): bool => $livewire->getTableFilterState('tax_authority_status') === 'voided')
                     ->toggleable(),
+
+                Tables\Columns\TextColumn::make('sunat_description')
+                    ->label('Motivo Rechazo')
+                    ->wrap()
+                    ->visible(fn($record) => ($record?->sunat_status === 'RECHAZADO')),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('invoice_type')
@@ -376,7 +381,7 @@ class InvoiceResource extends Resource
                                 ->send();
                         }
                     }),
-                                Action::make('print')
+                Action::make('print')
                     ->label('Imprimir')
                     ->icon('heroicon-o-printer')
                     ->color('success')
@@ -434,6 +439,32 @@ class InvoiceResource extends Resource
                     ->color('gray')
                     ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-pdf', $record))
                     ->openUrlInNewTab(),
+                Action::make('resend_to_sunat')
+                    ->label('Reenviar a SUNAT')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->visible(fn (Invoice $record): bool =>
+                        in_array($record->sunat_status, ['RECHAZADO']) && in_array($record->invoice_type, ['invoice','receipt'])
+                    )
+                    ->requiresConfirmation()
+                    ->modalHeading('Reenviar Comprobante a SUNAT')
+                    ->modalDescription(fn (Invoice $record): string =>
+                        "¿Está seguro de reenviar el comprobante {$record->series}-{$record->number} a SUNAT?" )
+                    ->modalSubmitActionLabel('Reenviar')
+                    ->action(function (Invoice $record): void {
+                        try {
+                            $sunatService = new \App\Services\SunatService();
+                            $result = $sunatService->emitirFactura($record->id);
+
+                            if ($result['success']) {
+                                Notification::make()->title('Comprobante reenviado')->success()->send();
+                            } else {
+                                Notification::make()->title('Error al reenviar')->body($result['message'])->danger()->send();
+                            }
+                        } catch (\Exception $e) {
+                            Notification::make()->title('Error inesperado')->body($e->getMessage())->danger()->send();
+                        }
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
