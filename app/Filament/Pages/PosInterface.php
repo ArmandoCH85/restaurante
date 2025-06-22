@@ -1080,17 +1080,29 @@ class PosInterface extends Page
             $customer = Customer::getGenericCustomer();
         }
 
+        // Obtener el empleado relacionado con el usuario autenticado
+        $employee = Employee::where('user_id', Auth::id())->first();
+
+        if (!$employee) {
+            Notification::make()
+                ->title('Error de Empleado')
+                ->body('El usuario actual no tiene un registro de empleado válido. Comuníquese con el administrador.')
+                ->danger()
+                ->send();
+            throw new Halt();
+        }
+
         $order = Order::create([
-            'customer_id' => $customer->id,
-            'employee_id' => Auth::id(),
-            'status' => Order::STATUS_OPEN,
-            'total_price' => collect($orderItems)->sum(fn($item) => $item['unit_price'] * $item['quantity']),
-            'order_datetime' => now(),
-            'order_type' => 'delivery',
-            'delivery_address' => session('delivery_address'),
-            'delivery_cost' => session('delivery_cost', 0),
+            'customer_id'     => $customer->id,
+            'employee_id'     => $employee->id,
+            'status'          => Order::STATUS_OPEN,
+            'total_price'     => collect($orderItems)->sum(fn($item) => $item['unit_price'] * $item['quantity']),
+            'order_datetime'  => now(),
+            'order_type'      => 'delivery',
+            'delivery_address'=> session('delivery_address'),
+            'delivery_cost'   => session('delivery_cost', 0),
             'delivery_status' => 'pending',
-            'number_of_guests' => 1,
+            'number_of_guests'=> 1,
         ]);
 
         foreach ($orderItems as $item) {
