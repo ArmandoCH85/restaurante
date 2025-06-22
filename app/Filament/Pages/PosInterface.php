@@ -788,7 +788,12 @@ class PosInterface extends Page
 
     public function loadInitialData(): void
     {
-        $this->categories = ProductCategory::orderBy('name')->get();
+        // Solo categorías raíz para evitar que las subcategorías se muestren como principales
+        $this->categories = ProductCategory::with('children')
+            ->whereNull('parent_category_id')
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get();
         $this->customers = Customer::all();
     }
 
