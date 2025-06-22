@@ -39,7 +39,7 @@
     {{-- Panel principal de mesas --}}
     <x-filament::section>
         <x-slot name="heading">
-           Mapa de Mesas para cholos
+           Mapa de Mesas
         </x-slot>
 
         <x-slot name="description">

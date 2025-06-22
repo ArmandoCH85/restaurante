@@ -1155,7 +1155,7 @@ class PosInterface extends Page
                 'product_id' => $detail->product_id,
                 'name'       => $detail->product->name,
                 'quantity'   => $detail->quantity,
-                'unit_price' => $detail->price,
+                'unit_price' => $detail->unit_price,
                 'subtotal'   => $detail->subtotal,
             ];
         }
@@ -1195,7 +1195,7 @@ class PosInterface extends Page
                                             $items[] = [
                                                 'name' => $detail->product->name ?? 'N/A',
                                                 'quantity' => $detail->quantity,
-                                                'price' => $detail->price,
+                                                'price' => $detail->unit_price,
                                                 'subtotal' => $detail->subtotal,
                                             ];
                                         }
