@@ -108,74 +108,47 @@
             <div class="bg-white border-l border-gray-200 flex flex-col shadow-lg" style="flex: 1; min-width: 380px; max-width: 420px;">
                 {{-- HEADER DEL CARRITO --}}
                 <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-2">
-                            <x-filament::button
-                                wire:click="clearCart"
-                                color="danger"
-                                size="sm"
-                                outlined
-                                class="h-8 w-8 flex items-center justify-center p-0"
-                                title="Limpiar carrito"
-                                :disabled="!$canClearCart"
-                            >
-                                <x-heroicon-m-trash class="h-4 w-4" />
-                            </x-filament::button>
-
-                            <div class="flex items-center bg-white rounded-lg border border-gray-300 h-8 overflow-hidden">
-                                <div class="px-2 bg-gray-50 border-r border-gray-300 h-full flex items-center">
-                                    <x-heroicon-o-users class="h-4 w-4 text-gray-500" />
-                                </div>
-                                <x-filament::input
-                                    type="number"
-                                    wire:model="current_diners"
-                                    placeholder="# Com."
-                                    class="border-0 h-full text-sm w-16 px-2 focus:ring-0"
-                                    min="1"
-                                />
-                            </div>
-                        </div>
-
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">
+                            Carrito de Compra
+                        </h3>
                         <x-filament::badge color="success" size="lg">
                             {{ count($cartItems) }} items
                         </x-filament::badge>
                     </div>
 
-
                     <!-- Controles del Carrito: Comensales y Limpiar -->
-                    <div class="flex items-end justify-between gap-4">
-                        <!-- Selector de Comensales Compacto -->
-                        <div class="flex-1" style="max-width: 120px;">
-                            <label for="number_of_guests" class="text-xs font-medium text-gray-600">Comensales</label>
-                            <x-filament::input.wrapper class="mt-1">
-                                <x-filament::input
+                    <div class="flex items-end justify-between gap-6">
+                        <!-- Selector de Comensales -->
+                        <div class="flex-grow">
+                            <label for="numberOfGuests" class="block text-sm font-medium text-gray-700 mb-1.5">
+                                Número de Comensales <span class="text-red-500">*</span>
+                            </label>
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <x-heroicon-s-users class="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
                                     type="number"
-                                    id="number_of_guests"
                                     wire:model.live="numberOfGuests"
                                     min="1"
-                                    :disabled="$isCartDisabled"
-                                />
-                            </x-filament::input.wrapper>
+                                    class="pl-11 block w-full rounded-lg border-gray-300 text-center shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    placeholder="Ingrese el número de comensales"
+                                    required
+                                >
+                            </div>
                         </div>
 
-                        <!-- Botón Limpiar Carrito Compacto -->
-                        @if(count($cartItems) > 0)
-                            <div class="flex-shrink-0">
-                                <x-filament::button
-                                    wire:click="clearCart"
-                                    color="danger"
-                                    size="sm"
-                                    outlined
-
-                                    :disabled="$isCartDisabled"
-
-                                >
-                                    <x-heroicon-m-trash class="h-4 w-4" />
-                                </x-filament::button>
-                            </div>
-                        @endif
+                        <!-- Botón Limpiar -->
+                        <button
+                            wire:click="clearCart"
+                            class="h-10 w-10 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 focus:outline-none"
+                            title="Limpiar carrito"
+                            {{ !$canClearCart ? 'disabled' : '' }}
+                        >
+                            <x-heroicon-s-trash class="h-5 w-5" />
+                        </button>
                     </div>
-
                 </div>
 
                 {{-- ITEMS DEL CARRITO --}}

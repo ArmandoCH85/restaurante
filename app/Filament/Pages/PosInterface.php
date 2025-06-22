@@ -144,9 +144,9 @@ class PosInterface extends Page
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->button()
-
                 ->action(function () {
                     $this->canClearCart = true;
+                    $this->canAddProducts = true;
                     Notification::make()
                         ->title('Orden reabierta')
                         ->body('Ahora puede modificar los productos')
@@ -157,7 +157,6 @@ class PosInterface extends Page
                     $this->order instanceof Order &&
                     !$this->order->invoices()->exists()
                 ),
-
 
             // 🖨️ BOTÓN DE IMPRESIÓN ÚLTIMO COMPROBANTE
             Action::make('printLastInvoice')
@@ -840,6 +839,17 @@ class PosInterface extends Page
 
     public function addToCart(Product $product)
     {
+        // Verificar si se pueden agregar productos
+        if (!$this->canAddProducts) {
+            Notification::make()
+                ->title('No se pueden agregar productos')
+                ->body('La orden está guardada. Debe reabrir la orden para agregar más productos.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
         $existingItemKey = collect($this->cartItems)->search(fn($item) => $item['product_id'] === $product->id);
 
         if ($existingItemKey !== false) {
@@ -910,6 +920,17 @@ class PosInterface extends Page
             return;
         }
 
+        // Validar que se haya ingresado el número de comensales
+        if (!$this->numberOfGuests || $this->numberOfGuests < 1) {
+            Notification::make()
+                ->title('Error')
+                ->body('Debe ingresar el número de comensales')
+                ->danger()
+                ->duration(5000)
+                ->send();
+            return;
+        }
+
         try {
             if ($this->order) {
                 // Actualizar orden existente
@@ -954,6 +975,10 @@ class PosInterface extends Page
                     // Limpiar el carrito después de guardar
                     $this->cartItems = [];
                     $this->calculateTotals();
+
+                    // Deshabilitar el botón Limpiar Carrito después de guardar
+                    $this->canClearCart = false;
+                    $this->canAddProducts = false;
 
                     Notification::make()
                         ->title('🎉 Orden actualizada exitosamente')
@@ -1009,6 +1034,10 @@ class PosInterface extends Page
                     }
 
                     $this->isCartDisabled = true;
+
+                    // Deshabilitar el botón Limpiar Carrito después de guardar
+                    $this->canClearCart = false;
+                    $this->canAddProducts = false;
 
                     Notification::make()
                         ->title('🎉 Orden creada exitosamente')
