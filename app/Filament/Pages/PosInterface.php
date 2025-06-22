@@ -1226,8 +1226,10 @@ class PosInterface extends Page
                                         $html .= '<tr class="border-b border-gray-100">';
                                         $html .= '<td class="px-2 py-1 text-sm">' . substr(htmlspecialchars($item['name']), 0, 25) . '</td>';
                                         $html .= '<td class="px-2 py-1 text-center text-sm">' . $item['quantity'] . '</td>';
-                                        $html .= '<td class="px-2 py-1 text-right text-sm">S/ ' . number_format($item['price'], 2) . '</td>';
-                                        $html .= '<td class="px-2 py-1 text-right text-sm font-medium">S/ ' . number_format($item['subtotal'], 2) . '</td>';
+                                        $priceValue = $item['price'] ?? $item['unit_price'] ?? 0;
+                                        $html .= '<td class="px-2 py-1 text-right text-sm">S/ ' . number_format($priceValue, 2) . '</td>';
+                                        $subtotalValue = $item['subtotal'] ?? ($item['quantity'] * $priceValue);
+                                        $html .= '<td class="px-2 py-1 text-right text-sm font-medium">S/ ' . number_format($subtotalValue, 2) . '</td>';
                                         $html .= '</tr>';
                                     }
 
