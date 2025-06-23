@@ -34,8 +34,8 @@ class PointOfSale extends Component
 
     // Control de modales
     public bool $showCommandModal = false;
-    public bool $showPreBillModal = false;
     public bool $showInvoiceModal = false;
+    public ?string $commandUrl = null;
 
     protected $queryString = [
         'tableId' => ['except' => ''],
@@ -395,60 +395,6 @@ class PointOfSale extends Component
         }
     }
 
-    public function generatePreBill(): void
-    {
-        if (empty($this->cart)) {
-            $this->dispatch('notification', [
-                'type' => 'error',
-                'title' => 'Error',
-                'message' => 'El carrito está vacío. Añade productos para generar una pre-cuenta.'
-            ]);
-            return;
-        }
-
-        try {
-            $order = $this->createOrder();
-            if (!$order) {
-                Log::warning('generatePreBill: createOrder returned null or false.');
-                return;
-            }
-
-            // Notificar éxito
-            $this->dispatch('notification', [
-                'type' => 'success',
-                'title' => 'Pre-Cuenta Generada',
-                'message' => 'La pre-cuenta se ha generado correctamente'
-            ]);
-
-            // Disparar evento para abrir el modal de pre-cuenta
-            $url = route('pos.prebill.pdf', ['order' => $order->id]);
-            Log::info('Dispatching open-prebill-modal', ['url' => $url]);
-            $this->dispatch('open-prebill-modal', ['url' => $url]);
-
-                        // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay (TEMPORALMENTE DESHABILITADO)
-            /*
-            if (Auth::user()->hasRole('waiter')) {
-                $this->dispatch('notification', [
-                    'type' => 'success',
-                    'title' => 'Pre-cuenta Impresa',
-                    'message' => 'Pre-cuenta generada correctamente. Regresando al mapa de mesas...'
-                ]);
-
-                // Redirigir después de un breve delay para que se abra la ventana de impresión
-                $this->dispatch('redirect-to-table-map');
-            }
-            */
-
-            // NO limpiar carrito después de imprimir para mantener productos para venta
-        } catch (\Exception $e) {
-            $this->dispatch('notification', [
-                'type' => 'error',
-                'title' => 'Error',
-                'message' => 'Error al generar la pre-cuenta: ' . $e->getMessage()
-            ]);
-        }
-    }
-
     /**
      * Generar comprobante de venta y mostrarlo en ventana flotante
      */
@@ -540,11 +486,6 @@ class PointOfSale extends Component
         $this->showCommandModal = true;
     }
 
-    public function openPreBillModal(): void
-    {
-        $this->showPreBillModal = true;
-    }
-
     public function openInvoiceModal(): void
     {
         $this->showInvoiceModal = true;
@@ -553,7 +494,12 @@ class PointOfSale extends Component
     public function closeModals(): void
     {
         $this->showCommandModal = false;
-        $this->showPreBillModal = false;
         $this->showInvoiceModal = false;
+    }
+
+    #[\Livewire\Attributes\On('setCommandUrl')]
+    public function setCommandUrl(string $url): void
+    {
+        $this->commandUrl = $url;
     }
 }

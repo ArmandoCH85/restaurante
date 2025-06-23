@@ -350,24 +350,5 @@
             ¡GRACIAS POR SU PREFERENCIA!
         </div>
     </div>
-
-    <!-- SCRIPT DE IMPRESIÓN AUTOMÁTICA -->
-    <script>
-        window.addEventListener('load', function() {
-            // Delay para asegurar que todo esté cargado
-            setTimeout(function() {
-                console.log('🖨️ Iniciando impresión automática de comanda...');
-                window.print();
-
-                // Cerrar ventana después de imprimir (opcional)
-                window.addEventListener('afterprint', function() {
-                    setTimeout(() => {
-                        console.log('✅ Impresión completada, cerrando ventana...');
-                        window.close();
-                    }, 1000);
-                });
-            }, 500);
-        });
-    </script>
 </body>
 </html>

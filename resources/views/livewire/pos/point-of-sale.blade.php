@@ -1909,17 +1909,6 @@
                         <span class="text-xs font-medium sm:text-sm">Comanda</span>
                     </button>
 
-                    <!-- Botón Pre-Cuenta (visible para todos) -->
-                    <button
-                        onclick="abrirPreCuenta()"
-                        type="button"
-                        class="px-2 py-2 sm:py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-md font-medium transition-all duration-200 flex flex-col items-center justify-center text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] scale-hover"
-                        {{ count($cart) === 0 ? 'disabled' : '' }}
-                    >
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /> </svg>
-                        <span class="text-xs font-medium sm:text-sm">Pre-Cuenta</span>
-                    </button>
-
                     <!-- Botón Facturar (visible para todos, pero con restricción funcional) -->
                     <button
                         onclick="@if(Auth::user()->hasRole('waiter'))
@@ -3276,11 +3265,11 @@
         }
 
         function showPreBillModal(url) {
-            // Establecer la URL en el componente Livewire
-            Livewire.dispatch('setPreBillUrl', { url: url });
-
-            // Mostrar el modal
+            // Primero abrir el modal para que Alpine monte el iframe una sola vez
             Livewire.dispatch('openPreBillModal');
+
+            // Luego establecer la URL (evita re-render adicional)
+            Livewire.dispatch('setPreBillUrl', { url: url });
         }
 
         function abrirComanda() {
@@ -3460,7 +3449,18 @@
             });
         }
 
+        // Flag para evitar llamadas duplicadas al generar Pre-Cuenta
+        let preBillEnProceso = false;
+
         function abrirPreCuenta() {
+            if (preBillEnProceso) {
+                console.warn('🔄 Pre-Cuenta ya en proceso, ignorando clic duplicado');
+                return;
+            }
+            preBillEnProceso = true;
+            const btn = document.getElementById('btn-precuenta');
+            if (btn) btn.disabled = true;
+
             // Obtener datos directamente del carrito visible
             const productos = [];
             document.querySelectorAll('[wire\\:key^="cart-item-"]').forEach(item => {
@@ -3482,6 +3482,8 @@
 
             if (productos.length === 0) {
                 alert('No hay productos en el carrito');
+                preBillEnProceso = false;
+                if (btn) btn.disabled = false;
                 return;
             }
 
@@ -3528,24 +3530,16 @@
             })
             .then(procesarRespuesta)
             .then(orderId => {
-                // Mostrar la pre-cuenta en un modal
-                showPreBillModal('{{ url("pos/prebill-pdf") }}/' + orderId);
-
-                // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay (TEMPORALMENTE DESHABILITADO)
-                /*
-                @if(Auth::user()->hasRole('waiter'))
-                setTimeout(function() {
-                    console.log('🔄 Redirigiendo waiter al mapa de mesas desde pre-cuenta...');
-                    window.location.href = '{{ url("/admin/mapa-mesas") }}';
-                }, 2000); // Dar tiempo para que se abra la ventana de impresión
-                @endif
-                */
-
-                // NO vaciar el carrito después de generar la pre-cuenta
+                // Solo mostrar el modal, NO imprimir automáticamente
+                showPreBillModal('{{ url("print/prebill") }}/' + orderId);
             })
             .catch(error => {
                 alert('Error: ' + error.message);
                 console.error('Error completo:', error);
+            })
+            .finally(() => {
+                preBillEnProceso = false;
+                if (btn) btn.disabled = false;
             });
         }
 

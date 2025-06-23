@@ -14,6 +14,7 @@ use App\Models\Customer;
 use Illuminate\Support\Facades\Log;
 use App\Models\CompanyConfig;
 use Illuminate\Support\Facades\Blade;
+use App\Http\Controllers\PreBillPrintController;
 
 Route::get('/', function () {
     // Redirección automática a /admin
@@ -286,6 +287,11 @@ Route::middleware(['web'])->group(function () {
             return response('Error al generar el PDF: ' . $e->getMessage(), 500);
         }
     })->name('print.invoice');
+
+    // Ruta optimizada para pre-cuentas
+    Route::get('/print/prebill/{order}', [PreBillPrintController::class, 'show'])
+        ->name('print.prebill')
+        ->middleware(['auth']);
 });
 
 // Nueva ruta KISS para impresión desde POS - usando el mismo patrón que Filament

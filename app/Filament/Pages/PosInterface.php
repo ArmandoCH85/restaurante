@@ -37,6 +37,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
+use Filament\Actions\ActionSize;
 
 class PosInterface extends Page
 {
@@ -139,6 +140,92 @@ class PosInterface extends Page
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('printComanda')
+                ->label('Comanda')
+                ->icon('heroicon-o-printer')
+                ->form(function () {
+                    // ✅ Si es venta directa (sin mesa), solicitar nombre del cliente
+                    if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
+                        return [
+                            Forms\Components\TextInput::make('customerNameForComanda')
+                                ->label('Nombre del Cliente')
+                                ->placeholder('Ingrese el nombre del cliente')
+                                ->required()
+                                ->maxLength(100)
+                                ->helperText('Este nombre aparecerá en la comanda impresa')
+                                ->default($this->customerNameForComanda)
+                        ];
+                    }
+                    return [];
+                })
+                ->action(function (array $data) {
+                    // ✅ PRIMERO: Guardar el nombre del cliente si es venta directa
+                    if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
+                        $this->customerNameForComanda = $data['customerNameForComanda'];
+                    }
+
+                    // ✅ SEGUNDO: Crear la orden si no existe (ahora CON el nombre del cliente guardado)
+                    if (!$this->order && !empty($this->cartItems)) {
+                        $this->order = $this->createOrderFromCart();
+                    }
+
+                    // Obtener un cliente genérico para asegurar que siempre haya un cliente disponible
+                    $genericCustomer = \App\Models\Customer::getGenericCustomer();
+
+                    // ✅ TERCERO: Mostrar comanda en modal
+                    $url = route('orders.comanda.pdf', [
+                        'order' => $this->order,
+                        'customerName' => $this->customerNameForComanda
+                    ]);
+
+                    $this->js("showCommandModal('$url')");
+
+                    // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
+                    if ($this->selectedTableId) {
+                        $redirectUrl = TableMap::getUrl();
+
+                        \Illuminate\Support\Facades\Log::debug('🔴 REDIRECCIÓN DESDE IMPRIMIR COMANDA', [
+                            'table_id' => $this->selectedTableId,
+                            'order_id' => $this->order?->id,
+                            'redirect_url' => $redirectUrl,
+                            'timestamp' => now()->format('Y-m-d H:i:s.u')
+                        ]);
+
+                        Notification::make()
+                            ->title('Comanda Enviada')
+                            ->body('Pedido guardado correctamente. Regresando al mapa de mesas...')
+                            ->success()
+                            ->duration(2000)
+                            ->send();
+
+                        $this->js("
+                            console.log('Redirigiendo a mapa de mesas desde imprimir comanda');
+                            setTimeout(function() {
+                                window.location.href = '{$redirectUrl}';
+                            }, 500);
+                        ");
+                    }
+                })
+                ->modalHeading('Imprimir Comanda')
+                ->modalSubmitActionLabel('Confirmar')
+                ->button()
+                ->outlined()
+                ->color('warning')
+                ->size('lg')
+                ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)),
+
+            Action::make('printPreBillNew')
+                ->label('Pre-Cuenta')
+                ->icon('heroicon-o-document-text')
+                ->color('warning')
+                ->size('lg')
+                ->url(fn () => $this->order ? route('print.prebill', ['order' => $this->order->id]) : null, true)
+                ->openUrlInNewTab()
+                ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems))
+                ->disabled(fn (): bool => !$this->order && empty($this->cartItems))
+                ->tooltip('Imprimir Pre-Cuenta')
+                ->button(),
+
             Action::make('reopen_order_for_editing')
                 ->label('Reabrir Orden')
                 ->icon('heroicon-o-arrow-path')
@@ -480,125 +567,7 @@ class PosInterface extends Page
                 })
                 ->visible(fn (): bool => $this->order !== null && count($this->order->orderDetails) > 0),
 
-            Action::make('printComanda')
-                ->label('Comanda')
-                ->icon('heroicon-o-printer')
-                ->form(function () {
-                    // ✅ Si es venta directa (sin mesa), solicitar nombre del cliente
-                    if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
-                        return [
-                            Forms\Components\TextInput::make('customerNameForComanda')
-                                ->label('Nombre del Cliente')
-                                ->placeholder('Ingrese el nombre del cliente')
-                                ->required()
-                                ->maxLength(100)
-                                ->helperText('Este nombre aparecerá en la comanda impresa')
-                                ->default($this->customerNameForComanda)
-                        ];
-                    }
-                    return [];
-                })
-                ->action(function (array $data) {
-                    // ✅ PRIMERO: Guardar el nombre del cliente si es venta directa
-                    if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
-                        $this->customerNameForComanda = $data['customerNameForComanda'];
-                    }
 
-                    // ✅ SEGUNDO: Crear la orden si no existe (ahora CON el nombre del cliente guardado)
-                    if (!$this->order && !empty($this->cartItems)) {
-                        $this->order = $this->createOrderFromCart();
-                    }
-
-                    // Obtener un cliente genérico para asegurar que siempre haya un cliente disponible
-                    $genericCustomer = \App\Models\Customer::getGenericCustomer();
-
-                    // ✅ TERCERO: Abrir comanda en nueva ventana para imprimir (con datos de empresa)
-                    $url = route('orders.comanda.pdf', [
-                        'order' => $this->order,
-                        'customerName' => $this->customerNameForComanda
-                    ]);
-
-                    $this->js("window.open('$url', '_blank', 'width=800,height=600')");
-
-                    // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
-                    if ($this->selectedTableId) {
-                        $redirectUrl = TableMap::getUrl();
-
-                        \Illuminate\Support\Facades\Log::debug('🔴 REDIRECCIÓN DESDE IMPRIMIR COMANDA', [
-                            'table_id' => $this->selectedTableId,
-                            'order_id' => $this->order?->id,
-                            'redirect_url' => $redirectUrl,
-                            'timestamp' => now()->format('Y-m-d H:i:s.u')
-                        ]);
-
-                        Notification::make()
-                            ->title('Comanda Enviada')
-                            ->body('Pedido guardado correctamente. Regresando al mapa de mesas...')
-                            ->success()
-                            ->duration(2000)
-                            ->send();
-
-                        $this->js("
-                            console.log('Redirigiendo a mapa de mesas desde imprimir comanda');
-                            setTimeout(function() {
-                                window.location.href = '{$redirectUrl}';
-                            }, 500);
-                        ");
-                    }
-                })
-                ->modalHeading('Imprimir Comanda')
-                ->modalSubmitActionLabel('Confirmar')
-                ->button()
-                ->outlined()
-                ->color('warning')
-                ->size('lg')
-                ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles
-
-            Action::make('printPreBill')
-                ->label('Pre-Cuenta')
-                ->icon('heroicon-o-printer')
-                ->action(function () {
-                    // ✅ Crear la orden si no existe antes de mostrar la pre-cuenta
-                    if (!$this->order && !empty($this->cartItems)) {
-                        $this->order = $this->createOrderFromCart();
-                    }
-                })
-                ->modalContent(function (): \Illuminate\Contracts\View\View {
-                    // Obtener datos de empresa para la plantilla
-                    return view('filament.modals.print-prebill', [
-                        'order' => $this->order
-                    ]);
-                })
-                ->modalSubmitAction(
-                    Action::make('printPreBillSubmit')
-                        ->label('Imprimir')
-                        ->color('success')
-                        ->icon('heroicon-o-printer')
-                        ->extraAttributes([
-                            'onclick' => 'window.print(); return false;',
-                        ])
-                        ->action(function () {
-                            // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de imprimir
-                            if (Auth::user()->hasRole('waiter')) {
-                                Notification::make()
-                                    ->title('Pre-cuenta Impresa')
-                                    ->body('Pre-cuenta generada correctamente. Regresando al mapa de mesas...')
-                                    ->success()
-                                    ->duration(2000)
-                                    ->send();
-
-                                // Redirigir después de un breve delay para que se complete la impresión
-                                $this->js("setTimeout(function() { window.location.href = '" . TableMap::getUrl() . "'; }, 2000);");
-                            }
-                        })
-                )
-                ->modalCancelActionLabel('Cerrar')
-                ->modalHeading('Vista Previa de Pre-Cuenta')
-                ->button()
-                ->outlined()
-                ->color('info')
-                ->size('lg')
-                ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)), // ✅ Visible para todos los roles,
         ];
     }
 
