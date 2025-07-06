@@ -19,7 +19,6 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Navigation\NavigationItem;
 use Filament\Navigation\NavigationGroup;
-use Solutionforest\FilamentLoginScreen\Filament\Pages\Auth\Themes\Theme1\LoginScreenPage as LoginScreenPage;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\PermissionHelper;
 use App\Filament\Pages\TableMap;
@@ -33,7 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login(LoginScreenPage::class)
+            ->login()
             ->sidebarCollapsibleOnDesktop()
             ->homeUrl(function () {
                 $user = Auth::user();
