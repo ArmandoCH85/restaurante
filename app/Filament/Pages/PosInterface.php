@@ -38,6 +38,7 @@ use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Filament\Actions\ActionSize;
+use App\Models\OrderDetail;
 
 class PosInterface extends Page
 {
@@ -1162,7 +1163,218 @@ class PosInterface extends Page
 
     public function processTransfer(array $data): void
     {
-        // ... existing code ...
+        try {
+            // 🔍 VALIDACIÓN INICIAL SEGÚN DOCUMENTACIÓN DE FILAMENT
+            if (!$this->order) {
+                Notification::make()
+                    ->title('❌ Error')
+                    ->body('No hay una orden activa para transferir.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            if (empty($data['transferItems'])) {
+                Notification::make()
+                    ->title('❌ Error de Validación')
+                    ->body('No se han seleccionado productos para transferir.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            if (empty($data['new_table_id'])) {
+                Notification::make()
+                    ->title('❌ Error de Validación')
+                    ->body('Debe seleccionar una mesa de destino.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            // 🔍 VERIFICAR MESA DESTINO
+            $targetTable = TableModel::find($data['new_table_id']);
+            if (!$targetTable) {
+                Notification::make()
+                    ->title('❌ Mesa No Encontrada')
+                    ->body('La mesa de destino no existe.')
+                    ->danger()
+                    ->send();
+                return;
+            }
+
+            // 🔄 INICIAR TRANSACCIÓN SEGÚN DOCUMENTACIÓN DE FILAMENT
+            DB::beginTransaction();
+
+            $transferredItems = 0;
+            $targetOrder = null;
+
+            // 🎯 BUSCAR O CREAR ORDEN EN MESA DESTINO
+            $existingOrder = Order::where('table_id', $targetTable->id)
+                ->where('status', Order::STATUS_OPEN)
+                ->where('billed', false)
+                ->first();
+
+            if ($existingOrder) {
+                $targetOrder = $existingOrder;
+            } else {
+                // Crear nueva orden en mesa destino
+                $employee = Employee::where('user_id', Auth::id())->first();
+                if (!$employee) {
+                    DB::rollBack();
+                    Notification::make()
+                        ->title('❌ Error de Empleado')
+                        ->body('El usuario actual no tiene un registro de empleado válido.')
+                        ->danger()
+                        ->send();
+                    return;
+                }
+
+                $targetOrder = Order::create([
+                    'service_type' => 'dine_in',
+                    'table_id' => $targetTable->id,
+                    'customer_id' => $this->order->customer_id,
+                    'employee_id' => $employee->id,
+                    'order_datetime' => now(),
+                    'status' => Order::STATUS_OPEN,
+                    'subtotal' => 0,
+                    'tax' => 0,
+                    'total' => 0,
+                    'discount' => 0,
+                    'billed' => false,
+                    'cash_register_id' => $this->order->cash_register_id,
+                ]);
+
+                // Actualizar estado de la mesa destino
+                $targetTable->update([
+                    'status' => TableModel::STATUS_OCCUPIED,
+                    'occupied_at' => now()
+                ]);
+            }
+
+            // 🚀 PROCESAR CADA PRODUCTO A TRANSFERIR
+            foreach ($data['transferItems'] as $item) {
+                if ($item['quantity_to_move'] <= 0) {
+                    continue; // Saltar productos sin cantidad a mover
+                }
+
+                $orderDetail = OrderDetail::find($item['order_detail_id']);
+                if (!$orderDetail || $orderDetail->order_id !== $this->order->id) {
+                    continue; // Saltar detalles inválidos
+                }
+
+                $quantityToMove = min($item['quantity_to_move'], $orderDetail->quantity);
+
+                // Verificar si el producto ya existe en la orden destino
+                $existingDetailInTarget = OrderDetail::where('order_id', $targetOrder->id)
+                    ->where('product_id', $orderDetail->product_id)
+                    ->first();
+
+                if ($existingDetailInTarget) {
+                    // Combinar con producto existente
+                    $existingDetailInTarget->quantity += $quantityToMove;
+                    $existingDetailInTarget->subtotal = $existingDetailInTarget->quantity * $existingDetailInTarget->unit_price;
+                    $existingDetailInTarget->save();
+                } else {
+                    // Crear nuevo detalle en orden destino
+                    OrderDetail::create([
+                        'order_id' => $targetOrder->id,
+                        'product_id' => $orderDetail->product_id,
+                        'quantity' => $quantityToMove,
+                        'unit_price' => $orderDetail->unit_price,
+                        'subtotal' => $quantityToMove * $orderDetail->unit_price,
+                        'notes' => $orderDetail->notes,
+                        'status' => 'pending'
+                    ]);
+                }
+
+                // Actualizar orden origen
+                if ($quantityToMove >= $orderDetail->quantity) {
+                    // Eliminar detalle completo
+                    $orderDetail->delete();
+                } else {
+                    // Reducir cantidad
+                    $orderDetail->quantity -= $quantityToMove;
+                    $orderDetail->subtotal = $orderDetail->quantity * $orderDetail->unit_price;
+                    $orderDetail->save();
+                }
+
+                $transferredItems++;
+            }
+
+            if ($transferredItems === 0) {
+                DB::rollBack();
+                Notification::make()
+                    ->title('⚠️ Sin Transferencias')
+                    ->body('No se pudo transferir ningún producto. Verifique las cantidades.')
+                    ->warning()
+                    ->send();
+                return;
+            }
+
+            // 🧮 RECALCULAR TOTALES DE AMBAS ÓRDENES
+            $this->order->recalculateTotals();
+            $targetOrder->recalculateTotals();
+
+            // 🔍 VERIFICAR SI LA ORDEN ORIGEN QUEDÓ VACÍA
+            if ($this->order->orderDetails()->count() === 0) {
+                // Liberar mesa origen
+                $sourceTable = $this->order->table;
+                if ($sourceTable) {
+                    $sourceTable->update([
+                        'status' => TableModel::STATUS_AVAILABLE,
+                        'occupied_at' => null
+                    ]);
+                }
+                
+                // Eliminar orden vacía
+                $this->order->delete();
+                
+                // ✅ CONFIRMAR TRANSACCIÓN Y REDIRECCIONAR
+                DB::commit();
+
+                Notification::make()
+                    ->title('✅ Transferencia Completa')
+                    ->body("Se transfirieron {$transferredItems} productos a la mesa {$targetTable->number}. La mesa actual quedó libre.")
+                    ->success()
+                    ->send();
+
+                // Redireccionar al mapa de mesas
+                $this->redirect(TableMap::getUrl());
+            }
+
+            // ✅ CONFIRMAR TRANSACCIÓN
+            DB::commit();
+
+            // 📝 ACTUALIZAR ESTADO LOCAL
+            $this->refreshOrderData();
+
+            // 🎉 NOTIFICACIÓN DE ÉXITO SEGÚN DOCUMENTACIÓN DE FILAMENT
+            Notification::make()
+                ->title('✅ Transferencia Exitosa')
+                ->body("Se transfirieron {$transferredItems} productos a la mesa {$targetTable->number}.")
+                ->success()
+                ->duration(5000)
+                ->send();
+
+        } catch (\Exception $e) {
+            // 🔙 ROLLBACK EN CASO DE ERROR SEGÚN DOCUMENTACIÓN
+            DB::rollBack();
+
+            Log::error('Error en transferencia de productos', [
+                'order_id' => $this->order?->id,
+                'target_table_id' => $data['new_table_id'] ?? null,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            Notification::make()
+                ->title('❌ Error en Transferencia')
+                ->body('Ocurrió un error al transferir los productos: ' . $e->getMessage())
+                ->danger()
+                ->persistent()
+                ->send();
+        }
     }
 
     // Getters para la vista
