@@ -3,6 +3,16 @@
     'subheading' => null,
 ])
 
+<style>
+/* FORZAR COLOR NEGRO EN TODOS LOS NAVEGADORES - SOLUCIÓN KISS */
+* {
+    color: #000 !important;
+}
+input, label, button, span, div, h1, h2, h3, h4, h5, h6, p, a {
+    color: #000 !important;
+}
+</style>
+
 <div class="flex h-screen w-screen overflow-hidden">
     <!-- Left Pane - Imagen -->
     <div class="hidden lg:flex lg:w-7/10 bg-white text-black relative h-full">

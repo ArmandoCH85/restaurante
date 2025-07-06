@@ -366,10 +366,10 @@ class PointOfSale extends Component
                 'message' => 'La comanda se ha generado correctamente'
             ]);
 
-            // Disparar evento para abrir el modal de comanda
-            $url = route('pos.command.pdf', ['order' => $order->id]);
-            Log::info('Dispatching open-command-modal', ['url' => $url]);
-            $this->dispatch('open-command-modal', ['url' => $url]);
+            // Mostrar modal de comanda directamente
+            $this->commandUrl = route('pos.command.pdf', ['order' => $order->id]);
+            $this->showCommandModal = true;
+            Log::info('Command modal opened', ['url' => $this->commandUrl]);
 
                         // ✅ Si es waiter, redirigir automáticamente al mapa de mesas después de un breve delay (TEMPORALMENTE DESHABILITADO)
             /*

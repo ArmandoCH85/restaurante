@@ -29,3 +29,5 @@ yarn-error.log
 .windsurf/rules/laravel.md
 .windsurf/rules/livewire.md
 .windsurf/rules/tailwind.md
+.env.example
+limpiar.sh

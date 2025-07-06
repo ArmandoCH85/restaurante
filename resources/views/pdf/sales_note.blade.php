@@ -11,9 +11,14 @@
         body {
             font-family: 'monospace', sans-serif;
             font-size: 10pt;
-            color: #000;
+            color: #000 !important;
             line-height: 1.4;
             width: 70mm; /* Ancho aproximado para papel de 80mm */
+        }
+        
+        /* FORZAR COLOR NEGRO EN TODOS LOS NAVEGADORES */
+        * {
+            color: #000 !important;
         }
         .container {
             width: 100%;

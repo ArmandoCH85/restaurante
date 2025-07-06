@@ -277,6 +277,30 @@
                                     Emitir Comprobante
                                 </x-filament::button>
                             @endif
+
+                            {{-- MENSAJE CUANDO LA ORDEN YA ESTÁ FACTURADA --}}
+                            @if($order && $order->invoices()->exists())
+                                <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
+                                    <div class="flex items-center justify-center mb-2">
+                                        <x-heroicon-o-check-circle class="h-6 w-6 text-green-600 mr-2" />
+                                        <span class="text-green-800 font-semibold">Orden Facturada</span>
+                                    </div>
+                                    <p class="text-green-700 text-sm mb-3">
+                                        Esta orden ya tiene comprobante(s) emitido(s).
+                                    </p>
+                                    @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
+                                        <x-filament::button
+                                            wire:click="reimprimirComprobante"
+                                            color="success"
+                                            size="lg"
+                                            class="w-full py-2 text-base font-bold"
+                                        >
+                                            <x-heroicon-m-printer class="h-5 w-5 mr-2" />
+                                            Reimprimir Comprobante
+                                        </x-filament::button>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     </div>
                 @endif
@@ -329,6 +353,14 @@
                         }, 800);
                     });
                 }
+
+                // FUNCIÓN GLOBAL para mostrar modal de comanda (DEPRECATED - ahora usa modal de Filament)
+                // window.showCommandModal = function(url) {
+                //     console.log('🖨️ Mostrando modal de comanda:', url);
+                //     setTimeout(() => {
+                //         window.open(url, 'command_print_window', 'width=800,height=600,scrollbars=yes,resizable=yes');
+                //     }, 500);
+                // };
             }
         }"
         x-show="open"

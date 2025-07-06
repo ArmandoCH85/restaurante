@@ -143,6 +143,12 @@ class PosInterface extends Page
             Action::make('printComanda')
                 ->label('Comanda')
                 ->icon('heroicon-o-printer')
+                ->color('warning')
+                ->size('lg')
+                ->modal()
+                ->modalHeading('👨‍🍳 Comanda')
+                ->modalDescription('Orden para la cocina')
+                ->modalWidth('md')
                 ->form(function () {
                     // ✅ Si es venta directa (sin mesa), solicitar nombre del cliente
                     if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
@@ -152,66 +158,100 @@ class PosInterface extends Page
                                 ->placeholder('Ingrese el nombre del cliente')
                                 ->required()
                                 ->maxLength(100)
-                                ->helperText('Este nombre aparecerá en la comanda impresa')
+                                ->helperText('Este nombre aparecerá en la comanda')
                                 ->default($this->customerNameForComanda)
                         ];
                     }
                     return [];
                 })
-                ->action(function (array $data) {
-                    // ✅ PRIMERO: Guardar el nombre del cliente si es venta directa
-                    if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
-                        $this->customerNameForComanda = $data['customerNameForComanda'];
+                ->modalContent(function () {
+                    // Si necesita solicitar nombre del cliente, no mostrar contenido aún
+                    if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
+                        return null; // El formulario se mostrará primero
                     }
 
-                    // ✅ SEGUNDO: Crear la orden si no existe (ahora CON el nombre del cliente guardado)
+                    // Crear la orden si no existe
                     if (!$this->order && !empty($this->cartItems)) {
                         $this->order = $this->createOrderFromCart();
                     }
 
-                    // Obtener un cliente genérico para asegurar que siempre haya un cliente disponible
-                    $genericCustomer = \App\Models\Customer::getGenericCustomer();
-
-                    // ✅ TERCERO: Mostrar comanda en modal
-                    $url = route('orders.comanda.pdf', [
-                        'order' => $this->order,
-                        'customerName' => $this->customerNameForComanda
-                    ]);
-
-                    $this->js("showCommandModal('$url')");
-
-                    // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
-                    if ($this->selectedTableId) {
-                        $redirectUrl = TableMap::getUrl();
-
-                        \Illuminate\Support\Facades\Log::debug('🔴 REDIRECCIÓN DESDE IMPRIMIR COMANDA', [
-                            'table_id' => $this->selectedTableId,
-                            'order_id' => $this->order?->id,
-                            'redirect_url' => $redirectUrl,
-                            'timestamp' => now()->format('Y-m-d H:i:s.u')
+                    if (!$this->order) {
+                        return view('components.empty-state', [
+                            'message' => 'No hay orden para mostrar'
                         ]);
+                    }
 
-                        Notification::make()
-                            ->title('Comanda Enviada')
-                            ->body('Pedido guardado correctamente. Regresando al mapa de mesas...')
-                            ->success()
-                            ->duration(2000)
-                            ->send();
+                    // Obtener datos de la orden con productos
+                    $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
+                    
+                    return view('filament.modals.comanda-content', [
+                        'order' => $order,
+                        'customerNameForComanda' => $this->customerNameForComanda,
+                        'isDirectSale' => $this->selectedTableId === null
+                    ]);
+                })
+                ->action(function (array $data) {
+                    // ✅ Guardar el nombre del cliente si es venta directa
+                    if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
+                        $this->customerNameForComanda = $data['customerNameForComanda'];
+                    }
 
-                        $this->js("
-                            console.log('Redirigiendo a mapa de mesas desde imprimir comanda');
-                            setTimeout(function() {
-                                window.location.href = '{$redirectUrl}';
-                            }, 500);
-                        ");
+                    // ✅ Crear la orden si no existe (ahora CON el nombre del cliente guardado)
+                    if (!$this->order && !empty($this->cartItems)) {
+                        $this->order = $this->createOrderFromCart();
+                    }
+
+                    // Solo proceder si ya tenemos orden y (si es venta directa) el nombre del cliente
+                    if ($this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))) {
+                        // Cerrar el modal para mostrar el contenido
+                        $this->dispatch('refreshModalContent');
+                        
+                        // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
+                        if ($this->selectedTableId) {
+                            $redirectUrl = TableMap::getUrl();
+
+                            Notification::make()
+                                ->title('Comanda Enviada')
+                                ->body('Pedido guardado correctamente. Regresando al mapa de mesas...')
+                                ->success()
+                                ->duration(2000)
+                                ->send();
+
+                            $this->js("
+                                setTimeout(function() {
+                                    window.location.href = '{$redirectUrl}';
+                                }, 500);
+                            ");
+                        }
                     }
                 })
-                ->modalHeading('Imprimir Comanda')
                 ->modalSubmitActionLabel('Confirmar')
+                ->extraModalFooterActions([
+                    Action::make('printComanda')
+                        ->label('🖨️ Imprimir')
+                        ->color('primary')
+                        ->action(function () {
+                            $url = route('orders.comanda.pdf', [
+                                'order' => $this->order,
+                                'customerName' => $this->customerNameForComanda
+                            ]);
+                            $this->js("window.open('$url', 'comanda_print', 'width=800,height=600,scrollbars=yes,resizable=yes')");
+                        })
+                        ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
+                    Action::make('downloadComanda')
+                        ->label('📥 Descargar')
+                        ->color('success')
+                        ->action(function () {
+                            $url = route('orders.comanda.pdf', [
+                                'order' => $this->order,
+                                'customerName' => $this->customerNameForComanda
+                            ]);
+                            $this->js("window.open('$url', '_blank')");
+                        })
+                        ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
+                ])
                 ->button()
                 ->outlined()
-                ->color('warning')
-                ->size('lg')
                 ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems)),
 
             Action::make('printPreBillNew')
@@ -219,11 +259,53 @@ class PosInterface extends Page
                 ->icon('heroicon-o-document-text')
                 ->color('warning')
                 ->size('lg')
-                ->url(fn () => $this->order ? route('print.prebill', ['order' => $this->order->id]) : null, true)
-                ->openUrlInNewTab()
+                ->modal()
+                ->modalHeading('📄 Pre-Cuenta')
+                ->modalDescription('Resumen de la orden antes del pago')
+                ->modalWidth('md')
+                ->modalContent(function () {
+                    // Crear la orden si no existe
+                    if (!$this->order && !empty($this->cartItems)) {
+                        $this->order = $this->createOrderFromCart();
+                    }
+
+                    if (!$this->order) {
+                        return view('components.empty-state', [
+                            'message' => 'No hay orden para mostrar'
+                        ]);
+                    }
+
+                    // Obtener datos de la orden con productos
+                    $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
+                    
+                    return view('filament.modals.pre-bill-content', [
+                        'order' => $order,
+                        'subtotal' => $this->subtotal,
+                        'tax' => $this->tax,
+                        'total' => $this->total
+                    ]);
+                })
+                ->modalSubmitAction(false)
+                ->modalCancelAction(false)
+                ->extraModalFooterActions([
+                    Action::make('printPreBill')
+                        ->label('🖨️ Imprimir')
+                        ->color('primary')
+                        ->action(function () {
+                            $url = route('print.prebill', ['order' => $this->order->id]);
+                            $this->js("window.open('$url', 'prebill_print', 'width=800,height=600,scrollbars=yes,resizable=yes')");
+                        }),
+                    Action::make('downloadPreBill')
+                        ->label('📥 Descargar')
+                        ->color('success')
+                        ->action(function () {
+                            $url = route('print.prebill', ['order' => $this->order->id]);
+                            $this->js("window.open('$url', '_blank')");
+                        }),
+                ])
                 ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems))
                 ->disabled(fn (): bool => !$this->order && empty($this->cartItems))
-                ->tooltip('Imprimir Pre-Cuenta')
+                ->tooltip('Mostrar Pre-Cuenta')
                 ->button(),
 
             Action::make('reopen_order_for_editing')
@@ -571,9 +653,18 @@ class PosInterface extends Page
         ];
     }
 
+    /**
+     * Registrar acciones adicionales para mountAction()
+     */
+    protected function getActions(): array
+    {
+        return [
+            $this->processBillingAction(),
+        ];
+    }
+
     public function mount(): void
     {
-
         // Obtener parámetros de la URL
         $this->selectedTableId = request()->get('table_id');
         $orderId = request()->get('order_id');
@@ -611,7 +702,7 @@ class PosInterface extends Page
                 }
 
                 Notification::make()
-                    ->title('Orden reabierta')
+                    ->title('Orden cargada correctamente')
                     ->success()
                     ->send();
 
@@ -619,9 +710,11 @@ class PosInterface extends Page
                 $this->selectedTableId = $activeOrder->table_id;
                 $this->cartItems = [];
 
-                $this->canClearCart = false; // Habilitar el botón Limpiar Carrito al reabrir
-                $this->canAddProducts = true; // Habilitar la adición de productos al reabrir
+                $this->canClearCart = false; // Deshabilitar limpiar carrito porque ya hay orden
 
+                // ✅ LÓGICA KISS: Si la orden tiene detalles, significa que fue "guardada" previamente
+                // Por lo tanto, debe estar bloqueada hasta que se use "Reabrir Orden"
+                $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     $this->cartItems[] = [
@@ -647,7 +740,7 @@ class PosInterface extends Page
                 }
             }
         }
-        // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR MESA ***
+        // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR MESA (SOLO SI NO HAY ORDER_ID) ***
         elseif ($this->selectedTableId) {
             // Buscar la orden abierta para esta mesa
             $activeOrder = Order::with('orderDetails.product')
@@ -659,38 +752,11 @@ class PosInterface extends Page
                 $this->order = $activeOrder;
                 $this->cartItems = []; // Limpiar por si acaso
                 $this->canClearCart = false;
+                
+                // ✅ LÓGICA KISS: Si la orden tiene detalles, debe estar bloqueada
+                $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
 
                 foreach ($activeOrder->orderDetails as $detail) {
-                    $this->cartItems[] = [
-                        'product_id' => $detail->product_id,
-                        'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
-                        'quantity' => $detail->quantity,
-                        'unit_price' => $detail->unit_price,
-                        'notes' => $detail->notes,
-                    ];
-                }
-                $this->numberOfGuests = $this->order->number_of_guests ?? 1;
-                $this->isCartDisabled = true;
-            }
-        }
-
-        $this->selectedTableId = request()->query('table_id');
-
-        if ($this->selectedTableId) {
-            $this->order = Order::where('table_id', $this->selectedTableId)
-
-                ->where('status', Order::STATUS_OPEN)
-                ->with('orderDetails.product')
-                ->first();
-
-
-            if ($activeOrder) {
-                $this->order = $activeOrder;
-                $this->cartItems = []; // Limpiar por si acaso
-                $this->canClearCart = false;
-
-                foreach ($activeOrder->orderDetails as $detail) {
-
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
                         'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
@@ -725,7 +791,6 @@ class PosInterface extends Page
             : collect();
 
         // Calcular totales basados en el carrito (si lo hubiera)
-
         $this->calculateTotals();
         $this->loadInitialData();
     }
@@ -867,11 +932,15 @@ class PosInterface extends Page
 
     public function calculateTotals()
     {
-        $this->subtotal = collect($this->cartItems)->sum(function ($item) {
+        // ✅ CÁLCULO CORRECTO: Los precios en BD YA incluyen IGV
+        $totalConIGV = collect($this->cartItems)->sum(function ($item) {
             return $item['unit_price'] * $item['quantity'];
         });
-        $this->tax = $this->subtotal * 0.0;
-        $this->total = $this->subtotal + $this->tax;
+        
+        // 🧮 CÁLCULO INVERSO DEL IGV (18%)
+        $this->subtotal = $totalConIGV / 1.18;  // Base imponible sin IGV
+        $this->tax = $this->subtotal * 0.18;    // IGV calculado
+        $this->total = $this->subtotal + $this->tax; // Total (igual al precio original)
     }
 
     public function clearCart(): void
@@ -2065,39 +2134,25 @@ class PosInterface extends Page
                                 ->send();
                         }),
                     \Filament\Notifications\Actions\Action::make('view_tables')
-                        ->label('🪑 Ver Mesas')
+                        ->label('🪑 Regresar al Mapa de Mesas')
                         ->url(TableMap::getUrl())
                         ->button()
-                        ->color('secondary'),
+                        ->color('primary'),
                 ])
                 ->persistent() // No auto-cerrar para que el usuario pueda elegir
                 ->send();
 
-            // 🎯 ACTUALIZAR ESTADO Y REDIRIGIR
+            // 🎯 ACTUALIZAR ESTADO Y PREPARAR PARA IMPRESIÓN
             $tableId = $this->order->table_id ?? null;
+            
+            // ✅ LIMPIAR ESTADO LOCAL SIN REDIRECCIÓN AUTOMÁTICA
             $this->clearCart();
             $this->order = null;
             $this->selectedTableId = null;
 
-            // ✅ FORZAR REDIRECCIÓN INMEDIATA CON MÁS LOGS
-            $redirectUrl = $tableId ? TableMap::getUrl() : '/admin';
-
-            \Illuminate\Support\Facades\Log::debug('🔴 ANTES DE REDIRECCIÓN', [
+            \Illuminate\Support\Facades\Log::debug('🔴 ESTADO LIMPIADO - SIN REDIRECCIÓN', [
                 'table_id' => $tableId,
-                'order_id' => $this->order?->id,
-                'redirect_url' => $redirectUrl,
-                'timestamp' => now()->format('Y-m-d H:i:s.u')
-            ]);
-
-            $this->js("
-                console.log('Iniciando redirección a: {$redirectUrl}');
-                setTimeout(function() {
-                    window.location.href = '{$redirectUrl}';
-                }, 500);
-            ");
-
-            \Illuminate\Support\Facades\Log::debug('🟢 DESPUÉS DE REDIRECCIÓN', [
-                'status' => 'Redirección programada',
+                'invoice_id' => $invoice->id,
                 'timestamp' => now()->format('Y-m-d H:i:s.u')
             ]);
 
@@ -2152,5 +2207,34 @@ class PosInterface extends Page
             $data['number_of_parts'] ?? 2,
             $data['split_amounts'] ?? []
         );
+    }
+
+    public function reimprimirComprobante(): void
+    {
+        if ($this->order && $this->order->invoices()->exists()) {
+            $lastInvoice = $this->order->invoices()->latest()->first();
+            
+            Log::info('🖨️ Reimprimiendo comprobante desde vista', [
+                'invoice_id' => $lastInvoice->id,
+                'invoice_type' => $lastInvoice->invoice_type,
+                'order_id' => $this->order->id
+            ]);
+
+            $this->dispatch('open-print-window', ['id' => $lastInvoice->id]);
+
+            Notification::make()
+                ->title('🖨️ Abriendo impresión...')
+                ->body("Comprobante {$lastInvoice->series}-{$lastInvoice->number}")
+                ->success()
+                ->duration(3000)
+                ->send();
+        } else {
+            Notification::make()
+                ->title('❌ Sin comprobantes')
+                ->body('No hay comprobantes generados para reimprimir')
+                ->warning()
+                ->duration(4000)
+                ->send();
+        }
     }
 }

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>Pre-Cuenta #{{ $order->id }}</title>
     <style>
-        /* Estilos optimizados para impresora térmica */
+        /* Estilos optimizados para impresora térmica con mejor visibilidad */
         @page {
             size: 80mm auto;
             margin: 0;
@@ -12,52 +12,114 @@
         body {
             font-family: 'Courier New', monospace;
             margin: 0;
-            padding: 8px;
+            padding: 10px;
             width: 80mm;
-            font-size: 12px;
-            line-height: 1.2;
+            font-size: 14px;
+            line-height: 1.4;
+            font-weight: bold;
+            color: #000;
         }
         .header {
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         .header h1 {
-            font-size: 16px;
-            margin: 0 0 5px 0;
+            font-size: 20px;
+            margin: 0 0 8px 0;
+            font-weight: bold;
+            text-transform: uppercase;
         }
         .header p {
-            margin: 2px 0;
+            margin: 3px 0;
+            font-size: 12px;
+        }
+        .header .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 5px 0;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin: 10px 0;
+            margin: 12px 0;
         }
         th, td {
             text-align: left;
+            padding: 5px 2px;
+            font-size: 13px;
+        }
+        th {
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+            font-size: 12px;
+        }
+        .qty { 
+            width: 12%; 
+            text-align: center; 
+            font-weight: bold;
+        }
+        .price, .total { 
+            width: 20%; 
+            text-align: right; 
+            font-weight: bold;
+        }
+        .product-name {
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .info-table td {
+            font-size: 12px;
             padding: 3px 0;
         }
-        .qty { width: 15%; text-align: center; }
-        .price, .total { width: 25%; text-align: right; }
+        .info-table .label {
+            font-weight: bold;
+        }
         .totals {
-            margin: 10px 0;
+            margin: 15px 0;
             text-align: right;
+            font-size: 14px;
         }
         .totals div {
-            margin: 5px 0;
+            margin: 6px 0;
+            font-weight: bold;
+        }
+        .total-final {
+            font-size: 16px !important;
+            margin-top: 8px !important;
+            border-top: 2px solid #000;
+            padding-top: 5px;
         }
         .footer {
             text-align: center;
-            margin-top: 10px;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+        .footer p {
+            margin: 4px 0;
+            font-weight: bold;
+        }
+        .footer .disclaimer {
             font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
         }
         hr {
             border: none;
+            border-top: 2px solid #000;
+            margin: 12px 0;
+        }
+        .separator-light {
+            border: none;
             border-top: 1px dashed #000;
-            margin: 10px 0;
+            margin: 8px 0;
         }
         @media print {
-            body { margin: 0; }
+            body { 
+                margin: 0; 
+                font-weight: bold;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
             #print-btn { display: none; }
         }
     </style>
@@ -69,76 +131,86 @@
             $nombreComercial = \App\Models\CompanyConfig::getNombreComercial();
             $razonSocial = \App\Models\CompanyConfig::getRazonSocial();
         @endphp
-        <p><strong>{{ $nombreComercial ?: $razonSocial }}</strong></p>
-        <p>{{ $razonSocial }}</p>
-        <p>RUC: {{ \App\Models\CompanyConfig::getRuc() }}</p>
+        <p class="company-name">{{ $nombreComercial ?: $razonSocial }}</p>
+        @if($nombreComercial && $razonSocial && $nombreComercial !== $razonSocial)
+            <p>{{ $razonSocial }}</p>
+        @endif
+        <p><strong>RUC:</strong> {{ \App\Models\CompanyConfig::getRuc() }}</p>
         <p>{{ \App\Models\CompanyConfig::getDireccion() }}</p>
         @if(\App\Models\CompanyConfig::getTelefono())
-            <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+            <p><strong>Tel:</strong> {{ \App\Models\CompanyConfig::getTelefono() }}</p>
         @endif
     </div>
 
     <hr>
 
-    <table>
+    <table class="info-table">
         <tr>
-            <td><strong>Mesa:</strong> {{ $order->table?->number ?? 'N/A' }}</td>
-            <td style="text-align: right;"><strong>Orden:</strong> #{{ $order->id }}</td>
+            <td class="label">Mesa:</td>
+            <td style="text-align: right;"><strong>{{ $order->table?->number ?? 'VENTA DIRECTA' }}</strong></td>
         </tr>
         <tr>
-            <td><strong>Mesero:</strong> {{ $order->employee?->name ?? 'N/A' }}</td>
+            <td class="label">Orden:</td>
+            <td style="text-align: right;"><strong>#{{ $order->id }}</strong></td>
+        </tr>
+        <tr>
+            <td class="label">Mesero:</td>
+            <td style="text-align: right;">{{ $order->employee?->name ?? 'N/A' }}</td>
+        </tr>
+        <tr>
+            <td class="label">Fecha:</td>
             <td style="text-align: right;">{{ $order->created_at->format('d/m/Y H:i:s') }}</td>
         </tr>
     </table>
 
-    <hr>
+    <hr class="separator-light">
 
     <table>
         <thead>
             <tr>
-                <th class="qty">Cant</th>
-                <th>Descripción</th>
+                <th class="qty">CANT</th>
+                <th>DESCRIPCIÓN</th>
                 <th class="price">P.U.</th>
-                <th class="total">Total</th>
+                <th class="total">TOTAL</th>
             </tr>
         </thead>
         <tbody>
             @foreach($order->orderDetails as $detail)
                 <tr>
                     <td class="qty">{{ $detail->quantity }}</td>
-                    <td>{{ $detail->product->name }}</td>
-                    <td class="price">{{ number_format($detail->unit_price, 2) }}</td>
-                    <td class="total">{{ number_format($detail->subtotal, 2) }}</td>
+                    <td class="product-name">{{ strtoupper($detail->product->name) }}</td>
+                    <td class="price">S/ {{ number_format($detail->unit_price, 2) }}</td>
+                    <td class="total">S/ {{ number_format($detail->subtotal, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
 
-    <hr>
+    <hr class="separator-light">
 
     <div class="totals">
         <div>
-            <strong>SUBTOTAL:</strong> S/ {{ number_format($order->subtotal, 2) }}
+            SUBTOTAL: S/ {{ number_format($order->subtotal, 2) }}
         </div>
         <div>
-            <strong>IGV (18%):</strong> S/ {{ number_format($order->tax, 2) }}
+            IGV (18%): S/ {{ number_format($order->tax, 2) }}
         </div>
         @if($order->discount > 0)
         <div>
-            <strong>DESCUENTO:</strong> -S/ {{ number_format($order->discount, 2) }}
+            DESCUENTO: -S/ {{ number_format($order->discount, 2) }}
         </div>
         @endif
-        <div style="font-size: 14px;">
-            <strong>TOTAL: S/ {{ number_format($order->total, 2) }}</strong>
+        <div class="total-final">
+            TOTAL A PAGAR: S/ {{ number_format($order->total, 2) }}
         </div>
     </div>
 
     <hr>
 
     <div class="footer">
-        <p><strong>ESTE DOCUMENTO NO ES UN COMPROBANTE DE PAGO</strong></p>
+        <p class="disclaimer">ESTE DOCUMENTO NO ES UN COMPROBANTE DE PAGO</p>
         <p>¡Gracias por su visita!</p>
-        <p>{{ now()->format('d/m/Y H:i:s') }}</p>
+        <p>Impreso: {{ now()->format('d/m/Y H:i:s') }}</p>
     </div>
 
     <script>

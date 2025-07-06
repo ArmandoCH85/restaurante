@@ -31,9 +31,7 @@
         /* ===== HEADER EMPRESA ===== */
         .company-header {
             text-align: center;
-            margin-bottom: 8px;
-            border-bottom: 2px solid #000;
-            padding-bottom: 6px;
+            margin-bottom: 10px;
         }
 
         .company-name {
@@ -52,25 +50,20 @@
         .document-type {
             font-size: 14px;
             font-weight: bold;
-            background: #000;
-            color: white;
-            padding: 4px 8px;
-            margin: 6px 0;
+            margin: 8px 0;
             text-align: center;
             letter-spacing: 2px;
         }
 
         /* ===== INFORMACIÓN DE LA ORDEN ===== */
         .order-info {
-            margin: 8px 0;
-            border: 1px solid #000;
-            padding: 6px;
+            margin: 10px 0;
         }
 
         .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             font-size: 10px;
         }
 
@@ -91,10 +84,7 @@
         /* ===== MESA/CLIENTE DESTACADO ===== */
         .table-info {
             text-align: center;
-            background: #f0f0f0;
-            border: 2px solid #000;
-            padding: 8px;
-            margin: 8px 0;
+            margin: 10px 0;
             font-size: 14px;
             font-weight: bold;
         }
@@ -113,7 +103,7 @@
 
         .separator-thick {
             border: none;
-            border-top: 2px solid #000;
+            border-top: 1px solid #000;
             margin: 10px 0;
         }
 
@@ -126,10 +116,7 @@
             font-size: 12px;
             font-weight: bold;
             text-align: center;
-            background: #000;
-            color: white;
-            padding: 4px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             letter-spacing: 1px;
         }
 
@@ -139,16 +126,14 @@
         }
 
         .products-table th {
-            background: #e0e0e0;
-            border: 1px solid #000;
             padding: 4px 2px;
             font-size: 10px;
             font-weight: bold;
             text-align: center;
+            border-bottom: 1px solid #000;
         }
 
         .products-table td {
-            border: 1px solid #000;
             padding: 6px 4px;
             vertical-align: top;
         }
@@ -174,9 +159,7 @@
         /* ===== NOTAS ===== */
         .notes-section {
             margin: 10px 0;
-            border: 1px solid #000;
-            padding: 6px;
-            background: #f9f9f9;
+            padding: 6px 0;
         }
 
         .notes-title {
@@ -196,7 +179,6 @@
             text-align: center;
             margin-top: 12px;
             padding-top: 8px;
-            border-top: 2px solid #000;
             font-size: 9px;
         }
 
@@ -295,7 +277,7 @@
     </div>
 
     <!-- SEPARADOR -->
-    <hr class="separator-thick">
+    <hr class="separator">
 
     <!-- PRODUCTOS -->
     <div class="products-section">
@@ -338,7 +320,7 @@
     @endif
 
     <!-- SEPARADOR FINAL -->
-    <hr class="separator-thick">
+    <hr class="separator">
 
     <!-- FOOTER -->
     <div class="footer">

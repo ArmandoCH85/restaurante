@@ -294,8 +294,16 @@ Route::middleware(['web'])->group(function () {
         ->middleware(['auth']);
 });
 
-// Nueva ruta KISS para impresión desde POS - usando el mismo patrón que Filament
+// Ruta optimizada para impresión térmica desde POS (ÚNICA VERSIÓN)
 Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
+    // Log para debugging
+    Log::info('🖨️ ACCESO A RUTA DE IMPRESIÓN', [
+        'invoice_id' => $invoice->id,
+        'invoice_type' => $invoice->invoice_type,
+        'user_id' => auth()->check() ? auth()->user()->id : null,
+        'timestamp' => now()
+    ]);
+
     // Obtener configuración de empresa usando los métodos estáticos
     $company = [
         'ruc' => CompanyConfig::getRuc(),
@@ -306,7 +314,7 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
         'email' => CompanyConfig::getEmail(),
     ];
 
-    // Datos para el PDF
+    // Datos para el PDF/HTML
     $data = [
         'invoice' => $invoice->load(['customer', 'details.product', 'order.table']),
         'company' => $company,
@@ -319,70 +327,84 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
         default => 'pdf.invoice'
     };
 
+    try {
         // Generar HTML con JavaScript y CSS optimizado para papel térmico
-    $html = Blade::render($view, $data);
+        $html = Blade::render($view, $data);
 
-    // CSS y JavaScript optimizado para papel térmico 58mm/80mm
-    $thermal_optimization = "
-    <style>
-        /* Estilos optimizados para papel térmico 58mm/80mm */
-        @media print {
-            @page {
-                margin: 0;
-                size: 80mm auto; /* Ancho estándar térmico */
+        // CSS y JavaScript optimizado para papel térmico 58mm/80mm
+        $thermal_optimization = "
+        <style>
+            /* Estilos optimizados para papel térmico 58mm/80mm */
+            @media print {
+                @page {
+                    margin: 0;
+                    size: 80mm auto; /* Ancho estándar térmico */
+                }
+                body {
+                    width: 80mm;
+                    margin: 0;
+                    padding: 2mm;
+                    font-family: 'Courier New', monospace;
+                    font-size: 10px;
+                    line-height: 1.1;
+                    -webkit-print-color-adjust: exact;
+                    color-adjust: exact;
+                }
+                .container { width: 100%; max-width: none; }
+                .header h1 { font-size: 12px; margin: 0 0 2mm 0; text-align: center; }
+                .header p { font-size: 8px; margin: 0; text-align: center; }
+                .info-table, .details-table { width: 100%; font-size: 8px; }
+                .details-table th, .details-table td { padding: 0.5mm; border: none; }
+                .total-section { margin-top: 2mm; font-size: 9px; font-weight: bold; }
+                hr { border: none; border-top: 1px dashed #000; margin: 1mm 0; }
+                .no-print { display: none !important; }
             }
-            body {
-                width: 80mm;
-                margin: 0;
-                padding: 2mm;
-                font-family: 'Courier New', monospace;
-                font-size: 10px;
-                line-height: 1.1;
-                -webkit-print-color-adjust: exact;
-                color-adjust: exact;
+            @media screen {
+                body {
+                    width: 80mm; margin: 10px auto; padding: 10px;
+                    border: 1px solid #ccc; background: white;
+                    font-family: 'Courier New', monospace; font-size: 11px;
+                }
             }
-            .container { width: 100%; max-width: none; }
-            .header h1 { font-size: 12px; margin: 0 0 2mm 0; text-align: center; }
-            .header p { font-size: 8px; margin: 0; text-align: center; }
-            .info-table, .details-table { width: 100%; font-size: 8px; }
-            .details-table th, .details-table td { padding: 0.5mm; border: none; }
-            .total-section { margin-top: 2mm; font-size: 9px; font-weight: bold; }
-            hr { border: none; border-top: 1px dashed #000; margin: 1mm 0; }
-            .no-print { display: none !important; }
-        }
-        @media screen {
-            body {
-                width: 80mm; margin: 10px auto; padding: 10px;
-                border: 1px solid #ccc; background: white;
-                font-family: 'Courier New', monospace; font-size: 11px;
-            }
-        }
-    </style>
-    <script>
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                console.log('🖨️ Impresión térmica automática iniciada...');
-                window.print();
-                window.addEventListener('afterprint', function() {
-                    setTimeout(() => window.close(), 500);
-                });
-            }, 800);
-        });
-    </script>";
+        </style>
+        <script>
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    console.log('🖨️ Impresión térmica automática iniciada...');
+                    window.print();
+                    window.addEventListener('afterprint', function() {
+                        setTimeout(() => window.close(), 500);
+                    });
+                }, 800);
+            });
+        </script>";
 
-    // Insertar optimización térmica antes del cierre de </head> o al inicio de <body>
-    if (strpos($html, '</head>') !== false) {
-        $html = str_replace('</head>', $thermal_optimization . '</head>', $html);
-    } else {
-        $html = '<html><head>' . $thermal_optimization . '</head><body>' . $html . '</body></html>';
+        // Insertar optimización térmica antes del cierre de </head> o al inicio de <body>
+        if (strpos($html, '</head>') !== false) {
+            $html = str_replace('</head>', $thermal_optimization . '</head>', $html);
+        } else {
+            $html = '<html><head>' . $thermal_optimization . '</head><body>' . $html . '</body></html>';
+        }
+
+        Log::info('✅ HTML DE IMPRESIÓN GENERADO CORRECTAMENTE', ['invoice_id' => $invoice->id]);
+
+        return response($html, 200, [
+            'Content-Type' => 'text/html; charset=utf-8',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ]);
+
+    } catch (\Exception $e) {
+        Log::error('❌ ERROR EN RUTA DE IMPRESIÓN', [
+            'invoice_id' => $invoice->id,
+            'error' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine()
+        ]);
+        
+        return response('Error al generar comprobante: ' . $e->getMessage(), 500);
     }
-
-    return response($html, 200, [
-        'Content-Type' => 'text/html; charset=utf-8',
-        'Cache-Control' => 'no-cache, no-store, must-revalidate',
-        'Pragma' => 'no-cache',
-        'Expires' => '0'
-    ]);
 })->middleware(['web'])->name('print.invoice');
 
 // Ruta de prueba para verificar URL de imagen

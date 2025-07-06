@@ -3,6 +3,16 @@
     'subheading' => null,
 ])
 
+<style>
+/* FORZAR COLOR NEGRO EN TODOS LOS NAVEGADORES - SOLUCIÓN KISS */
+* {
+    color: #000 !important;
+}
+input, label, button, span, div, h1, h2, h3, h4, h5, h6, p, a {
+    color: #000 !important;
+}
+</style>
+
 <div class="font-[sans-serif] text-[#333]">
     <div class="min-h-screen flex flex-col items-center justify-center">
       <div class="grid md:grid-cols-2 items-center gap-4 max-w-6xl w-full p-4 m-4 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.3)] rounded-md">

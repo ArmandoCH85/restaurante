@@ -33,14 +33,4 @@ php artisan view:cache
 php artisan event:cache
 
 
-
-
-
-# Reiniciar Apache
-
-echo "Reiniciando Apache..."
-
-sudo  systemctl restart frankenphp 
-
-
 echo "¡Proceso completado! Laravel limpio, optimizado y Apache reiniciado."

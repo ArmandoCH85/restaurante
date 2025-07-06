@@ -5,6 +5,16 @@
         'subheading' => null,
     ])
 
+    <style>
+    /* FORZAR COLOR NEGRO EN TODOS LOS NAVEGADORES - SOLUCIÓN KISS */
+    * {
+        color: #000 !important;
+    }
+    input, label, button, span, div, h1, h2, h3, h4, h5, h6, p, a {
+        color: #000 !important;
+    }
+    </style>
+
     <div class="fi-simple-layout flex min-h-screen flex-col items-center">
         @if (($hasTopbar ?? true) && filament()->auth()->check())
             <div
