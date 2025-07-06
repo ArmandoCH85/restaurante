@@ -491,3 +491,261 @@
         margin-top: 0.25rem;
     }
 }
+
+/* ===== CSS RESPONSIVO ESPECÍFICO PARA POS INTERFACE ===== */
+/* Estos estilos sobrescriben Filament con alta especificidad */
+
+/* TEXTOS DE PRODUCTOS EN EL GRID - RESPONSIVOS */
+.pos-interface .product-card .text-center div:first-of-type,
+.pos-interface .grid .product-card div .font-medium {
+    font-size: 0.75rem !important; /* xs */
+    line-height: 1rem !important;
+}
+
+@media (min-width: 640px) {
+    .pos-interface .product-card .text-center div:first-of-type,
+    .pos-interface .grid .product-card div .font-medium {
+        font-size: 0.875rem !important; /* sm */
+        line-height: 1.25rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .pos-interface .product-card .text-center div:first-of-type,
+    .pos-interface .grid .product-card div .font-medium {
+        font-size: 1rem !important; /* base */
+        line-height: 1.5rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pos-interface .product-card .text-center div:first-of-type,
+    .pos-interface .grid .product-card div .font-medium {
+        font-size: 1.125rem !important; /* lg */
+        line-height: 1.75rem !important;
+    }
+}
+
+/* PRECIOS DE PRODUCTOS EN EL GRID - RESPONSIVOS */
+.pos-interface .product-card .text-center div:last-of-type,
+.pos-interface .grid .product-card div .text-gray-600 {
+    font-size: 0.75rem !important; /* xs */
+    line-height: 1rem !important;
+    font-weight: 600 !important;
+}
+
+@media (min-width: 640px) {
+    .pos-interface .product-card .text-center div:last-of-type,
+    .pos-interface .grid .product-card div .text-gray-600 {
+        font-size: 0.875rem !important; /* sm */
+        line-height: 1.25rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .pos-interface .product-card .text-center div:last-of-type,
+    .pos-interface .grid .product-card div .text-gray-600 {
+        font-size: 1rem !important; /* base */
+        line-height: 1.5rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pos-interface .product-card .text-center div:last-of-type,
+    .pos-interface .grid .product-card div .text-gray-600 {
+        font-size: 1.125rem !important; /* lg */
+        line-height: 1.75rem !important;
+    }
+}
+
+/* NOMBRES DE PRODUCTOS EN EL CARRITO - RESPONSIVOS */
+.pos-interface .cart-item h4,
+.pos-interface .bg-gray-50 h4 {
+    font-size: 0.75rem !important; /* xs */
+    line-height: 1rem !important;
+}
+
+@media (min-width: 640px) {
+    .pos-interface .cart-item h4,
+    .pos-interface .bg-gray-50 h4 {
+        font-size: 0.875rem !important; /* sm */
+        line-height: 1.25rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .pos-interface .cart-item h4,
+    .pos-interface .bg-gray-50 h4 {
+        font-size: 1rem !important; /* base */
+        line-height: 1.5rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pos-interface .cart-item h4,
+    .pos-interface .bg-gray-50 h4 {
+        font-size: 1.125rem !important; /* lg */
+        line-height: 1.75rem !important;
+    }
+}
+
+/* PRECIOS UNITARIOS EN EL CARRITO - RESPONSIVOS */
+.pos-interface .cart-item p,
+.pos-interface .bg-gray-50 p {
+    font-size: 0.75rem !important; /* xs */
+    line-height: 1rem !important;
+}
+
+@media (min-width: 640px) {
+    .pos-interface .cart-item p,
+    .pos-interface .bg-gray-50 p {
+        font-size: 0.875rem !important; /* sm */
+        line-height: 1.25rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .pos-interface .cart-item p,
+    .pos-interface .bg-gray-50 p {
+        font-size: 1rem !important; /* base */
+        line-height: 1.5rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pos-interface .cart-item p,
+    .pos-interface .bg-gray-50 p {
+        font-size: 1.125rem !important; /* lg */
+        line-height: 1.75rem !important;
+    }
+}
+
+/* SUBTOTALES EN EL CARRITO - RESPONSIVOS */
+.pos-interface .text-green-600 span,
+.pos-interface .font-bold.text-green-600 {
+    font-size: 0.75rem !important; /* xs */
+    line-height: 1rem !important;
+}
+
+@media (min-width: 640px) {
+    .pos-interface .text-green-600 span,
+    .pos-interface .font-bold.text-green-600 {
+        font-size: 0.875rem !important; /* sm */
+        line-height: 1.25rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .pos-interface .text-green-600 span,
+    .pos-interface .font-bold.text-green-600 {
+        font-size: 1rem !important; /* base */
+        line-height: 1.5rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pos-interface .text-green-600 span,
+    .pos-interface .font-bold.text-green-600 {
+        font-size: 1.125rem !important; /* lg */
+        line-height: 1.75rem !important;
+    }
+}
+
+/* TOTALES DEL CARRITO - RESPONSIVOS */
+.pos-interface .bg-white.rounded-lg .flex.justify-between span {
+    font-size: 0.75rem !important; /* xs */
+    line-height: 1rem !important;
+}
+
+@media (min-width: 640px) {
+    .pos-interface .bg-white.rounded-lg .flex.justify-between span {
+        font-size: 0.875rem !important; /* sm */
+        line-height: 1.25rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .pos-interface .bg-white.rounded-lg .flex.justify-between span {
+        font-size: 1rem !important; /* base */
+        line-height: 1.5rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pos-interface .bg-white.rounded-lg .flex.justify-between span {
+        font-size: 1.125rem !important; /* lg */
+        line-height: 1.75rem !important;
+    }
+}
+
+/* TOTAL FINAL - MÁS GRANDE Y PROMINENTE */
+.pos-interface .font-bold.text-green-600 {
+    font-size: 0.875rem !important; /* sm */
+    line-height: 1.25rem !important;
+}
+
+@media (min-width: 640px) {
+    .pos-interface .font-bold.text-green-600 {
+        font-size: 1rem !important; /* base */
+        line-height: 1.5rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .pos-interface .font-bold.text-green-600 {
+        font-size: 1.125rem !important; /* lg */
+        line-height: 1.75rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .pos-interface .font-bold.text-green-600 {
+        font-size: 1.25rem !important; /* xl */
+        line-height: 1.75rem !important;
+    }
+}
+
+/* CSS personalizado para POS responsive */
+.pos-responsive-text {
+    @apply text-xs;
+}
+
+@screen sm {
+    .pos-responsive-text {
+        @apply text-sm;
+    }
+}
+
+@screen md {
+    .pos-responsive-text {
+        @apply text-base;
+    }
+}
+
+@screen lg {
+    .pos-responsive-text {
+        @apply text-lg;
+    }
+}
+
+.pos-responsive-price {
+    @apply text-sm font-bold;
+}
+
+@screen sm {
+    .pos-responsive-price {
+        @apply text-base font-bold;
+    }
+}
+
+@screen md {
+    .pos-responsive-price {
+        @apply text-lg font-bold;
+    }
+}
+
+@screen lg {
+    .pos-responsive-price {
+        @apply text-xl font-bold;
+    }
+}

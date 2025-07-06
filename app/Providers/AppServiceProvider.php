@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse as LoginResponseContract;
 use App\Http\Responses\LoginResponse;
+use Livewire\Livewire;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,8 @@ class AppServiceProvider extends ServiceProvider
         // Establecer la zona horaria para toda la aplicación
         date_default_timezone_set('America/Lima');
         \Carbon\Carbon::setTestNow();
+
+        // Ya no necesitamos registrar el widget personalizado
 
         // Definir el gate para permisos de administrador
         Gate::define('admin', function (User $user) {

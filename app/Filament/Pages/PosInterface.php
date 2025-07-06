@@ -137,6 +137,11 @@ class PosInterface extends Page
     public array $splitData = [];
     public array $billingData = [];
 
+    // 🎯 LISTENERS PARA FUNCIONALIDAD NATIVA
+    protected $listeners = [
+        // Ya no necesitamos listeners del widget personalizado
+    ];
+
     protected function getHeaderActions(): array
     {
         return [
@@ -898,7 +903,7 @@ class PosInterface extends Page
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'quantity' => 1,
-                'unit_price' => $product->price,
+                'unit_price' => $product->sale_price,
                 'notes' => '',
             ];
         }

@@ -71,48 +71,104 @@
                     </x-filament::input.wrapper>
                 </div>
 
+                {{-- GRID RESPONSIVO NATIVO DE FILAMENT/TAILWIND --}}
+                <x-filament::section>
+                    <div class="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+                        @forelse ($products as $product)
+                            {{-- Card de producto usando componentes nativos --}}
+                            <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-200">
+                                <button
+                                    wire:click="addToCart({{ $product->id }})"
+                                    @class([
+                                        'w-full p-4 text-center transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800',
+                                        'cursor-not-allowed opacity-50' => !$canAddProducts,
+                                    ])
+                                    @if(!$canAddProducts)
+                                        disabled
+                                        title="No se pueden agregar productos. La orden está guardada."
+                                    @endif
+                                >
+                                    {{-- Imagen del producto --}}
+                                    <div class="product-image-container mx-auto mb-3">
+                                        @if($product->image_path)
+                                            <img 
+                                                src="{{ $product->image }}" 
+                                                alt="{{ $product->name }}" 
+                                                class="w-16 h-16 object-cover rounded-lg mx-auto"
+                                            />
+                                        @else
+                                            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mx-auto">
+                                                <span class="text-lg font-bold text-gray-500 dark:text-gray-400">
+                                                    {{ strtoupper(substr($product->name, 0, 2)) }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    
+                                    {{-- Nombre del producto --}}
+                                    <h3 class="pos-responsive-text font-medium text-gray-800 dark:text-gray-200 text-center leading-tight mb-1 min-h-[2.5rem] flex items-center justify-center">
+                                        {{ $product->name }}
+                                    </h3>
+                                    
+                                    {{-- Precio del producto --}}
+                                    <p class="pos-responsive-price text-green-600 dark:text-green-400">
+                                        S/ {{ number_format($product->sale_price, 2) }}
+                                    </p>
 
-                {{-- GRID DE PRODUCTOS --}}
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 p-4">
-                    @forelse ($products as $product)
-                        <button
-                            wire:click="addToCart({{ $product->id }})"
-                            @class([
-                                'relative p-6 bg-gray-50 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 border border-gray-200 hover:bg-gray-100 product-card',
-                                'cursor-not-allowed opacity-50' => !$canAddProducts,
-                            ])
-                            @if(!$canAddProducts)
-                                disabled
-                                title="No se pueden agregar productos. La orden está guardada."
-                            @endif
-
-                        >
-                            <div class="text-center">
-                                <div class="product-image-container mx-auto mb-2">
-                                    @if($product->image_path)
-                                        <img src="{{ $product->image }}" alt="{{ $product->name }}" class="product-image"/>
-                                    @else
-                                        <div class="product-image-fallback">
-                                            <span class="product-initials">
-                                                {{ strtoupper(substr($product->name, 0, 2)) }}
-                                            </span>
+                                    {{-- Badge de categoría (opcional) --}}
+                                    @if($product->category)
+                                        <div class="mt-2">
+                                            <x-filament::badge 
+                                                color="gray" 
+                                                size="sm"
+                                            >
+                                                {{ $product->category->name }}
+                                            </x-filament::badge>
                                         </div>
                                     @endif
-                                </div>
-                                <div class="font-medium text-gray-800 truncate">
-                                    {{ $product->name }}
-                                </div>
-                                <div class="text-sm text-gray-600">
-                                    S/ {{ number_format($product->sale_price, 2) }}
+                                </button>
+                            </div>
+                        @empty
+                            {{-- Estado vacío --}}
+                            <div class="col-span-full">
+                                <div class="text-center py-12">
+                                    <x-filament::icon
+                                        icon="heroicon-o-shopping-bag"
+                                        class="w-12 h-12 text-gray-400 mx-auto mb-4"
+                                    />
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                                        No hay productos disponibles
+                                    </h3>
+                                    <p class="text-gray-500 dark:text-gray-400">
+                                        @if($search || $selectedCategoryId)
+                                            No se encontraron productos que coincidan con los filtros aplicados.
+                                        @else
+                                            No hay productos registrados en el sistema.
+                                        @endif
+                                    </p>
                                 </div>
                             </div>
-                        </button>
-                    @empty
-                        <div class="col-span-full text-center py-8 text-gray-500">
-                            No hay productos disponibles
+                        @endforelse
+                    </div>
+
+                    {{-- Footer con información adicional --}}
+                    @if($products && $products->count() > 0)
+                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    @if($search || $selectedCategoryId)
+                                        {{ $products->count() }} productos filtrados
+                                    @else
+                                        {{ $products->count() }} productos disponibles
+                                    @endif
+                                </div>
+                                <div class="text-xs text-gray-400 dark:text-gray-500">
+                                    Actualizado: {{ now()->format('H:i:s') }}
+                                </div>
+                            </div>
                         </div>
-                    @endforelse
-                </div>
+                    @endif
+                </x-filament::section>
             </div>
 
             {{-- DERECHA: CARRITO (38% - PROPORCIÓN ÁUREA) --}}
@@ -169,8 +225,8 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex-1 min-w-0">
                                     {{-- NOMBRE Y PRECIO COMPACTO --}}
-                                    <h4 class="text-sm font-semibold text-gray-900 truncate mb-1">{{ $item['name'] }}</h4>
-                                    <p class="text-xs text-gray-600 mb-2">S/ {{ number_format($item['unit_price'], 2) }} c/u</p>
+                                    <h4 class="pos-responsive-text font-semibold text-gray-900 truncate mb-1">{{ $item['name'] }}</h4>
+                                    <p class="pos-responsive-text text-gray-600 mb-2 font-medium">S/ {{ number_format($item['unit_price'], 2) }} c/u</p>
 
                                     {{-- CONTROLES DE CANTIDAD COMPACTOS E INSTANTÁNEOS --}}
                                     <div class="flex items-center justify-between" wire:loading.class="opacity-50" wire:target="updateQuantity({{ $index }})">
@@ -199,7 +255,7 @@
                                         </div>
 
                                         {{-- SUBTOTAL COMPACTO --}}
-                                        <span class="text-sm font-bold text-green-600">
+                                        <span class="pos-responsive-price text-green-600">
                                             S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                         </span>
                                     </div>
@@ -220,18 +276,18 @@
                     <div class="border-t border-gray-200 p-4 bg-gray-50 space-y-4">
                         {{-- TOTALES --}}
                         <div class="space-y-2 bg-white rounded-lg p-3 border">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">Subtotal:</span>
-                                <span class="font-semibold">S/ {{ number_format($subtotal, 2) }}</span>
+                            <div class="flex justify-between">
+                                <span class="pos-responsive-text text-gray-600">Subtotal:</span>
+                                <span class="pos-responsive-text font-semibold">S/ {{ number_format($subtotal, 2) }}</span>
                             </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-600">IGV (18%):</span>
-                                <span class="font-semibold">S/ {{ number_format($tax, 2) }}</span>
+                            <div class="flex justify-between">
+                                <span class="pos-responsive-text text-gray-600">IGV (18%):</span>
+                                <span class="pos-responsive-text font-semibold">S/ {{ number_format($tax, 2) }}</span>
                             </div>
                             <hr class="border-gray-200">
-                            <div class="flex justify-between text-lg font-bold">
-                                <span class="text-gray-900">Total:</span>
-                                <span class="text-green-600">S/ {{ number_format($total, 2) }}</span>
+                            <div class="flex justify-between font-bold">
+                                <span class="pos-responsive-price text-gray-900">Total:</span>
+                                <span class="pos-responsive-price text-green-600">S/ {{ number_format($total, 2) }}</span>
                             </div>
                         </div>
 
@@ -408,28 +464,34 @@
                         </h3>
                         <div class="mt-2">
                             <p class="text-sm text-gray-500">
-                                El comprobante se ha generado exitosamente. Puedes imprimirlo o descargarlo.
+                                El comprobante se ha procesado exitosamente. ¿Desea imprimirlo?
                             </p>
                         </div>
                     </div>
                 </div>
 
                 {{-- BOTONES DE ACCIÓN --}}
-                <div class="mt-5 sm:mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <a :href="url" target="_blank" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:text-sm">
-                        <x-heroicon-o-printer class="h-5 w-5 mr-2"/>
-                        Imprimir / Descargar
-                    </a>
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    <button
+                        @click="window.open(url, '_blank'); open = false; window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';"
+                        type="button"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    >
+                        Imprimir
+                    </button>
                     <button
                         @click="open = false; window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';"
                         type="button"
-                        class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm">
-                        Cerrar
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                    >
+                        Saltar
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+
 </x-filament-panels::page>
 
 @push('styles')
