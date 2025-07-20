@@ -103,9 +103,25 @@
                 <tr>
                     <td class="quantity">{{ $detail->quantity }}</td>
                     <td>
-                        <div class="product-name">{{ $detail->product->name }}</div>
+                        <div class="product-name">
+                            {{ $detail->product->name }}
+                            @if(strpos($detail->notes, 'HELADA') !== false)
+                                <span style="font-size: 12px; font-weight: bold;">(HELADA)</span>
+                            @elseif(strpos($detail->notes, 'AL TIEMPO') !== false)
+                                <span style="font-size: 12px; font-weight: bold;">(AL TIEMPO)</span>
+                            @endif
+                        </div>
                         @if($detail->notes)
-                            <div class="notes">{{ $detail->notes }}</div>
+                            @php
+                                $notesText = $detail->notes;
+                                // Eliminar las palabras HELADA o AL TIEMPO de las notas para no mostrarlas dos veces
+                                $notesText = str_replace(['HELADA', 'AL TIEMPO'], '', $notesText);
+                                $notesText = trim($notesText);
+                            @endphp
+                            
+                            @if($notesText)
+                                <div class="notes">{{ $notesText }}</div>
+                            @endif
                         @endif
                     </td>
                 </tr>

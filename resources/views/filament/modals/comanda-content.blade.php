@@ -39,7 +39,14 @@
             <div class="bg-orange-50 border border-orange-200 rounded-lg p-4 hover:bg-orange-100 transition-colors">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
-                        <p class="text-lg font-bold text-gray-900">{{ $detail->product->name ?? 'Producto eliminado' }}</p>
+                        <p class="text-lg font-bold text-gray-900">
+                            {{ $detail->product->name ?? 'Producto eliminado' }}
+                            @if(strpos($detail->notes, 'HELADA') !== false)
+                                <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded ml-1">HELADA</span>
+                            @elseif(strpos($detail->notes, 'AL TIEMPO') !== false)
+                                <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded ml-1">AL TIEMPO</span>
+                            @endif
+                        </p>
                         
                         {{-- CANTIDAD DESTACADA PARA LA COCINA --}}
                         <div class="flex items-center mt-2">
@@ -50,11 +57,20 @@
 
                         {{-- NOTAS ESPECIALES --}}
                         @if($detail->notes)
-                            <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                                <p class="text-sm text-yellow-800">
-                                    <span class="font-semibold">📝 Nota:</span> {{ $detail->notes }}
-                                </p>
-                            </div>
+                            @php
+                                $notesText = $detail->notes;
+                                // Eliminar las palabras HELADA o AL TIEMPO de las notas para no mostrarlas dos veces
+                                $notesText = str_replace(['HELADA', 'AL TIEMPO'], '', $notesText);
+                                $notesText = trim($notesText);
+                            @endphp
+                            
+                            @if($notesText)
+                                <div class="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                                    <p class="text-sm text-yellow-800">
+                                        <span class="font-semibold">📝 Nota:</span> {{ $notesText }}
+                                    </p>
+                                </div>
+                            @endif
                         @endif
                     </div>
                     

@@ -687,6 +687,195 @@ class TableMap extends Page
                     ->icon('heroicon-o-shopping-bag')
                     ->compact() // Reducir espaciado
                     ->schema([
+                        // Componente para mostrar categorías y productos
+                        Forms\Components\Grid::make([
+                            'default' => 1,
+                            'sm' => 1,
+                            'md' => 3,
+                        ])
+                        ->schema([
+                            // Panel de categorías principales
+                            Forms\Components\Section::make('Categorías')
+                                ->compact()
+                                ->schema([
+                                    Forms\Components\Placeholder::make('categories_header')
+                                        ->label('Seleccione una categoría')
+                                        ->content('Haga clic en una categoría para ver sus productos')
+                                        ->columnSpanFull(),
+                                    
+                                    Forms\Components\Radio::make('selected_category_id')
+                                        ->label('')
+                                        ->options(function () {
+                                            return \App\Models\ProductCategory::whereNull('parent_category_id')
+                                                ->where('visible_in_menu', true)
+                                                ->orderBy('display_order')
+                                                ->pluck('name', 'id');
+                                        })
+                                        ->inline()
+                                        ->gridDirection('row')
+                                        ->columns([
+                                            'default' => 2,
+                                            'sm' => 3,
+                                            'md' => 4,
+                                            'lg' => 5,
+                                        ])
+                                        ->live()
+                                        ->afterStateUpdated(function (Forms\Set $set) {
+                                            $set('selected_subcategory_id', null);
+                                        })
+                                        ->columnSpanFull(),
+                                ])
+                                ->columnSpan([
+                                    'default' => 1,
+                                    'md' => 1,
+                                ]),
+                            
+                            // Panel de subcategorías
+                            Forms\Components\Section::make('Subcategorías')
+                                ->compact()
+                                ->schema([
+                                    Forms\Components\Placeholder::make('subcategories_header')
+                                        ->label('Subcategorías disponibles')
+                                        ->content(function (Forms\Get $get) {
+                                            $categoryId = $get('selected_category_id');
+                                            if (!$categoryId) {
+                                                return 'Seleccione una categoría primero';
+                                            }
+                                            
+                                            $category = \App\Models\ProductCategory::find($categoryId);
+                                            return $category ? "Subcategorías de {$category->name}" : 'Categoría no encontrada';
+                                        })
+                                        ->columnSpanFull(),
+                                    
+                                    Forms\Components\Radio::make('selected_subcategory_id')
+                                        ->label('')
+                                        ->options(function (Forms\Get $get) {
+                                            $categoryId = $get('selected_category_id');
+                                            if (!$categoryId) {
+                                                return [];
+                                            }
+                                            
+                                            return \App\Models\ProductCategory::where('parent_category_id', $categoryId)
+                                                ->where('visible_in_menu', true)
+                                                ->orderBy('display_order')
+                                                ->pluck('name', 'id');
+                                        })
+                                        ->inline()
+                                        ->gridDirection('row')
+                                        ->columns([
+                                            'default' => 2,
+                                            'sm' => 3,
+                                            'md' => 4,
+                                            'lg' => 5,
+                                        ])
+                                        ->live()
+                                        ->columnSpanFull(),
+                                ])
+                                ->columnSpan([
+                                    'default' => 1,
+                                    'md' => 1,
+                                ])
+                                ->visible(fn (Forms\Get $get) => $get('selected_category_id')),
+                            
+                            // Panel de productos
+                            Forms\Components\Section::make('Productos')
+                                ->compact()
+                                ->schema([
+                                    Forms\Components\Placeholder::make('products_header')
+                                        ->label('Productos disponibles')
+                                        ->content(function (Forms\Get $get) {
+                                            $categoryId = $get('selected_category_id');
+                                            $subcategoryId = $get('selected_subcategory_id');
+                                            
+                                            if (!$categoryId && !$subcategoryId) {
+                                                return 'Seleccione una categoría primero';
+                                            }
+                                            
+                                            $category = $subcategoryId 
+                                                ? \App\Models\ProductCategory::find($subcategoryId) 
+                                                : \App\Models\ProductCategory::find($categoryId);
+                                            
+                                            return $category ? "Productos de {$category->name}" : 'Categoría no encontrada';
+                                        })
+                                        ->columnSpanFull(),
+                                    
+                                    Forms\Components\Grid::make()
+                                        ->schema(function (Forms\Get $get) {
+                                            $categoryId = $get('selected_category_id');
+                                            $subcategoryId = $get('selected_subcategory_id');
+                                            
+                                            if (!$categoryId && !$subcategoryId) {
+                                                return [];
+                                            }
+                                            
+                                            $query = \App\Models\Product::where('active', true)
+                                                ->where('available', true)
+                                                ->whereIn('product_type', ['sale_item', 'both']);
+                                            
+                                            if ($subcategoryId) {
+                                                $query->where('category_id', $subcategoryId);
+                                            } else {
+                                                $query->where('category_id', $categoryId);
+                                            }
+                                            
+                                            $products = $query->orderBy('name')->get();
+                                            
+                                            $productButtons = [];
+                                            
+                                            if ($products->isEmpty()) {
+                                                $productButtons[] = Forms\Components\Placeholder::make('no_products')
+                                                    ->label('Sin productos')
+                                                    ->content('No hay productos disponibles en esta categoría')
+                                                    ->columnSpanFull();
+                                            } else {
+                                                foreach ($products as $product) {
+                                                    $productButtons[] = Forms\Components\Actions::make([
+                                                        Forms\Components\Actions\Action::make("product_{$product->id}")
+                                                            ->label($product->name . "\nS/ " . number_format($product->sale_price, 2))
+                                                            ->button()
+                                                            ->color('warning')
+                                                            ->extraAttributes([
+                                                                'class' => 'w-full justify-center',
+                                                                'style' => 'white-space: normal; height: auto; min-height: 60px;',
+                                                            ])
+                                                            ->action(function (Forms\Set $set, Forms\Get $get) use ($product) {
+                                                                // Obtener los productos actuales
+                                                                $currentProducts = $get('products') ?: [];
+                                                                
+                                                                // Agregar el nuevo producto
+                                                                $currentProducts[] = [
+                                                                    'product_id' => $product->id,
+                                                                    'product_name' => $product->name,
+                                                                    'quantity' => 1,
+                                                                    'unit_price' => $product->sale_price,
+                                                                    'notes' => '',
+                                                                ];
+                                                                
+                                                                // Actualizar la lista de productos
+                                                                $set('products', $currentProducts);
+                                                            })
+                                                    ]);
+                                                }
+                                            }
+                                            
+                                            return $productButtons;
+                                        })
+                                        ->columns([
+                                            'default' => 2,
+                                            'sm' => 3,
+                                            'md' => 4,
+                                            'lg' => 5,
+                                        ])
+                                        ->columnSpanFull(),
+                                ])
+                                ->columnSpan([
+                                    'default' => 1,
+                                    'md' => 1,
+                                ])
+                                ->visible(fn (Forms\Get $get) => $get('selected_category_id')),
+                        ]),
+                        
+                        // Repeater de productos seleccionados (existente)
                         Forms\Components\Repeater::make('products')
                             ->schema([
                                 Forms\Components\Grid::make([

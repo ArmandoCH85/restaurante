@@ -4,16 +4,6 @@
         <div class="bg-gradient-to-r from-blue-100 to-blue-200 shadow-md border-b border-blue-300 px-8 py-6">
             {{-- CATEGORÍAS CON ESPACIADO ÁUREO --}}
             <div class="flex items-center space-x-12 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 2.5rem;">
-                {{-- Botón Todos --}}
-                <x-filament::button
-                    wire:click="selectCategory(null)"
-                    :color="$selectedCategoryId === null ? 'primary' : 'gray'"
-                    size="sm"
-                    class="flex-shrink-0 px-14 py-4 text-sm font-medium whitespace-nowrap min-w-[140px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
-                >
-                    Todos
-                </x-filament::button>
-
                 {{-- Botones de categorías --}}
                 @foreach($this->getCategoriesProperty() as $category)
                     <x-filament::button
@@ -74,33 +64,33 @@
                 {{-- GRID RESPONSIVO NATIVO DE FILAMENT/TAILWIND --}}
                 <x-filament::section>
                     <div class="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
-                        @forelse ($products as $product)
+                    @forelse ($products as $product)
                             {{-- Card de producto usando componentes nativos --}}
                             <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                                <button
-                                    wire:click="addToCart({{ $product->id }})"
-                                    @class([
+                        <button
+                            wire:click="addToCart({{ $product->id }})"
+                            @class([
                                         'w-full p-4 text-center transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800',
-                                        'cursor-not-allowed opacity-50' => !$canAddProducts,
-                                    ])
-                                    @if(!$canAddProducts)
-                                        disabled
-                                        title="No se pueden agregar productos. La orden está guardada."
-                                    @endif
-                                >
+                                'cursor-not-allowed opacity-50' => !$canAddProducts,
+                            ])
+                            @if(!$canAddProducts)
+                                disabled
+                                title="No se pueden agregar productos. La orden está guardada."
+                            @endif
+                        >
                                     {{-- Imagen del producto --}}
                                     <div class="product-image-container mx-auto mb-3">
-                                        @if($product->image_path)
+                                    @if($product->image_path)
                                             <img 
                                                 src="{{ $product->image }}" 
                                                 alt="{{ $product->name }}" 
                                                 class="w-16 h-16 object-cover rounded-lg mx-auto"
                                             />
-                                        @else
+                                    @else
                                             <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mx-auto">
                                                 <span class="text-lg font-bold text-gray-500 dark:text-gray-400">
-                                                    {{ strtoupper(substr($product->name, 0, 2)) }}
-                                                </span>
+                                                {{ strtoupper(substr($product->name, 0, 2)) }}
+                                            </span>
                                             </div>
                                         @endif
                                     </div>
@@ -226,6 +216,142 @@
                                 <div class="flex-1 min-w-0">
                                     {{-- NOMBRE Y PRECIO COMPACTO --}}
                                     <h4 class="pos-responsive-text font-semibold text-gray-900 truncate mb-1">{{ $item['name'] }}</h4>
+                                    
+                                    {{-- CHECKBOX PARA BEBIDAS HELADAS --}}
+                                    @if($item['is_cold_drink'] ?? false)
+                                        <div class="flex items-center space-x-4 mb-2">
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.temperature"
+                                                    value="HELADA"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="cold-drink-{{ $index }}-cold"
+                                                >
+                                                <label for="cold-drink-{{ $index }}-cold" class="ml-2 text-sm text-gray-600">
+                                                    Helada
+                                                </label>
+                                            </div>
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.temperature"
+                                                    value="AL TIEMPO"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="cold-drink-{{ $index }}-room"
+                                                >
+                                                <label for="cold-drink-{{ $index }}-room" class="ml-2 text-sm text-gray-600">
+                                                    Al tiempo
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                    {{-- OPCIONES DE COCCIÓN PARA PARRILLAS --}}
+                                    @if($item['is_grill_item'] ?? false)
+                                        <div class="flex flex-wrap items-center gap-2 mb-2 bg-yellow-50 p-2 rounded-md border border-yellow-200">
+                                            <span class="text-xs font-semibold text-yellow-800 w-full mb-1">Punto de cocción:</span>
+                                            
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
+                                                    value="AZUL"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="grill-{{ $index }}-blue"
+                                                >
+                                                <label for="grill-{{ $index }}-blue" class="ml-1 text-xs text-gray-600">
+                                                    Azul
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
+                                                    value="ROJO"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="grill-{{ $index }}-red"
+                                                >
+                                                <label for="grill-{{ $index }}-red" class="ml-1 text-xs text-gray-600">
+                                                    Rojo
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
+                                                    value="MEDIO"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="grill-{{ $index }}-medium"
+                                                >
+                                                <label for="grill-{{ $index }}-medium" class="ml-1 text-xs text-gray-600">
+                                                    Medio
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
+                                                    value="TRES CUARTOS"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="grill-{{ $index }}-three-quarters"
+                                                >
+                                                <label for="grill-{{ $index }}-three-quarters" class="ml-1 text-xs text-gray-600">
+                                                    Tres Cuartos
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
+                                                    value="BIEN COCIDO"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="grill-{{ $index }}-well-done"
+                                                >
+                                                <label for="grill-{{ $index }}-well-done" class="ml-1 text-xs text-gray-600">
+                                                    Bien Cocido
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
+                                    {{-- OPCIONES DE TIPO DE PRESA PARA POLLOS --}}
+                                    @if($item['is_chicken_cut'] ?? false)
+                                        <div class="flex flex-wrap items-center gap-2 mb-2 bg-orange-50 p-2 rounded-md border border-orange-200">
+                                            <span class="text-xs font-semibold text-orange-800 w-full mb-1">Tipo de presa:</span>
+                                            
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
+                                                    value="PECHO"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="chicken-{{ $index }}-breast"
+                                                >
+                                                <label for="chicken-{{ $index }}-breast" class="ml-1 text-xs text-gray-600">
+                                                    Pecho
+                                                </label>
+                                            </div>
+                                            
+                                            <div class="flex items-center">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
+                                                    value="PIERNA"
+                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
+                                                    id="chicken-{{ $index }}-leg"
+                                                >
+                                                <label for="chicken-{{ $index }}-leg" class="ml-1 text-xs text-gray-600">
+                                                    Pierna
+                                                </label>
+                                            </div>
+                                        </div>
+                                    @endif
+                                    
                                     <p class="pos-responsive-text text-gray-600 mb-2 font-medium">S/ {{ number_format($item['unit_price'], 2) }} c/u</p>
 
                                     {{-- CONTROLES DE CANTIDAD COMPACTOS E INSTANTÁNEOS --}}
@@ -497,3 +623,25 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
 @endpush
+
+<script>
+// Listener para redirección automática al mapa de mesas después de imprimir comprobantes
+window.addEventListener('message', function(event) {
+    console.log('🖨️ POS Interface - Evento recibido:', event.data);
+
+    // Manejar tanto string directo como objeto
+    if (event.data === 'invoice-completed' ||
+        (event.data && event.data.type === 'invoice-completed')) {
+
+        console.log('✅ Comprobante impreso - Redirigiendo al mapa de mesas');
+
+        // Mostrar mensaje de confirmación antes de redirigir
+        setTimeout(function() {
+            console.log('🔄 Redirigiendo al mapa de mesas...');
+            window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';
+        }, 1500); // Dar tiempo para que se complete la impresión
+    }
+});
+
+console.log('🎯 POS Interface - Listener de redirección activado');
+</script>

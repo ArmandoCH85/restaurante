@@ -82,7 +82,29 @@
                 @foreach($order->orderDetails as $detail)
                 <tr>
                     <td class="col-qty">{{ $detail->quantity }}</td>
-                    <td class="col-desc">{{ $detail->product->name }}</td>
+                    <td class="col-desc">
+                        {{ $detail->product->name }}
+                        @if(strpos($detail->notes, 'HELADA') !== false)
+                            <span style="font-size: 8pt; font-weight: bold;">(HELADA)</span>
+                        @elseif(strpos($detail->notes, 'AL TIEMPO') !== false)
+                            <span style="font-size: 8pt; font-weight: bold;">(AL TIEMPO)</span>
+                        @endif
+                        
+                        @if($detail->notes)
+                            @php
+                                $notesText = $detail->notes;
+                                // Eliminar las palabras HELADA o AL TIEMPO de las notas para no mostrarlas dos veces
+                                $notesText = str_replace(['HELADA', 'AL TIEMPO'], '', $notesText);
+                                $notesText = trim($notesText);
+                            @endphp
+                            
+                            @if($notesText)
+                                <div style="font-size: 8pt; font-style: italic; margin-top: 2px;">
+                                    {{ $notesText }}
+                                </div>
+                            @endif
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

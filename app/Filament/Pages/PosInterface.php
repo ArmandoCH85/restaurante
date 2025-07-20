@@ -143,6 +143,96 @@ class PosInterface extends Page
         // Ya no necesitamos listeners del widget personalizado
     ];
 
+    /**
+     * Verifica si un producto pertenece a una categoría de bebidas que pueden ser heladas
+     */
+    protected function isColdDrinkCategory(Product $product): bool
+    {
+        $drinkCategories = [
+            'Bebidas Naturales',
+            'Naturales Clásicas',
+            'Gaseosas',
+            'Cervezas',
+            'Vinos',
+            'Sangrías'
+        ];
+
+        // Obtener el nombre de la categoría del producto
+        $categoryName = $product->category?->name ?? '';
+        
+        return in_array($categoryName, $drinkCategories);
+    }
+    
+    /**
+     * Verifica si un producto pertenece a la categoría Parrillas o sus subcategorías
+     * o si es uno de los productos específicos de Fusion Q'RICO que requieren punto de cocción
+     */
+    protected function isGrillCategory(Product $product): bool
+    {
+        // Productos específicos de Fusion Q'RICO que requieren punto de cocción
+        $specificProducts = [
+            'Lomo Fino Saltado',
+            'Medallón',
+            'Spaghetti Saltado de Lomo',
+            'Medallón de Lomo al Grill c/ Pasta'
+        ];
+        
+        // Verificar si es uno de los productos específicos
+        if (in_array($product->name, $specificProducts)) {
+            return true;
+        }
+        
+        // Categoría principal "Parrillas"
+        $grillCategory = 'Parrillas';
+        
+        // Obtener el nombre de la categoría del producto
+        $categoryName = $product->category?->name ?? '';
+        
+        // Verificar si es la categoría principal de parrillas
+        if ($categoryName === $grillCategory) {
+            return true;
+        }
+        
+        // Verificar si es una subcategoría de Parrillas
+        if ($product->category && $product->category->parent) {
+            return $product->category->parent->name === $grillCategory;
+        }
+        
+        return false;
+    }
+
+    /**
+     * Verifica si un producto requiere selección de tipo de presa (pecho o pierna)
+     * Aplica a productos específicos de "Gustitos a la leña" y "Promociones Familiares"
+     */
+    protected function isChickenCutCategory(Product $product): bool
+    {
+        // Productos específicos que requieren selección de tipo de presa
+        $specificProducts = [
+            '¼ Anticuchero',
+            '¼ Campestre',
+            '¼ Chaufero',
+            '¼ En Pasta',
+            '¼ Parrillero',
+            '¼ Pollo'
+        ];
+        
+        // Verificar si es uno de los productos específicos
+        if (in_array($product->name, $specificProducts)) {
+            return true;
+        }
+        
+        // IDs de las subcategorías "Gustitos a la leña" y "Promociones Familiares"
+        $chickenSubcategories = [132, 133]; // Gustitos a la leña (132) y Promociones Familiares (133)
+        
+        // Verificar si pertenece a alguna de estas subcategorías
+        if ($product->category && in_array($product->category->id, $chickenSubcategories)) {
+            return true;
+        }
+        
+        return false;
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -320,12 +410,12 @@ class PosInterface extends Page
                 ->color('warning')
                 ->button()
                 ->action(function () {
-                    $this->canClearCart = true;
-                    $this->canAddProducts = true;
+                    $this->isCartDisabled = false;
+                    $this->canAddProducts = true; // Permitir agregar productos nuevamente
+                    $this->canClearCart = true; // Permitir limpiar el carrito
                     Notification::make()
-                        ->title('Orden reabierta')
-                        ->body('Ahora puede modificar los productos')
-                        ->success()
+                        ->title('Orden reabierta para edición')
+                        ->warning()
                         ->send();
                 })
                 ->visible(fn () =>
@@ -723,12 +813,77 @@ class PosInterface extends Page
                 $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
 
                 foreach ($activeOrder->orderDetails as $detail) {
+                    // Analizar las notas para detectar si es una bebida con temperatura
+                    $isColdDrink = false;
+                    $temperature = null;
+                    $isGrillItem = false;
+                    $cookingPoint = null;
+                    
+                    // Verificar si el producto es una bebida que puede ser helada
+                    if ($detail->product) {
+                        $isColdDrink = $this->isColdDrinkCategory($detail->product);
+                        $isGrillItem = $this->isGrillCategory($detail->product);
+                        
+                        // Si es una bebida, detectar la temperatura desde las notas
+                        if ($isColdDrink && $detail->notes) {
+                            if (strpos($detail->notes, 'HELADA') !== false) {
+                                $temperature = 'HELADA';
+                            } elseif (strpos($detail->notes, 'AL TIEMPO') !== false) {
+                                $temperature = 'AL TIEMPO';
+                            }
+                        }
+                        
+                        // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
+                        if ($isColdDrink && !$temperature) {
+                            $temperature = 'HELADA';
+                        }
+                        
+                        // Si es un producto de parrilla, detectar el punto de cocción desde las notas
+                        if ($isGrillItem && $detail->notes) {
+                            $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
+                            foreach ($cookingPoints as $point) {
+                                if (strpos($detail->notes, $point) !== false) {
+                                    $cookingPoint = $point;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
+                        if ($isGrillItem && !$cookingPoint) {
+                            $cookingPoint = 'MEDIO';
+                        }
+                        
+                        // Si es un producto de pollo, detectar el tipo de presa desde las notas
+                        $chickenCutType = null;
+                        if ($this->isChickenCutCategory($detail->product) && $detail->notes) {
+                            $chickenCutTypes = ['PECHO', 'PIERNA'];
+                            foreach ($chickenCutTypes as $cutType) {
+                                if (strpos($detail->notes, $cutType) !== false) {
+                                    $chickenCutType = $cutType;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
+                        if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
+                            $chickenCutType = 'PECHO';
+                        }
+                    }
+                    
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
-                        'name'       => $detail->product->name,
-                        'quantity'   => $detail->quantity,
+                        'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
+                        'quantity' => $detail->quantity,
                         'unit_price' => $detail->unit_price,
-                        'subtotal'   => $detail->subtotal,
+                        'notes' => $detail->notes ?? '',
+                        'is_cold_drink' => $isColdDrink,
+                        'temperature' => $temperature,
+                        'is_grill_item' => $isGrillItem,
+                        'cooking_point' => $cookingPoint,
+                        'is_chicken_cut' => $this->isChickenCutCategory($detail->product),
+                        'chicken_cut_type' => $chickenCutType,
                     ];
                 }
 
@@ -763,12 +918,77 @@ class PosInterface extends Page
                 $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
 
                 foreach ($activeOrder->orderDetails as $detail) {
+                    // Analizar las notas para detectar si es una bebida con temperatura
+                    $isColdDrink = false;
+                    $temperature = null;
+                    $isGrillItem = false;
+                    $cookingPoint = null;
+                    
+                    // Verificar si el producto es una bebida que puede ser helada
+                    if ($detail->product) {
+                        $isColdDrink = $this->isColdDrinkCategory($detail->product);
+                        $isGrillItem = $this->isGrillCategory($detail->product);
+                        
+                        // Si es una bebida, detectar la temperatura desde las notas
+                        if ($isColdDrink && $detail->notes) {
+                            if (strpos($detail->notes, 'HELADA') !== false) {
+                                $temperature = 'HELADA';
+                            } elseif (strpos($detail->notes, 'AL TIEMPO') !== false) {
+                                $temperature = 'AL TIEMPO';
+                            }
+                        }
+                        
+                        // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
+                        if ($isColdDrink && !$temperature) {
+                            $temperature = 'HELADA';
+                        }
+                        
+                        // Si es un producto de parrilla, detectar el punto de cocción desde las notas
+                        if ($isGrillItem && $detail->notes) {
+                            $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
+                            foreach ($cookingPoints as $point) {
+                                if (strpos($detail->notes, $point) !== false) {
+                                    $cookingPoint = $point;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
+                        if ($isGrillItem && !$cookingPoint) {
+                            $cookingPoint = 'MEDIO';
+                        }
+                        
+                        // Si es un producto de pollo, detectar el tipo de presa desde las notas
+                        $chickenCutType = null;
+                        if ($this->isChickenCutCategory($detail->product) && $detail->notes) {
+                            $chickenCutTypes = ['PECHO', 'PIERNA'];
+                            foreach ($chickenCutTypes as $cutType) {
+                                if (strpos($detail->notes, $cutType) !== false) {
+                                    $chickenCutType = $cutType;
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
+                        if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
+                            $chickenCutType = 'PECHO';
+                        }
+                    }
+                    
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
                         'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
                         'quantity' => $detail->quantity,
                         'unit_price' => $detail->unit_price,
-                        'notes' => $detail->notes,
+                        'notes' => $detail->notes ?? '',
+                        'is_cold_drink' => $isColdDrink,
+                        'temperature' => $temperature,
+                        'is_grill_item' => $isGrillItem,
+                        'cooking_point' => $cookingPoint,
+                        'is_chicken_cut' => $this->isChickenCutCategory($detail->product),
+                        'chicken_cut_type' => $chickenCutType,
                     ];
                 }
                 $this->numberOfGuests = $this->order->number_of_guests ?? 1;
@@ -778,7 +998,10 @@ class PosInterface extends Page
 
         // 🏎️ OPTIMIZACIÓN KISS: cachear el árbol de categorías por 1 h
         $this->categories = Cache::remember('pos_categories', 3600, fn () =>
-            ProductCategory::with('children')->whereNull('parent_category_id')->get()
+            ProductCategory::with('children')
+                ->whereNull('parent_category_id')
+                ->where('visible_in_menu', true)
+                ->get()
         );
 
         // Cargar productos iniciales (sin filtro de categoría)
@@ -831,6 +1054,7 @@ class PosInterface extends Page
         // Solo categorías raíz para evitar que las subcategorías se muestren como principales
         $this->categories = ProductCategory::with('children')
             ->whereNull('parent_category_id')
+            ->where('visible_in_menu', true)
             ->orderBy('display_order')
             ->orderBy('name')
             ->get();
@@ -900,12 +1124,22 @@ class PosInterface extends Page
         if ($existingItemKey !== false) {
             $this->cartItems[$existingItemKey]['quantity']++;
         } else {
+            $isColdDrink = $this->isColdDrinkCategory($product);
+            $isGrillItem = $this->isGrillCategory($product);
+            $isChickenCut = $this->isChickenCutCategory($product);
+            
             $this->cartItems[] = [
                 'product_id' => $product->id,
                 'name' => $product->name,
                 'quantity' => 1,
                 'unit_price' => $product->sale_price,
                 'notes' => '',
+                'temperature' => $isColdDrink ? 'HELADA' : null, // Por defecto HELADA para bebidas
+                'is_cold_drink' => $isColdDrink,
+                'is_grill_item' => $isGrillItem,
+                'cooking_point' => $isGrillItem ? 'MEDIO' : null, // Por defecto MEDIO para parrillas
+                'is_chicken_cut' => $isChickenCut,
+                'chicken_cut_type' => $isChickenCut ? 'PECHO' : null, // Por defecto PECHO para pollos
             ];
         }
         $this->calculateTotals();
@@ -994,12 +1228,33 @@ class PosInterface extends Page
 
                     // Actualizar o crear detalles para los productos en el carrito
                     foreach ($this->cartItems as $item) {
+                        $notes = $item['notes'] ?? '';
+                        
+                        // Agregar información de bebida helada/al tiempo si corresponde
+                        if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
+                            $temperatureNote = $item['temperature'];
+                            $notes = trim($notes . ' ' . $temperatureNote);
+                        }
+                        
+                        // Agregar información de punto de cocción para parrillas si corresponde
+                        if (($item['is_grill_item'] ?? false) === true && !empty($item['cooking_point'])) {
+                            $cookingPointNote = $item['cooking_point'];
+                            $notes = trim($notes . ' ' . $cookingPointNote);
+                        }
+                        
+                        // Agregar información de tipo de presa para pollos si corresponde
+                        if (($item['is_chicken_cut'] ?? false) === true && !empty($item['chicken_cut_type'])) {
+                            $chickenCutNote = $item['chicken_cut_type'];
+                            $notes = trim($notes . ' ' . $chickenCutNote);
+                        }
+                        
                         $this->order->orderDetails()->updateOrCreate(
                             ['product_id' => $item['product_id']],
                             [
                                 'quantity' => $item['quantity'],
                                 'unit_price' => $item['unit_price'],
-                                'subtotal' => $item['quantity'] * $item['unit_price']
+                                'subtotal' => $item['quantity'] * $item['unit_price'],
+                                'notes' => $notes
                             ]
                         );
                     }
@@ -1068,13 +1323,33 @@ class PosInterface extends Page
                     $this->order = Order::create($orderData);
 
                     foreach ($this->cartItems as $item) {
+                        $notes = $item['notes'] ?? '';
+                        
+                        // Agregar información de bebida helada/al tiempo si corresponde
+                        if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
+                            $temperatureNote = $item['temperature'];
+                            $notes = trim($notes . ' ' . $temperatureNote);
+                        }
+                        
+                        // Agregar información de punto de cocción para parrillas si corresponde
+                        if (($item['is_grill_item'] ?? false) === true && !empty($item['cooking_point'])) {
+                            $cookingPointNote = $item['cooking_point'];
+                            $notes = trim($notes . ' ' . $cookingPointNote);
+                        }
+                        
+                        // Agregar información de tipo de presa para pollos si corresponde
+                        if (($item['is_chicken_cut'] ?? false) === true && !empty($item['chicken_cut_type'])) {
+                            $chickenCutNote = $item['chicken_cut_type'];
+                            $notes = trim($notes . ' ' . $chickenCutNote);
+                        }
+                        
                         $this->order->orderDetails()->create([
                             'product_id' => $item['product_id'],
                             'quantity' => $item['quantity'],
                             'unit_price' => $item['unit_price'],
                             'subtotal' => $item['quantity'] * $item['unit_price'],
                             'price' => $item['unit_price'] * $item['quantity'],
-                            'notes' => $item['notes'] ?? null,
+                            'notes' => $notes,
                         ]);
                     }
 
@@ -1111,54 +1386,76 @@ class PosInterface extends Page
     public function reopenOrderForEditing(): void
     {
         $this->isCartDisabled = false;
+        $this->canAddProducts = true; // Permitir agregar productos nuevamente
+        $this->canClearCart = true; // Permitir limpiar el carrito
         Notification::make()->title('Orden reabierta para edición')->warning()->send();
     }
 
     public function createOrderFromCart(?Customer $customer = null, array $orderItems = []): Order
     {
-        if (empty($orderItems)) {
-            $orderItems = $this->cartItems;
-        }
+        try {
+            DB::beginTransaction();
 
-        if (!$customer) {
-            $customer = Customer::getGenericCustomer();
-        }
+            // Usar los items proporcionados o los del carrito si no se proporcionan
+            $items = !empty($orderItems) ? $orderItems : $this->cartItems;
 
-        // Obtener el empleado relacionado con el usuario autenticado
-        $employee = Employee::where('user_id', Auth::id())->first();
-
-        if (!$employee) {
-            Notification::make()
-                ->title('Error de Empleado')
-                ->body('El usuario actual no tiene un registro de empleado válido. Comuníquese con el administrador.')
-                ->danger()
-                ->send();
-            throw new Halt();
-        }
-
-        $order = Order::create([
-            'customer_id'     => $customer->id,
-            'employee_id'     => $employee->id,
-            'status'          => Order::STATUS_OPEN,
-            'total_price'     => collect($orderItems)->sum(fn($item) => $item['unit_price'] * $item['quantity']),
-            'order_datetime'  => now(),
-            'order_type'      => 'delivery',
-            'delivery_address'=> session('delivery_address'),
-            'delivery_cost'   => session('delivery_cost', 0),
-            'delivery_status' => 'pending',
-            'number_of_guests'=> 1,
-        ]);
-
-        foreach ($orderItems as $item) {
-            $order->orderDetails()->create([
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'subtotal' => $item['quantity'] * $item['unit_price']
+            // Crear la orden
+            $order = new Order([
+                'table_id' => $this->selectedTableId,
+                'customer_id' => $customer?->id,
+                'user_id' => auth()->id(),
+                'status' => Order::STATUS_OPEN,
+                'number_of_guests' => $this->numberOfGuests,
+                'notes' => $this->customerNote,
+                'subtotal' => $this->subtotal,
+                'tax' => $this->tax,
+                'total' => $this->total,
             ]);
-        }
 
-        return $order;
+            $order->save();
+
+            // Crear los detalles de la orden
+            foreach ($items as $item) {
+                $notes = $item['notes'] ?? '';
+                
+                // Agregar información de bebida helada/al tiempo si corresponde
+                if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
+                    // Asegurarse de que la temperatura esté en mayúsculas y destacada
+                    $temperatureNote = $item['temperature'];
+                    $notes = trim($notes . ' ' . $temperatureNote);
+                }
+                
+                // Agregar información de punto de cocción para parrillas si corresponde
+                if (($item['is_grill_item'] ?? false) === true && !empty($item['cooking_point'])) {
+                    // Asegurarse de que el punto de cocción esté en mayúsculas y destacado
+                    $cookingPointNote = $item['cooking_point'];
+                    $notes = trim($notes . ' ' . $cookingPointNote);
+                }
+                
+                // Agregar información de tipo de presa para pollos si corresponde
+                if (($item['is_chicken_cut'] ?? false) === true && !empty($item['chicken_cut_type'])) {
+                    // Asegurarse de que el tipo de presa esté en mayúsculas y destacado
+                    $chickenCutNote = $item['chicken_cut_type'];
+                    $notes = trim($notes . ' ' . $chickenCutNote);
+                }
+                
+                $order->orderDetails()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'subtotal' => $item['quantity'] * $item['unit_price'],
+                    'notes' => $notes,
+                ]);
+            }
+
+            DB::commit();
+            return $order;
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al crear orden desde carrito: ' . $e->getMessage());
+            throw $e;
+        }
     }
 
     public function processTransfer(array $data): void
@@ -1423,12 +1720,78 @@ class PosInterface extends Page
         // 🔄 RECONSTRUIR CARRITO DESDE LA ORDEN
         $this->cartItems = [];
         foreach ($this->order->orderDetails as $detail) {
+            // Detectar si es bebida con temperatura o producto de parrilla
+            $isColdDrink = false;
+            $temperature = null;
+            $isGrillItem = false;
+            $cookingPoint = null;
+            
+            // Verificar si el producto es una bebida que puede ser helada o un producto de parrilla
+            if ($detail->product) {
+                $isColdDrink = $this->isColdDrinkCategory($detail->product);
+                $isGrillItem = $this->isGrillCategory($detail->product);
+                
+                // Si es una bebida, detectar la temperatura desde las notas
+                if ($isColdDrink && $detail->notes) {
+                    if (strpos($detail->notes, 'HELADA') !== false) {
+                        $temperature = 'HELADA';
+                    } elseif (strpos($detail->notes, 'AL TIEMPO') !== false) {
+                        $temperature = 'AL TIEMPO';
+                    }
+                }
+                
+                // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
+                if ($isColdDrink && !$temperature) {
+                    $temperature = 'HELADA';
+                }
+                
+                // Si es un producto de parrilla, detectar el punto de cocción desde las notas
+                if ($isGrillItem && $detail->notes) {
+                    $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
+                    foreach ($cookingPoints as $point) {
+                        if (strpos($detail->notes, $point) !== false) {
+                            $cookingPoint = $point;
+                            break;
+                        }
+                    }
+                }
+                
+                // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
+                if ($isGrillItem && !$cookingPoint) {
+                    $cookingPoint = 'MEDIO';
+                }
+                
+                // Si es un producto de pollo, detectar el tipo de presa desde las notas
+                $chickenCutType = null;
+                if ($this->isChickenCutCategory($detail->product) && $detail->notes) {
+                    $chickenCutTypes = ['PECHO', 'PIERNA'];
+                    foreach ($chickenCutTypes as $cutType) {
+                        if (strpos($detail->notes, $cutType) !== false) {
+                            $chickenCutType = $cutType;
+                            break;
+                        }
+                    }
+                }
+                
+                // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
+                if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
+                    $chickenCutType = 'PECHO';
+                }
+            }
+            
             $this->cartItems[] = [
                 'product_id' => $detail->product_id,
                 'name'       => $detail->product->name,
                 'quantity'   => $detail->quantity,
                 'unit_price' => $detail->unit_price,
                 'subtotal'   => $detail->subtotal,
+                'notes'      => $detail->notes ?? '',
+                'is_cold_drink' => $isColdDrink,
+                'temperature' => $temperature,
+                'is_grill_item' => $isGrillItem,
+                'cooking_point' => $cookingPoint,
+                'is_chicken_cut' => $this->isChickenCutCategory($detail->product),
+                'chicken_cut_type' => $chickenCutType,
             ];
         }
 
@@ -1444,8 +1807,10 @@ class PosInterface extends Page
     {
         return Action::make('processBilling')
             ->label('💳 Procesar Pago')
-            ->slideOver()
-            ->modalWidth('4xl')
+            ->modal()
+            ->modalWidth('screen')
+            ->stickyModalHeader()
+            ->stickyModalFooter()
             ->visible(fn() => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
             ->form(function () {
                 return [
@@ -2443,7 +2808,6 @@ class PosInterface extends Page
                 ->title('🖨️ Abriendo impresión...')
                 ->body("Comprobante {$lastInvoice->series}-{$lastInvoice->number}")
                 ->success()
-                ->duration(3000)
                 ->send();
         } else {
             Notification::make()
