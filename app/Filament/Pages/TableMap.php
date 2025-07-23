@@ -696,7 +696,6 @@ class TableMap extends Page
                         ->schema([
                             // Panel de categorías principales
                             Forms\Components\Section::make('Categorías')
-                                ->compact()
                                 ->schema([
                                     Forms\Components\Placeholder::make('categories_header')
                                         ->label('Seleccione una categoría')
@@ -708,22 +707,28 @@ class TableMap extends Page
                                         ->options(function () {
                                             return \App\Models\ProductCategory::whereNull('parent_category_id')
                                                 ->where('visible_in_menu', true)
+                                                ->where('name', '!=', 'Ingredientes')
                                                 ->orderBy('display_order')
+                                                ->orderBy('name')
                                                 ->pluck('name', 'id');
                                         })
                                         ->inline()
                                         ->gridDirection('row')
                                         ->columns([
                                             'default' => 2,
-                                            'sm' => 3,
-                                            'md' => 4,
-                                            'lg' => 5,
+                                            'sm' => 2,
+                                            'md' => 3,
+                                            'lg' => 4,
                                         ])
                                         ->live()
                                         ->afterStateUpdated(function (Forms\Set $set) {
                                             $set('selected_subcategory_id', null);
                                         })
-                                        ->columnSpanFull(),
+                                        ->columnSpanFull()
+                                        ->extraAttributes([
+                                            'class' => 'space-y-3',
+                                            'style' => 'gap: 1.5rem; margin-bottom: 2rem;'
+                                        ]),
                                 ])
                                 ->columnSpan([
                                     'default' => 1,
@@ -732,21 +737,7 @@ class TableMap extends Page
                             
                             // Panel de subcategorías
                             Forms\Components\Section::make('Subcategorías')
-                                ->compact()
                                 ->schema([
-                                    Forms\Components\Placeholder::make('subcategories_header')
-                                        ->label('Subcategorías disponibles')
-                                        ->content(function (Forms\Get $get) {
-                                            $categoryId = $get('selected_category_id');
-                                            if (!$categoryId) {
-                                                return 'Seleccione una categoría primero';
-                                            }
-                                            
-                                            $category = \App\Models\ProductCategory::find($categoryId);
-                                            return $category ? "Subcategorías de {$category->name}" : 'Categoría no encontrada';
-                                        })
-                                        ->columnSpanFull(),
-                                    
                                     Forms\Components\Radio::make('selected_subcategory_id')
                                         ->label('')
                                         ->options(function (Forms\Get $get) {
@@ -757,19 +748,25 @@ class TableMap extends Page
                                             
                                             return \App\Models\ProductCategory::where('parent_category_id', $categoryId)
                                                 ->where('visible_in_menu', true)
+                                                ->where('name', '!=', 'Ingredientes')
                                                 ->orderBy('display_order')
+                                                ->orderBy('name')
                                                 ->pluck('name', 'id');
                                         })
                                         ->inline()
                                         ->gridDirection('row')
                                         ->columns([
-                                            'default' => 2,
-                                            'sm' => 3,
-                                            'md' => 4,
-                                            'lg' => 5,
+                                            'default' => 1,
+                                            'sm' => 1,
+                                            'md' => 2,
+                                            'lg' => 2,
                                         ])
                                         ->live()
-                                        ->columnSpanFull(),
+                                        ->columnSpanFull()
+                                        ->extraAttributes([
+                                            'class' => 'space-y-3',
+                                            'style' => 'gap: 1.5rem; margin-bottom: 2rem;'
+                                        ]),
                                 ])
                                 ->columnSpan([
                                     'default' => 1,
@@ -779,27 +776,14 @@ class TableMap extends Page
                             
                             // Panel de productos
                             Forms\Components\Section::make('Productos')
-                                ->compact()
                                 ->schema([
-                                    Forms\Components\Placeholder::make('products_header')
-                                        ->label('Productos disponibles')
-                                        ->content(function (Forms\Get $get) {
-                                            $categoryId = $get('selected_category_id');
-                                            $subcategoryId = $get('selected_subcategory_id');
-                                            
-                                            if (!$categoryId && !$subcategoryId) {
-                                                return 'Seleccione una categoría primero';
-                                            }
-                                            
-                                            $category = $subcategoryId 
-                                                ? \App\Models\ProductCategory::find($subcategoryId) 
-                                                : \App\Models\ProductCategory::find($categoryId);
-                                            
-                                            return $category ? "Productos de {$category->name}" : 'Categoría no encontrada';
-                                        })
-                                        ->columnSpanFull(),
-                                    
                                     Forms\Components\Grid::make()
+                                        ->columns([
+                                            'default' => 1,
+                                            'sm' => 2,
+                                            'md' => 2,
+                                            'lg' => 3,
+                                        ])
                                         ->schema(function (Forms\Get $get) {
                                             $categoryId = $get('selected_category_id');
                                             $subcategoryId = $get('selected_subcategory_id');
@@ -835,8 +819,9 @@ class TableMap extends Page
                                                             ->button()
                                                             ->color('warning')
                                                             ->extraAttributes([
-                                                                'class' => 'w-full justify-center',
-                                                                'style' => 'white-space: normal; height: auto; min-height: 60px;',
+                                                                'class' => 'w-full justify-center text-center',
+                                                                'style' => 'white-space: normal; height: auto; min-height: 100px; max-height: 140px; padding: 1rem; margin: 0.5rem; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; text-overflow: ellipsis; line-height: 1.4; font-size: 0.9rem; font-weight: 500; word-wrap: break-word;',
+                                                                'title' => $product->name . ' - S/ ' . number_format($product->sale_price, 2)
                                                             ])
                                                             ->action(function (Forms\Set $set, Forms\Get $get) use ($product) {
                                                                 // Obtener los productos actuales
@@ -860,12 +845,6 @@ class TableMap extends Page
                                             
                                             return $productButtons;
                                         })
-                                        ->columns([
-                                            'default' => 2,
-                                            'sm' => 3,
-                                            'md' => 4,
-                                            'lg' => 5,
-                                        ])
                                         ->columnSpanFull(),
                                 ])
                                 ->columnSpan([
