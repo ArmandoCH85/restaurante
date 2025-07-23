@@ -144,22 +144,33 @@ class DeliveryOrderResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('order_id')
-                    ->label('Orden #')
+                    ->label('#')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->size('sm')
+                    ->width('60px'),
 
                 Tables\Columns\TextColumn::make('order.customer.name')
                     ->label('Cliente')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->limit(15)
+                    ->size('sm')
+                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
+                        $state = $column->getState();
+                        if (strlen($state) <= 15) {
+                            return null;
+                        }
+                        return $state;
+                    }),
 
                 Tables\Columns\TextColumn::make('delivery_address')
                     ->label('Dirección')
-                    ->limit(30)
+                    ->limit(20)
+                    ->size('sm')
                     ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                         $state = $column->getState();
-                        // Usar un valor fijo de 30 en lugar de getLimit() que no existe
-                        if (strlen($state) <= 30) {
+                        if (strlen($state) <= 20) {
                             return null;
                         }
                         return $state;
@@ -168,19 +179,34 @@ class DeliveryOrderResource extends Resource
                 Tables\Columns\TextColumn::make('deliveryPerson.full_name')
                     ->label('Repartidor')
                     ->sortable()
-                    ->searchable(),
+                    ->searchable()
+                    ->limit(12)
+                    ->size('sm')
+                    ->default('Sin asignar')
+                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
+                        $state = $column->getState();
+                        if (!$state || strlen($state) <= 12) {
+                            return null;
+                        }
+                        return $state;
+                    }),
 
                 // SISTEMA DE SEMÁFORO: Columna personalizada con semáforo y badge
                 Tables\Columns\ViewColumn::make('status')
                     ->label('Estado')
                     ->view('filament.tables.columns.delivery-status-with-traffic-light')
-                    ->sortable(),
+                    ->sortable()
+                    ->width('120px'),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Pedido Creado')
-                    ->dateTime('d/m/Y H:i')
-                    ->sortable(),
+                    ->label('Hora')
+                    ->dateTime('H:i')
+                    ->sortable()
+                    ->size('sm')
+                    ->width('60px'),
             ])
+            ->defaultSort('created_at', 'desc')
+            ->striped()
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Estado')
@@ -223,25 +249,29 @@ class DeliveryOrderResource extends Resource
             ->actions([
                 // 💳 ACCIÓN: PROCESAR PAGO EN POS
                 Tables\Actions\Action::make('process_payment_pos')
-                    ->label('💰 Procesar Pago')
+                    ->label('💰')
                     ->icon('heroicon-o-credit-card')
                     ->color('warning')
+                    ->size('sm')
                     ->url(function (DeliveryOrder $record): string {
-                        // Redirigir al POS con la orden pre-cargada
                         return '/admin/pos-interface?order_id=' . $record->order_id;
                     })
                     ->openUrlInNewTab()
-                    ->tooltip('Abrir en POS para procesar el pago del delivery')
+                    ->tooltip('Procesar Pago en POS')
                     ->visible(function (DeliveryOrder $record): bool {
-                        // Mostrar solo si la orden aún no está pagada
                         return $record->order && !$record->order->billed && in_array($record->status, ['pending', 'assigned', 'in_transit']);
                     }),
 
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('')
+                    ->size('sm'),
+                    
                 Tables\Actions\Action::make('assign_delivery')
-                    ->label('Asignar Repartidor')
+                    ->label('👤')
                     ->icon('heroicon-o-user-plus')
                     ->color('success')
+                    ->size('sm')
+                    ->tooltip('Asignar Repartidor')
                     ->form([
                         Forms\Components\Select::make('delivery_person_id')
                             ->label('Repartidor')
@@ -277,18 +307,16 @@ class DeliveryOrderResource extends Resource
                     }),
 
                 Tables\Actions\Action::make('mark_in_transit')
-                    ->label('En Tránsito')
+                    ->label('🚚')
                     ->icon('heroicon-o-truck')
                     ->color('primary')
+                    ->size('sm')
+                    ->tooltip('En Tránsito')
                     ->requiresConfirmation()
                     ->action(function (DeliveryOrder $record): void {
                         $previousStatus = $record->status;
                         $record->markAsInTransit();
-
-                        // Disparar evento de cambio de estado
                         event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
-
-                        // SISTEMA DE SEMÁFORO: Notificación de éxito
                         \Filament\Notifications\Notification::make()
                             ->title('Estado actualizado')
                             ->body("Pedido #{$record->order_id} marcado como En Tránsito")
@@ -298,18 +326,16 @@ class DeliveryOrderResource extends Resource
                     ->visible(fn(DeliveryOrder $record): bool => $record->isAssigned()),
 
                 Tables\Actions\Action::make('mark_delivered')
-                    ->label('Entregado')
+                    ->label('✅')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
+                    ->size('sm')
+                    ->tooltip('Entregado')
                     ->requiresConfirmation()
                     ->action(function (DeliveryOrder $record): void {
                         $previousStatus = $record->status;
                         $record->markAsDelivered();
-
-                        // Disparar evento de cambio de estado
                         event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
-
-                        // SISTEMA DE SEMÁFORO: Notificación de éxito
                         \Filament\Notifications\Notification::make()
                             ->title('Pedido entregado')
                             ->body("Pedido #{$record->order_id} marcado como Entregado")
@@ -319,9 +345,11 @@ class DeliveryOrderResource extends Resource
                     ->visible(fn(DeliveryOrder $record): bool => $record->isInTransit()),
 
                 Tables\Actions\Action::make('cancel')
-                    ->label('Cancelar')
+                    ->label('❌')
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
+                    ->size('sm')
+                    ->tooltip('Cancelar')
                     ->requiresConfirmation()
                     ->form([
                         Forms\Components\Textarea::make('reason')
@@ -371,9 +399,9 @@ class DeliveryOrderResource extends Resource
             ];
         }
 
-        // Para otros usuarios, usar las vistas estándar
+        // Para otros usuarios, usar la vista personalizada con formulario lateral
         return [
-            'index' => Pages\ListDeliveryOrders::route('/'),
+            'index' => Pages\ManageDeliveryOrders::route('/'),
             'create' => Pages\CreateDeliveryOrder::route('/create'),
             'edit' => Pages\EditDeliveryOrder::route('/{record}/edit'),
         ];

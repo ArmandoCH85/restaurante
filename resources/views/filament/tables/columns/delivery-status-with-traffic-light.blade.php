@@ -51,13 +51,13 @@
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        min-width: 120px;
+        min-width: 100px;
     }
 
     .delivery-status-content {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.5rem;
         width: 100%;
     }
 
@@ -69,8 +69,8 @@
     }
 
     .admin-semaphore {
-        /* Tamaño optimizado para tabla administrativa */
-        transform: scale(0.7);
+        /* Tamaño más compacto para tabla administrativa */
+        transform: scale(0.5);
         transform-origin: center;
     }
 
@@ -83,11 +83,15 @@
     /* Ajustes responsivos para la vista administrativa */
     @media (max-width: 768px) {
         .delivery-status-content {
-            gap: 0.5rem;
+            gap: 0.25rem;
         }
 
         .admin-semaphore {
-            transform: scale(0.6);
+            transform: scale(0.4);
+        }
+        
+        .delivery-status-column {
+            min-width: 80px;
         }
     }
 

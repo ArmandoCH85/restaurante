@@ -1,53 +1,59 @@
 <x-filament-panels::page>
     <div class="h-screen flex flex-col bg-gray-50 pos-interface">
-        {{-- HEADER SUPERIOR CON CATEGORÍAS (PROPORCIÓN ÁUREA) --}}
-        <div class="bg-gradient-to-r from-blue-100 to-blue-200 shadow-md border-b border-blue-300 px-8 py-6">
-            {{-- CATEGORÍAS CON ESPACIADO ÁUREO --}}
-            <div class="flex items-center space-x-12 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 2.5rem;">
-                {{-- Botones de categorías --}}
-                @foreach($this->getCategoriesProperty() as $category)
-                    <x-filament::button
-                        wire:click="selectCategory({{ $category->id }})"
-                        :color="$selectedCategoryId === $category->id ? 'primary' : 'gray'"
-                        size="sm"
-                        class="flex-shrink-0 px-14 py-4 text-sm font-medium whitespace-nowrap min-w-[140px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
-                    >
-                        {{ $category->name }}
-                    </x-filament::button>
-                @endforeach
-            </div>
-
-            {{-- SUBCATEGORÍAS (SEGUNDA FILA) --}}
-            @if($selectedCategoryId && $subcategories->isNotEmpty())
-                <div class="flex items-center space-x-10 overflow-x-auto pt-6 pb-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" style="gap: 1.5rem;">
-                    {{-- Botón Todos de subcategorías --}}
-                    <x-filament::button
-                        wire:click="selectSubcategory(null)"
-                        :color="$selectedSubcategoryId === null ? 'primary' : 'gray'"
-                        size="sm"
-                        class="flex-shrink-0 px-12 py-3 text-xs font-medium whitespace-nowrap min-w-[120px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
-                    >
-                        Todos
-                    </x-filament::button>
-
-                    {{-- Botones de subcategorías --}}
-                    @foreach($subcategories as $subcat)
+        {{-- CONTENIDO PRINCIPAL CON SIDEBAR DE CATEGORÍAS --}}
+        <div class="flex-1 flex overflow-hidden">
+            {{-- SIDEBAR IZQUIERDO: CATEGORÍAS --}}
+            <div class="bg-gradient-to-b from-blue-100 to-blue-200 shadow-lg border-r border-blue-300 flex flex-col" style="width: 200px; min-width: 200px;">
+                {{-- HEADER DEL SIDEBAR --}}
+                <div class="px-4 py-4 border-b border-blue-300">
+                    <h3 class="text-sm font-bold text-blue-800 text-center">Categorías</h3>
+                </div>
+                
+                {{-- CATEGORÍAS VERTICALES --}}
+                <div class="flex-1 overflow-y-auto py-2 px-2 space-y-1 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-200">
+                    @foreach($this->getCategoriesProperty() as $category)
                         <x-filament::button
-                            wire:click="selectSubcategory({{ $subcat->id }})"
-                            :color="$selectedSubcategoryId === $subcat->id ? 'primary' : 'gray'"
+                            wire:click="selectCategory({{ $category->id }})"
+                            :color="$selectedCategoryId === $category->id ? 'primary' : 'gray'"
                             size="sm"
-                            class="flex-shrink-0 px-12 py-3 text-xs font-medium whitespace-nowrap min-w-[120px] transition-all duration-200 hover:scale-105 rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
+                            class="w-full justify-start px-4 py-3 text-sm font-medium text-left transition-all duration-200 hover:scale-[1.02] rounded-lg border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md mb-1"
                         >
-                            {{ $subcat->name }}
+                            {{ $category->name }}
                         </x-filament::button>
                     @endforeach
                 </div>
-            @endif
-        </div>
+                
+                {{-- SUBCATEGORÍAS (SI EXISTEN) --}}
+                @if($selectedCategoryId && $subcategories->isNotEmpty())
+                    <div class="border-t border-blue-300 px-2 py-3">
+                        <h4 class="text-xs font-semibold text-blue-700 mb-2 px-2">Subcategorías</h4>
+                        <div class="space-y-1">
+                            {{-- Botón Todos de subcategorías --}}
+                            <x-filament::button
+                                wire:click="selectSubcategory(null)"
+                                :color="$selectedSubcategoryId === null ? 'primary' : 'gray'"
+                                size="sm"
+                                class="w-full justify-start px-3 py-2 text-xs font-medium text-left transition-all duration-200 hover:scale-[1.02] rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
+                            >
+                                Todos
+                            </x-filament::button>
 
-        {{-- CONTENIDO PRINCIPAL: PRODUCTOS + CARRITO (PROPORCIÓN ÁUREA) --}}
-        <div class="flex-1 flex overflow-hidden">
-            {{-- IZQUIERDA: PRODUCTOS (62% - PROPORCIÓN ÁUREA) --}}
+                            {{-- Botones de subcategorías --}}
+                            @foreach($subcategories as $subcat)
+                                <x-filament::button
+                                    wire:click="selectSubcategory({{ $subcat->id }})"
+                                    :color="$selectedSubcategoryId === $subcat->id ? 'primary' : 'gray'"
+                                    size="sm"
+                                    class="w-full justify-start px-3 py-2 text-xs font-medium text-left transition-all duration-200 hover:scale-[1.02] rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
+                                >
+                                    {{ $subcat->name }}
+                                </x-filament::button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+            {{-- CENTRO: PRODUCTOS (MANTIENE PROPORCIÓN ÁUREA) --}}
             <div class="flex-1 p-6 overflow-y-auto" style="flex: 1.618;">
                 {{-- BARRA DE BÚSQUEDA --}}
                 <div class="mb-8">
@@ -162,7 +168,7 @@
             </div>
 
             {{-- DERECHA: CARRITO (38% - PROPORCIÓN ÁUREA) --}}
-            <div class="bg-white border-l border-gray-200 flex flex-col shadow-lg" style="flex: 1; min-width: 380px; max-width: 420px;">
+            <div class="bg-white border-l border-gray-200 flex flex-col shadow-lg" style="flex: 1; min-width: 400px; max-width: 520px;">
                 {{-- HEADER DEL CARRITO --}}
                 <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
                     <div class="flex items-center justify-between mb-4">
@@ -205,6 +211,114 @@
                         >
                             <x-heroicon-s-trash class="h-5 w-5" />
                         </button>
+                    </div>
+                    
+                    {{-- BARRA DE ACCIONES RÁPIDAS --}}
+                    <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <h4 class="text-xs font-semibold text-gray-600 mb-2 text-center">Acciones Rápidas</h4>
+                        <div class="grid grid-cols-4 gap-1 justify-items-center" style="display: grid !important; grid-template-columns: repeat(4, 1fr) !important;">
+                            {{-- FILA 1: Mapa, Comanda, Pre-Cuenta, Liberar --}}
+                            
+                            {{-- Mapa de Mesas --}}
+                            <button 
+                                wire:click="mountAction('backToTableMap')"
+                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                title="Ir a Mapa de Mesas"
+                                @if(!($this->order && $this->order->table_id !== null)) disabled class="opacity-50 cursor-not-allowed" @endif
+                            >
+                                <x-heroicon-o-map class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                            </button>
+                            
+                            {{-- Comanda --}}
+                            <button 
+                                wire:click="mountAction('printComanda')"
+                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                title="Imprimir Comanda"
+                                @if(!($this->order || !empty($this->cartItems))) disabled class="opacity-50 cursor-not-allowed" @endif
+                            >
+                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                            </button>
+                            
+                            {{-- Pre-Cuenta --}}
+                            <button 
+                                wire:click="mountAction('printPreBillNew')"
+                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                title="Generar Pre-Cuenta"
+                                @if(!($this->order || !empty($this->cartItems))) disabled class="opacity-50 cursor-not-allowed" @endif
+                            >
+                                <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                            </button>
+                            
+                            {{-- Liberar Mesa --}}
+                            @if(!auth()->user()->hasRole(['waiter', 'cashier']))
+                                <button 
+                                    wire:click="mountAction('releaseTable')"
+                                    class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                    title="Liberar Mesa"
+                                    @if(!($this->order && $this->order->table_id && $this->order->status === 'open')) disabled class="opacity-50 cursor-not-allowed" @endif
+                                >
+                                    <x-heroicon-o-arrow-right-start-on-rectangle class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                                </button>
+                            @else
+                                <div class="p-2 rounded-full bg-gray-200 opacity-50" title="Sin permisos">
+                                    <x-heroicon-o-arrow-right-start-on-rectangle class="h-5 w-5 text-gray-400" />
+                                </div>
+                            @endif
+                            
+                            {{-- FILA 2: Reabrir, Transferir, Dividir, Cancelar --}}
+                            
+                            {{-- Reabrir Orden --}}
+                            <button 
+                                wire:click="mountAction('reopen_order_for_editing')"
+                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                title="Reabrir Orden"
+                                @if(!($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists())) disabled class="opacity-50 cursor-not-allowed" @endif
+                            >
+                                <x-heroicon-o-lock-open class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                            </button>
+                            
+                            {{-- Transferir --}}
+                            @if(!auth()->user()->hasRole(['waiter', 'cashier']))
+                                <button 
+                                    wire:click="mountAction('transferOrder')"
+                                    class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                title="Transferir Mesa"
+                                @if(!($this->order && $this->order->table_id && $this->order->status === 'open')) disabled class="opacity-50 cursor-not-allowed" @endif
+                            >
+                                <x-heroicon-o-arrow-path-rounded-square class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                            </button>
+                            @else
+                                <div class="p-2 rounded-full bg-gray-200 opacity-50" title="Sin permisos">
+                                    <x-heroicon-o-arrow-path-rounded-square class="h-5 w-5 text-gray-400" />
+                                </div>
+                            @endif
+                            
+                            {{-- Dividir Cuenta --}}
+                            <button 
+                                wire:click="mountAction('split_items')"
+                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                title="Dividir Cuenta"
+                                @if(!($this->order !== null && count($this->order->orderDetails ?? []) > 0)) disabled class="opacity-50 cursor-not-allowed" @endif
+                            >
+                                <x-heroicon-o-scissors class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                            </button>
+                            
+                            {{-- Cancelar Orden --}}
+                            @if(!auth()->user()->hasRole(['waiter', 'cashier']))
+                                <button 
+                                    wire:click="mountAction('cancelOrder')"
+                                    class="p-2 rounded-full hover:bg-red-100 transition-all duration-200 hover:scale-110 group"
+                                title="Cancelar Orden"
+                                @if(!($this->order && $this->order->table_id && $this->order->status === 'open')) disabled class="opacity-50 cursor-not-allowed" @endif
+                            >
+                                <x-heroicon-o-x-circle class="h-5 w-5 text-gray-600 group-hover:text-red-600" />
+                            </button>
+                            @else
+                                <div class="p-2 rounded-full bg-gray-200 opacity-50" title="Sin permisos">
+                                    <x-heroicon-o-x-circle class="h-5 w-5 text-gray-400" />
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
 

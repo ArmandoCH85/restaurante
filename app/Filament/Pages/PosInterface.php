@@ -235,7 +235,9 @@ class PosInterface extends Page
 
     protected function getHeaderActions(): array
     {
+        // Los botones ahora están integrados en el carrito para mejor UX
         return [
+            /* TODOS LOS BOTONES COMENTADOS - AHORA EN EL CARRITO
             Action::make('printComanda')
                 ->label('Comanda')
                 ->icon('heroicon-o-printer')
@@ -744,7 +746,7 @@ class PosInterface extends Page
                     }
                 })
                 ->visible(fn (): bool => $this->order !== null && count($this->order->orderDetails) > 0),
-
+            */
 
         ];
     }
