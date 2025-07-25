@@ -27,7 +27,8 @@ class Table extends Model
     const STATUS_AVAILABLE = 'available';
     const STATUS_OCCUPIED = 'occupied';
     const STATUS_RESERVED = 'reserved';
-    const STATUS_MAINTENANCE = 'maintenance';
+    const STATUS_PENDING_PAYMENT = 'pending_payment';
+    const STATUS_PREBILL = 'prebill';
 
     public function scopeAvailable($query)
     {
@@ -44,9 +45,14 @@ class Table extends Model
         return $query->where('status', self::STATUS_RESERVED);
     }
 
-    public function scopeMaintenance($query)
+    public function scopePendingPayment($query)
     {
-        return $query->where('status', self::STATUS_MAINTENANCE);
+        return $query->where('status', self::STATUS_PENDING_PAYMENT);
+    }
+
+    public function scopePreBill($query)
+    {
+        return $query->where('status', self::STATUS_PREBILL);
     }
 
     public function isAvailable()
@@ -64,9 +70,14 @@ class Table extends Model
         return $this->status === self::STATUS_RESERVED;
     }
 
-    public function isInMaintenance()
+    public function isPreBill()
     {
-        return $this->status === self::STATUS_MAINTENANCE;
+        return $this->status === self::STATUS_PREBILL;
+    }
+
+    public function isPendingPayment()
+    {
+        return $this->status === self::STATUS_PENDING_PAYMENT;
     }
 
     public function isSquare()

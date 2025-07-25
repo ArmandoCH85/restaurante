@@ -859,16 +859,18 @@
             function updateTrafficLightAnimations() {
                 const trafficLights = document.querySelectorAll('.delivery-traffic-light-component');
                 trafficLights.forEach(light => {
-                    const activeLight = light.querySelector('.traffic-light-light.active');
-                    if (activeLight) {
-                        // Añadir efecto de pulso temporal para indicar actualización
-                        activeLight.style.animation = 'none';
-                        setTimeout(() => {
-                            if (activeLight.classList.contains('red') || activeLight.classList.contains('yellow')) {
-                                activeLight.style.animation = activeLight.classList.contains('red') ?
-                                    'pulse-red 2s infinite' : 'pulse-yellow 1.5s infinite';
-                            }
-                        }, 100);
+                    if (light) {
+                        const activeLight = light.querySelector('.traffic-light-light.active');
+                        if (activeLight && activeLight.classList) {
+                            // Añadir efecto de pulso temporal para indicar actualización
+                            activeLight.style.animation = 'none';
+                            setTimeout(() => {
+                                if (activeLight.classList.contains('red') || activeLight.classList.contains('yellow')) {
+                                    activeLight.style.animation = activeLight.classList.contains('red') ?
+                                        'pulse-red 2s infinite' : 'pulse-yellow 1.5s infinite';
+                                }
+                            }, 100);
+                        }
                     }
                 });
             }
@@ -919,8 +921,10 @@
                 // Remover estado activo de todas las luces
                 const lights = trafficLight.querySelectorAll('.traffic-light-light');
                 lights.forEach(light => {
-                    light.classList.remove('active');
-                    light.style.animation = 'none';
+                    if (light && light.classList) {
+                        light.classList.remove('active');
+                        light.style.animation = 'none';
+                    }
                 });
 
                 // Activar la luz correspondiente al nuevo estado
@@ -935,7 +939,7 @@
                 const lightColor = statusMap[newStatus];
                 if (lightColor) {
                     const targetLight = trafficLight.querySelector(`.traffic-light-light.${lightColor}`);
-                    if (targetLight) {
+                    if (targetLight && targetLight.classList) {
                         targetLight.classList.add('active');
 
                         // Añadir animación para estados activos

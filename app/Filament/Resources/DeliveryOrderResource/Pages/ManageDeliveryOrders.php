@@ -33,8 +33,21 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
     
     protected static ?string $navigationIcon = 'heroicon-o-truck';
     
-    // Propiedades del formulario
-    public ?array $newDeliveryData = [];
+    // Propiedades del formulario - INICIALIZADAS CORRECTAMENTE
+    public ?array $newDeliveryData = [
+        'existing_customer' => null,
+        'phone' => '',
+        'customer_name' => '',
+        'document_type' => 'dni',
+        'document_number' => '',
+        'address' => '',
+        'reference' => '',
+        'delivery_type' => 'domicilio',
+        'delivery_person_id' => null,
+        'customer_found_flag' => false,
+        'selected_customer_id' => null,
+        'customer_status_message' => '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente',
+    ];
     
     // Estado de búsqueda de cliente
     public $customerFound = false;
@@ -43,31 +56,36 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
     
     protected $listeners = ['refresh-form' => '$refresh'];
     
-    public function updatedNewDeliveryDataExistingCustomer($value)
+
+    
+    public function updatedNewDeliveryDataExisting_customer($value)
     {
+        \Log::info('updatedNewDeliveryDataExisting_customer called with value: ' . $value);
+        
         if ($value) {
             $customer = Customer::find($value);
             if ($customer) {
-                // Auto-llenar datos del cliente encontrado
-                $this->newDeliveryData['phone'] = $customer->phone;
+                $this->newDeliveryData['phone'] = $customer->phone ?? '';
                 $this->newDeliveryData['customer_name'] = $customer->name;
                 $this->newDeliveryData['document_type'] = $customer->document_type ?? 'dni';
                 $this->newDeliveryData['document_number'] = $customer->document_number ?? '';
                 $this->newDeliveryData['address'] = $customer->address ?? '';
                 $this->newDeliveryData['customer_found_flag'] = true;
+                $this->newDeliveryData['selected_customer_id'] = $customer->id;
                 $this->newDeliveryData['customer_status_message'] = "✅ Cliente encontrado: {$customer->name} - Datos cargados automáticamente";
             }
         } else {
-            // Limpiar campos si se deselecciona
             $this->newDeliveryData['phone'] = '';
             $this->newDeliveryData['customer_name'] = '';
             $this->newDeliveryData['document_type'] = 'dni';
             $this->newDeliveryData['document_number'] = '';
             $this->newDeliveryData['address'] = '';
             $this->newDeliveryData['customer_found_flag'] = false;
+            $this->newDeliveryData['selected_customer_id'] = null;
             $this->newDeliveryData['customer_status_message'] = '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente';
         }
     }
+    
     
     protected function getHeaderActions(): array
     {
@@ -110,17 +128,22 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                         $customer = Customer::find($value);
                         return $customer ? "{$customer->name} - {$customer->phone}" : '';
                     })
-                    ->reactive()
+                    ->live()
                     ->afterStateUpdated(function (callable $set, $state) {
+                        \Log::info('afterStateUpdated called with state: ' . $state);
+                        
                         if ($state) {
                             $customer = Customer::find($state);
                             if ($customer) {
-                                $set('phone', $customer->phone);
+                                \Log::info('Setting form fields for customer: ' . $customer->name);
+                                
+                                $set('phone', $customer->phone ?? '');
                                 $set('customer_name', $customer->name);
                                 $set('document_type', $customer->document_type ?? 'dni');
                                 $set('document_number', $customer->document_number ?? '');
                                 $set('address', $customer->address ?? '');
                                 $set('customer_found_flag', true);
+                                $set('selected_customer_id', $customer->id);
                                 $set('customer_status_message', "✅ Cliente encontrado: {$customer->name} - Datos cargados automáticamente");
                             }
                         } else {
@@ -130,14 +153,18 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                             $set('document_number', '');
                             $set('address', '');
                             $set('customer_found_flag', false);
+                            $set('selected_customer_id', null);
                             $set('customer_status_message', '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente');
                         }
                     })
                     ->columnSpanFull(),
 
-                // CAMPO OCULTO PARA ESTADO
+                // CAMPOS OCULTOS PARA ESTADO
                 Forms\Components\Hidden::make('customer_found_flag')
                     ->default(false)
+                    ->dehydrated(),
+                    
+                Forms\Components\Hidden::make('selected_customer_id')
                     ->dehydrated(),
 
                 // INDICADOR DE ESTADO
@@ -245,9 +272,9 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
             
             DB::transaction(function () use ($data) {
                 // Determinar si se seleccionó un cliente existente o crear uno nuevo
-                if (isset($data['customer_found_flag']) && $data['customer_found_flag'] && isset($data['existing_customer'])) {
+                if (isset($data['customer_found_flag']) && $data['customer_found_flag'] && isset($data['selected_customer_id'])) {
                     // Cliente existente seleccionado - usar ese cliente
-                    $customer = Customer::find($data['existing_customer']);
+                    $customer = Customer::find($data['selected_customer_id']);
                     
                     // Actualizar solo la dirección (puede haber cambiado para este delivery específico)
                     if ($customer && $customer->address !== $data['address']) {
@@ -308,11 +335,31 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
         $this->getForm('newDeliveryForm')->fill([
             'existing_customer' => null,
             'customer_found_flag' => false,
+            'selected_customer_id' => null,
             'customer_status_message' => '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente',
             'delivery_type' => 'domicilio',
             'document_type' => 'dni',
+            'phone' => '',
+            'customer_name' => '',
+            'document_number' => '',
+            'address' => '',
+            'reference' => '',
+            'delivery_person_id' => null,
         ]);
-        $this->newDeliveryData = [];
+        $this->newDeliveryData = [
+            'existing_customer' => null,
+            'phone' => '',
+            'customer_name' => '',
+            'document_type' => 'dni',
+            'document_number' => '',
+            'address' => '',
+            'reference' => '',
+            'delivery_type' => 'domicilio',
+            'delivery_person_id' => null,
+            'customer_found_flag' => false,
+            'selected_customer_id' => null,
+            'customer_status_message' => '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente',
+        ];
         $this->customerFound = false;
         $this->searchQuery = '';
         $this->selectedCustomer = null;

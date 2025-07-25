@@ -97,6 +97,70 @@ class PosInterface extends Page
     public float $cashReceived = 0.0;
     public ?array $originalCustomerData = null;
     public string $customerNameForComanda = '';
+    public ?string $customerPhone = null;
+
+    protected function getEmployeeId(): int
+    {
+        $employee = Employee::where('user_id', auth()->id())->first();
+        
+        if (!$employee) {
+            throw new \Exception('No se encontró un empleado asociado al usuario actual.');
+        }
+        
+        return $employee->id;
+    }
+
+    /**
+     * Verifica si se puede procesar un pago
+     * Método auxiliar para validaciones antes del pago
+     */
+    protected function canProcessPayment(): bool
+    {
+        // Debe tener orden O items en carrito
+        if (!$this->order && empty($this->cartItems)) {
+            Log::warning('❌ No se puede procesar pago: Sin orden ni items en carrito');
+            return false;
+        }
+
+        // Debe tener total mayor a 0
+        if ($this->total <= 0) {
+            Log::warning('❌ No se puede procesar pago: Total es 0 o negativo', ['total' => $this->total]);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Limpia órdenes abandonadas del empleado actual
+     * Previene acumulación de órdenes inactivas durante la sesión
+     */
+    protected function cleanUserAbandonedOrders(): void
+    {
+        try {
+            $employeeId = $this->getEmployeeId();
+            
+            $cleaned = Order::where('employee_id', $employeeId)
+                ->where('status', Order::STATUS_OPEN)
+                ->where('billed', false)
+                ->where('created_at', '<', now()->subHours(2)) // 2 horas timeout
+                ->delete();
+                
+            if ($cleaned > 0) {
+                Log::info("🧹 Órdenes abandonadas limpiadas del empleado", [
+                    'user_id' => auth()->id(),
+                    'employee_id' => $employeeId,
+                    'cleaned_count' => $cleaned,
+                    'timeout_hours' => 2
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::warning("⚠️ Error limpiando órdenes abandonadas del empleado", [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
     public ?Collection $products = null;
     public ?Collection $categories = null;
     public ?Collection $subcategories = null;
@@ -758,17 +822,89 @@ class PosInterface extends Page
     {
         return [
             $this->processBillingAction(),
+            $this->printComandaAction(),
+            $this->printPreBillNewAction(),
+            $this->reopen_order_for_editingAction(),
+            $this->backToTableMapAction(),
+            $this->releaseTableAction(),
+            $this->cancelOrderAction(),
+            $this->transferOrderAction(),
+            $this->split_itemsAction(),
         ];
     }
 
     public function mount(): void
     {
+        // Configurar memoria específicamente para POS
+        @ini_set('memory_limit', '1024M');
+        @ini_set('max_execution_time', 600);
+        @ini_set('max_input_time', 600);
+        
+        // Limpiar memoria
+        if (function_exists('gc_collect_cycles')) {
+            gc_collect_cycles();
+        }
+
         // Obtener parámetros de la URL
         $this->selectedTableId = request()->get('table_id');
         $orderId = request()->get('order_id');
 
         // Inicializar canClearCart como true por defecto
         $this->canClearCart = true;
+
+        // *** MANEJO DE DATOS DE DELIVERY ***
+        $fromDelivery = request()->get('from');
+        if ($fromDelivery === 'delivery') {
+            $deliveryData = session('delivery_data');
+            
+            if ($deliveryData) {
+                Log::info('🚚 DATOS DE DELIVERY RECIBIDOS EN POS', $deliveryData);
+                
+                // Configurar cliente para delivery
+                $this->selectedCustomerId = $deliveryData['customer_id'] ?? null;
+                $this->customerName = $deliveryData['customer_name'] ?? '';
+                
+                // Configurar datos adicionales de delivery
+                if (isset($deliveryData['customer_phone'])) {
+                    $this->customerPhone = $deliveryData['customer_phone'];
+                }
+                
+                // Obtener datos completos del cliente para facturación
+                $customer = null;
+                if (isset($deliveryData['customer_id'])) {
+                    $customer = Customer::find($deliveryData['customer_id']);
+                }
+                
+                // Guardar datos originales del cliente para facturación
+                $this->originalCustomerData = [
+                    'customer_id' => $deliveryData['customer_id'] ?? null,
+                    'customer_name' => $deliveryData['customer_name'] ?? '',
+                    'customer_phone' => $deliveryData['customer_phone'] ?? '',
+                    'customer_address' => $deliveryData['delivery_address'] ?? '',
+                    'customer_document_type' => $customer ? $customer->document_type : 'DNI',
+                    'customer_document' => $customer ? $customer->document_number : '',
+                    'customer_email' => $customer ? $customer->email : '',
+                    'service_type' => 'delivery'
+                ];
+                
+                Log::info('✅ CLIENTE CONFIGURADO PARA DELIVERY', [
+                    'customer_id' => $this->selectedCustomerId,
+                    'customer_name' => $this->customerName,
+                    'customer_phone' => $this->customerPhone,
+                    'original_data' => $this->originalCustomerData
+                ]);
+                
+                // Mostrar notificación de confirmación
+                Notification::make()
+                    ->title('🚚 Delivery Configurado')
+                    ->body("Cliente: {$this->customerName} - Listo para tomar pedido")
+                    ->success()
+                    ->send();
+                
+                // Limpiar datos de sesión después de usarlos
+                session()->forget('delivery_data');
+            }
+        }
 
         // *** LÓGICA PARA CARGAR ORDEN EXISTENTE POR ID ***
         if ($orderId) {
@@ -1406,6 +1542,8 @@ class PosInterface extends Page
                 'table_id' => $this->selectedTableId,
                 'customer_id' => $customer?->id,
                 'user_id' => auth()->id(),
+                'employee_id' => $this->getEmployeeId(), // Obtener employee_id correcto
+                'order_datetime' => now(), // Agregar order_datetime requerido
                 'status' => Order::STATUS_OPEN,
                 'number_of_guests' => $this->numberOfGuests,
                 'notes' => $this->customerNote,
@@ -1814,6 +1952,97 @@ class PosInterface extends Page
             ->modalAlignment('center')
             ->extraModalWindowAttributes(['style' => 'max-height: 90vh; overflow-y: auto;'])
             ->visible(fn() => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
+            
+            // 🚀 HOOK ANTES DE MOSTRAR MODAL - LIMPIAR Y CREAR ORDEN SI NO EXISTE
+            ->before(function () {
+                // PASO 1: Limpiar órdenes abandonadas del usuario actual
+                $this->cleanUserAbandonedOrders();
+                
+                // PASO 2: Crear orden si es necesario
+                if (!$this->order && !empty($this->cartItems)) {
+                    Log::info('🔄 Auto-creando orden desde carrito para pago', [
+                        'cart_items_count' => count($this->cartItems),
+                        'selected_customer_id' => $this->selectedCustomerId,
+                        'has_original_customer_data' => !empty($this->originalCustomerData),
+                        'service_type' => $this->originalCustomerData['service_type'] ?? 'dine_in'
+                    ]);
+                    
+                    try {
+                        // Obtener cliente desde datos de delivery o selección
+                        $customer = null;
+                        if ($this->selectedCustomerId) {
+                            $customer = Customer::find($this->selectedCustomerId);
+                            Log::info('👤 Cliente encontrado para orden', [
+                                'customer_id' => $customer->id,
+                                'customer_name' => $customer->name
+                            ]);
+                        }
+                        
+                        // Crear orden usando método existente
+                        $this->order = $this->createOrderFromCart($customer);
+                        
+                        // Configurar service_type si es delivery
+                        if ($this->originalCustomerData && ($this->originalCustomerData['service_type'] ?? '') === 'delivery') {
+                            $this->order->update([
+                                'service_type' => 'delivery',
+                                'table_id' => null // Delivery no usa mesa
+                            ]);
+                            
+                            Log::info('🚚 Orden configurada como delivery', [
+                                'order_id' => $this->order->id,
+                                'service_type' => 'delivery'
+                            ]);
+                        }
+                        
+                        Log::info('✅ Orden creada exitosamente para pago', [
+                            'order_id' => $this->order->id,
+                            'customer_id' => $this->order->customer_id,
+                            'service_type' => $this->order->service_type,
+                            'total' => $this->order->total,
+                            'items_count' => $this->order->orderDetails()->count()
+                        ]);
+                        
+                        Notification::make()
+                            ->title('📋 Orden Preparada')
+                            ->body("Orden #{$this->order->id} creada automáticamente para procesar pago")
+                            ->success()
+                            ->duration(3000)
+                            ->send();
+                            
+                    } catch (\Exception $e) {
+                        Log::error('❌ Error auto-creando orden para pago', [
+                            'error_message' => $e->getMessage(),
+                            'error_file' => $e->getFile(),
+                            'error_line' => $e->getLine(),
+                            'cart_items' => $this->cartItems,
+                            'selected_customer_id' => $this->selectedCustomerId
+                        ]);
+                        
+                        Notification::make()
+                            ->title('❌ Error al Preparar Orden')
+                            ->body('No se pudo crear la orden: ' . $e->getMessage())
+                            ->danger()
+                            ->persistent()
+                            ->send();
+                            
+                        throw $e;
+                    }
+                } else {
+                    // Log para debugging cuando ya hay orden
+                    if ($this->order) {
+                        Log::info('ℹ️ Orden ya existe, usando orden existente', [
+                            'order_id' => $this->order->id,
+                            'order_status' => $this->order->status
+                        ]);
+                    } else {
+                        Log::warning('⚠️ No hay orden ni items en carrito', [
+                            'has_order' => !empty($this->order),
+                            'cart_items_count' => count($this->cartItems)
+                        ]);
+                    }
+                }
+            })
+            
             ->form(function () {
                 return [
                     // LAYOUT HORIZONTAL - DIVIDIR EN 2 COLUMNAS
@@ -2039,8 +2268,7 @@ class PosInterface extends Page
 
                                 // Cliente información compacta
                                 Forms\Components\Select::make('customer_id')
-                                    ->label('👤 Cliente')
-                                    ->required(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
+                                    ->label('👤 Cliente Existente')
                                     ->searchable()
                                     ->options(function (): array {
                                         return Customer::limit(20)->pluck('name', 'id')->toArray();
@@ -2052,7 +2280,48 @@ class PosInterface extends Page
                                             ->pluck('name', 'id')
                                             ->toArray();
                                     })
-                                    ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice'])),
+                                    ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
+                                    ->live()
+                                    ->afterStateUpdated(function (Set $set, $state) {
+                                        // Limpiar campos de cliente nuevo cuando se selecciona uno existente
+                                        if ($state) {
+                                            $set('new_customer_name', '');
+                                            $set('new_customer_phone', '');
+                                            $set('new_customer_address', '');
+                                            $set('new_customer_document', '');
+                                        }
+                                    }),
+
+                                // SECCIÓN REGISTRO CLIENTE NUEVO
+                                Forms\Components\Fieldset::make('Registrar Cliente Nuevo')
+                                    ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
+                                    ->schema([
+                                        Forms\Components\TextInput::make('new_customer_name')
+                                            ->label('Nombre / Razón Social')
+                                            ->placeholder('Ingrese nombre o razón social del cliente')
+                                            ->live()
+                                            ->afterStateUpdated(function (Set $set, $state) {
+                                                // Limpiar cliente existente cuando se escribe nombre nuevo
+                                                if ($state) {
+                                                    $set('customer_id', null);
+                                                }
+                                            }),
+
+                                        Forms\Components\TextInput::make('new_customer_phone')
+                                            ->label('Teléfono')
+                                            ->placeholder('Número de teléfono')
+                                            ->tel(),
+
+                                        Forms\Components\TextInput::make('new_customer_address')
+                                            ->label('Dirección')
+                                            ->placeholder('Dirección completa'),
+
+                                        Forms\Components\TextInput::make('new_customer_document')
+                                            ->label('Documento (DNI/RUC)')
+                                            ->placeholder('Número de documento (opcional)')
+                                            ->helperText('Campo opcional - DNI o RUC del cliente'),
+                                    ])
+                                    ->columns(2),
                             ])
                             ->columnSpan(1),
                     ])
@@ -2103,19 +2372,112 @@ class PosInterface extends Page
     protected function handlePayment(array $data)
     {
         try {
-            DB::transaction(function () use ($data) {
-                // Lógica de procesamiento de pago
-                // Crear factura, actualizar orden, registrar pago, etc.
+            $invoice = null;
+            
+            DB::transaction(function () use ($data, &$invoice) {
+                if (!$this->order) {
+                    throw new \Exception('No hay orden activa para procesar el pago');
+                }
+
+                // Obtener o crear cliente
+                $customerId = $data['customer_id'] ?? $this->selectedCustomerId;
                 
-                Notification::make()
-                    ->title('✅ Pago procesado')
-                    ->body('El pago se ha registrado correctamente')
-                    ->success()
-                    ->send();
+                // Si hay datos de cliente nuevo, crear cliente
+                if (!empty($data['new_customer_name'])) {
+                    $newCustomer = Customer::create([
+                        'name' => $data['new_customer_name'],
+                        'phone' => $data['new_customer_phone'] ?? '',
+                        'address' => $data['new_customer_address'] ?? '',
+                        'document_number' => $data['new_customer_document'] ?? '',
+                        'document_type' => !empty($data['new_customer_document']) && strlen($data['new_customer_document']) === 11 ? 'RUC' : 'DNI',
+                        'email' => '',
+                    ]);
+                    $customerId = $newCustomer->id;
+                    
+                    Log::info('👤 Cliente nuevo creado', [
+                        'customer_id' => $newCustomer->id,
+                        'name' => $newCustomer->name,
+                        'document' => $newCustomer->document_number
+                    ]);
+                }
+                
+                // Si no hay cliente seleccionado ni nuevo, usar "Público General"
+                if (!$customerId) {
+                    $defaultCustomer = Customer::firstOrCreate(
+                        ['document_number' => '99999999'],
+                        [
+                            'document_type' => 'DNI',
+                            'name' => 'Público General',
+                            'email' => 'publico@general.com',
+                            'address' => 'Lima, Perú'
+                        ]
+                    );
+                    $customerId = $defaultCustomer->id;
+                }
+
+                // Crear la factura usando el método del modelo Order
+                $invoice = $this->order->generateInvoice(
+                    $data['document_type'] ?? 'receipt',
+                    $data['series'] ?? 'B001',
+                    $customerId
+                );
+
+                if (!$invoice) {
+                    throw new \Exception('No se pudo generar la factura');
+                }
+
+                // Marcar orden como pagada/facturada
+                $this->order->update([
+                    'status' => 'completed',
+                    'billed' => true,
+                    'payment_method' => $data['payment_method'] ?? 'cash',
+                    'payment_amount' => $data['payment_amount'] ?? $this->order->total,
+                    'cash_received' => $data['cash_received'] ?? null,
+                ]);
+
+                // Liberar mesa automáticamente después del pago
+                if ($this->order->table) {
+                    $this->order->table->update(['status' => TableModel::STATUS_AVAILABLE]);
+                    Log::info('🟢 Mesa liberada automáticamente', [
+                        'table_id' => $this->order->table->id,
+                        'table_status' => 'available'
+                    ]);
+                }
+
+                // Limpiar carrito y resetear estado
+                $this->cartItems = [];
+                $this->total = 0.0;
+                $this->subtotal = 0.0;
+                $this->tax = 0.0;
+                $this->order = null;
+
+                Log::info('💳 Pago procesado exitosamente', [
+                    'order_id' => $this->order?->id,
+                    'invoice_id' => $invoice->id,
+                    'total' => $invoice->total
+                ]);
             });
+
+            // Mostrar notificación de éxito
+            Notification::make()
+                ->title('✅ Pago procesado')
+                ->body('El pago se ha registrado correctamente')
+                ->success()
+                ->send();
+
+            // Dispatch evento para abrir ventana de impresión
+            if ($invoice) {
+                Log::info('🖨️ Disparando evento de impresión', ['invoice_id' => $invoice->id]);
+                $this->dispatch('open-print-window', ['id' => $invoice->id]);
+            }
             
             return true;
         } catch (\Exception $e) {
+            Log::error('❌ Error procesando pago', [
+                'error' => $e->getMessage(),
+                'order_id' => $this->order?->id
+            ]);
+            
             Notification::make()
                 ->title('❌ Error en el pago')
                 ->body('No se pudo procesar el pago: ' . $e->getMessage())
@@ -2151,5 +2513,525 @@ class PosInterface extends Page
                 ->warning()
                 ->send();
         }
+    }
+
+    /**
+     * Acción para imprimir comanda
+     */
+    protected function printComandaAction(): Action
+    {
+        return Action::make('printComanda')
+            ->label('Comanda')
+            ->icon('heroicon-o-printer')
+            ->color('warning')
+            ->size('lg')
+            ->modal()
+            ->modalHeading('👨‍🍳 Comanda')
+            ->modalDescription('Orden para la cocina')
+            ->modalWidth('md')
+            ->form(function () {
+                // ✅ Si es venta directa (sin mesa), solicitar nombre del cliente
+                if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
+                    return [
+                        Forms\Components\TextInput::make('customerNameForComanda')
+                            ->label('Nombre del Cliente')
+                            ->placeholder('Ingrese el nombre del cliente')
+                            ->required()
+                            ->maxLength(100)
+                            ->helperText('Este nombre aparecerá en la comanda')
+                            ->default($this->customerNameForComanda)
+                    ];
+                }
+                return [];
+            })
+            ->modalContent(function () {
+                // Si necesita solicitar nombre del cliente, no mostrar contenido aún
+                if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
+                    return null; // El formulario se mostrará primero
+                }
+
+                // Crear la orden si no existe
+                if (!$this->order && !empty($this->cartItems)) {
+                    $this->order = $this->createOrderFromCart();
+                }
+
+                if (!$this->order) {
+                    return view('components.empty-state', [
+                        'message' => 'No hay orden para mostrar'
+                    ]);
+                }
+
+                // Obtener datos de la orden con productos
+                $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
+                
+                return view('filament.modals.comanda-content', [
+                    'order' => $order,
+                    'customerNameForComanda' => $this->customerNameForComanda,
+                    'isDirectSale' => $this->selectedTableId === null
+                ]);
+            })
+            ->action(function (array $data) {
+                // ✅ Guardar el nombre del cliente si es venta directa
+                if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
+                    $this->customerNameForComanda = $data['customerNameForComanda'];
+                }
+
+                // ✅ Crear la orden si no existe (ahora CON el nombre del cliente guardado)
+                if (!$this->order && !empty($this->cartItems)) {
+                    $this->order = $this->createOrderFromCart();
+                }
+
+                // Solo proceder si ya tenemos orden y (si es venta directa) el nombre del cliente
+                if ($this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))) {
+                    // Cerrar el modal para mostrar el contenido
+                    $this->dispatch('refreshModalContent');
+                    
+                    // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
+                    if ($this->selectedTableId) {
+                        $redirectUrl = TableMap::getUrl();
+
+                        Notification::make()
+                            ->title('Comanda Enviada')
+                            ->body('Pedido guardado correctamente. Regresando al mapa de mesas...')
+                            ->success()
+                            ->duration(2000)
+                            ->send();
+
+                        $this->js("
+                            setTimeout(function() {
+                                window.location.href = '{$redirectUrl}';
+                            }, 500);
+                        ");
+                    }
+                }
+            })
+            ->modalSubmitActionLabel('Confirmar')
+            ->extraModalFooterActions([
+                Action::make('printComanda')
+                    ->label('🖨️ Imprimir')
+                    ->color('primary')
+                    ->action(function () {
+                        $url = route('orders.comanda.pdf', [
+                            'order' => $this->order,
+                            'customerName' => $this->customerNameForComanda
+                        ]);
+                        $this->js("window.open('$url', 'comanda_print', 'width=800,height=600,scrollbars=yes,resizable=yes')");
+                    })
+                    ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
+                Action::make('downloadComanda')
+                    ->label('📥 Descargar')
+                    ->color('success')
+                    ->action(function () {
+                        $url = route('orders.comanda.pdf', [
+                            'order' => $this->order,
+                            'customerName' => $this->customerNameForComanda
+                        ]);
+                        $this->js("window.open('$url', '_blank')");
+                    })
+                    ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
+            ])
+            ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems));
+    }
+
+    /**
+     * Acción para imprimir pre-cuenta
+     */
+    protected function printPreBillNewAction(): Action
+    {
+        return Action::make('printPreBillNew')
+            ->label('Pre-Cuenta')
+            ->icon('heroicon-o-document-text')
+            ->color('warning')
+            ->size('lg')
+            ->modal()
+            ->modalHeading('📄 Pre-Cuenta')
+            ->modalDescription('Resumen de la orden antes del pago')
+            ->modalWidth('md')
+            ->modalContent(function () {
+                // Crear la orden si no existe
+                if (!$this->order && !empty($this->cartItems)) {
+                    $this->order = $this->createOrderFromCart();
+                }
+
+                if (!$this->order) {
+                    return view('components.empty-state', [
+                        'message' => 'No hay orden para mostrar'
+                    ]);
+                }
+
+                // Obtener datos de la orden con productos
+                $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
+                
+                return view('filament.modals.pre-bill-content', [
+                    'order' => $order,
+                    'subtotal' => $order->subtotal ?? $this->subtotal,
+                    'tax' => $order->tax ?? $this->tax,
+                    'total' => $order->total ?? $this->total
+                ]);
+            })
+            ->modalSubmitAction(false)
+            ->modalCancelAction(false)
+            ->extraModalFooterActions([
+                Action::make('printPreBill')
+                    ->label('🖨️ Imprimir')
+                    ->color('primary')
+                    ->action(function () {
+                        // Cambiar estado de mesa a "pendiente de pago"
+                        if ($this->order && $this->order->table) {
+                            $this->order->table->update(['status' => TableModel::STATUS_PENDING_PAYMENT]);
+                            
+                            Log::info('🔵 Mesa cambiada a pendiente de pago', [
+                                'table_id' => $this->order->table->id,
+                                'order_id' => $this->order->id,
+                                'status' => 'pending_payment'
+                            ]);
+                        }
+                        
+                        $url = route('print.prebill', ['order' => $this->order->id]);
+                        $this->js("window.open('$url', 'prebill_print', 'width=800,height=600,scrollbars=yes,resizable=yes')");
+                    }),
+                Action::make('downloadPreBill')
+                    ->label('📥 Descargar')
+                    ->color('success')
+                    ->action(function () {
+                        $url = route('print.prebill', ['order' => $this->order->id]);
+                        $this->js("window.open('$url', '_blank')");
+                    }),
+            ])
+            ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems))
+            ->disabled(fn (): bool => !$this->order && empty($this->cartItems));
+    }
+
+    /**
+     * Acción para reabrir orden para edición
+     */
+    protected function reopen_order_for_editingAction(): Action
+    {
+        return Action::make('reopen_order_for_editing')
+            ->label('Reabrir Orden')
+            ->icon('heroicon-o-arrow-path')
+            ->color('warning')
+            ->action(function () {
+                $this->isCartDisabled = false;
+                $this->canAddProducts = true; // Permitir agregar productos nuevamente
+                $this->canClearCart = true; // Permitir limpiar el carrito
+                Notification::make()
+                    ->title('Orden reabierta para edición')
+                    ->warning()
+                    ->send();
+            })
+            ->visible(fn () =>
+                $this->order instanceof Order &&
+                !$this->order->invoices()->exists()
+            );
+    }
+
+    /**
+     * Acción para volver al mapa de mesas
+     */
+    protected function backToTableMapAction(): Action
+    {
+        return Action::make('backToTableMap')
+            ->label('Mapa de Mesas')
+            ->icon('heroicon-o-map')
+            ->color('gray')
+            ->size('lg')
+            ->url(fn(): string => TableMap::getUrl())
+            ->visible(fn(): bool => $this->order && $this->order->table_id !== null);
+    }
+
+    /**
+     * Acción para liberar mesa
+     */
+    protected function releaseTableAction(): Action
+    {
+        return Action::make('releaseTable')
+            ->label('Liberar Mesa')
+            ->icon('heroicon-o-check-circle')
+            ->color('success')
+            ->requiresConfirmation()
+            ->modalHeading('Confirmar Liberación')
+            ->modalDescription('¿Estás seguro de que deseas marcar esta orden como PAGADA y liberar la mesa? Esta acción no se puede deshacer.')
+            ->action(function () {
+                if ($this->order) {
+                    $table = $this->order->table;
+                    $this->order->update(['status' => Order::STATUS_COMPLETED]);
+                    if ($table) {
+                        $table->update(['status' => TableModel::STATUS_AVAILABLE]);
+                    }
+                    Notification::make()->title('Mesa Liberada')->success()->send();
+                    return redirect(TableMap::getUrl());
+                }
+            })
+            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier']));
+    }
+
+    /**
+     * Acción para cancelar orden
+     */
+    protected function cancelOrderAction(): Action
+    {
+        return Action::make('cancelOrder')
+            ->label('Cancelar Orden')
+            ->icon('heroicon-o-x-circle')
+            ->color('danger')
+            ->requiresConfirmation()
+            ->modalHeading('Confirmar Cancelación')
+            ->modalDescription('¿Estás seguro de que deseas CANCELAR esta orden? Los productos no se cobrarán y la mesa quedará libre. Esta acción no se puede deshacer.')
+            ->action(function () {
+                if ($this->order) {
+                    $table = $this->order->table;
+                    $this->order->update(['status' => Order::STATUS_CANCELLED]);
+                    if ($table) {
+                        $table->update(['status' => TableModel::STATUS_AVAILABLE]);
+                    }
+                    Notification::make()->title('Orden Cancelada')->success()->send();
+                    return redirect(TableMap::getUrl());
+                }
+            })
+            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier']));
+    }
+
+    /**
+     * Acción para transferir orden
+     */
+    protected function transferOrderAction(): Action
+    {
+        return Action::make('transferOrder')
+            ->label('Transferir')
+            ->icon('heroicon-o-arrows-right-left')
+            ->color('warning')
+            ->slideOver()
+            ->modalWidth('2xl')
+            ->fillForm(function () {
+                $this->transferItems = [];
+                if ($this->order) {
+                    foreach ($this->order->orderDetails as $detail) {
+                        $this->transferItems[] = [
+                            'order_detail_id' => $detail->id,
+                            'product_name' => $detail->product->name,
+                            'original_quantity' => $detail->quantity,
+                            'quantity_to_move' => 0,
+                        ];
+                    }
+                }
+                return [
+                    'transferItems' => $this->transferItems,
+                    'target_table_id' => null,
+                ];
+            })
+            ->form([
+                Repeater::make('transferItems')
+                    ->label('Productos en la Mesa Actual')
+                    ->schema([
+                        Forms\Components\Grid::make(3)->schema([
+                            Forms\Components\Placeholder::make('product_name')
+                                ->label('Producto')
+                                ->content(fn($state) => $state)
+                                ->columnSpan(2),
+                            Forms\Components\TextInput::make('quantity_to_move')
+                                ->label('Mover')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(fn(Get $get) => $get('original_quantity'))
+                                ->required()
+                                ->default(0)
+                                ->helperText(fn(Get $get) => 'Max: ' . $get('original_quantity'))
+                                ->columnSpan(1),
+                        ]),
+                        Forms\Components\Hidden::make('order_detail_id'),
+                        Forms\Components\Hidden::make('original_quantity'),
+                    ])
+                    ->addable(false)
+                    ->deletable(false)
+                    ->reorderable(false)
+                    ->columnSpanFull()
+                    ->itemLabel(''),
+
+                Select::make('new_table_id')
+                    ->label('Mesa de Destino')
+                    ->options(TableModel::where('id', '!=', $this->selectedTableId)->pluck('number', 'id'))
+                    ->required()
+                    ->searchable()
+                    ->placeholder('Elige una mesa para la transferencia...'),
+            ])
+            ->action(function (array $data): void {
+                $this->processTransfer($data);
+            })
+            ->modalHeading('Transferir / Combinar Cuentas')
+            ->modalDescription('Selecciona los productos y la cantidad a mover a otra mesa.')
+            ->visible(fn(): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier']));
+    }
+
+    /**
+     * Acción para dividir cuenta
+     */
+    protected function split_itemsAction(): Action
+    {
+        return Action::make('split_items')
+            ->label('Dividir Cuenta')
+            ->icon('heroicon-o-calculator')
+            ->color('warning')
+            ->size('lg')
+            ->slideOver()
+            ->modalWidth('2xl')
+            ->form([
+                Forms\Components\Section::make('Productos a Dividir')
+                    ->description('Selecciona la cantidad de cada producto que deseas mover a la nueva cuenta')
+                    ->icon('heroicon-o-shopping-cart')
+                    ->schema([
+                        Forms\Components\Repeater::make('split_items')
+                            ->schema([
+                                Forms\Components\Grid::make(12)
+                                    ->schema([
+                                        Forms\Components\Hidden::make('product_id'),
+                                        Forms\Components\Hidden::make('name'),
+                                        Forms\Components\Hidden::make('quantity'),
+                                        Forms\Components\Hidden::make('unit_price'),
+                                        Forms\Components\TextInput::make('product_name')
+                                            ->label('Producto')
+                                            ->disabled()
+                                            ->columnSpan(5),
+                                        Forms\Components\TextInput::make('available_quantity')
+                                            ->label('Disponible')
+                                            ->disabled()
+                                            ->columnSpan(3),
+                                        Forms\Components\TextInput::make('split_quantity')
+                                            ->label('Mover')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->columnSpan(4)
+                                    ])
+                            ])
+                            ->disabled(fn () => !$this->order)
+                            ->defaultItems(0)
+                    ])
+            ])
+            ->fillForm(function(): array {
+                if (!$this->order) {
+                    return ['split_items' => []];
+                }
+
+                return [
+                    'split_items' => $this->order->orderDetails->map(function($detail) {
+                        return [
+                            'product_id' => $detail->product_id,
+                            'name' => $detail->product->name,
+                            'product_name' => $detail->product->name,
+                            'quantity' => $detail->quantity,
+                            'available_quantity' => $detail->quantity,
+                            'unit_price' => $detail->unit_price,
+                            'split_quantity' => 0,
+                        ];
+                    })->toArray()
+                ];
+            })
+            ->action(function(array $data): void {
+                // Validar que al menos un producto tenga cantidad mayor a 0
+                $hasItemsToSplit = collect($data['split_items'])
+                    ->some(fn($item) => ($item['split_quantity'] ?? 0) > 0);
+
+                if (!$hasItemsToSplit) {
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Debes seleccionar al menos un producto para dividir')
+                        ->danger()
+                        ->send();
+                    return;
+                }
+
+                // Validar que las cantidades a dividir no excedan las disponibles
+                foreach ($data['split_items'] as $item) {
+                    $splitQuantity = $item['split_quantity'] ?? 0;
+                    $availableQuantity = $item['quantity'] ?? 0;
+
+                    if ($splitQuantity > $availableQuantity) {
+                        Notification::make()
+                            ->title('Error')
+                            ->body("No puedes dividir más de {$availableQuantity} unidades de {$item['product_name']}")
+                            ->danger()
+                            ->send();
+                        return;
+                    }
+                }
+
+                DB::beginTransaction();
+                try {
+                    // Crear la nueva orden
+                    $newOrder = Order::create([
+                        'table_id' => $this->order->table_id,
+                        'customer_id' => $this->order->customer_id,
+                        'employee_id' => $this->order->employee_id,
+                        'status' => Order::STATUS_OPEN,
+                        'created_by' => auth()->guard('web')->id(),
+                        'order_datetime' => now(),
+                        'service_type' => $this->order->service_type,
+                        'number_of_guests' => 1,
+                        'parent_id' => $this->order->id,
+                        'subtotal' => 0,
+                        'tax' => 0,
+                        'total' => 0,
+                        'discount' => 0,
+                        'billed' => false,
+                    ]);
+
+                    // Mover los productos seleccionados a la nueva orden
+                    foreach ($data['split_items'] as $item) {
+                        $splitQuantity = $item['split_quantity'] ?? 0;
+                        if ($splitQuantity > 0) {
+                            // Crear el detalle en la nueva orden
+                            $newOrder->orderDetails()->create([
+                                'product_id' => $item['product_id'],
+                                'quantity' => $splitQuantity,
+                                'unit_price' => $item['unit_price'],
+                                'subtotal' => $splitQuantity * $item['unit_price'],
+                            ]);
+
+                            // Actualizar la cantidad en la orden original
+                            $this->order->orderDetails()
+                                ->where('product_id', $item['product_id'])
+                                ->update([
+                                    'quantity' => DB::raw("quantity - {$splitQuantity}")
+                                ]);
+                        }
+                    }
+
+                    // Eliminar detalles con cantidad 0
+                    $this->order->orderDetails()->where('quantity', 0)->delete();
+
+                    // Recalcular totales
+                    $this->order->recalculateTotals();
+                    $newOrder->recalculateTotals();
+
+                    DB::commit();
+
+                    $this->refreshOrderData();
+
+                    Notification::make()
+                        ->title('Cuenta Dividida')
+                        ->body('La cuenta se ha dividido correctamente')
+                        ->success()
+                        ->send();
+
+                    // Redirigir al mapa de mesas después de dividir la cuenta
+                    $redirectUrl = TableMap::getUrl();
+                    $this->js("
+                        console.log('Redirigiendo a mapa de mesas después de dividir cuenta');
+                        setTimeout(function() {
+                            window.location.href = '{$redirectUrl}';
+                        }, 500);
+                    ");
+
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Notification::make()
+                        ->title('Error')
+                        ->body('Hubo un error al dividir la cuenta: ' . $e->getMessage())
+                        ->danger()
+                        ->send();
+                }
+            })
+            ->visible(fn (): bool => $this->order !== null && count($this->order->orderDetails) > 0);
     }
 }

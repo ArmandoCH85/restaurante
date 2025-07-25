@@ -713,6 +713,7 @@ class TableMapView extends Component
             'available' => 'disponible',
             'occupied' => 'ocupada',
             'reserved' => 'reservada',
+            'pending_payment' => 'pendiente de pago',
             'maintenance' => 'en mantenimiento'
         ];
 
@@ -725,6 +726,7 @@ class TableMapView extends Component
             'available' => 'Disponible',
             'occupied' => 'Ocupada',
             'reserved' => 'Reservada',
+            'pending_payment' => 'Pendiente de Pago',
             'maintenance' => 'En mantenimiento',
         ];
     }

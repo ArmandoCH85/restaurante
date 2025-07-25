@@ -58,6 +58,7 @@
                             'available' => 'background-color: #d1fae5 !important; color: #065f46 !important; border: 1px solid #6ee7b7 !important;',
                             'occupied'  => 'background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important;',
                             'reserved'  => 'background-color: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important;',
+                            'maintenance' => 'background-color: #e0f2fe !important; color: #0277bd !important; border: 1px solid #4fc3f7 !important;',
                             default     => 'background-color: #f3f4f6 !important; color: #1f2937 !important; border: 1px solid #d1d5db !important;',
                         };
                     @endphp
@@ -89,6 +90,7 @@
                                     'available' => 'success',
                                     'occupied' => 'danger',
                                     'reserved' => 'warning',
+                                    'prebill' => 'info',
                                     'maintenance' => 'gray',
                                     default => 'gray',
                                 }"
@@ -96,6 +98,7 @@
                                     'available' => 'heroicon-m-check-circle',
                                     'occupied' => 'heroicon-m-users',
                                     'reserved' => 'heroicon-m-clock',
+                                    'prebill' => 'heroicon-m-banknotes',
                                     'maintenance' => 'heroicon-m-wrench-screwdriver',
                                     default => 'heroicon-m-question-mark-circle',
                                 }"
@@ -106,6 +109,7 @@
                                     'available' => 'Disponible',
                                     'occupied' => 'Ocupada',
                                     'reserved' => 'Reservada',
+                                    'prebill' => 'Pre-Cuenta',
                                     'maintenance' => 'Mantenimiento',
                                     default => 'Sin estado',
                                 } }}
@@ -219,6 +223,13 @@
                                 'shadow' => 'hover:shadow-amber-500/30',
                                 'pulse' => 'group-hover:ring-4 group-hover:ring-amber-500/20',
                             ],
+                            'maintenance' => [
+                                'gradient' => 'from-sky-400 to-sky-500 dark:from-sky-600 dark:to-sky-700',
+                                'border' => 'border-sky-700 dark:border-sky-800',
+                                'text' => 'text-sky-900 dark:text-sky-100',
+                                'shadow' => 'hover:shadow-sky-500/30',
+                                'pulse' => 'group-hover:ring-4 group-hover:ring-sky-500/20',
+                            ],
                             default => [
                                 'gradient' => 'from-emerald-100 to-emerald-200 dark:from-emerald-900 dark:to-emerald-800',
                                 'border' => 'border-emerald-300 dark:border-emerald-700',
@@ -265,6 +276,7 @@
                                 'available' => 'bg-emerald-500',
                                 'occupied' => 'bg-rose-500 animate-pulse',
                                 'reserved' => 'bg-amber-500',
+                                'maintenance' => 'bg-sky-500',
                                 default => 'bg-gray-500',
                             } }}">
                         </div>
@@ -276,6 +288,7 @@
                                 'available' => 'Disponible',
                                 'occupied' => 'Ocupada',
                                 'reserved' => 'Reservada',
+                                'maintenance' => 'Pre-Cuenta',
                                 default => 'Sin estado',
                             } }}
                         </div>
