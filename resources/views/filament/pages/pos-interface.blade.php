@@ -1115,7 +1115,7 @@
                         <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title" x-text="title"></h3>
                         <div class="mt-2">
                             <p class="text-sm text-gray-500">
-                                El comprobante se ha procesado exitosamente. ¿Desea imprimirlo?
+                                El comprobante se ha procesado exitosamente. ¿Desea imprimirlo???
                             </p>
                         </div>
                     </div>
