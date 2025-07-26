@@ -58,6 +58,7 @@
                             'available' => 'background-color: #d1fae5 !important; color: #065f46 !important; border: 1px solid #6ee7b7 !important;',
                             'occupied'  => 'background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important;',
                             'reserved'  => 'background-color: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important;',
+                            'prebill'   => 'background-color: #dbeafe !important; color: #1e40af !important; border: 1px solid #60a5fa !important;',
                             'maintenance' => 'background-color: #e0f2fe !important; color: #0277bd !important; border: 1px solid #4fc3f7 !important;',
                             default     => 'background-color: #f3f4f6 !important; color: #1f2937 !important; border: 1px solid #d1d5db !important;',
                         };
@@ -223,6 +224,13 @@
                                 'shadow' => 'hover:shadow-amber-500/30',
                                 'pulse' => 'group-hover:ring-4 group-hover:ring-amber-500/20',
                             ],
+                            'prebill' => [
+                                'gradient' => 'from-blue-400 to-blue-500 dark:from-blue-600 dark:to-blue-700',
+                                'border' => 'border-blue-700 dark:border-blue-800',
+                                'text' => 'text-blue-900 dark:text-blue-100',
+                                'shadow' => 'hover:shadow-blue-500/30',
+                                'pulse' => 'group-hover:ring-4 group-hover:ring-blue-500/20',
+                            ],
                             'maintenance' => [
                                 'gradient' => 'from-sky-400 to-sky-500 dark:from-sky-600 dark:to-sky-700',
                                 'border' => 'border-sky-700 dark:border-sky-800',
@@ -276,6 +284,7 @@
                                 'available' => 'bg-emerald-500',
                                 'occupied' => 'bg-rose-500 animate-pulse',
                                 'reserved' => 'bg-amber-500',
+                                'prebill' => 'bg-blue-500',
                                 'maintenance' => 'bg-sky-500',
                                 default => 'bg-gray-500',
                             } }}">
@@ -288,7 +297,8 @@
                                 'available' => 'Disponible',
                                 'occupied' => 'Ocupada',
                                 'reserved' => 'Reservada',
-                                'maintenance' => 'Pre-Cuenta',
+                                'prebill' => 'Pre-Cuenta',
+                                'maintenance' => 'Mantenimiento',
                                 default => 'Sin estado',
                             } }}
                         </div>
@@ -322,6 +332,7 @@
                                 <option value="available">Disponible</option>
                                 <option value="occupied">Ocupada</option>
                                 <option value="reserved">Reservada</option>
+                                <option value="prebill">Pre-Cuenta</option>
                                 <option value="maintenance">Mantenimiento</option>
                             </x-filament::input.select>
                         </x-filament::input.wrapper>

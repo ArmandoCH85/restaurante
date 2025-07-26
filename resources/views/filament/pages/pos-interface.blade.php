@@ -835,6 +835,31 @@
                                     <span>Transferir</span>
                                 </button>
                             @endif
+                            
+                            {{-- Liberar Mesa --}}
+                            <button 
+                                wire:click="mountAction('releaseTable')"
+                                class="pos-quick-action-btn"
+                                {{ !($this->order && $this->order->table_id) ? 'disabled' : '' }}
+                                title="Liberar Mesa"
+                            >
+                                <x-heroicon-o-home class="pos-quick-action-icon" />
+                                <span>Liberar Mesa</span>
+                            </button>
+                            
+                            {{-- Cancelar Pedido --}}
+                            <button 
+                                wire:click="mountAction('cancelOrder')"
+                                class="pos-quick-action-btn"
+                                {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
+                                title="Cancelar Pedido"
+                                style="color: #dc2626; border-color: #fca5a5;"
+                                onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#dc2626'; this.style.color='#dc2626';"
+                                onmouseout="this.style.background='white'; this.style.borderColor='#fca5a5'; this.style.color='#dc2626';"
+                            >
+                                <x-heroicon-o-x-circle class="pos-quick-action-icon" />
+                                <span>Cancelar Pedido</span>
+                            </button>
                         </div>
                     </div>
                 </div>

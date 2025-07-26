@@ -2676,15 +2676,22 @@ class PosInterface extends Page
                     ->label('🖨️ Imprimir')
                     ->color('primary')
                     ->action(function () {
-                        // Cambiar estado de mesa a "pendiente de pago"
+                        // Cambiar estado de mesa a "PRE-CUENTA"
                         if ($this->order && $this->order->table) {
-                            $this->order->table->update(['status' => TableModel::STATUS_PENDING_PAYMENT]);
+                            $this->order->table->update(['status' => TableModel::STATUS_PREBILL]);
                             
-                            Log::info('🔵 Mesa cambiada a pendiente de pago', [
+                            Log::info('🔵 Mesa cambiada a PRE-CUENTA', [
                                 'table_id' => $this->order->table->id,
                                 'order_id' => $this->order->id,
-                                'status' => 'pending_payment'
+                                'status' => 'prebill'
                             ]);
+                            
+                            Notification::make()
+                                ->title('Mesa en PRE-CUENTA')
+                                ->body('La mesa ahora está marcada como PRE-CUENTA')
+                                ->success()
+                                ->duration(3000)
+                                ->send();
                         }
                         
                         $url = route('print.prebill', ['order' => $this->order->id]);
