@@ -19,6 +19,9 @@ class SimpleTableResource extends Resource
     protected static ?string $navigationGroup = '⚙️ Configuración';
 
     protected static ?string $navigationLabel = 'Mesas';
+    
+    // DESHABILITADO: Evitar duplicación con TableResource principal
+    protected static bool $shouldRegisterNavigation = false;
 
     protected static ?string $modelLabel = 'Mesa';
 

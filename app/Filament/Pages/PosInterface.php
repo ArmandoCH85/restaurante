@@ -2736,7 +2736,9 @@ class PosInterface extends Page
             ->icon('heroicon-o-map')
             ->color('gray')
             ->size('lg')
-            ->url(fn(): string => TableMap::getUrl())
+            ->action(function () {
+                return redirect(TableMap::getUrl());
+            })
             ->visible(fn(): bool => $this->order && $this->order->table_id !== null);
     }
 

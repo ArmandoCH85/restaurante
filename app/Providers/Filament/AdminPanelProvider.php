@@ -142,26 +142,6 @@ class AdminPanelProvider extends PanelProvider
                     ->collapsed(true), // Colapsado - uso esporádico
             ])
             ->navigationItems([
-                // OPERACIONES PRINCIPALES
-                NavigationItem::make('Venta Directa')
-                    ->url('/admin/pos-interface')
-                    ->icon('heroicon-o-shopping-cart')
-                    ->group('Operaciones Diarias')
-                    ->sort(1)
-                    ->visible(function () {
-                        $user = Auth::user();
-                        return $user && !$user->hasRole('waiter');
-                    }),
-                NavigationItem::make('Mapa de Mesas')
-                    ->url('/admin/mapa-mesas')
-                    ->icon('heroicon-o-map')
-                    ->group('Operaciones Diarias')
-                    ->sort(2)
-                    ->visible(function () {
-                        $user = Auth::user();
-                        return $user && ($user->hasRole(['super_admin', 'admin', 'cashier', 'waiter']));
-                    }),
-
                 // MENÚ Y PRODUCTOS
                 NavigationItem::make('Productos')
                     ->url('/admin/resources/products')

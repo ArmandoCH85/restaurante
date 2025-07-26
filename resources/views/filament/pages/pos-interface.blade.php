@@ -1,9 +1,133 @@
 <x-filament-panels::page>
-    <div class="h-screen flex flex-col bg-gray-50 pos-interface">
-        {{-- CONTENIDO PRINCIPAL CON SIDEBAR DE CATEGORÍAS --}}
-        <div class="flex-1 flex overflow-hidden">
+    <style>
+        /* ========================================= */
+        /* LAYOUT INTELIGENTE - RESPETA SIDEBAR DE FILAMENT */
+        /* ========================================= */
+        
+        /* VARIABLES DINÁMICAS */
+        :root {
+            --cart-width: 420px;
+        }
+        
+        /* CARRITO FIJO EN LADO DERECHO - SOLO ESTO ES FIJO */
+        .pos-cart {
+            position: fixed !important;
+            top: 0 !important;
+            right: 0 !important;
+            width: var(--cart-width) !important;
+            height: 100vh !important;
+            z-index: 1000 !important;
+            background: white !important;
+            border-left: 1px solid #e5e7eb !important;
+            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1) !important;
+            overflow-y: auto !important;
+        }
+        
+        /* CONTENIDO PRINCIPAL - SE AJUSTA DINÁMICAMENTE */
+        .pos-main-content {
+            margin-right: calc(var(--cart-width) + 4px) !important; /* 4px gap mínimo */
+            transition: margin-right 0.3s ease !important;
+            height: 100vh !important; /* Misma altura que carrito */
+            position: relative !important;
+        }
+        
+        /* CUANDO SIDEBAR DE FILAMENT ESTÁ ABIERTO */
+        .fi-sidebar ~ .fi-main .pos-main-content {
+            margin-right: calc(var(--cart-width) + 4px) !important;
+            /* Filament maneja el margen izquierdo automáticamente */
+        }
+        
+        /* CUANDO SIDEBAR DE FILAMENT ESTÁ CERRADO */
+        .fi-sidebar-close ~ .fi-main .pos-main-content,
+        body:not(.fi-sidebar-open) .pos-main-content {
+            margin-right: calc(var(--cart-width) + 4px) !important;
+            /* Sin sidebar, el contenido se expande automáticamente */
+        }
+        
+        /* AJUSTES ESPECÍFICOS PARA EL CONTENIDO DEL POS */
+        .pos-categories {
+            width: 200px !important;
+            min-width: 200px !important;
+            flex-shrink: 0 !important;
+            height: 100vh !important; /* Misma altura que carrito */
+        }
+        
+        .pos-products {
+            flex: 1 !important;
+            min-width: 0 !important; /* Permite que se encoja si es necesario */
+            height: 100vh !important; /* Misma altura que carrito */
+            overflow-y: auto !important;
+        }
+        
+        /* RESPONSIVE BREAKPOINTS */
+        @media (max-width: 1024px) {
+            :root {
+                --cart-width: 350px;
+            }
+            
+            .pos-categories {
+                width: 180px !important;
+                min-width: 180px !important;
+            }
+            
+            .pos-main-content {
+                margin-right: calc(350px + 4px) !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            :root {
+                --cart-width: 320px;
+            }
+            
+            .pos-categories {
+                width: 160px !important;
+                min-width: 160px !important;
+            }
+            
+            .pos-main-content {
+                margin-right: calc(320px + 4px) !important;
+            }
+        }
+        
+        /* SCROLLBARS PERSONALIZADOS */
+        .pos-cart::-webkit-scrollbar,
+        .pos-products::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .pos-cart::-webkit-scrollbar-track,
+        .pos-products::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+        .pos-cart::-webkit-scrollbar-thumb,
+        .pos-products::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+        .pos-cart::-webkit-scrollbar-thumb:hover,
+        .pos-products::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* ASEGURAR QUE FILAMENT FUNCIONE NORMAL */
+        .fi-main {
+            transition: margin-left 0.3s ease !important;
+        }
+        
+        /* NO TOCAR NADA MÁS DE FILAMENT */
+        .pos-interface {
+            position: relative !important;
+            width: 100% !important;
+            height: auto !important;
+        }
+    </style>
+    <div class="pos-interface">
+        <div class="pos-main-content flex overflow-hidden h-screen">
             {{-- SIDEBAR IZQUIERDO: CATEGORÍAS --}}
-            <div class="bg-gradient-to-b from-blue-100 to-blue-200 shadow-lg border-r border-blue-300 flex flex-col" style="width: 200px; min-width: 200px;">
+            <div class="pos-categories bg-gradient-to-b from-blue-100 to-blue-200 shadow-lg border-r border-blue-300 flex flex-col">
                 {{-- HEADER DEL SIDEBAR --}}
                 <div class="px-4 py-4 border-b border-blue-300">
                     <h3 class="text-sm font-bold text-blue-800 text-center">Categorías</h3>
@@ -53,11 +177,12 @@
                     </div>
                 @endif
             </div>
-            {{-- CENTRO: PRODUCTOS (MANTIENE PROPORCIÓN ÁUREA) --}}
-            <div class="flex-1 p-6 overflow-y-auto" style="flex: 1.618;">
+            
+            {{-- CENTRO: PRODUCTOS --}}
+            <div class="pos-products flex-1 p-2 overflow-y-auto">
                 {{-- BARRA DE BÚSQUEDA --}}
-                <div class="mb-8">
-                    <x-filament::input.wrapper class="mb-4">
+                <div class="mb-4">
+                    <x-filament::input.wrapper class="mb-2">
                         <x-filament::input
                             type="text"
                             wire:model.debounce.300ms="search"
@@ -69,7 +194,7 @@
 
                 {{-- GRID RESPONSIVO NATIVO DE FILAMENT/TAILWIND --}}
                 <x-filament::section>
-                    <div class="grid gap-4 grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+                    <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
                     @forelse ($products as $product)
                             {{-- Card de producto usando componentes nativos --}}
                             <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-200">
@@ -166,9 +291,10 @@
                     @endif
                 </x-filament::section>
             </div>
+        </div>
 
-            {{-- DERECHA: CARRITO (38% - PROPORCIÓN ÁUREA) --}}
-            <div class="bg-white border-l border-gray-200 flex flex-col shadow-lg" style="flex: 1; min-width: 400px; max-width: 520px;">
+        {{-- DERECHA: CARRITO FIJO --}}
+        <div class="pos-cart bg-white flex flex-col">
                 {{-- HEADER DEL CARRITO --}}
                 <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
                     <div class="flex items-center justify-between mb-4">
@@ -727,11 +853,8 @@
                         Saltar
                     </button>
                 </div>
-            </div>
         </div>
     </div>
-
-
 </x-filament-panels::page>
 
 @push('styles')
