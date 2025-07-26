@@ -1144,7 +1144,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
-@endpush
+@endpush   
 
 <script>
 // Listener para redirección automática al mapa de mesas después de imprimir comprobantes
