@@ -1,751 +1,786 @@
 @import "tailwindcss";
 
-/* Estilos básicos para el POS */
+/* ========================================= */
+/* SOLUCIÓN COMPLETA: SIDEBAR Y CARRITO POS */
+/* ========================================= */
+
+/* === VARIABLES GLOBALES === */
+:root {
+  --pos-primary: #2563eb;
+  --pos-primary-hover: #1d4ed8;
+  --pos-primary-light: #dbeafe;
+  --pos-success: #059669;
+  --pos-success-hover: #047857;
+  --pos-success-light: #d1fae5;
+  --pos-warning: #d97706;
+  --pos-warning-light: #fef3c7;
+  --pos-danger: #dc2626;
+  --pos-danger-light: #fef2f2;
+  
+  --pos-gray-50: #f8fafc;
+  --pos-gray-100: #f1f5f9;
+  --pos-gray-200: #e2e8f0;
+  --pos-gray-300: #cbd5e1;
+  --pos-gray-400: #94a3b8;
+  --pos-gray-500: #64748b;
+  --pos-gray-600: #475569;
+  --pos-gray-700: #334155;
+  --pos-gray-800: #1e293b;
+  --pos-gray-900: #0f172a;
+  
+  --pos-sidebar-width: 240px;
+  --pos-cart-width: 400px;
+  --pos-border-radius: 8px;
+  
+  --pos-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --pos-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --pos-shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+  
+  --pos-spacing-xs: 4px;
+  --pos-spacing-sm: 6px;
+  --pos-spacing-md: 8px;
+  --pos-spacing-lg: 12px;
+  --pos-spacing-xl: 16px;
+  --pos-spacing-2xl: 20px;
+  
+  --pos-text-xs: 11px;
+  --pos-text-sm: 13px;
+  --pos-text-base: 14px;
+  --pos-text-lg: 16px;
+  --pos-text-xl: 18px;
+  
+  --pos-transition-fast: 150ms ease-in-out;
+  --pos-transition-normal: 200ms ease-in-out;
+}
+
+/* ========================================= */
+/* 🚫 SIDEBAR FILAMENT - PERMITIR TOGGLE PERO SIN INTERFERIR */
+/* ========================================= */
+
+/* OCULTAR SIDEBAR POR DEFECTO PERO PERMITIR QUE APAREZCA */
+.fi-sidebar {
+  display: none !important;
+}
+
+/* CUANDO EL SIDEBAR ESTÉ ABIERTO, MOSTRARLO SOBRE EL POS */
+.fi-sidebar-open .fi-sidebar,
+.fi-sidebar[data-state="open"],
+.fi-sidebar.show {
+  display: block !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  height: 100vh !important;
+  z-index: 10000 !important; /* Por encima del POS */
+  background: white !important;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* MANTENER EL TOGGLE VISIBLE */
+.fi-sidebar-toggle,
+.fi-sidebar-toggle-button,
+.fi-topbar-item[data-sidebar-toggle],
+.fi-header button[aria-label*="sidebar"],
+.fi-header button[aria-label*="menu"],
+.fi-topbar .fi-icon-btn:first-child,
+.fi-header .fi-icon-btn:first-child {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 10001 !important; /* Por encima de todo */
+}
+
+/* ASEGURAR QUE EL TOPBAR SE VEA */
+.fi-topbar,
+.fi-header {
+  display: flex !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 10001 !important;
+  background: white !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  height: 60px !important;
+}
+
+/* ELIMINAR ESPACIOS DEL SIDEBAR EN EL LAYOUT PRINCIPAL */
+.fi-layout {
+  grid-template-columns: 1fr !important;
+}
+
+.fi-main {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin-top: 60px !important; /* Espacio para el topbar */
+}
+
+/* OCULTAR OTROS ELEMENTOS DE NAVEGACIÓN INNECESARIOS */
+.fi-breadcrumbs,
+.fi-page-header,
+.fi-navigation:not(.fi-sidebar-nav),
+.fi-main-nav:not(.fi-sidebar .fi-main-nav) {
+  display: none !important;
+}
+
+/* ========================================= */
+/* 💪 POS LAYOUT - AJUSTADO PARA TOPBAR VISIBLE */
+/* ========================================= */
+
+/* CONTENEDOR PRINCIPAL AJUSTADO PARA TOPBAR */
+.pos-interface {
+  position: fixed !important;
+  top: 60px !important; /* Espacio para el topbar */
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: calc(100vh - 60px) !important; /* Altura menos el topbar */
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 9999 !important;
+  background: var(--pos-gray-50) !important;
+  overflow: hidden !important;
+}
+
+/* GRID PRINCIPAL AJUSTADO */
+.pos-main-container {
+  display: grid !important;
+  grid-template-columns: var(--pos-sidebar-width) 1fr var(--pos-cart-width) !important;
+  grid-template-rows: calc(100vh - 60px) !important; /* Altura menos topbar */
+  width: 100vw !important;
+  height: calc(100vh - 60px) !important;
+  gap: 1px !important;
+  background: var(--pos-gray-100) !important;
+  overflow: hidden !important;
+  position: relative !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* ========================================= */
+/* 🗂️ SIDEBAR CATEGORÍAS OPTIMIZADO */
+/* ========================================= */
+
+.pos-categories {
+  background: linear-gradient(180deg, white 0%, var(--pos-gray-50) 100%) !important;
+  border-right: 2px solid var(--pos-gray-200) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  height: 100vh !important;
+  position: relative !important;
+  grid-column: 1 !important;
+  width: var(--pos-sidebar-width) !important;
+}
+
+.pos-categories-header {
+  padding: var(--pos-spacing-xl) !important;
+  background: white !important;
+  border-bottom: 1px solid var(--pos-gray-200) !important;
+  flex-shrink: 0 !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+}
+
+.pos-categories-content {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: var(--pos-spacing-lg) !important;
+  height: calc(100vh - 60px) !important;
+}
+
+.pos-category-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  padding: var(--pos-spacing-md) var(--pos-spacing-lg) !important;
+  margin-bottom: var(--pos-spacing-sm) !important;
+  border: 1px solid var(--pos-gray-200) !important;
+  border-radius: var(--pos-border-radius) !important;
+  background: white !important;
+  color: var(--pos-gray-700) !important;
+  font-size: var(--pos-text-sm) !important;
+  font-weight: 600 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: all var(--pos-transition-fast) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.pos-category-btn:hover:not(.active) {
+  background: var(--pos-gray-50) !important;
+  border-color: var(--pos-primary) !important;
+  transform: translateX(2px) !important;
+}
+
+.pos-category-btn.active {
+  background: var(--pos-primary) !important;
+  color: white !important;
+  border-color: var(--pos-primary) !important;
+  box-shadow: var(--pos-shadow) !important;
+  transform: translateX(2px) !important;
+}
+
+/* ========================================= */
+/* 🛍️ ÁREA DE PRODUCTOS OPTIMIZADA */
+/* ========================================= */
+
+.pos-products-area {
+  background: white !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  height: 100vh !important;
+  grid-column: 2 !important;
+  position: relative !important;
+}
+
+.pos-search-bar {
+  padding: var(--pos-spacing-xl) var(--pos-spacing-2xl) var(--pos-spacing-lg) !important;
+  background: white !important;
+  border-bottom: 1px solid var(--pos-gray-200) !important;
+  flex-shrink: 0 !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+}
+
+.pos-search-input {
+  width: 100% !important;
+  padding: var(--pos-spacing-lg) var(--pos-spacing-2xl) !important;
+  border: 2px solid var(--pos-gray-200) !important;
+  border-radius: var(--pos-border-radius) !important;
+  font-size: var(--pos-text-lg) !important;
+  background: var(--pos-gray-50) !important;
+  transition: all var(--pos-transition-normal) !important;
+  color: var(--pos-gray-900) !important;
+}
+
+.pos-search-input:focus {
+  outline: none !important;
+  border-color: var(--pos-primary) !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px var(--pos-primary-light) !important;
+}
+
+.pos-products-grid {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: var(--pos-spacing-xl) !important;
+  height: calc(100vh - 80px) !important;
+}
+
+.pos-products-container {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+  gap: var(--pos-spacing-lg) !important;
+  padding-bottom: var(--pos-spacing-2xl) !important;
+}
+
+.pos-product-card {
+  background: white !important;
+  border: 1px solid var(--pos-gray-200) !important;
+  border-radius: var(--pos-border-radius) !important;
+  padding: var(--pos-spacing-lg) !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all var(--pos-transition-normal) !important;
+  min-height: 160px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  position: relative !important;
+}
+
+.pos-product-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: var(--pos-shadow-lg) !important;
+  border-color: var(--pos-primary) !important;
+}
+
+.pos-product-image {
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 6px !important;
+  margin: 0 auto var(--pos-spacing-md) !important;
+  background: var(--pos-gray-100) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.pos-product-name {
+  font-size: var(--pos-text-sm) !important;
+  font-weight: 600 !important;
+  color: var(--pos-gray-900) !important;
+  margin-bottom: var(--pos-spacing-sm) !important;
+  line-height: 1.2 !important;
+  min-height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.pos-product-price {
+  font-size: var(--pos-text-lg) !important;
+  font-weight: 700 !important;
+  color: var(--pos-success) !important;
+}
+
+/* ========================================= */
+/* 🛒 CARRITO COMPLETAMENTE ARREGLADO */
+/* ========================================= */
+
+.pos-cart {
+  background: white !important;
+  border-left: 2px solid var(--pos-gray-200) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  height: 100vh !important;
+  grid-column: 3 !important;
+  position: relative !important;
+  width: var(--pos-cart-width) !important;
+  min-width: var(--pos-cart-width) !important;
+  max-width: var(--pos-cart-width) !important;
+}
+
+.pos-cart-header {
+  padding: var(--pos-spacing-xl) !important;
+  background: linear-gradient(135deg, var(--pos-primary-light) 0%, #e0f2fe 100%) !important;
+  border-bottom: 1px solid var(--pos-gray-200) !important;
+  flex-shrink: 0 !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+}
+
+.pos-cart-title {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: var(--pos-spacing-lg) !important;
+}
+
+.pos-cart-title h3 {
+  font-size: var(--pos-text-xl) !important;
+  font-weight: 700 !important;
+  color: var(--pos-gray-900) !important;
+  margin: 0 !important;
+}
+
+.pos-cart-title span {
+  background: var(--pos-success) !important;
+  color: white !important;
+  padding: var(--pos-spacing-xs) var(--pos-spacing-lg) !important;
+  border-radius: 16px !important;
+  font-size: var(--pos-text-sm) !important;
+  font-weight: 600 !important;
+}
+
+.pos-cart-actions {
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  gap: var(--pos-spacing-md) !important;
+  align-items: end !important;
+  margin-bottom: var(--pos-spacing-lg) !important;
+}
+
+/* ACCIONES RÁPIDAS */
+.pos-quick-actions {
+  padding: var(--pos-spacing-lg) !important;
+  background: white !important;
+  border-radius: var(--pos-border-radius) !important;
+  border: 1px solid var(--pos-gray-200) !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+}
+
+.pos-quick-actions-title {
+  font-size: var(--pos-text-xs) !important;
+  font-weight: 600 !important;
+  color: var(--pos-gray-600) !important;
+  margin-bottom: var(--pos-spacing-sm) !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+}
+
+.pos-quick-actions-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: var(--pos-spacing-xs) !important;
+}
+
+.pos-quick-action-btn {
+  padding: var(--pos-spacing-sm) !important;
+  border: 1px solid var(--pos-gray-200) !important;
+  border-radius: 6px !important;
+  background: white !important;
+  color: var(--pos-gray-600) !important;
+  font-size: var(--pos-text-xs) !important;
+  text-align: center !important;
+  cursor: pointer !important;
+  transition: all var(--pos-transition-fast) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+
+.pos-quick-action-btn:hover:not(:disabled) {
+  background: var(--pos-gray-50) !important;
+  border-color: var(--pos-primary) !important;
+  color: var(--pos-primary) !important;
+}
+
+.pos-quick-action-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+.pos-quick-action-icon {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* ITEMS DEL CARRITO */
+.pos-cart-items {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: var(--pos-spacing-lg) !important;
+  height: calc(100vh - 350px) !important;
+}
+
+.pos-cart-item {
+  background: var(--pos-gray-50) !important;
+  border: 1px solid var(--pos-gray-200) !important;
+  border-radius: var(--pos-border-radius) !important;
+  padding: var(--pos-spacing-lg) !important;
+  margin-bottom: var(--pos-spacing-sm) !important;
+  transition: all var(--pos-transition-normal) !important;
+}
+
+.pos-cart-item:hover {
+  background: white !important;
+  box-shadow: var(--pos-shadow) !important;
+}
+
+.pos-cart-item-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: var(--pos-spacing-md) !important;
+}
+
+.pos-cart-item-name {
+  font-size: var(--pos-text-sm) !important;
+  font-weight: 600 !important;
+  color: var(--pos-gray-900) !important;
+  flex: 1 !important;
+  margin-right: var(--pos-spacing-sm) !important;
+  line-height: 1.2 !important;
+}
+
+.pos-cart-item-price {
+  font-size: var(--pos-text-xs) !important;
+  color: var(--pos-gray-600) !important;
+  white-space: nowrap !important;
+}
+
+/* OPCIONES ESPECIALES */
+.pos-special-options {
+  margin: var(--pos-spacing-md) 0 !important;
+  padding: var(--pos-spacing-md) !important;
+  background: var(--pos-warning-light) !important;
+  border: 1px solid var(--pos-warning) !important;
+  border-radius: 6px !important;
+}
+
+.pos-special-options-title {
+  font-size: var(--pos-text-xs) !important;
+  font-weight: 600 !important;
+  color: #92400e !important;
+  margin-bottom: var(--pos-spacing-sm) !important;
+}
+
+.pos-radio-group {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: var(--pos-spacing-sm) !important;
+}
+
+.pos-radio-option {
+  display: flex !important;
+  align-items: center !important;
+  gap: var(--pos-spacing-xs) !important;
+}
+
+.pos-radio-option label {
+  font-size: var(--pos-text-xs) !important;
+  color: var(--pos-gray-700) !important;
+  cursor: pointer !important;
+}
+
+/* CONTROLES DE CANTIDAD */
+.pos-quantity-controls {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: white !important;
+  padding: var(--pos-spacing-sm) !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--pos-gray-200) !important;
+  box-shadow: var(--pos-shadow-sm) !important;
+}
+
+.pos-quantity-btn {
+  width: 28px !important;
+  height: 28px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  background: var(--pos-gray-100) !important;
+  color: var(--pos-gray-700) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all var(--pos-transition-fast) !important;
+}
+
+.pos-quantity-btn:hover:not(:disabled) {
+  background: var(--pos-primary) !important;
+  color: white !important;
+}
+
+.pos-quantity-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+.pos-quantity-value {
+  font-size: var(--pos-text-lg) !important;
+  font-weight: 600 !important;
+  color: var(--pos-gray-900) !important;
+  min-width: 30px !important;
+  text-align: center !important;
+}
+
+.pos-quantity-total {
+  font-size: var(--pos-text-sm) !important;
+  font-weight: 700 !important;
+  color: var(--pos-success) !important;
+}
+
+/* TOTALES DEL CARRITO */
+.pos-cart-totals {
+  padding: var(--pos-spacing-xl) !important;
+  background: white !important;
+  border-top: 1px solid var(--pos-gray-200) !important;
+  flex-shrink: 0 !important;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.pos-totals-container {
+  background: var(--pos-gray-50) !important;
+  padding: var(--pos-spacing-lg) !important;
+  border-radius: var(--pos-border-radius) !important;
+  margin-bottom: var(--pos-spacing-lg) !important;
+  border: 1px solid var(--pos-gray-200) !important;
+}
+
+.pos-total-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: var(--pos-spacing-sm) !important;
+  font-size: var(--pos-text-sm) !important;
+  color: var(--pos-gray-700) !important;
+}
+
+.pos-total-row:last-child,
+.pos-total-row.final {
+  margin-bottom: 0 !important;
+  padding-top: var(--pos-spacing-sm) !important;
+  border-top: 1px solid var(--pos-gray-200) !important;
+  font-weight: 700 !important;
+  font-size: var(--pos-text-lg) !important;
+  color: var(--pos-success) !important;
+}
+
+/* BOTONES DE ACCIÓN */
+.pos-action-btn {
+  width: 100% !important;
+  padding: var(--pos-spacing-lg) !important;
+  border: none !important;
+  border-radius: var(--pos-border-radius) !important;
+  font-size: var(--pos-text-lg) !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all var(--pos-transition-normal) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: var(--pos-spacing-sm) !important;
+  margin-bottom: var(--pos-spacing-sm) !important;
+}
+
+.pos-action-btn:last-child {
+  margin-bottom: 0 !important;
+}
+
+.pos-action-btn.primary {
+  background: var(--pos-primary) !important;
+  color: white !important;
+  box-shadow: var(--pos-shadow) !important;
+}
+
+.pos-action-btn.success {
+  background: var(--pos-success) !important;
+  color: white !important;
+  box-shadow: var(--pos-shadow) !important;
+}
+
+.pos-action-btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--pos-shadow-lg) !important;
+}
+
+.pos-action-btn:disabled {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+}
+
+/* ESTADO VACÍO */
+.pos-empty-state {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: var(--pos-spacing-2xl) !important;
+  text-align: center !important;
+  color: var(--pos-gray-500) !important;
+  height: 100% !important;
+}
+
+.pos-empty-icon {
+  width: 48px !important;
+  height: 48px !important;
+  margin-bottom: var(--pos-spacing-xl) !important;
+  opacity: 0.5 !important;
+}
+
+/* ========================================= */
+/* 📱 RESPONSIVE OPTIMIZADO */
+/* ========================================= */
+
+@media (max-width: 1400px) {
+  :root {
+    --pos-sidebar-width: 220px;
+    --pos-cart-width: 360px;
+  }
+  
+  .pos-products-container {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important;
+  }
+  
+  .pos-quick-actions-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --pos-sidebar-width: 200px;
+    --pos-cart-width: 340px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .pos-main-container {
+    grid-template-columns: 180px 1fr 300px !important;
+  }
+}
+
+/* ========================================= */
+/* 🔄 SCROLLBARS Y ANIMACIONES */
+/* ========================================= */
+
+.pos-categories-content::-webkit-scrollbar,
+.pos-cart-items::-webkit-scrollbar,
+.pos-products-grid::-webkit-scrollbar {
+  width: 4px;
+}
+
+.pos-categories-content::-webkit-scrollbar-track,
+.pos-cart-items::-webkit-scrollbar-track,
+.pos-products-grid::-webkit-scrollbar-track {
+  background: var(--pos-gray-100);
+}
+
+.pos-categories-content::-webkit-scrollbar-thumb,
+.pos-cart-items::-webkit-scrollbar-thumb,
+.pos-products-grid::-webkit-scrollbar-thumb {
+  background: var(--pos-gray-300);
+  border-radius: 2px;
+}
+
+@keyframes pos-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pos-loading {
+  position: relative !important;
+  pointer-events: none !important;
+  opacity: 0.7 !important;
+}
+
+.pos-loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid var(--pos-primary);
+  border-radius: 50%;
+  animation: pos-spin 1s linear infinite;
+  z-index: 10;
+}
+
+/* ========================================= */
+/* 🛡️ COMPATIBILIDAD Y LEGACY */
+/* ========================================= */
 
 .category-active {
-    background-color: #e6f0ff;
-    color: #1e429f;
-    font-weight: 500;
-}
-
-
-/* Animación simple */
-
-@keyframes pulse {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.05);
-    }
-}
-
-.animate-pulse-subtle {
-    animation: pulse 2s ease-in-out infinite;
+  background: var(--pos-primary) !important;
+  color: white !important;
+  border-color: var(--pos-primary) !important;
 }
 
 .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
 }
 
 .modal-content {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 0.5rem;
-    position: relative;
-    max-width: 500px;
-    width: 100%;
-}
-
-/* ========================================
-   OPTIMIZACIONES PARA MONITORES 16.3"
-   Resolución: 1366px - 1920px
-   Dimensiones físicas: 14.2" x 8"
-   ======================================== */
-
-/* ===== OPTIMIZACIONES ESPECÍFICAS PARA MONITORES 16.3" ===== */
-/* Monitores 16.3" con dimensiones físicas 14.2" x 8" (1366x768 a 1600x900) */
-@media (min-width: 1366px) and (max-width: 1600px) {
-    /* ===== OPTIMIZACIONES GENERALES DE FILAMENT ===== */
-
-    /* Ajustar densidad de información para pantallas físicamente más pequeñas */
-    .fi-main {
-        font-size: 0.875rem; /* Más compacto para 16.3" */
-        line-height: 1.35;
-    }
-
-    /* Optimizar espaciado en contenedores principales */
-    .fi-page {
-        padding: 0.625rem 1rem; /* Reducir padding para aprovechar espacio */
-    }
-
-    /* Optimizar sidebar para mejor proporción en 16.3" */
-    .fi-sidebar {
-        width: 220px !important; /* Más estrecho para 16.3" */
-    }
-
-    /* Ajustar header para mejor aprovechamiento del espacio */
-    .fi-header {
-        padding: 0.625rem 1rem;
-        min-height: 3.25rem; /* Más compacto */
-    }
-
-    /* ===== OPTIMIZACIONES DE TABLAS PARA 16.3" ===== */
-
-    /* Mejorar legibilidad en tablas para pantallas más pequeñas */
-    .fi-ta-table {
-        font-size: 0.8125rem; /* Más pequeño para 16.3" */
-    }
-
-    .fi-ta-header-cell {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
-
-    .fi-ta-cell {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8125rem;
-    }
-
-    /* ===== OPTIMIZACIONES DE FORMULARIOS PARA 16.3" ===== */
-
-    /* Ajustar espaciado en formularios */
-    .fi-fo-field-wrp {
-        margin-bottom: 0.75rem; /* Reducir espacio entre campos */
-    }
-
-    .fi-fo-field-wrp-label {
-        margin-bottom: 0.375rem;
-        font-size: 0.8125rem;
-    }
-
-    /* Optimizar inputs y selects */
-    .fi-input, .fi-select-input {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        min-height: 2.25rem; /* Más compacto */
-    }
-
-    /* ===== OPTIMIZACIONES DE MODALES PARA 16.3" ===== */
-
-    /* Ajustar modales para mejor aprovechamiento del espacio */
-    .fi-modal {
-        max-width: 90vw; /* Usar más ancho de pantalla */
-        max-height: 85vh; /* Limitar altura */
-    }
-
-    .fi-modal-header {
-        padding: 0.75rem 1rem;
-    }
-
-    .fi-modal-body {
-        padding: 0.75rem 1rem;
-    }
-
-    /* ===== OPTIMIZACIONES ESPECÍFICAS DEL POS PARA 16.3" ===== */
-
-    /* Optimizar layout principal del POS para pantallas más pequeñas */
-    .pos-main {
-        gap: 0.5rem; /* Reducir gap para aprovechar espacio */
-        padding: 0.5rem;
-    }
-
-    /* Ajustar panel de categorías para 16.3" */
-    .pos-categories {
-        width: 260px; /* Más estrecho */
-        padding: 0.5rem;
-    }
-
-    .pos-categories button {
-        padding: 0.375rem 0.625rem;
-        font-size: 0.8125rem;
-        min-height: 2.25rem; /* Más compacto */
-    }
-
-    /* Optimizar grid de productos para mejor aprovechamiento */
-    .pos-products .grid {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); /* Más pequeño */
-        gap: 0.5rem;
-        padding: 0.5rem;
-    }
-
-    .product-card {
-        min-height: 180px; /* Más compacto */
-        padding: 0.5rem;
-    }
-
-    .product-card .h-36 {
-        height: 100px !important; /* Imagen más pequeña */
-    }
-
-    /* Ajustar panel del carrito para 16.3" */
-    .pos-cart {
-        width: 340px; /* Más estrecho */
-        padding: 0.5rem;
-    }
-
-    .cart-item-standard {
-        padding: 0.375rem;
-        margin-bottom: 0.375rem;
-        font-size: 0.8125rem;
-    }
-
-    /* Optimizar botones de cantidad para 16.3" */
-    .quantity-btn-minus,
-    .quantity-btn-plus {
-        width: 1.75rem;
-        height: 1.75rem;
-        font-size: 0.8125rem;
-    }
-
-    /* Ajustar botones principales del carrito */
-    .pos-cart .grid button {
-        padding: 0.375rem 0.625rem;
-        font-size: 0.8125rem;
-        min-height: 2.25rem;
-    }
-
-    /* ===== OPTIMIZACIONES DE NAVEGACIÓN PARA 16.3" ===== */
-
-    /* Optimizar elementos de navegación */
-    .fi-sidebar-nav {
-        padding: 0.5rem;
-    }
-
-    .fi-sidebar-item {
-        padding: 0.375rem 0.625rem;
-        margin-bottom: 0.125rem;
-        font-size: 0.8125rem;
-    }
-
-    .fi-sidebar-group-label {
-        padding: 0.375rem 0.625rem;
-        font-size: 0.6875rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-}
-
-/* ===== OPTIMIZACIONES PARA ALTURA LIMITADA (TÍPICO DE 16.3") ===== */
-/* Pantallas con altura limitada - común en monitores 16.3" */
-@media (min-width: 1366px) and (max-height: 900px) {
-    /* Reducir altura de header para aprovechar espacio vertical */
-    .fi-header {
-        min-height: 3rem !important;
-        padding: 0.5rem 1rem !important;
-    }
-
-    /* Optimizar espaciado vertical en páginas */
-    .fi-page {
-        padding: 0.5rem 1rem !important;
-    }
-
-    /* Reducir altura de elementos de navegación */
-    .fi-sidebar-item {
-        padding: 0.25rem 0.625rem !important;
-        min-height: 2rem;
-    }
-
-    /* Optimizar modales para altura limitada */
-    .fi-modal {
-        max-height: 80vh !important;
-        margin: 1rem auto !important;
-    }
-
-    /* Reducir espaciado en formularios */
-    .fi-fo-field-wrp {
-        margin-bottom: 0.5rem !important;
-    }
-
-    /* Optimizar tablas para altura limitada */
-    .fi-ta-header-cell,
-    .fi-ta-cell {
-        padding: 0.375rem 0.75rem !important;
-    }
-
-    /* POS: Optimizar para altura limitada */
-    .pos-main {
-        padding: 0.375rem !important;
-        gap: 0.375rem !important;
-    }
-
-    .pos-categories {
-        padding: 0.375rem !important;
-    }
-
-    .pos-categories button {
-        min-height: 2rem !important;
-        padding: 0.25rem 0.5rem !important;
-    }
-
-    .product-card {
-        min-height: 160px !important;
-        padding: 0.375rem !important;
-    }
-
-    .product-card .h-36 {
-        height: 90px !important;
-    }
-
-    .pos-cart {
-        padding: 0.375rem !important;
-    }
-
-    /* Mapa de mesas: Optimizar para altura limitada */
-    .table-map-header {
-        min-height: 2.5rem !important;
-        padding: 0.375rem var(--spacing-md) !important;
-    }
-
-    .table-card {
-        min-height: 120px !important;
-        padding: var(--spacing-xs) !important;
-    }
-
-    .table-visual {
-        width: 70px !important;
-        height: 70px !important;
-    }
-
-    .table-rectangular, .table-oval {
-        width: 90px !important;
-        height: 60px !important;
-    }
-}
-
-/* Optimizaciones generales para monitores compactos de escritorio */
-@media (min-width: 1366px) and (max-width: 1920px) {
-    /* ===== OPTIMIZACIONES GENERALES DE FILAMENT ===== */
-
-    /* Ajustar densidad de información para pantallas físicamente más pequeñas */
-    .fi-main {
-        font-size: 0.9rem;
-        line-height: 1.4;
-    }
-
-    /* Optimizar espaciado en contenedores principales */
-    .fi-page {
-        padding: 0.75rem 1.25rem;
-    }
-
-    /* Optimizar sidebar para mejor proporción */
-    .fi-sidebar {
-        width: 240px !important;
-    }
-
-    /* Ajustar header para mejor aprovechamiento del espacio */
-    .fi-header {
-        padding: 0.75rem 1.25rem;
-        min-height: 3.5rem;
-    }
-
-    /* ===== OPTIMIZACIONES DE TABLAS ===== */
-
-    /* Mejorar legibilidad en tablas */
-    .fi-ta-table {
-        font-size: 0.875rem;
-    }
-
-    .fi-ta-cell {
-        padding: 0.5rem 0.75rem;
-        line-height: 1.3;
-    }
-
-    .fi-ta-header-cell {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-    /* Optimizar paginación */
-    .fi-pagination {
-        padding: 0.75rem 1rem;
-    }
-
-    /* ===== OPTIMIZACIONES DE FORMULARIOS ===== */
-
-    /* Optimizar formularios para mejor aprovechamiento del espacio */
-    .fi-fo-field-wrp {
-        margin-bottom: 0.875rem;
-    }
-
-    .fi-fo-field-wrp-label {
-        margin-bottom: 0.375rem;
-    }
-
-    .fi-input {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-    }
-
-    .fi-select {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-    }
-
-    /* ===== OPTIMIZACIONES DE MODALES ===== */
-
-    /* Ajustar modales para mejor proporción */
-    .fi-modal-content {
-        max-width: 85vw;
-        max-height: 85vh;
-    }
-
-    .fi-modal-header {
-        padding: 1rem 1.25rem;
-    }
-
-    .fi-modal-body {
-        padding: 1rem 1.25rem;
-    }
-
-    /* ===== OPTIMIZACIONES DE NAVEGACIÓN ===== */
-
-    /* Optimizar elementos de navegación */
-    .fi-sidebar-nav {
-        padding: 0.75rem;
-    }
-
-    .fi-sidebar-item {
-        padding: 0.5rem 0.75rem;
-        margin-bottom: 0.25rem;
-        font-size: 0.875rem;
-    }
-
-    .fi-sidebar-group-label {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-
-    /* ===== OPTIMIZACIONES ESPECÍFICAS DEL POS ===== */
-
-    /* Optimizar layout principal del POS */
-    .pos-main {
-        gap: 0.75rem;
-        padding: 0.75rem;
-    }
-
-    /* Ajustar panel de categorías */
-    .pos-categories {
-        width: 280px;
-        padding: 0.75rem;
-    }
-
-    .pos-categories button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        min-height: 2.5rem;
-    }
-
-    /* Optimizar grid de productos */
-    .pos-products .grid {
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 0.75rem;
-        padding: 0.75rem;
-    }
-
-    .product-card {
-        min-height: 200px;
-        padding: 0.75rem;
-    }
-
-    .product-card .h-36 {
-        height: 120px !important;
-    }
-
-    /* Ajustar panel del carrito */
-    .pos-cart {
-        width: 380px;
-        padding: 0.75rem;
-    }
-
-    .cart-item-standard {
-        padding: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    /* Optimizar botones de cantidad */
-    .quantity-btn-minus,
-    .quantity-btn-plus {
-        width: 2rem;
-        height: 2rem;
-        font-size: 0.875rem;
-    }
-
-    /* Ajustar botones principales */
-    .pos-cart .grid button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-        min-height: 2.5rem;
-    }
-
-    /* ===== OPTIMIZACIONES DE WIDGETS Y STATS ===== */
-
-    /* Optimizar widgets de estadísticas */
-    .fi-wi-stats-overview-stat {
-        padding: 1rem;
-    }
-
-    .fi-wi-stats-overview-stat-value {
-        font-size: 1.5rem;
-        line-height: 1.2;
-    }
-
-    .fi-wi-stats-overview-stat-label {
-        font-size: 0.75rem;
-        margin-top: 0.25rem;
-    }
-}
-
-/* ===== CSS RESPONSIVO ESPECÍFICO PARA POS INTERFACE ===== */
-/* Estos estilos sobrescriben Filament con alta especificidad */
-
-/* TEXTOS DE PRODUCTOS EN EL GRID - RESPONSIVOS */
-.pos-interface .product-card .text-center div:first-of-type,
-.pos-interface .grid .product-card div .font-medium {
-    font-size: 0.75rem !important; /* xs */
-    line-height: 1rem !important;
-}
-
-@media (min-width: 640px) {
-    .pos-interface .product-card .text-center div:first-of-type,
-    .pos-interface .grid .product-card div .font-medium {
-        font-size: 0.875rem !important; /* sm */
-        line-height: 1.25rem !important;
-    }
-}
-
-@media (min-width: 768px) {
-    .pos-interface .product-card .text-center div:first-of-type,
-    .pos-interface .grid .product-card div .font-medium {
-        font-size: 1rem !important; /* base */
-        line-height: 1.5rem !important;
-    }
-}
-
-@media (min-width: 1024px) {
-    .pos-interface .product-card .text-center div:first-of-type,
-    .pos-interface .grid .product-card div .font-medium {
-        font-size: 1.125rem !important; /* lg */
-        line-height: 1.75rem !important;
-    }
-}
-
-/* PRECIOS DE PRODUCTOS EN EL GRID - RESPONSIVOS */
-.pos-interface .product-card .text-center div:last-of-type,
-.pos-interface .grid .product-card div .text-gray-600 {
-    font-size: 0.75rem !important; /* xs */
-    line-height: 1rem !important;
-    font-weight: 600 !important;
-}
-
-@media (min-width: 640px) {
-    .pos-interface .product-card .text-center div:last-of-type,
-    .pos-interface .grid .product-card div .text-gray-600 {
-        font-size: 0.875rem !important; /* sm */
-        line-height: 1.25rem !important;
-    }
-}
-
-@media (min-width: 768px) {
-    .pos-interface .product-card .text-center div:last-of-type,
-    .pos-interface .grid .product-card div .text-gray-600 {
-        font-size: 1rem !important; /* base */
-        line-height: 1.5rem !important;
-    }
-}
-
-@media (min-width: 1024px) {
-    .pos-interface .product-card .text-center div:last-of-type,
-    .pos-interface .grid .product-card div .text-gray-600 {
-        font-size: 1.125rem !important; /* lg */
-        line-height: 1.75rem !important;
-    }
-}
-
-/* NOMBRES DE PRODUCTOS EN EL CARRITO - RESPONSIVOS */
-.pos-interface .cart-item h4,
-.pos-interface .bg-gray-50 h4 {
-    font-size: 0.75rem !important; /* xs */
-    line-height: 1rem !important;
-}
-
-@media (min-width: 640px) {
-    .pos-interface .cart-item h4,
-    .pos-interface .bg-gray-50 h4 {
-        font-size: 0.875rem !important; /* sm */
-        line-height: 1.25rem !important;
-    }
-}
-
-@media (min-width: 768px) {
-    .pos-interface .cart-item h4,
-    .pos-interface .bg-gray-50 h4 {
-        font-size: 1rem !important; /* base */
-        line-height: 1.5rem !important;
-    }
-}
-
-@media (min-width: 1024px) {
-    .pos-interface .cart-item h4,
-    .pos-interface .bg-gray-50 h4 {
-        font-size: 1.125rem !important; /* lg */
-        line-height: 1.75rem !important;
-    }
-}
-
-/* PRECIOS UNITARIOS EN EL CARRITO - RESPONSIVOS */
-.pos-interface .cart-item p,
-.pos-interface .bg-gray-50 p {
-    font-size: 0.75rem !important; /* xs */
-    line-height: 1rem !important;
-}
-
-@media (min-width: 640px) {
-    .pos-interface .cart-item p,
-    .pos-interface .bg-gray-50 p {
-        font-size: 0.875rem !important; /* sm */
-        line-height: 1.25rem !important;
-    }
-}
-
-@media (min-width: 768px) {
-    .pos-interface .cart-item p,
-    .pos-interface .bg-gray-50 p {
-        font-size: 1rem !important; /* base */
-        line-height: 1.5rem !important;
-    }
-}
-
-@media (min-width: 1024px) {
-    .pos-interface .cart-item p,
-    .pos-interface .bg-gray-50 p {
-        font-size: 1.125rem !important; /* lg */
-        line-height: 1.75rem !important;
-    }
-}
-
-/* SUBTOTALES EN EL CARRITO - RESPONSIVOS */
-.pos-interface .text-green-600 span,
-.pos-interface .font-bold.text-green-600 {
-    font-size: 0.75rem !important; /* xs */
-    line-height: 1rem !important;
-}
-
-@media (min-width: 640px) {
-    .pos-interface .text-green-600 span,
-    .pos-interface .font-bold.text-green-600 {
-        font-size: 0.875rem !important; /* sm */
-        line-height: 1.25rem !important;
-    }
-}
-
-@media (min-width: 768px) {
-    .pos-interface .text-green-600 span,
-    .pos-interface .font-bold.text-green-600 {
-        font-size: 1rem !important; /* base */
-        line-height: 1.5rem !important;
-    }
-}
-
-@media (min-width: 1024px) {
-    .pos-interface .text-green-600 span,
-    .pos-interface .font-bold.text-green-600 {
-        font-size: 1.125rem !important; /* lg */
-        line-height: 1.75rem !important;
-    }
-}
-
-/* TOTALES DEL CARRITO - RESPONSIVOS */
-.pos-interface .bg-white.rounded-lg .flex.justify-between span {
-    font-size: 0.75rem !important; /* xs */
-    line-height: 1rem !important;
-}
-
-@media (min-width: 640px) {
-    .pos-interface .bg-white.rounded-lg .flex.justify-between span {
-        font-size: 0.875rem !important; /* sm */
-        line-height: 1.25rem !important;
-    }
-}
-
-@media (min-width: 768px) {
-    .pos-interface .bg-white.rounded-lg .flex.justify-between span {
-        font-size: 1rem !important; /* base */
-        line-height: 1.5rem !important;
-    }
-}
-
-@media (min-width: 1024px) {
-    .pos-interface .bg-white.rounded-lg .flex.justify-between span {
-        font-size: 1.125rem !important; /* lg */
-        line-height: 1.75rem !important;
-    }
-}
-
-/* TOTAL FINAL - MÁS GRANDE Y PROMINENTE */
-.pos-interface .font-bold.text-green-600 {
-    font-size: 0.875rem !important; /* sm */
-    line-height: 1.25rem !important;
-}
-
-@media (min-width: 640px) {
-    .pos-interface .font-bold.text-green-600 {
-        font-size: 1rem !important; /* base */
-        line-height: 1.5rem !important;
-    }
-}
-
-@media (min-width: 768px) {
-    .pos-interface .font-bold.text-green-600 {
-        font-size: 1.125rem !important; /* lg */
-        line-height: 1.75rem !important;
-    }
-}
-
-@media (min-width: 1024px) {
-    .pos-interface .font-bold.text-green-600 {
-        font-size: 1.25rem !important; /* xl */
-        line-height: 1.75rem !important;
-    }
-}
-
-/* CSS personalizado para POS responsive */
-.pos-responsive-text {
-    @apply text-xs;
-}
-
-@screen sm {
-    .pos-responsive-text {
-        @apply text-sm;
-    }
-}
-
-@screen md {
-    .pos-responsive-text {
-        @apply text-base;
-    }
-}
-
-@screen lg {
-    .pos-responsive-text {
-        @apply text-lg;
-    }
-}
-
-.pos-responsive-price {
-    @apply text-sm font-bold;
-}
-
-@screen sm {
-    .pos-responsive-price {
-        @apply text-base font-bold;
-    }
-}
-
-@screen md {
-    .pos-responsive-price {
-        @apply text-lg font-bold;
-    }
-}
-
-@screen lg {
-    .pos-responsive-price {
-        @apply text-xl font-bold;
-    }
+  background-color: white;
+  padding: var(--pos-spacing-2xl);
+  border-radius: var(--pos-border-radius);
+  position: relative;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: var(--pos-shadow-lg);
 }

@@ -5,784 +5,1042 @@
     @endphp
     <style>
         /* ========================================= */
-        /* LAYOUT INTELIGENTE - RESPETA SIDEBAR DE FILAMENT */
+        /* SISTEMA POS OPTIMIZADO - DISEÑO MODERNO */
         /* ========================================= */
         
-        /* VARIABLES DINÁMICAS */
+        /* VARIABLES GLOBALES */
         :root {
-            --cart-width: 420px;
+            --pos-cart-width: 380px;
+            --pos-sidebar-width: 200px;
+            --pos-border-radius: 12px;
+            --pos-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            --pos-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --pos-primary: #3b82f6;
+            --pos-success: #10b981;
+            --pos-warning: #f59e0b;
+            --pos-danger: #ef4444;
+            --pos-gray-50: #f8fafc;
+            --pos-gray-100: #f1f5f9;
+            --pos-gray-200: #e2e8f0;
         }
         
-        /* CARRITO FIJO EN LADO DERECHO - SOLO ESTO ES FIJO */
-        .pos-cart {
-            position: fixed !important;
-            top: 0 !important;
-            right: 0 !important;
-            width: var(--cart-width) !important;
-            height: 100vh !important;
-            z-index: 1000 !important;
-            background: white !important;
-            border-left: 1px solid #e5e7eb !important;
-            box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1) !important;
-            overflow-y: auto !important;
+        /* RESET Y BASE */
+        .pos-interface * {
+            box-sizing: border-box;
         }
         
-        /* CONTENIDO PRINCIPAL - SE AJUSTA DINÁMICAMENTE */
-        .pos-main-content {
-            margin-right: calc(var(--cart-width) + 4px) !important; /* 4px gap mínimo */
-            transition: margin-right 0.3s ease !important;
-            height: 100vh !important; /* Misma altura que carrito */
-            position: relative !important;
-            padding-top: 0 !important; /* Eliminar padding superior */
-            margin-top: 0 !important; /* Eliminar margen superior */
+        /* LAYOUT PRINCIPAL - GRID OPTIMIZADO */
+        .pos-main-container {
+            display: grid;
+            grid-template-columns: var(--pos-sidebar-width) 1fr var(--pos-cart-width);
+            height: 100vh;
+            overflow: hidden;
+            gap: 0;
+            background: var(--pos-gray-50);
         }
         
-        /* CUANDO SIDEBAR DE FILAMENT ESTÁ ABIERTO */
-        .fi-sidebar ~ .fi-main .pos-main-content {
-            margin-right: calc(var(--cart-width) + 4px) !important;
-            /* Filament maneja el margen izquierdo automáticamente */
-        }
-        
-        /* CUANDO SIDEBAR DE FILAMENT ESTÁ CERRADO */
-        .fi-sidebar-close ~ .fi-main .pos-main-content,
-        body:not(.fi-sidebar-open) .pos-main-content {
-            margin-right: calc(var(--cart-width) + 4px) !important;
-            /* Sin sidebar, el contenido se expande automáticamente */
-        }
-        
-        /* AJUSTES ESPECÍFICOS PARA EL CONTENIDO DEL POS */
+        /* SIDEBAR CATEGORÍAS - MEJORADO */
         .pos-categories {
-            width: 200px !important;
-            min-width: 200px !important;
-            flex-shrink: 0 !important;
-            height: 100vh !important; /* Misma altura que carrito */
+            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+            border-right: 1px solid var(--pos-gray-200);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
         
-        .pos-products {
-            flex: 1 !important;
-            min-width: 0 !important; /* Permite que se encoja si es necesario */
-            height: 100vh !important; /* Misma altura que carrito */
-            overflow-y: auto !important;
+        .pos-categories-header {
+            padding: 20px 16px 16px;
+            border-bottom: 1px solid var(--pos-gray-200);
+            background: white;
+        }
+        
+        .pos-categories-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 12px;
+        }
+        
+        /* BOTONES DE CATEGORÍA MEJORADOS */
+        .pos-category-btn {
+            width: 100%;
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            text-align: left;
+            border: 1px solid transparent;
+            border-radius: var(--pos-border-radius);
+            background: white;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pos-category-btn:hover {
+            background: #f3f4f6;
+            border-color: var(--pos-gray-200);
+            transform: translateY(-1px);
+            box-shadow: var(--pos-shadow);
+        }
+        
+        .pos-category-btn.active {
+            background: var(--pos-primary);
+            color: white;
+            border-color: var(--pos-primary);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        /* ÁREA DE PRODUCTOS OPTIMIZADA */
+        .pos-products-area {
+            background: white;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .pos-search-bar {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid var(--pos-gray-200);
+        }
+        
+        .pos-search-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid var(--pos-gray-200);
+            border-radius: var(--pos-border-radius);
+            font-size: 16px;
+            transition: all 0.2s ease;
+            background: var(--pos-gray-50);
+        }
+        
+        .pos-search-input:focus {
+            outline: none;
+            border-color: var(--pos-primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .pos-products-grid {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        /* GRID DE PRODUCTOS RESPONSIVO */
+        .pos-products-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+        
+        /* CARDS DE PRODUCTOS MEJORADAS */
+        .pos-product-card {
+            background: white;
+            border: 1px solid var(--pos-gray-200);
+            border-radius: var(--pos-border-radius);
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pos-product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--pos-shadow-hover);
+            border-color: var(--pos-primary);
+        }
+        
+        .pos-product-card:active {
+            transform: translateY(0);
+        }
+        
+        .pos-product-image {
+            width: 64px;
+            height: 64px;
+            border-radius: 8px;
+            margin: 0 auto 12px;
+            background: var(--pos-gray-100);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .pos-product-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+            line-height: 1.3;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pos-product-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--pos-success);
+        }
+        
+        /* CARRITO OPTIMIZADO */
+        .pos-cart {
+            background: white;
+            border-left: 1px solid var(--pos-gray-200);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .pos-cart-header {
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-bottom: 1px solid var(--pos-gray-200);
+        }
+        
+        .pos-cart-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .pos-cart-actions {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: end;
+        }
+        
+        /* ACCIONES RÁPIDAS REORGANIZADAS */
+        .pos-quick-actions {
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: var(--pos-border-radius);
+            border: 1px solid var(--pos-gray-200);
+        }
+        
+        .pos-quick-actions-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+        
+        .pos-quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .pos-quick-action-btn {
+            padding: 12px 8px;
+            border: 1px solid var(--pos-gray-200);
+            border-radius: 8px;
+            background: white;
+            color: #6b7280;
+            font-size: 11px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .pos-quick-action-btn:hover:not(:disabled) {
+            background: var(--pos-gray-50);
+            border-color: var(--pos-primary);
+            color: var(--pos-primary);
+        }
+        
+        .pos-quick-action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pos-quick-action-icon {
+            width: 18px;
+            height: 18px;
+        }
+        
+        /* ITEMS DEL CARRITO MEJORADOS */
+        .pos-cart-items {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+        
+        .pos-cart-item {
+            background: var(--pos-gray-50);
+            border: 1px solid var(--pos-gray-200);
+            border-radius: var(--pos-border-radius);
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        .pos-cart-item:hover {
+            background: white;
+            box-shadow: var(--pos-shadow);
+        }
+        
+        .pos-cart-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+        
+        .pos-cart-item-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            flex: 1;
+            margin-right: 8px;
+        }
+        
+        .pos-cart-item-price {
+            font-size: 13px;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+        
+        /* CONTROLES DE CANTIDAD MEJORADOS */
+        .pos-quantity-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--pos-gray-200);
+        }
+        
+        .pos-quantity-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 6px;
+            background: var(--pos-gray-100);
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .pos-quantity-btn:hover:not(:disabled) {
+            background: var(--pos-primary);
+            color: white;
+        }
+        
+        .pos-quantity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pos-quantity-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .pos-quantity-total {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--pos-success);
+        }
+        
+        /* OPCIONES ESPECIALES MEJORADAS */
+        .pos-special-options {
+            margin: 12px 0;
+            padding: 12px;
+            background: #fef3c7;
+            border: 1px solid #fbbf24;
+            border-radius: 8px;
+        }
+        
+        .pos-special-options-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 8px;
+        }
+        
+        .pos-radio-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .pos-radio-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .pos-radio-option label {
+            font-size: 11px;
+            color: #374151;
+            cursor: pointer;
+        }
+        
+        /* TOTALES DEL CARRITO */
+        .pos-cart-totals {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid var(--pos-gray-200);
+        }
+        
+        .pos-totals-container {
+            background: var(--pos-gray-50);
+            padding: 16px;
+            border-radius: var(--pos-border-radius);
+            margin-bottom: 16px;
+        }
+        
+        .pos-total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .pos-total-row:last-child {
+            margin-bottom: 0;
+            padding-top: 8px;
+            border-top: 1px solid var(--pos-gray-200);
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .pos-total-row.final {
+            color: var(--pos-success);
+        }
+        
+        /* BOTONES DE ACCIÓN PRINCIPALES */
+        .pos-action-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--pos-border-radius);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .pos-action-btn.primary {
+            background: var(--pos-primary);
+            color: white;
+        }
+        
+        .pos-action-btn.success {
+            background: var(--pos-success);
+            color: white;
+        }
+        
+        .pos-action-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: var(--pos-shadow-hover);
+        }
+        
+        .pos-action-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* ESTADO VACÍO */
+        .pos-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            text-align: center;
+            color: #6b7280;
+        }
+        
+        .pos-empty-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
         }
         
         /* RESPONSIVE BREAKPOINTS */
-        @media (max-width: 1024px) {
+        @media (max-width: 1400px) {
             :root {
-                --cart-width: 350px;
+                --pos-cart-width: 350px;
+                --pos-sidebar-width: 180px;
             }
             
-            .pos-categories {
-                width: 180px !important;
-                min-width: 180px !important;
-            }
-            
-            .pos-main-content {
-                margin-right: calc(350px + 4px) !important;
+            .pos-products-container {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             }
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) {
             :root {
-                --cart-width: 320px;
+                --pos-cart-width: 320px;
+                --pos-sidebar-width: 160px;
             }
             
-            .pos-categories {
-                width: 160px !important;
-                min-width: 160px !important;
+            .pos-quick-actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .pos-main-container {
+                grid-template-columns: 140px 1fr 300px;
             }
             
-            .pos-main-content {
-                margin-right: calc(320px + 4px) !important;
+            .pos-category-btn {
+                padding: 12px;
+                font-size: 13px;
+            }
+            
+            .pos-products-container {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
             }
         }
         
         /* SCROLLBARS PERSONALIZADOS */
-        .pos-cart::-webkit-scrollbar,
-        .pos-products::-webkit-scrollbar {
+        .pos-categories-content::-webkit-scrollbar,
+        .pos-cart-items::-webkit-scrollbar,
+        .pos-products-grid::-webkit-scrollbar {
             width: 6px;
         }
         
-        .pos-cart::-webkit-scrollbar-track,
-        .pos-products::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .pos-categories-content::-webkit-scrollbar-track,
+        .pos-cart-items::-webkit-scrollbar-track,
+        .pos-products-grid::-webkit-scrollbar-track {
+            background: var(--pos-gray-100);
         }
         
-        .pos-cart::-webkit-scrollbar-thumb,
-        .pos-products::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+        .pos-categories-content::-webkit-scrollbar-thumb,
+        .pos-cart-items::-webkit-scrollbar-thumb,
+        .pos-products-grid::-webkit-scrollbar-thumb {
+            background: var(--pos-gray-200);
             border-radius: 3px;
         }
         
-        .pos-cart::-webkit-scrollbar-thumb:hover,
-        .pos-products::-webkit-scrollbar-thumb:hover {
+        .pos-categories-content::-webkit-scrollbar-thumb:hover,
+        .pos-cart-items::-webkit-scrollbar-thumb:hover,
+        .pos-products-grid::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
         
-        /* ASEGURAR QUE FILAMENT FUNCIONE NORMAL */
-        .fi-main {
-            transition: margin-left 0.3s ease !important;
+        /* ANIMACIONES Y FEEDBACK VISUAL */
+        .pos-loading {
+            pointer-events: none;
+            opacity: 0.7;
+            position: relative;
         }
         
-        /* NO TOCAR NADA MÁS DE FILAMENT */
-        .pos-interface {
-            position: relative !important;
-            width: 100% !important;
-            height: auto !important;
+        .pos-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid transparent;
+            border-top: 2px solid var(--pos-primary);
+            border-radius: 50%;
+            animation: pos-spin 1s linear infinite;
         }
         
-        /* ELIMINAR ESPACIOS SUPERIORES DE FILAMENT */
-        .fi-main .fi-page {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
+        @keyframes pos-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .fi-page-header {
-            display: none !important; /* Ocultar completamente el header de la página */
+        /* TOAST NOTIFICATIONS */
+        .pos-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid var(--pos-gray-200);
+            border-radius: var(--pos-border-radius);
+            padding: 16px;
+            box-shadow: var(--pos-shadow-hover);
+            z-index: 1000;
+            animation: pos-slide-in 0.3s ease;
         }
         
-        /* ELIMINAR TODOS LOS ESPACIOS SUPERIORES POSIBLES */
-        .fi-main {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
+        @keyframes pos-slide-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
-        
-        .fi-page {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
-        }
-        
-        .pos-interface {
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-        }
-        
-        /* ASEGURAR ALINEACIÓN PERFECTA */
-        .pos-main-content .pos-categories,
-        .pos-main-content .pos-products,
-        .pos-cart {
-            align-self: flex-start !important;
-            margin-top: 0 !important;
-            padding-top: 0 !important;
-        }
-        
-        /* MANTENER FLUJO NORMAL PARA EL SIDEBAR - NO USAR ABSOLUTE */
     </style>
+
     <div class="pos-interface">
-        <div class="pos-main-content flex overflow-hidden h-screen">
+        <div class="pos-main-container">
             {{-- SIDEBAR IZQUIERDO: CATEGORÍAS --}}
-            <div class="pos-categories bg-gradient-to-b from-blue-100 to-blue-200 shadow-lg border-r border-blue-300 flex flex-col">
-                {{-- HEADER DEL SIDEBAR --}}
-                <div class="px-4 py-4 border-b border-blue-300">
-                    <h3 class="text-sm font-bold text-blue-800 text-center">Categorías</h3>
+            <div class="pos-categories">
+                <div class="pos-categories-header">
+                    <h3 class="text-sm font-bold text-gray-800 text-center">Categorías</h3>
                 </div>
                 
-                {{-- CATEGORÍAS VERTICALES --}}
-                <div class="flex-1 overflow-y-auto py-2 px-2 space-y-1 scrollbar-thin scrollbar-thumb-blue-400 scrollbar-track-blue-200">
+                <div class="pos-categories-content">
                     @foreach($this->getCategoriesProperty() as $category)
-                        <x-filament::button
+                        <button
                             wire:click="selectCategory({{ $category->id }})"
-                            :color="$selectedCategoryId === $category->id ? 'primary' : 'gray'"
-                            size="sm"
-                            class="w-full justify-start px-4 py-3 text-sm font-medium text-left transition-all duration-200 hover:scale-[1.02] rounded-lg border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md mb-1"
+                            class="pos-category-btn {{ $selectedCategoryId === $category->id ? 'active' : '' }}"
                         >
                             {{ $category->name }}
-                        </x-filament::button>
+                        </button>
                     @endforeach
                 </div>
                 
-                {{-- SUBCATEGORÍAS (SI EXISTEN) --}}
+                {{-- SUBCATEGORÍAS --}}
                 @if($selectedCategoryId && $subcategories->isNotEmpty())
-                    <div class="border-t border-blue-300 px-2 py-3">
-                        <h4 class="text-xs font-semibold text-blue-700 mb-2 px-2">Subcategorías</h4>
+                    <div class="border-t border-gray-200 p-3">
+                        <h4 class="text-xs font-semibold text-gray-600 mb-2">Subcategorías</h4>
                         <div class="space-y-1">
-                            {{-- Botón Todos de subcategorías --}}
-                            <x-filament::button
+                            <button
                                 wire:click="selectSubcategory(null)"
-                                :color="$selectedSubcategoryId === null ? 'primary' : 'gray'"
-                                size="sm"
-                                class="w-full justify-start px-3 py-2 text-xs font-medium text-left transition-all duration-200 hover:scale-[1.02] rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
+                                class="pos-category-btn {{ $selectedSubcategoryId === null ? 'active' : '' }}"
+                                style="font-size: 12px; padding: 8px 12px;"
                             >
                                 Todos
-                            </x-filament::button>
-
-                            {{-- Botones de subcategorías --}}
+                            </button>
                             @foreach($subcategories as $subcat)
-                                <x-filament::button
+                                <button
                                     wire:click="selectSubcategory({{ $subcat->id }})"
-                                    :color="$selectedSubcategoryId === $subcat->id ? 'primary' : 'gray'"
-                                    size="sm"
-                                    class="w-full justify-start px-3 py-2 text-xs font-medium text-left transition-all duration-200 hover:scale-[1.02] rounded-md border border-gray-300 hover:border-gray-400 shadow-sm hover:shadow-md"
+                                    class="pos-category-btn {{ $selectedSubcategoryId === $subcat->id ? 'active' : '' }}"
+                                    style="font-size: 12px; padding: 8px 12px;"
                                 >
                                     {{ $subcat->name }}
-                                </x-filament::button>
+                                </button>
                             @endforeach
                         </div>
                     </div>
                 @endif
             </div>
             
-            {{-- CENTRO: PRODUCTOS --}}
-            <div class="pos-products flex-1 p-2 overflow-y-auto">
+            {{-- ÁREA CENTRAL: PRODUCTOS --}}
+            <div class="pos-products-area">
                 {{-- BARRA DE BÚSQUEDA --}}
-                <div class="mb-4">
-                    <x-filament::input.wrapper class="mb-2">
-                        <x-filament::input
-                            type="text"
-                            wire:model.debounce.300ms="search"
-                            placeholder="Buscar productos..."
-                            class="w-full text-base py-3"
-                        />
-                    </x-filament::input.wrapper>
+                <div class="pos-search-bar">
+                    <input
+                        type="text"
+                        wire:model.debounce.300ms="search"
+                        placeholder="Buscar productos..."
+                        class="pos-search-input"
+                    />
                 </div>
 
-                {{-- GRID RESPONSIVO NATIVO DE FILAMENT/TAILWIND --}}
-                <x-filament::section>
-                    <div class="grid gap-3 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7">
-                    @forelse ($products as $product)
-                            {{-- Card de producto usando componentes nativos --}}
-                            <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-200">
-                        <button
-                            wire:click="addToCart({{ $product->id }})"
-                            @class([
-                                        'w-full p-4 text-center transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-800',
-                                'cursor-not-allowed opacity-50' => !$canAddProducts,
-                            ])
-                            @if(!$canAddProducts)
-                                disabled
-                                title="No se pueden agregar productos. La orden está guardada."
-                            @endif
-                        >
-                                    {{-- Imagen del producto --}}
-                                    <div class="product-image-container mx-auto mb-3">
+                {{-- GRID DE PRODUCTOS --}}
+                <div class="pos-products-grid">
+                    <div class="pos-products-container">
+                        @forelse ($products as $product)
+                            <div
+                                wire:click="addToCart({{ $product->id }})"
+                                class="pos-product-card {{ !$canAddProducts ? 'pos-loading' : '' }}"
+                                @if(!$canAddProducts) style="pointer-events: none;" @endif
+                            >
+                                <div class="pos-product-image">
                                     @if($product->image_path)
-                                            <img 
-                                                src="{{ $product->image }}" 
-                                                alt="{{ $product->name }}" 
-                                                class="w-16 h-16 object-cover rounded-lg mx-auto"
-                                            />
+                                        <img 
+                                            src="{{ $product->image }}" 
+                                            alt="{{ $product->name }}" 
+                                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"
+                                        />
                                     @else
-                                            <div class="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center mx-auto">
-                                                <span class="text-lg font-bold text-gray-500 dark:text-gray-400">
-                                                {{ strtoupper(substr($product->name, 0, 2)) }}
-                                            </span>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    
-                                    {{-- Nombre del producto --}}
-                                    <h3 class="pos-responsive-text font-medium text-gray-800 dark:text-gray-200 text-center leading-tight mb-1 min-h-[2.5rem] flex items-center justify-center">
-                                        {{ $product->name }}
-                                    </h3>
-                                    
-                                    {{-- Precio del producto --}}
-                                    <p class="pos-responsive-price text-green-600 dark:text-green-400">
-                                        S/ {{ number_format($product->sale_price, 2) }}
-                                    </p>
-
-                                    {{-- Badge de categoría (opcional) --}}
-                                    @if($product->category)
-                                        <div class="mt-2">
-                                            <x-filament::badge 
-                                                color="gray" 
-                                                size="sm"
-                                            >
-                                                {{ $product->category->name }}
-                                            </x-filament::badge>
-                                        </div>
+                                        <span style="font-weight: bold; color: #9ca3af; font-size: 18px;">
+                                            {{ strtoupper(substr($product->name, 0, 2)) }}
+                                        </span>
                                     @endif
-                                </button>
+                                </div>
+                                
+                                <div class="pos-product-name">{{ $product->name }}</div>
+                                <div class="pos-product-price">S/ {{ number_format($product->sale_price, 2) }}</div>
+                                
+                                @if($product->category)
+                                    <div style="margin-top: 8px;">
+                                        <span style="background: #e5e7eb; color: #374151; padding: 2px 8px; border-radius: 12px; font-size: 10px;">
+                                            {{ $product->category->name }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
                         @empty
-                            {{-- Estado vacío --}}
-                            <div class="col-span-full">
-                                <div class="text-center py-12">
-                                    <x-filament::icon
-                                        icon="heroicon-o-shopping-bag"
-                                        class="w-12 h-12 text-gray-400 mx-auto mb-4"
-                                    />
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                                        No hay productos disponibles
-                                    </h3>
-                                    <p class="text-gray-500 dark:text-gray-400">
-                                        @if($search || $selectedCategoryId)
-                                            No se encontraron productos que coincidan con los filtros aplicados.
-                                        @else
-                                            No hay productos registrados en el sistema.
-                                        @endif
-                                    </p>
-                                </div>
+                            <div class="pos-empty-state" style="grid-column: 1 / -1;">
+                                <x-heroicon-o-shopping-bag class="pos-empty-icon" />
+                                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No hay productos</h3>
+                                <p style="font-size: 14px;">
+                                    @if($search || $selectedCategoryId)
+                                        No se encontraron productos con los filtros aplicados.
+                                    @else
+                                        No hay productos registrados en el sistema.
+                                    @endif
+                                </p>
                             </div>
                         @endforelse
                     </div>
 
-                    {{-- Footer con información adicional --}}
+                    {{-- INFORMACIÓN ADICIONAL --}}
                     @if($products && $products->count() > 0)
-                        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center justify-between">
-                                <div class="text-sm text-gray-500 dark:text-gray-400">
-                                    @if($search || $selectedCategoryId)
-                                        {{ $products->count() }} productos filtrados
-                                    @else
-                                        {{ $products->count() }} productos disponibles
-                                    @endif
-                                </div>
-                                <div class="text-xs text-gray-400 dark:text-gray-500">
-                                    Actualizado: {{ now()->format('H:i:s') }}
-                                </div>
-                            </div>
+                        <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--pos-gray-200); display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 14px; color: #6b7280;">
+                                {{ $products->count() }} productos {{ $search || $selectedCategoryId ? 'filtrados' : 'disponibles' }}
+                            </span>
+                            <span style="font-size: 12px; color: #9ca3af;">
+                                Actualizado: {{ now()->format('H:i:s') }}
+                            </span>
                         </div>
                     @endif
-                </x-filament::section>
+                </div>
             </div>
-        </div>
 
-        {{-- DERECHA: CARRITO FIJO --}}
-        <div class="pos-cart bg-white flex flex-col">
+            {{-- CARRITO DERECHO --}}
+            <div class="pos-cart">
                 {{-- HEADER DEL CARRITO --}}
-                <div class="p-4 border-b border-gray-200 bg-gradient-to-r from-green-50 to-green-100">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-800">
-                            Carrito de Compra
-                        </h3>
-                        <x-filament::badge color="success" size="lg">
+                <div class="pos-cart-header">
+                    <div class="pos-cart-title">
+                        <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">Carrito</h3>
+                        <span style="background: var(--pos-success); color: white; padding: 4px 12px; border-radius: 16px; font-size: 14px; font-weight: 600;">
                             {{ count($cartItems) }} items
-                        </x-filament::badge>
+                        </span>
                     </div>
 
-                    <!-- Controles del Carrito: Comensales y Limpiar -->
-                    <div class="flex items-end justify-between gap-6">
-                        <!-- Selector de Comensales -->
-                        <div class="flex-grow">
-                            <label for="numberOfGuests" class="block text-sm font-medium text-gray-700 mb-1.5">
-                                Número de Comensales <span class="text-red-500">*</span>
+                    {{-- CONTROLES PRINCIPALES --}}
+                    <div class="pos-cart-actions">
+                        <div>
+                            <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                                Comensales <span style="color: #ef4444;">*</span>
                             </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <x-heroicon-s-users class="h-5 w-5 text-gray-400" />
-                                </div>
+                            <div style="position: relative;">
+                                <x-heroicon-s-users style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #9ca3af;" />
                                 <input
                                     type="number"
                                     wire:model.live="numberOfGuests"
                                     min="1"
-                                    class="pl-11 block w-full rounded-lg border-gray-300 text-center shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
-                                    placeholder="Ingrese el número de comensales"
+                                    style="width: 100%; padding: 12px 12px 12px 36px; border: 1px solid var(--pos-gray-200); border-radius: 8px; text-align: center; font-weight: 600;"
+                                    placeholder="0"
                                     required
                                 >
                             </div>
                         </div>
-
-                        <!-- Botón Limpiar -->
+                        
                         <button
                             wire:click="clearCart"
-                            class="h-10 w-10 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 focus:outline-none"
+                            style="width: 44px; height: 44px; border: 1px solid #fca5a5; border-radius: 8px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;"
                             title="Limpiar carrito"
                             {{ !$canClearCart ? 'disabled' : '' }}
+                            onmouseover="this.style.background='#fee2e2'"
+                            onmouseout="this.style.background='#fef2f2'"
                         >
-                            <x-heroicon-s-trash class="h-5 w-5" />
+                            <x-heroicon-s-trash style="width: 20px; height: 20px;" />
                         </button>
                     </div>
                     
-                    {{-- BARRA DE ACCIONES RÁPIDAS --}}
-                    <div class="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <h4 class="text-xs font-semibold text-gray-600 mb-2 text-center">Acciones Rápidas</h4>
-                        <div class="grid grid-cols-4 gap-1 justify-items-center" style="display: grid !important; grid-template-columns: repeat(4, 1fr) !important;">
-                            {{-- FILA 1: Mapa, Comanda, Pre-Cuenta, Liberar --}}
-                            
-                            {{-- Mapa de Mesas --}}
+                    {{-- ACCIONES RÁPIDAS REORGANIZADAS --}}
+                    <div class="pos-quick-actions">
+                        <div class="pos-quick-actions-title">Acciones Rápidas</div>
+                        <div class="pos-quick-actions-grid">
+                            {{-- Mapa --}}
                             <button 
                                 wire:click="mountAction('backToTableMap')"
-                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                class="pos-quick-action-btn"
+                                {{ !($this->order && $this->order->table_id !== null) ? 'disabled' : '' }}
                                 title="Ir a Mapa de Mesas"
-                                @if(!($this->order && $this->order->table_id !== null)) disabled class="opacity-50 cursor-not-allowed" @endif
                             >
-                                <x-heroicon-o-map class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                                <x-heroicon-o-map class="pos-quick-action-icon" />
+                                <span>Mapa</span>
                             </button>
                             
                             {{-- Comanda --}}
                             <button 
                                 wire:click="mountAction('printComanda')"
-                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                class="pos-quick-action-btn"
+                                {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
                                 title="Imprimir Comanda"
-                                @if(!($this->order || !empty($this->cartItems))) disabled class="opacity-50 cursor-not-allowed" @endif
                             >
-                                <x-heroicon-o-document-text class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                                <x-heroicon-o-document-text class="pos-quick-action-icon" />
+                                <span>Comanda</span>
                             </button>
                             
                             {{-- Pre-Cuenta --}}
                             <button 
                                 wire:click="mountAction('printPreBillNew')"
-                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                class="pos-quick-action-btn"
+                                {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
                                 title="Generar Pre-Cuenta"
-                                @if(!($this->order || !empty($this->cartItems))) disabled class="opacity-50 cursor-not-allowed" @endif
                             >
-                                <x-heroicon-o-document-duplicate class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                                <x-heroicon-o-document-duplicate class="pos-quick-action-icon" />
+                                <span>Pre-Cuenta</span>
                             </button>
                             
-                            {{-- Liberar Mesa --}}
-                            @if(!auth()->user()->hasRole(['waiter', 'cashier']))
-                                <button 
-                                    wire:click="mountAction('releaseTable')"
-                                    class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
-                                    title="Liberar Mesa"
-                                    @if(!($this->order && $this->order->table_id && $this->order->status === 'open')) disabled class="opacity-50 cursor-not-allowed" @endif
-                                >
-                                    <x-heroicon-o-arrow-right-start-on-rectangle class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
-                                </button>
-                            @else
-                                <div class="p-2 rounded-full bg-gray-200 opacity-50" title="Sin permisos">
-                                    <x-heroicon-o-arrow-right-start-on-rectangle class="h-5 w-5 text-gray-400" />
-                                </div>
-                            @endif
-                            
-                            {{-- FILA 2: Reabrir, Transferir, Dividir, Cancelar --}}
-                            
-                            {{-- Reabrir Orden --}}
+                            {{-- Reabrir --}}
                             <button 
                                 wire:click="mountAction('reopen_order_for_editing')"
-                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
+                                class="pos-quick-action-btn"
+                                {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists()) ? 'disabled' : '' }}
                                 title="Reabrir Orden"
-                                @if(!($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists())) disabled class="opacity-50 cursor-not-allowed" @endif
                             >
-                                <x-heroicon-o-lock-open class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
+                                <x-heroicon-o-lock-open class="pos-quick-action-icon" />
+                                <span>Reabrir</span>
+                            </button>
+                            
+                            {{-- Dividir --}}
+                            <button 
+                                wire:click="mountAction('split_items')"
+                                class="pos-quick-action-btn"
+                                {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }}
+                                title="Dividir Cuenta"
+                            >
+                                <x-heroicon-o-scissors class="pos-quick-action-icon" />
+                                <span>Dividir</span>
                             </button>
                             
                             {{-- Transferir --}}
                             @if(!auth()->user()->hasRole(['waiter', 'cashier']))
                                 <button 
                                     wire:click="mountAction('transferOrder')"
-                                    class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
-                                title="Transferir Mesa"
-                                @if(!($this->order && $this->order->table_id && $this->order->status === 'open')) disabled class="opacity-50 cursor-not-allowed" @endif
-                            >
-                                <x-heroicon-o-arrow-path-rounded-square class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
-                            </button>
-                            @else
-                                <div class="p-2 rounded-full bg-gray-200 opacity-50" title="Sin permisos">
-                                    <x-heroicon-o-arrow-path-rounded-square class="h-5 w-5 text-gray-400" />
-                                </div>
-                            @endif
-                            
-                            {{-- Dividir Cuenta --}}
-                            <button 
-                                wire:click="mountAction('split_items')"
-                                class="p-2 rounded-full hover:bg-blue-100 transition-all duration-200 hover:scale-110 group"
-                                title="Dividir Cuenta"
-                                @if(!($this->order !== null && count($this->order->orderDetails ?? []) > 0)) disabled class="opacity-50 cursor-not-allowed" @endif
-                            >
-                                <x-heroicon-o-scissors class="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
-                            </button>
-                            
-                            {{-- Cancelar Orden --}}
-                            @if(!auth()->user()->hasRole(['waiter', 'cashier']))
-                                <button 
-                                    wire:click="mountAction('cancelOrder')"
-                                    class="p-2 rounded-full hover:bg-red-100 transition-all duration-200 hover:scale-110 group"
-                                title="Cancelar Orden"
-                                @if(!($this->order && $this->order->table_id && $this->order->status === 'open')) disabled class="opacity-50 cursor-not-allowed" @endif
-                            >
-                                <x-heroicon-o-x-circle class="h-5 w-5 text-gray-600 group-hover:text-red-600" />
-                            </button>
-                            @else
-                                <div class="p-2 rounded-full bg-gray-200 opacity-50" title="Sin permisos">
-                                    <x-heroicon-o-x-circle class="h-5 w-5 text-gray-400" />
-                                </div>
+                                    class="pos-quick-action-btn"
+                                    {{ !($this->order && $this->order->table_id && $this->order->status === 'open') ? 'disabled' : '' }}
+                                    title="Transferir Mesa"
+                                >
+                                    <x-heroicon-o-arrow-path-rounded-square class="pos-quick-action-icon" />
+                                    <span>Transferir</span>
+                                </button>
                             @endif
                         </div>
                     </div>
                 </div>
 
                 {{-- ITEMS DEL CARRITO --}}
-                <div class="flex-1 overflow-y-auto p-3 space-y-2">
+                <div class="pos-cart-items">
                     @forelse($cartItems as $index => $item)
-                        <div class="bg-gray-50 rounded-lg border p-3 hover:bg-gray-100 transition-colors">
-                            <div class="flex items-center justify-between">
-                                <div class="flex-1 min-w-0">
-                                    {{-- NOMBRE Y PRECIO COMPACTO --}}
-                                    <h4 class="pos-responsive-text font-semibold text-gray-900 truncate mb-1">{{ $item['name'] }}</h4>
-                                    
-                                    {{-- CHECKBOX PARA BEBIDAS HELADAS --}}
-                                    @if($item['is_cold_drink'] ?? false)
-                                        <div class="flex items-center space-x-4 mb-2">
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.temperature"
-                                                    value="HELADA"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="cold-drink-{{ $index }}-cold"
-                                                >
-                                                <label for="cold-drink-{{ $index }}-cold" class="ml-2 text-sm text-gray-600">
-                                                    Helada
-                                                </label>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.temperature"
-                                                    value="AL TIEMPO"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="cold-drink-{{ $index }}-room"
-                                                >
-                                                <label for="cold-drink-{{ $index }}-room" class="ml-2 text-sm text-gray-600">
-                                                    Al tiempo
-                                                </label>
-                                            </div>
+                        <div class="pos-cart-item">
+                            <div class="pos-cart-item-header">
+                                <div class="pos-cart-item-name">{{ $item['name'] }}</div>
+                                <div class="pos-cart-item-price">S/ {{ number_format($item['unit_price'], 2) }} c/u</div>
+                            </div>
+                            
+                            {{-- OPCIONES ESPECIALES --}}
+                            @if($item['is_cold_drink'] ?? false)
+                                <div class="pos-special-options">
+                                    <div class="pos-special-options-title">Temperatura:</div>
+                                    <div class="pos-radio-group">
+                                        <div class="pos-radio-option">
+                                            <input 
+                                                type="radio" 
+                                                wire:model.live="cartItems.{{ $index }}.temperature"
+                                                value="HELADA"
+                                                id="cold-{{ $index }}"
+                                            >
+                                            <label for="cold-{{ $index }}">Helada</label>
                                         </div>
-                                    @endif
-                                    
-                                    {{-- OPCIONES DE COCCIÓN PARA PARRILLAS --}}
-                                    @if($item['is_grill_item'] ?? false)
-                                        <div class="flex flex-wrap items-center gap-2 mb-2 bg-yellow-50 p-2 rounded-md border border-yellow-200">
-                                            <span class="text-xs font-semibold text-yellow-800 w-full mb-1">Punto de cocción:</span>
-                                            
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
-                                                    value="AZUL"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="grill-{{ $index }}-blue"
-                                                >
-                                                <label for="grill-{{ $index }}-blue" class="ml-1 text-xs text-gray-600">
-                                                    Azul
-                                                </label>
-                                            </div>
-                                            
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
-                                                    value="ROJO"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="grill-{{ $index }}-red"
-                                                >
-                                                <label for="grill-{{ $index }}-red" class="ml-1 text-xs text-gray-600">
-                                                    Rojo
-                                                </label>
-                                            </div>
-                                            
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
-                                                    value="MEDIO"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="grill-{{ $index }}-medium"
-                                                >
-                                                <label for="grill-{{ $index }}-medium" class="ml-1 text-xs text-gray-600">
-                                                    Medio
-                                                </label>
-                                            </div>
-                                            
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
-                                                    value="TRES CUARTOS"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="grill-{{ $index }}-three-quarters"
-                                                >
-                                                <label for="grill-{{ $index }}-three-quarters" class="ml-1 text-xs text-gray-600">
-                                                    Tres Cuartos
-                                                </label>
-                                            </div>
-                                            
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
-                                                    value="BIEN COCIDO"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="grill-{{ $index }}-well-done"
-                                                >
-                                                <label for="grill-{{ $index }}-well-done" class="ml-1 text-xs text-gray-600">
-                                                    Bien Cocido
-                                                </label>
-                                            </div>
+                                        <div class="pos-radio-option">
+                                            <input 
+                                                type="radio" 
+                                                wire:model.live="cartItems.{{ $index }}.temperature"
+                                                value="AL TIEMPO"
+                                                id="room-{{ $index }}"
+                                            >
+                                            <label for="room-{{ $index }}">Al tiempo</label>
                                         </div>
-                                    @endif
-                                    
-                                    {{-- OPCIONES DE TIPO DE PRESA PARA POLLOS --}}
-                                    @if($item['is_chicken_cut'] ?? false)
-                                        <div class="flex flex-wrap items-center gap-2 mb-2 bg-orange-50 p-2 rounded-md border border-orange-200">
-                                            <span class="text-xs font-semibold text-orange-800 w-full mb-1">Tipo de presa:</span>
-                                            
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
-                                                    value="PECHO"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="chicken-{{ $index }}-breast"
-                                                >
-                                                <label for="chicken-{{ $index }}-breast" class="ml-1 text-xs text-gray-600">
-                                                    Pecho
-                                                </label>
-                                            </div>
-                                            
-                                            <div class="flex items-center">
-                                                <input 
-                                                    type="radio" 
-                                                    wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
-                                                    value="PIERNA"
-                                                    class="form-radio h-4 w-4 text-primary-600 border-gray-300 focus:ring-primary-500"
-                                                    id="chicken-{{ $index }}-leg"
-                                                >
-                                                <label for="chicken-{{ $index }}-leg" class="ml-1 text-xs text-gray-600">
-                                                    Pierna
-                                                </label>
-                                            </div>
-                                        </div>
-                                    @endif
-                                    
-                                    <p class="pos-responsive-text text-gray-600 mb-2 font-medium">S/ {{ number_format($item['unit_price'], 2) }} c/u</p>
-
-                                    {{-- CONTROLES DE CANTIDAD COMPACTOS E INSTANTÁNEOS --}}
-                                    <div class="flex items-center justify-between" wire:loading.class="opacity-50" wire:target="updateQuantity({{ $index }})">
-                                        <div class="flex items-center space-x-1 bg-white rounded border px-1">
-                                            <x-filament::icon-button
-                                                icon="heroicon-m-minus"
-                                                wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})"
-                                                size="sm"
-                                                color="gray"
-                                                class="h-6 w-6"
-                                                tag="button"
-                                                label="Restar uno"
-                                                :disabled="!$canClearCart"
-                                            />
-                                            <span class="text-sm font-semibold min-w-[1.5rem] text-center">{{ $item['quantity'] }}</span>
-                                            <x-filament::icon-button
-                                                icon="heroicon-m-plus"
-                                                wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})"
-                                                size="sm"
-                                                color="success"
-                                                class="h-6 w-6"
-                                                tag="button"
-                                                label="Añadir uno"
-                                                :disabled="!$canClearCart"
-                                            />
-                                        </div>
-
-                                        {{-- SUBTOTAL COMPACTO --}}
-                                        <span class="pos-responsive-price text-green-600">
-                                            S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
-                                        </span>
                                     </div>
+                                </div>
+                            @endif
+                            
+                            @if($item['is_grill_item'] ?? false)
+                                <div class="pos-special-options">
+                                    <div class="pos-special-options-title">Punto de cocción:</div>
+                                    <div class="pos-radio-group">
+                                        @foreach(['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'] as $point)
+                                            <div class="pos-radio-option">
+                                                <input 
+                                                    type="radio" 
+                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
+                                                    value="{{ $point }}"
+                                                    id="grill-{{ $index }}-{{ $loop->index }}"
+                                                >
+                                                <label for="grill-{{ $index }}-{{ $loop->index }}">{{ $point }}</label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            @if($item['is_chicken_cut'] ?? false)
+                                <div class="pos-special-options">
+                                    <div class="pos-special-options-title">Tipo de presa:</div>
+                                    <div class="pos-radio-group">
+                                        <div class="pos-radio-option">
+                                            <input 
+                                                type="radio" 
+                                                wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
+                                                value="PECHO"
+                                                id="chicken-{{ $index }}-breast"
+                                            >
+                                            <label for="chicken-{{ $index }}-breast">Pecho</label>
+                                        </div>
+                                        <div class="pos-radio-option">
+                                            <input 
+                                                type="radio" 
+                                                wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
+                                                value="PIERNA"
+                                                id="chicken-{{ $index }}-leg"
+                                            >
+                                            <label for="chicken-{{ $index }}-leg">Pierna</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- CONTROLES DE CANTIDAD --}}
+                            <div class="pos-quantity-controls">
+                                <button
+                                    wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})"
+                                    class="pos-quantity-btn"
+                                    {{ !$canClearCart ? 'disabled' : '' }}
+                                >
+                                    <x-heroicon-m-minus style="width: 16px; height: 16px;" />
+                                </button>
+                                
+                                <div class="pos-quantity-value">{{ $item['quantity'] }}</div>
+                                
+                                <button
+                                    wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})"
+                                    class="pos-quantity-btn"
+                                    {{ !$canClearCart ? 'disabled' : '' }}
+                                >
+                                    <x-heroicon-m-plus style="width: 16px; height: 16px;" />
+                                </button>
+                                
+                                <div class="pos-quantity-total">
+                                    S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                 </div>
                             </div>
                         </div>
                     @empty
-                        <div class="text-center py-12">
-                            <x-heroicon-o-shopping-cart class="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                            <p class="text-gray-500 text-base font-medium">Carrito vacío</p>
-                            <p class="text-gray-400 text-sm mt-1">Selecciona productos para agregar</p>
+                        <div class="pos-empty-state">
+                            <x-heroicon-o-shopping-cart class="pos-empty-icon" />
+                            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Carrito vacío</h3>
+                            <p style="font-size: 14px;">Selecciona productos para agregar</p>
                         </div>
                     @endforelse
                 </div>
 
-                {{-- FOOTER: TOTALES Y ACCIÓN --}}
+                {{-- TOTALES Y ACCIONES --}}
                 @if(count($cartItems) > 0)
-                    <div class="border-t border-gray-200 p-4 bg-gray-50 space-y-4">
-                        {{-- TOTALES --}}
-                        <div class="space-y-2 bg-white rounded-lg p-3 border">
-                            <div class="flex justify-between">
-                                <span class="pos-responsive-text text-gray-600">Subtotal:</span>
-                                <span class="pos-responsive-text font-semibold">S/ {{ number_format($subtotal, 2) }}</span>
+                    <div class="pos-cart-totals">
+                        <div class="pos-totals-container">
+                            <div class="pos-total-row">
+                                <span>Subtotal:</span>
+                                <span>S/ {{ number_format($subtotal, 2) }}</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="pos-responsive-text text-gray-600">IGV (18%):</span>
-                                <span class="pos-responsive-text font-semibold">S/ {{ number_format($tax, 2) }}</span>
+                            <div class="pos-total-row">
+                                <span>IGV (18%):</span>
+                                <span>S/ {{ number_format($tax, 2) }}</span>
                             </div>
-                            <hr class="border-gray-200">
-                            <div class="flex justify-between font-bold">
-                                <span class="pos-responsive-price text-gray-900">Total:</span>
-                                <span class="pos-responsive-price text-green-600">S/ {{ number_format($total, 2) }}</span>
+                            <div class="pos-total-row final">
+                                <span>Total:</span>
+                                <span>S/ {{ number_format($total, 2) }}</span>
                             </div>
                         </div>
 
-                        {{-- BOTONES DE ACCIÓN CONDICIONALES --}}
-                        <div class="space-y-3">
-                            {{-- ✅ VENTA DIRECTA: IR DIRECTO A PAGAR SIN CREAR ORDEN PRIMERO --}}
-                            @if($selectedTableId === null && !$order)
-                                @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
-                                    <x-filament::button
-                                        wire:click="mountAction('processBilling')"
-                                        color="success"
-                                        size="lg"
-                                        class="w-full py-3 text-base font-bold"
-                                        :disabled="!count($cartItems)"
-                                    >
-                                        <x-heroicon-m-credit-card class="h-5 w-5 mr-2" />
-                                        Emitir Comprobante
-                                    </x-filament::button>
-                                @endif
-                            @elseif(!$order || ($order && !$order->invoices()->exists()))
-                                {{-- VENTA CON MESA: GUARDAR ORDEN PRIMERO --}}
-                                <x-filament::button
-                                    wire:click="processOrder"
-                                    color="primary"
-                                    size="lg"
-                                    class="w-full py-3 text-base font-bold"
-                                    :disabled="!count($cartItems)"
-                                >
-                                    <x-heroicon-m-check-circle class="h-5 w-5 mr-2" />
-                                    Guardar Orden
-                                </x-filament::button>
-                            @endif
-
-                            {{-- BOTÓN PARA PROCEDER AL PAGO DE LA ORDEN YA CREADA --}}
-                            @if($order && !$order->invoices()->exists() && auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
-                                <x-filament::button
+                        {{-- BOTONES DE ACCIÓN --}}
+                        @if($selectedTableId === null && !$order)
+                            @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
+                                <button
                                     wire:click="mountAction('processBilling')"
-                                    color="success"
-                                    size="lg"
-                                    class="w-full py-3 text-base font-bold"
+                                    class="pos-action-btn success"
+                                    {{ !count($cartItems) ? 'disabled' : '' }}
                                 >
-                                    <x-heroicon-m-credit-card class="h-5 w-5 mr-2" />
+                                    <x-heroicon-m-credit-card style="width: 20px; height: 20px;" />
                                     Emitir Comprobante
-                                </x-filament::button>
+                                </button>
                             @endif
+                        @elseif(!$order || ($order && !$order->invoices()->exists()))
+                            <button
+                                wire:click="processOrder"
+                                class="pos-action-btn primary"
+                                {{ !count($cartItems) ? 'disabled' : '' }}
+                            >
+                                <x-heroicon-m-check-circle style="width: 20px; height: 20px;" />
+                                Guardar Orden
+                            </button>
+                        @endif
 
-                            {{-- MENSAJE CUANDO LA ORDEN YA ESTÁ FACTURADA --}}
-                            @if($order && $order->invoices()->exists())
-                                <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                                    <div class="flex items-center justify-center mb-2">
-                                        <x-heroicon-o-check-circle class="h-6 w-6 text-green-600 mr-2" />
-                                        <span class="text-green-800 font-semibold">Orden Facturada</span>
-                                    </div>
-                                    <p class="text-green-700 text-sm mb-3">
-                                        Esta orden ya tiene comprobante(s) emitido(s).
-                                    </p>
-                                    @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
-                                        <x-filament::button
-                                            wire:click="reimprimirComprobante"
-                                            color="success"
-                                            size="lg"
-                                            class="w-full py-2 text-base font-bold"
-                                        >
-                                            <x-heroicon-m-printer class="h-5 w-5 mr-2" />
-                                            Reimprimir Comprobante
-                                        </x-filament::button>
-                                    @endif
+                        @if($order && !$order->invoices()->exists() && auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
+                            <button
+                                wire:click="mountAction('processBilling')"
+                                class="pos-action-btn success"
+                            >
+                                <x-heroicon-m-credit-card style="width: 20px; height: 20px;" />
+                                Emitir Comprobante
+                            </button>
+                        @endif
+
+                        @if($order && $order->invoices()->exists())
+                            <div style="background: #d1fae5; border: 1px solid #10b981; border-radius: var(--pos-border-radius); padding: 16px; text-align: center; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
+                                    <x-heroicon-o-check-circle style="width: 24px; height: 24px; color: #059669; margin-right: 8px;" />
+                                    <span style="color: #065f46; font-weight: 600;">Orden Facturada</span>
                                 </div>
-                            @endif
-                        </div>
+                                <p style="color: #047857; font-size: 14px; margin-bottom: 12px;">
+                                    Esta orden ya tiene comprobante(s) emitido(s).
+                                </p>
+                                @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
+                                    <button
+                                        wire:click="reimprimirComprobante"
+                                        class="pos-action-btn success"
+                                        style="margin-bottom: 0;"
+                                    >
+                                        <x-heroicon-m-printer style="width: 20px; height: 20px;" />
+                                        Reimprimir
+                                    </button>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
         </div>
     </div>
 
-    {{-- MODAL DE IMPRESIÓN --}}
+    {{-- MODAL DE IMPRESIÓN (SIN CAMBIOS) --}}
     <div
-                x-data="{
+        x-data="{
             open: false,
             type: '',
             url: '',
             title: '',
             printProcessing: false,
             init() {
-                // Escuchar el evento de Livewire SOLO UNA VEZ
                 $wire.on('open-print-modal', (event) => {
                     console.log('Evento recibido:', event);
                     this.type = event.type;
@@ -791,7 +1049,6 @@
                     this.open = true;
                 });
 
-                // LISTENER ÚNICO para impresión automática
                 if (!window.posInterfacePrintListenerAdded) {
                     window.posInterfacePrintListenerAdded = true;
                     $wire.on('open-print-window', (event) => {
@@ -800,7 +1057,6 @@
 
                         console.log('🖨️ POS Interface - Imprimiendo comprobante...', event);
 
-                        // Extraer ID del evento
                         let invoiceId = Array.isArray(event) ? (event[0]?.id || event[0]) : (event?.id || event);
 
                         if (!invoiceId) {
@@ -809,7 +1065,6 @@
                             return;
                         }
 
-                        // Delay para DB + abrir ventana
                         setTimeout(() => {
                             const printUrl = `/print/invoice/${invoiceId}`;
                             console.log('🔗 Abriendo ventana de impresión:', printUrl);
@@ -818,14 +1073,6 @@
                         }, 800);
                     });
                 }
-
-                // FUNCIÓN GLOBAL para mostrar modal de comanda (DEPRECATED - ahora usa modal de Filament)
-                // window.showCommandModal = function(url) {
-                //     console.log('🖨️ Mostrando modal de comanda:', url);
-                //     setTimeout(() => {
-                //         window.open(url, 'command_print_window', 'width=800,height=600,scrollbars=yes,resizable=yes');
-                //     }, 500);
-                // };
             }
         }"
         x-show="open"
@@ -836,7 +1083,6 @@
         aria-modal="true"
     >
         <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            {{-- OVERLAY con redirección al cerrar --}}
             <div
                 @click="open = false; window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';"
                 x-show="open"
@@ -849,7 +1095,6 @@
                 class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                 aria-hidden="true"></div>
 
-            {{-- CONTENIDO DEL MODAL --}}
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div
                 @click.outside="open = false; window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';"
@@ -862,15 +1107,12 @@
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 class="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6"
             >
-                {{-- ICONO Y TÍTULO --}}
                 <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
                         <x-heroicon-o-check-circle class="h-10 w-10 text-green-500 mx-auto"/>
                     </div>
                     <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title" x-text="title">
-                            <!-- El título se inyectará aquí -->
-                        </h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title" x-text="title"></h3>
                         <div class="mt-2">
                             <p class="text-sm text-gray-500">
                                 El comprobante se ha procesado exitosamente. ¿Desea imprimirlo?
@@ -879,7 +1121,6 @@
                     </div>
                 </div>
 
-                {{-- BOTONES DE ACCIÓN --}}
                 <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                     <button
                         @click="window.open(url, '_blank'); open = false; window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';"
@@ -896,6 +1137,7 @@
                         Saltar
                     </button>
                 </div>
+            </div>
         </div>
     </div>
 </x-filament-panels::page>
@@ -909,19 +1151,15 @@
 window.addEventListener('message', function(event) {
     console.log('🖨️ POS Interface - Evento recibido:', event.data);
 
-    // Manejar tanto string directo como objeto
     if (event.data === 'invoice-completed' ||
         (event.data && event.data.type === 'invoice-completed')) {
 
         console.log('✅ Comprobante impreso - Redirigiendo al mapa de mesas');
 
-        // Mostrar mensaje de confirmación antes de redirigir
         setTimeout(function() {
             console.log('🔄 Redirigiendo al mapa de mesas...');
             window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';
-        }, 1500); // Dar tiempo para que se complete la impresión
+        }, 1500);
     }
 });
-
-console.log('🎯 POS Interface - Listener de redirección activado');
 </script>
