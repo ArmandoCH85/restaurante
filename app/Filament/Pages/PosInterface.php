@@ -44,7 +44,7 @@ class PosInterface extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
     protected static string $view = 'filament.pages.pos-interface';
-    protected static ?string $title = 'Punto de Venta';
+    protected static ?string $title = '';
     protected static ?string $navigationLabel = 'Venta Directa';
     protected static ?string $navigationGroup = '🏪 Operaciones Diarias';
     protected static ?string $slug = 'pos-interface';

@@ -1,4 +1,8 @@
 <x-filament-panels::page>
+    @php
+        // Forzar UTF-8 para caracteres especiales
+        header('Content-Type: text/html; charset=UTF-8');
+    @endphp
     <style>
         /* ========================================= */
         /* LAYOUT INTELIGENTE - RESPETA SIDEBAR DE FILAMENT */
@@ -29,6 +33,8 @@
             transition: margin-right 0.3s ease !important;
             height: 100vh !important; /* Misma altura que carrito */
             position: relative !important;
+            padding-top: 0 !important; /* Eliminar padding superior */
+            margin-top: 0 !important; /* Eliminar margen superior */
         }
         
         /* CUANDO SIDEBAR DE FILAMENT ESTÁ ABIERTO */
@@ -123,6 +129,43 @@
             width: 100% !important;
             height: auto !important;
         }
+        
+        /* ELIMINAR ESPACIOS SUPERIORES DE FILAMENT */
+        .fi-main .fi-page {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .fi-page-header {
+            display: none !important; /* Ocultar completamente el header de la página */
+        }
+        
+        /* ELIMINAR TODOS LOS ESPACIOS SUPERIORES POSIBLES */
+        .fi-main {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .fi-page {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .pos-interface {
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        /* ASEGURAR ALINEACIÓN PERFECTA */
+        .pos-main-content .pos-categories,
+        .pos-main-content .pos-products,
+        .pos-cart {
+            align-self: flex-start !important;
+            margin-top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        /* MANTENER FLUJO NORMAL PARA EL SIDEBAR - NO USAR ABSOLUTE */
     </style>
     <div class="pos-interface">
         <div class="pos-main-content flex overflow-hidden h-screen">
