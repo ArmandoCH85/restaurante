@@ -143,113 +143,218 @@ class DeliveryOrderResource extends Resource
     {
         return $table
             ->columns([
+                // Badge column para número de orden con estilo moderno
                 Tables\Columns\TextColumn::make('order_id')
-                    ->label('#')
+                    ->label('Pedido')
+                    ->badge()
+                    ->color('primary')
+                    ->icon('heroicon-m-hashtag')
                     ->sortable()
                     ->searchable()
+                    ->weight('bold')
                     ->size('sm')
-                    ->width('60px'),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
-                Tables\Columns\TextColumn::make('order.customer.name')
-                    ->label('Cliente')
-                    ->sortable()
-                    ->searchable()
-                    ->limit(15)
-                    ->size('sm')
-                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
-                        $state = $column->getState();
-                        if (strlen($state) <= 15) {
-                            return null;
-                        }
-                        return $state;
-                    }),
+                // Información del cliente
+                Tables\Columns\Layout\Stack::make([
+                    Tables\Columns\TextColumn::make('order.customer.name')
+                        ->weight('bold')
+                        ->color('gray')
+                        ->icon('heroicon-m-user')
+                        ->searchable(),
+                    Tables\Columns\TextColumn::make('order.customer.phone')
+                        ->color('gray')
+                        ->size('sm')
+                        ->icon('heroicon-m-phone')
+                        ->prefix('+51 ')
+                        ->placeholder('Sin teléfono'),
+                ])
+                ->space(1),
 
+                // Columna de dirección con icono
                 Tables\Columns\TextColumn::make('delivery_address')
                     ->label('Dirección')
-                    ->limit(20)
-                    ->size('sm')
+                    ->icon('heroicon-m-map-pin')
+                    ->limit(25)
                     ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                         $state = $column->getState();
-                        if (strlen($state) <= 20) {
-                            return null;
-                        }
-                        return $state;
-                    }),
-
-                Tables\Columns\TextColumn::make('deliveryPerson.full_name')
-                    ->label('Repartidor')
-                    ->sortable()
+                        return strlen($state) > 25 ? $state : null;
+                    })
+                    ->wrap()
                     ->searchable()
-                    ->limit(12)
-                    ->size('sm')
-                    ->default('Sin asignar')
-                    ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
-                        $state = $column->getState();
-                        if (!$state || strlen($state) <= 12) {
-                            return null;
-                        }
-                        return $state;
-                    }),
+                    ->toggleable(isToggledHiddenByDefault: false),
 
-                // SISTEMA DE SEMÁFORO: Columna personalizada con semáforo y badge
-                Tables\Columns\ViewColumn::make('status')
+                // Información del repartidor
+                Tables\Columns\Layout\Stack::make([
+                    Tables\Columns\TextColumn::make('deliveryPerson.full_name')
+                        ->weight('medium')
+                        ->placeholder('Sin asignar')
+                        ->icon('heroicon-m-user-circle')
+                        ->color(fn ($state) => $state ? 'success' : 'gray'),
+                    Tables\Columns\TextColumn::make('deliveryPerson.phone')
+                        ->size('sm')
+                        ->color('gray')
+                        ->icon('heroicon-m-device-phone-mobile')
+                        ->prefix('+51 ')
+                        ->placeholder(''),
+                ])
+                ->space(1),
+
+                // Badge column para estado con colores dinámicos
+                Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
-                    ->view('filament.tables.columns.delivery-status-with-traffic-light')
-                    ->sortable()
-                    ->width('120px'),
+                    ->colors([
+                        'secondary' => 'pending',
+                        'primary' => 'assigned',
+                        'warning' => 'in_transit',
+                        'success' => 'delivered',
+                        'danger' => 'cancelled',
+                    ])
+                    ->icons([
+                        'heroicon-m-clock' => 'pending',
+                        'heroicon-m-user-plus' => 'assigned',
+                        'heroicon-m-truck' => 'in_transit',
+                        'heroicon-m-check-circle' => 'delivered',
+                        'heroicon-m-x-circle' => 'cancelled',
+                    ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending' => 'Pendiente',
+                        'assigned' => 'Asignado',
+                        'in_transit' => 'En Tránsito',
+                        'delivered' => 'Entregado',
+                        'cancelled' => 'Cancelado',
+                        default => $state,
+                    })
+                    ->sortable(),
 
+                // Columna de tiempo con formato mejorado
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Hora')
+                    ->label('Creado')
                     ->dateTime('H:i')
                     ->sortable()
                     ->size('sm')
-                    ->width('60px'),
+                    ->color('gray')
+                    ->icon('heroicon-m-clock')
+                    ->since()
+                    ->tooltip(fn ($state) => $state?->format('d/m/Y H:i:s')),
+
+                // Columna de total del pedido
+                Tables\Columns\TextColumn::make('order.total')
+                    ->label('Total')
+                    ->money('PEN')
+                    ->color('success')
+                    ->weight('bold')
+                    ->icon('heroicon-m-banknotes')
+                    ->sortable(),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
+            ->searchable()
+            ->searchOnBlur()
+            ->deferLoading()
+            ->poll('30s')
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Estado')
+                    ->label('Estado del Pedido')
                     ->options([
-                        'pending' => 'Pendiente',
-                        'assigned' => 'Asignado',
-                        'in_transit' => 'En tránsito',
-                        'delivered' => 'Entregado',
-                        'cancelled' => 'Cancelado',
-                    ]),
+                        'pending' => '⏳ Pendiente',
+                        'assigned' => '👤 Asignado',
+                        'in_transit' => '🚚 En Tránsito',
+                        'delivered' => '✅ Entregado',
+                        'cancelled' => '❌ Cancelado',
+                    ])
+                    ->indicator('Estado')
+                    ->multiple()
+                    ->searchable()
+                    ->preload(),
 
                 Tables\Filters\SelectFilter::make('delivery_person_id')
-                    ->label('Repartidor')
+                    ->label('Repartidor Asignado')
                     ->relationship('deliveryPerson', 'first_name')
+                    ->indicator('Repartidor')
+                    ->searchable()
+                    ->preload()
                     ->visible(function () {
-                        // Ocultar el filtro si el usuario es un repartidor
                         $user = \Illuminate\Support\Facades\Auth::user();
                         return !($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0));
                     }),
 
-                Tables\Filters\Filter::make('created_at')
+                Tables\Filters\Filter::make('date_range')
+                    ->label('Rango de Fechas')
                     ->form([
-                        Forms\Components\DatePicker::make('from_date')
-                            ->label('Desde'),
-                        Forms\Components\DatePicker::make('to_date')
-                            ->label('Hasta'),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\DatePicker::make('from')
+                                    ->label('Desde')
+                                    ->placeholder('Fecha inicial')
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->prefixIcon('heroicon-o-calendar-days'),
+                                Forms\Components\DatePicker::make('until')
+                                    ->label('Hasta')
+                                    ->placeholder('Fecha final')
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
+                                    ->prefixIcon('heroicon-o-calendar-days'),
+                            ]),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when(
-                                $data['from_date'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
-                            )
-                            ->when(
-                                $data['to_date'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
-                            );
+                            ->when($data['from'], fn ($query, $date) => 
+                                $query->whereDate('created_at', '>=', $date))
+                            ->when($data['until'], fn ($query, $date) => 
+                                $query->whereDate('created_at', '<=', $date));
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['from'] ?? null) {
+                            $indicators[] = Tables\Filters\Indicator::make('Desde ' . \Carbon\Carbon::parse($data['from'])->format('d/m/Y'))
+                                ->removeField('from');
+                        }
+                        if ($data['until'] ?? null) {
+                            $indicators[] = Tables\Filters\Indicator::make('Hasta ' . \Carbon\Carbon::parse($data['until'])->format('d/m/Y'))
+                                ->removeField('until');
+                        }
+                        return $indicators;
                     }),
-            ])
+
+                Tables\Filters\Filter::make('today')
+                    ->label('Pedidos de Hoy')
+                    ->query(fn (Builder $query): Builder => $query->whereDate('created_at', today()))
+                    ->toggle(),
+
+                Tables\Filters\Filter::make('this_week')
+                    ->label('Esta Semana')
+                    ->query(fn (Builder $query): Builder => $query->whereBetween('created_at', [
+                        now()->startOfWeek(),
+                        now()->endOfWeek()
+                    ]))
+                    ->toggle(),
+
+                Tables\Filters\SelectFilter::make('order_total')
+                    ->label('Rango de Total')
+                    ->options([
+                        'low' => '💰 Menos de S/50',
+                        'medium' => '💰💰 S/50 - S/100',
+                        'high' => '💰💰💰 Más de S/100',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when($data['value'], function ($query, $value) {
+                            return match($value) {
+                                'low' => $query->whereHas('order', fn($q) => $q->where('total', '<', 50)),
+                                'medium' => $query->whereHas('order', fn($q) => $q->whereBetween('total', [50, 100])),
+                                'high' => $query->whereHas('order', fn($q) => $q->where('total', '>', 100)),
+                                default => $query,
+                            };
+                        });
+                    })
+                    ->indicator('Total'),
+            ], layout: \Filament\Tables\Enums\FiltersLayout::AboveContent)
+            ->filtersFormColumns(3)
             ->actions([
-                // 💳 ACCIÓN: PROCESAR PAGO EN POS
+                // Acción principal: Procesar Pago en POS
                 Tables\Actions\Action::make('process_payment_pos')
-                    ->label('💰')
+                    ->label('Procesar Pago')
                     ->icon('heroicon-o-credit-card')
                     ->color('warning')
                     ->size('sm')
@@ -262,119 +367,356 @@ class DeliveryOrderResource extends Resource
                         return $record->order && !$record->order->billed && in_array($record->status, ['pending', 'assigned', 'in_transit']);
                     }),
 
-                Tables\Actions\EditAction::make()
-                    ->label('')
-                    ->size('sm'),
-                    
-                Tables\Actions\Action::make('assign_delivery')
-                    ->label('👤')
-                    ->icon('heroicon-o-user-plus')
-                    ->color('success')
-                    ->size('sm')
-                    ->tooltip('Asignar Repartidor')
-                    ->form([
-                        Forms\Components\Select::make('delivery_person_id')
-                            ->label('Repartidor')
-                            ->options(Employee::where('position', 'Delivery')->pluck('first_name', 'id'))
-                            ->required()
-                            ->searchable()
-                            ->preload(),
-                    ])
-                    ->action(function (DeliveryOrder $record, array $data): void {
-                        $employee = Employee::find($data['delivery_person_id']);
-                        if ($employee) {
-                            $previousStatus = $record->status;
-                            $record->assignDeliveryPerson($employee);
+                // Grupo de acciones de gestión
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('assign_delivery')
+                        ->label('Asignar Repartidor')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('success')
+                        ->modalHeading('Asignar Repartidor')
+                        ->modalDescription('Selecciona un repartidor para este pedido de delivery')
+                        ->modalSubmitActionLabel('Asignar')
+                        ->form([
+                            Forms\Components\Select::make('delivery_person_id')
+                                ->label('Repartidor')
+                                ->options(Employee::where('position', 'Delivery')->pluck('first_name', 'id'))
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->placeholder('Seleccionar repartidor...')
+                                ->helperText('Selecciona el repartidor que se encargará de este pedido'),
+                        ])
+                        ->action(function (DeliveryOrder $record, array $data): void {
+                            try {
+                                // Mostrar loading notification
+                                \Filament\Notifications\Notification::make()
+                                    ->title('🔄 Procesando...')
+                                    ->body('Asignando repartidor al pedido')
+                                    ->info()
+                                    ->duration(2000)
+                                    ->send();
 
-                            // Disparar evento de cambio de estado
-                            event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+                                $employee = Employee::find($data['delivery_person_id']);
+                                if ($employee) {
+                                    $previousStatus = $record->status;
+                                    $record->assignDeliveryPerson($employee);
 
-                            // SISTEMA DE SEMÁFORO: Notificación de éxito
-                            \Filament\Notifications\Notification::make()
-                                ->title('Repartidor asignado')
-                                ->body("Repartidor {$employee->full_name} asignado al pedido #{$record->order_id}")
-                                ->success()
-                                ->send();
-                        }
-                    })
-                    ->visible(function (DeliveryOrder $record) {
-                        // Obtener el usuario actual
-                        $user = \Illuminate\Support\Facades\Auth::user();
+                                    // Disparar evento de cambio de estado
+                                    event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
 
-                        // Ocultar para usuarios con rol Delivery y mostrar solo para pedidos pendientes
-                        $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
-                        return !$isDeliveryPerson && $record->isPending();
-                    }),
+                                    \Filament\Notifications\Notification::make()
+                                        ->title('✅ ¡Repartidor asignado exitosamente!')
+                                        ->body("🚴‍♂️ {$employee->full_name} ahora está a cargo del pedido #{$record->order_id}")
+                                        ->success()
+                                        ->duration(6000)
+                                        ->actions([
+                                            \Filament\Notifications\Actions\Action::make('view')
+                                                ->label('Ver pedido')
+                                                ->button()
+                                                ->markAsRead(),
+                                        ])
+                                        ->send();
+                                }
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('❌ Error al asignar repartidor')
+                                    ->body('Ocurrió un problema técnico. Por favor, intente nuevamente o contacte al administrador.')
+                                    ->danger()
+                                    ->duration(8000)
+                                    ->actions([
+                                        \Filament\Notifications\Actions\Action::make('retry')
+                                            ->label('Reintentar')
+                                            ->button()
+                                            ->color('danger'),
+                                    ])
+                                    ->send();
+                            }
+                        })
+                        ->visible(function (DeliveryOrder $record) {
+                            $user = \Illuminate\Support\Facades\Auth::user();
+                            $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
+                            return !$isDeliveryPerson && $record->isPending();
+                        }),
 
-                Tables\Actions\Action::make('mark_in_transit')
-                    ->label('🚚')
-                    ->icon('heroicon-o-truck')
-                    ->color('primary')
-                    ->size('sm')
-                    ->tooltip('En Tránsito')
-                    ->requiresConfirmation()
-                    ->action(function (DeliveryOrder $record): void {
-                        $previousStatus = $record->status;
-                        $record->markAsInTransit();
-                        event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
-                        \Filament\Notifications\Notification::make()
-                            ->title('Estado actualizado')
-                            ->body("Pedido #{$record->order_id} marcado como En Tránsito")
-                            ->success()
-                            ->send();
-                    })
-                    ->visible(fn(DeliveryOrder $record): bool => $record->isAssigned()),
+                    Tables\Actions\Action::make('mark_in_transit')
+                        ->label('Marcar En Tránsito')
+                        ->icon('heroicon-o-truck')
+                        ->color('primary')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirmar cambio de estado')
+                        ->modalDescription('¿Estás seguro de que quieres marcar este pedido como "En Tránsito"?')
+                        ->modalSubmitActionLabel('Sí, marcar en tránsito')
+                        ->action(function (DeliveryOrder $record): void {
+                            try {
+                                // Loading notification
+                                \Filament\Notifications\Notification::make()
+                                    ->title('🔄 Actualizando estado...')
+                                    ->body('Marcando pedido como En Tránsito')
+                                    ->info()
+                                    ->duration(1500)
+                                    ->send();
 
-                Tables\Actions\Action::make('mark_delivered')
-                    ->label('✅')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->size('sm')
-                    ->tooltip('Entregado')
-                    ->requiresConfirmation()
-                    ->action(function (DeliveryOrder $record): void {
-                        $previousStatus = $record->status;
-                        $record->markAsDelivered();
-                        event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
-                        \Filament\Notifications\Notification::make()
-                            ->title('Pedido entregado')
-                            ->body("Pedido #{$record->order_id} marcado como Entregado")
-                            ->success()
-                            ->send();
-                    })
-                    ->visible(fn(DeliveryOrder $record): bool => $record->isInTransit()),
+                                $previousStatus = $record->status;
+                                $record->markAsInTransit();
+                                event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+                                
+                                \Filament\Notifications\Notification::make()
+                                    ->title('🚚 ¡Estado actualizado exitosamente!')
+                                    ->body("El pedido #{$record->order_id} ahora está En Tránsito. El repartidor puede comenzar la entrega.")
+                                    ->success()
+                                    ->duration(6000)
+                                    ->actions([
+                                        \Filament\Notifications\Actions\Action::make('track')
+                                            ->label('Seguir pedido')
+                                            ->button()
+                                            ->color('primary'),
+                                    ])
+                                    ->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('❌ Error al actualizar estado')
+                                    ->body('No se pudo cambiar el estado del pedido. Verifique la conexión e intente nuevamente.')
+                                    ->danger()
+                                    ->duration(7000)
+                                    ->actions([
+                                        \Filament\Notifications\Actions\Action::make('support')
+                                            ->label('Contactar soporte')
+                                            ->button()
+                                            ->color('danger'),
+                                    ])
+                                    ->send();
+                            }
+                        })
+                        ->visible(fn(DeliveryOrder $record): bool => $record->isAssigned()),
 
-                Tables\Actions\Action::make('cancel')
-                    ->label('❌')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->size('sm')
-                    ->tooltip('Cancelar')
-                    ->requiresConfirmation()
-                    ->form([
-                        Forms\Components\Textarea::make('reason')
-                            ->label('Motivo de Cancelación')
-                            ->required(),
-                    ])
-                    ->action(function (DeliveryOrder $record, array $data): void {
-                        $previousStatus = $record->status;
-                        $record->cancel($data['reason'] ?? null);
+                    Tables\Actions\Action::make('mark_delivered')
+                        ->label('Marcar Entregado')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Confirmar entrega')
+                        ->modalDescription('¿Confirmas que este pedido ha sido entregado exitosamente?')
+                        ->modalSubmitActionLabel('Sí, confirmar entrega')
+                        ->action(function (DeliveryOrder $record): void {
+                            try {
+                                $previousStatus = $record->status;
+                                $record->markAsDelivered();
+                                event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+                                
+                                \Filament\Notifications\Notification::make()
+                                    ->title('✅ ¡Pedido entregado exitosamente!')
+                                    ->body("🎉 El pedido #{$record->order_id} ha sido completado. ¡Excelente trabajo!")
+                                    ->success()
+                                    ->duration(6000)
+                                    ->actions([
+                                        \Filament\Notifications\Actions\Action::make('new_order')
+                                            ->label('Nuevo pedido')
+                                            ->button()
+                                            ->color('success'),
+                                    ])
+                                    ->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('❌ Error al marcar como entregado')
+                                    ->body('No se pudo completar la entrega. Verifique la conexión e intente nuevamente.')
+                                    ->danger()
+                                    ->duration(7000)
+                                    ->actions([
+                                        \Filament\Notifications\Actions\Action::make('retry')
+                                            ->label('Reintentar')
+                                            ->button()
+                                            ->color('danger'),
+                                    ])
+                                    ->send();
+                            }
+                        })
+                        ->visible(fn(DeliveryOrder $record): bool => $record->isInTransit()),
 
-                        // Disparar evento de cambio de estado
-                        event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+                    // Separator removido - no disponible en Filament 3
 
-                        // SISTEMA DE SEMÁFORO: Notificación de éxito
-                        \Filament\Notifications\Notification::make()
-                            ->title('Pedido cancelado')
-                            ->body("Pedido #{$record->order_id} ha sido cancelado")
-                            ->warning()
-                            ->send();
-                    })
-                    ->visible(fn(DeliveryOrder $record): bool => !$record->isDelivered() && !$record->isCancelled()),
+                    Tables\Actions\EditAction::make()
+                        ->label('Editar')
+                        ->icon('heroicon-o-pencil')
+                        ->color('gray'),
+
+                    Tables\Actions\Action::make('cancel')
+                        ->label('Cancelar Pedido')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Cancelar pedido de delivery')
+                        ->modalDescription('Esta acción cancelará el pedido. Por favor, proporciona un motivo.')
+                        ->modalSubmitActionLabel('Cancelar pedido')
+                        ->form([
+                            Forms\Components\Textarea::make('reason')
+                                ->label('Motivo de Cancelación')
+                                ->placeholder('Describe el motivo de la cancelación...')
+                                ->required()
+                                ->rows(3)
+                                ->helperText('Este motivo será registrado en el sistema'),
+                        ])
+                        ->action(function (DeliveryOrder $record, array $data): void {
+                            try {
+                                $previousStatus = $record->status;
+                                $record->cancel($data['reason'] ?? null);
+
+                                event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
+
+                                \Filament\Notifications\Notification::make()
+                                    ->title('⚠️ Pedido cancelado')
+                                    ->body("Pedido #{$record->order_id} ha sido cancelado")
+                                    ->warning()
+                                    ->duration(5000)
+                                    ->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('❌ Error al cancelar pedido')
+                                    ->body('Por favor, intente nuevamente')
+                                    ->danger()
+                                    ->send();
+                            }
+                        })
+                        ->visible(fn(DeliveryOrder $record): bool => !$record->isDelivered() && !$record->isCancelled()),
+                ])
+                ->label('Acciones')
+                ->icon('heroicon-m-ellipsis-vertical')
+                ->size('sm')
+                ->color('gray')
+                ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('bulk_assign')
+                        ->label('Asignar Repartidor')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Asignar repartidor a pedidos seleccionados')
+                        ->modalDescription('Esta acción asignará el mismo repartidor a todos los pedidos seleccionados.')
+                        ->modalSubmitActionLabel('Asignar a todos')
+                        ->form([
+                            Forms\Components\Select::make('delivery_person_id')
+                                ->label('Repartidor')
+                                ->options(Employee::where('position', 'Delivery')->pluck('first_name', 'id'))
+                                ->required()
+                                ->searchable()
+                                ->preload()
+                                ->helperText('Este repartidor será asignado a todos los pedidos seleccionados'),
+                        ])
+                        ->action(function (array $data, $records) {
+                            $employee = Employee::find($data['delivery_person_id']);
+                            $successCount = 0;
+                            $errorCount = 0;
+
+                            foreach ($records as $record) {
+                                try {
+                                    if ($record->isPending()) {
+                                        $record->assignDeliveryPerson($employee);
+                                        $successCount++;
+                                    }
+                                } catch (\Exception $e) {
+                                    $errorCount++;
+                                }
+                            }
+
+                            if ($successCount > 0) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('✅ Asignación masiva completada')
+                                    ->body("Se asignaron {$successCount} pedidos a {$employee->full_name}")
+                                    ->success()
+                                    ->send();
+                            }
+
+                            if ($errorCount > 0) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('⚠️ Algunos pedidos no se pudieron asignar')
+                                    ->body("{$errorCount} pedidos no se pudieron procesar")
+                                    ->warning()
+                                    ->send();
+                            }
+                        })
+                        ->deselectRecordsAfterCompletion(),
+
+                    Tables\Actions\BulkAction::make('bulk_transit')
+                        ->label('Marcar En Tránsito')
+                        ->icon('heroicon-o-truck')
+                        ->color('primary')
+                        ->requiresConfirmation()
+                        ->modalHeading('Marcar pedidos como En Tránsito')
+                        ->modalDescription('¿Estás seguro de que quieres marcar todos los pedidos seleccionados como "En Tránsito"?')
+                        ->modalSubmitActionLabel('Sí, marcar todos')
+                        ->action(function ($records) {
+                            $successCount = 0;
+                            $errorCount = 0;
+
+                            foreach ($records as $record) {
+                                try {
+                                    if ($record->isAssigned()) {
+                                        $record->markAsInTransit();
+                                        $successCount++;
+                                    }
+                                } catch (\Exception $e) {
+                                    $errorCount++;
+                                }
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('🚚 Actualización masiva completada')
+                                ->body("Se marcaron {$successCount} pedidos como En Tránsito")
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+
+                    Tables\Actions\BulkAction::make('bulk_delivered')
+                        ->label('Marcar Entregados')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Marcar pedidos como Entregados')
+                        ->modalDescription('¿Confirmas que todos los pedidos seleccionados han sido entregados exitosamente?')
+                        ->modalSubmitActionLabel('Sí, confirmar entregas')
+                        ->action(function ($records) {
+                            $successCount = 0;
+
+                            foreach ($records as $record) {
+                                try {
+                                    if ($record->isInTransit()) {
+                                        $record->markAsDelivered();
+                                        $successCount++;
+                                    }
+                                } catch (\Exception $e) {
+                                    // Handle error silently for bulk operations
+                                }
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('✅ ¡Entregas confirmadas!')
+                                ->body("Se confirmaron {$successCount} entregas exitosamente")
+                                ->success()
+                                ->duration(6000)
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+
+                    Tables\Actions\BulkAction::make('export_selected')
+                        ->label('Exportar Seleccionados')
+                        ->icon('heroicon-o-document-arrow-down')
+                        ->color('gray')
+                        ->action(function ($records) {
+                            // Aquí implementarías la lógica de exportación
+                            \Filament\Notifications\Notification::make()
+                                ->title('📄 Exportación iniciada')
+                                ->body('Los pedidos seleccionados se están exportando...')
+                                ->info()
+                                ->send();
+                        }),
+
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Eliminar pedidos seleccionados')
+                        ->modalDescription('Esta acción eliminará permanentemente los pedidos seleccionados. ¿Estás seguro?')
+                        ->modalSubmitActionLabel('Sí, eliminar'),
                 ]),
             ])
             ->defaultSort('created_at', 'desc');

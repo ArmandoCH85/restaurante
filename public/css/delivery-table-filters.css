@@ -1,0 +1,132 @@
+/* Estilos específicos para los filtros de la tabla de delivery */
+/* Optimizado para usar con getMaxContentWidth(): 'full' */
+
+/* Aplicar estilos específicamente a la página de delivery orders con ancho completo */
+.delivery-orders-page .fi-ta-filters {
+    margin-left: 4rem !important; /* Mayor margen izquierdo aprovechando el ancho completo */
+    margin-right: 2rem !important;
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+    padding: 1rem 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    max-width: none !important; /* Permitir que use todo el ancho disponible */
+}
+
+/* Contenedor de filtros */
+.delivery-orders-page .fi-ta-filters-form {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    background-color: transparent;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+}
+
+/* Espaciado entre filtros individuales */
+.delivery-orders-page .fi-ta-filter {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    flex-shrink: 0;
+}
+
+/* Mejorar la apariencia de los selectores de filtro */
+.delivery-orders-page .fi-ta-filter .fi-select-input {
+    min-width: 160px; /* Más ancho para aprovechar el espacio */
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+}
+
+/* Botón de filtros activos */
+.delivery-orders-page .fi-ta-filters-trigger {
+    background-color: #3b82f6;
+    color: white;
+    border-radius: 0.375rem;
+    padding: 0.5rem 1rem;
+    margin-left: 0 !important;
+}
+
+/* Estilos alternativos usando clases más específicas de Filament */
+.delivery-orders-page [data-filament-table-filters] {
+    margin-left: 4rem !important;
+    margin-right: 2rem !important;
+    background-color: #f8fafc;
+    border-radius: 0.5rem;
+    padding: 1rem 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+/* Selector más específico para asegurar que se aplique */
+.delivery-orders-page .fi-ta .fi-ta-filters {
+    margin-left: 4rem !important;
+    margin-right: 2rem !important;
+}
+
+/* Mejorar la visibilidad de los labels de filtros */
+.delivery-orders-page .fi-ta-filter label {
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+}
+
+/* Estilo para el contenedor de la tabla completa */
+.delivery-orders-page .fi-ta {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Responsive design optimizado para ancho completo */
+@media (max-width: 1400px) {
+    .delivery-orders-page .fi-ta-filters,
+    .delivery-orders-page [data-filament-table-filters],
+    .delivery-orders-page .fi-ta .fi-ta-filters {
+        margin-left: 3rem !important;
+        margin-right: 1.5rem !important;
+        padding: 1rem 1.5rem;
+    }
+}
+
+@media (max-width: 1200px) {
+    .delivery-orders-page .fi-ta-filters,
+    .delivery-orders-page [data-filament-table-filters],
+    .delivery-orders-page .fi-ta .fi-ta-filters {
+        margin-left: 2rem !important;
+        margin-right: 1rem !important;
+    }
+    
+    .delivery-orders-page .fi-ta-filter .fi-select-input {
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .delivery-orders-page .fi-ta-filters,
+    .delivery-orders-page [data-filament-table-filters],
+    .delivery-orders-page .fi-ta .fi-ta-filters {
+        margin-left: 1.5rem !important;
+        margin-right: 0.75rem !important;
+        padding: 0.75rem 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .delivery-orders-page .fi-ta-filters,
+    .delivery-orders-page [data-filament-table-filters],
+    .delivery-orders-page .fi-ta .fi-ta-filters {
+        margin-left: 1rem !important;
+        margin-right: 0.5rem !important;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .delivery-orders-page .fi-ta-filters-form {
+        gap: 0.5rem;
+    }
+    
+    .delivery-orders-page .fi-ta-filter .fi-select-input {
+        min-width: 120px;
+    }
+}

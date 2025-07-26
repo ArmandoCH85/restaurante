@@ -33,6 +33,18 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
     
     protected static ?string $navigationIcon = 'heroicon-o-truck';
     
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full';
+    }
+    
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            // \App\Filament\Widgets\DeliveryStatsWidget::class, // Temporalmente deshabilitado
+        ];
+    }
+    
     // Propiedades del formulario - INICIALIZADAS CORRECTAMENTE
     public ?array $newDeliveryData = [
         'existing_customer' => null,
@@ -109,154 +121,233 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
     {
         return $form
             ->schema([
-                // 0. BÚSQUEDA DE CLIENTE EXISTENTE
-                Forms\Components\Select::make('existing_customer')
-                    ->label('🔍 Buscar Cliente Existente')
-                    ->placeholder('Buscar por nombre o teléfono...')
-                    ->searchable()
-                    ->getSearchResultsUsing(function (string $search): array {
-                        return Customer::where('name', 'like', "%{$search}%")
-                            ->orWhere('phone', 'like', "%{$search}%")
-                            ->limit(10)
-                            ->get()
-                            ->mapWithKeys(function ($customer) {
-                                return [$customer->id => "{$customer->name} - {$customer->phone}"];
-                            })
-                            ->toArray();
-                    })
-                    ->getOptionLabelUsing(function ($value): ?string {
-                        $customer = Customer::find($value);
-                        return $customer ? "{$customer->name} - {$customer->phone}" : '';
-                    })
-                    ->live()
-                    ->afterStateUpdated(function (callable $set, $state) {
-                        \Log::info('afterStateUpdated called with state: ' . $state);
-                        
-                        if ($state) {
-                            $customer = Customer::find($state);
-                            if ($customer) {
-                                \Log::info('Setting form fields for customer: ' . $customer->name);
+                Forms\Components\Wizard::make([
+                    Forms\Components\Wizard\Step::make('Cliente')
+                        ->icon('heroicon-o-user')
+                        ->description('Buscar o crear cliente')
+                        ->schema([
+                            Forms\Components\Section::make('Búsqueda de Cliente')
+                                ->description('Busca un cliente existente o los datos se usarán para crear uno nuevo')
+                                ->icon('heroicon-o-magnifying-glass')
+                                ->collapsible()
+                                ->schema([
+                                    Forms\Components\Select::make('existing_customer')
+                                        ->label('Cliente Existente')
+                                        ->placeholder('Buscar por nombre o teléfono...')
+                                        ->searchable()
+                                        ->suffixIcon('heroicon-o-magnifying-glass')
+                                        ->getSearchResultsUsing(function (string $search): array {
+                                            return Customer::where('name', 'like', "%{$search}%")
+                                                ->orWhere('phone', 'like', "%{$search}%")
+                                                ->limit(10)
+                                                ->get()
+                                                ->mapWithKeys(function ($customer) {
+                                                    return [$customer->id => "{$customer->name} - {$customer->phone}"];
+                                                })
+                                                ->toArray();
+                                        })
+                                        ->getOptionLabelUsing(function ($value): ?string {
+                                            $customer = Customer::find($value);
+                                            return $customer ? "{$customer->name} - {$customer->phone}" : '';
+                                        })
+                                        ->live()
+                                        ->afterStateUpdated(function (callable $set, $state) {
+                                            if ($state) {
+                                                $customer = Customer::find($state);
+                                                if ($customer) {
+                                                    $set('phone', $customer->phone ?? '');
+                                                    $set('customer_name', $customer->name);
+                                                    $set('document_type', $customer->document_type ?? 'dni');
+                                                    $set('document_number', $customer->document_number ?? '');
+                                                    $set('address', $customer->address ?? '');
+                                                    $set('customer_found_flag', true);
+                                                    $set('selected_customer_id', $customer->id);
+                                                    $set('customer_status_message', "✅ Cliente encontrado: {$customer->name}");
+                                                    
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('Cliente encontrado')
+                                                        ->body("Datos de {$customer->name} cargados automáticamente")
+                                                        ->success()
+                                                        ->send();
+                                                }
+                                            } else {
+                                                $set('phone', '');
+                                                $set('customer_name', '');
+                                                $set('document_type', 'dni');
+                                                $set('document_number', '');
+                                                $set('address', '');
+                                                $set('customer_found_flag', false);
+                                                $set('selected_customer_id', null);
+                                                $set('customer_status_message', '📝 Complete los datos para crear nuevo cliente');
+                                            }
+                                        }),
+                                        
+                                    // CAMPOS OCULTOS PARA ESTADO
+                                    Forms\Components\Hidden::make('customer_found_flag')
+                                        ->default(false)
+                                        ->dehydrated(),
+                                        
+                                    Forms\Components\Hidden::make('selected_customer_id')
+                                        ->dehydrated(),
+
+                                    // INDICADOR DE ESTADO
+                                    Forms\Components\Placeholder::make('customer_status_message')
+                                        ->label('')
+                                        ->content(fn (Forms\Get $get): string => 
+                                            $get('customer_status_message') ?? '📝 Complete los datos para crear nuevo cliente'
+                                        ),
+                                ]),
                                 
-                                $set('phone', $customer->phone ?? '');
-                                $set('customer_name', $customer->name);
-                                $set('document_type', $customer->document_type ?? 'dni');
-                                $set('document_number', $customer->document_number ?? '');
-                                $set('address', $customer->address ?? '');
-                                $set('customer_found_flag', true);
-                                $set('selected_customer_id', $customer->id);
-                                $set('customer_status_message', "✅ Cliente encontrado: {$customer->name} - Datos cargados automáticamente");
-                            }
-                        } else {
-                            $set('phone', '');
-                            $set('customer_name', '');
-                            $set('document_type', 'dni');
-                            $set('document_number', '');
-                            $set('address', '');
-                            $set('customer_found_flag', false);
-                            $set('selected_customer_id', null);
-                            $set('customer_status_message', '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente');
-                        }
-                    })
-                    ->columnSpanFull(),
+                            Forms\Components\Section::make('Datos del Cliente')
+                                ->description('Información de contacto del cliente')
+                                ->icon('heroicon-o-identification')
+                                ->schema([
+                                    Forms\Components\TextInput::make('phone')
+                                        ->label('Teléfono')
+                                        ->tel()
+                                        ->required()
+                                        ->placeholder('Ingrese el teléfono')
+                                        ->prefixIcon('heroicon-o-phone')
+                                        ->disabled(fn (Forms\Get $get): bool => (bool) $get('customer_found_flag'))
+                                        ->live(onBlur: true)
+                                        ->afterStateUpdated(function ($state, callable $set) {
+                                            if (strlen($state) === 9) {
+                                                $customer = Customer::where('phone', $state)->first();
+                                                if ($customer) {
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('Cliente encontrado por teléfono')
+                                                        ->body("Se encontró: {$customer->name}")
+                                                        ->info()
+                                                        ->send();
+                                                }
+                                            }
+                                        }),
+                                    
+                                    Forms\Components\TextInput::make('customer_name')
+                                        ->label('Nombre Completo')
+                                        ->required()
+                                        ->placeholder('Ingrese el nombre completo del cliente')
+                                        ->prefixIcon('heroicon-o-user')
+                                        ->disabled(fn (Forms\Get $get): bool => (bool) $get('customer_found_flag')),
+                                    
+                                    Forms\Components\Grid::make(2)
+                                        ->schema([
+                                            Forms\Components\Select::make('document_type')
+                                                ->label('Tipo de Documento')
+                                                ->options([
+                                                    'dni' => 'DNI',
+                                                    'ruc' => 'RUC',
+                                                ])
+                                                ->default('dni')
+                                                ->native(false)
+                                                ->prefixIcon('heroicon-o-identification'),
+                                                
+                                            Forms\Components\TextInput::make('document_number')
+                                                ->label('Número de Documento')
+                                                ->placeholder('Opcional')
+                                                ->prefixIcon('heroicon-o-hashtag'),
+                                        ]),
+                                ]),
+                        ]),
 
-                // CAMPOS OCULTOS PARA ESTADO
-                Forms\Components\Hidden::make('customer_found_flag')
-                    ->default(false)
-                    ->dehydrated(),
-                    
-                Forms\Components\Hidden::make('selected_customer_id')
-                    ->dehydrated(),
+                    Forms\Components\Wizard\Step::make('Entrega')
+                        ->icon('heroicon-o-truck')
+                        ->description('Detalles de la entrega')
+                        ->schema([
+                            Forms\Components\Section::make('Tipo de Servicio')
+                                ->description('Selecciona el tipo de entrega')
+                                ->icon('heroicon-o-cog-6-tooth')
+                                ->schema([
+                                    Forms\Components\ToggleButtons::make('delivery_type')
+                                        ->label('Tipo de Entrega')
+                                        ->options([
+                                            'domicilio' => 'A Domicilio',
+                                            'recoger' => 'Por Recoger'
+                                        ])
+                                        ->icons([
+                                            'domicilio' => 'heroicon-o-home',
+                                            'recoger' => 'heroicon-o-building-storefront'
+                                        ])
+                                        ->colors([
+                                            'domicilio' => 'primary',
+                                            'recoger' => 'warning'
+                                        ])
+                                        ->inline()
+                                        ->default('domicilio')
+                                        ->required(),
+                                ]),
+                                
+                            Forms\Components\Section::make('Dirección de Entrega')
+                                ->description('Información detallada de la dirección')
+                                ->icon('heroicon-o-map-pin')
+                                ->schema([
+                                    Forms\Components\Textarea::make('address')
+                                        ->label('Dirección Completa')
+                                        ->required()
+                                        ->rows(3)
+                                        ->placeholder('Ingrese la dirección completa de entrega')
+                                        ->helperText('Incluya referencias como número de casa, piso, departamento, etc.')
+                                        ->live(),
+                                    
+                                    Forms\Components\Textarea::make('reference')
+                                        ->label('Referencias Adicionales')
+                                        ->rows(2)
+                                        ->placeholder('Color de casa, puntos de referencia, instrucciones especiales...')
+                                        ->helperText('Información adicional que ayude al repartidor a encontrar la dirección'),
+                                ]),
+                        ]),
 
-                // INDICADOR DE ESTADO
-                Forms\Components\Placeholder::make('customer_status_message')
-                    ->label('')
-                    ->content(fn (Forms\Get $get): string => 
-                        $get('customer_status_message') ?? '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente'
-                    )
-                    ->columnSpanFull(),
-                
-                // 1. TIPO DE ENTREGA
-                Forms\Components\Radio::make('delivery_type')
-                    ->label('Tipo de entrega')
-                    ->options([
-                        'domicilio' => 'A DOMICILIO',
-                        'recoger' => 'POR RECOGER',
-                    ])
-                    ->default('domicilio')
-                    ->required()
-                    ->inline()
-                    ->columnSpanFull(),
-                
-                // 2. TELÉFONO (OBLIGATORIO)
-                Forms\Components\TextInput::make('phone')
-                    ->label('Teléfono')
-                    ->tel()
-                    ->required()
-                    ->placeholder('Ingrese el teléfono')
-                    ->disabled(fn (Forms\Get $get): bool => (bool) $get('customer_found_flag'))
-                    ->reactive()
-                    ->columnSpanFull(),
-                
-                // 3. NOMBRE CLIENTE (OBLIGATORIO)
-                Forms\Components\TextInput::make('customer_name')
-                    ->label('Nombre cliente')
-                    ->required()
-                    ->placeholder('Ingrese el nombre completo del cliente')
-                    ->disabled(fn (Forms\Get $get): bool => (bool) $get('customer_found_flag'))
-                    ->reactive()
-                    ->columnSpanFull(),
-                
-                // 4. TIPO DOCUMENTO / NÚMERO (SIEMPRE NO OBLIGATORIO)
-                Forms\Components\Grid::make(2)
-                    ->schema([
-                        Forms\Components\Select::make('document_type')
-                            ->label('Tipo Documento')
-                            ->options([
-                                'dni' => 'DNI',
-                                'ruc' => 'RUC',
-                            ])
-                            ->default('dni')
-                            ->native(false)
-                            ->reactive()
-                            ->columnSpan(1),
-                            
-                        Forms\Components\TextInput::make('document_number')
-                            ->label('Número')
-                            ->placeholder('Número de documento (opcional)')
-                            ->reactive()
-                            ->columnSpan(1),
-                    ]),
-                
-                // 5. DIRECCIÓN (OBLIGATORIO)
-                Forms\Components\Textarea::make('address')
-                    ->label('Dirección')
-                    ->required()
-                    ->rows(3)
-                    ->placeholder('Ingrese la dirección completa de entrega')
-                    ->live()
-                    ->columnSpanFull(),
-                
-                // 6. REFERENCIA (NO OBLIGATORIO)
-                Forms\Components\Textarea::make('reference')
-                    ->label('Referencia')
-                    ->rows(2)
-                    ->placeholder('Referencias adicionales (opcional)')
-                    ->columnSpanFull(),
-                
-                // 7. REPARTIDOR (LIST BOX)
-                Forms\Components\Select::make('delivery_person_id')
-                    ->label('Repartidor')
-                    ->options(function () {
-                        return Employee::where('position', 'Delivery')
-                            ->get()
-                            ->mapWithKeys(function ($employee) {
-                                return [$employee->id => $employee->first_name . ' ' . $employee->last_name . ' - ' . ($employee->phone ?? 'Sin teléfono')];
-                            })
-                            ->toArray();
-                    })
-                    ->searchable()
-                    ->placeholder('Seleccionar repartidor de la base de datos')
-                    ->columnSpanFull(),
+                    Forms\Components\Wizard\Step::make('Repartidor')
+                        ->icon('heroicon-o-user-circle')
+                        ->description('Asignar repartidor')
+                        ->schema([
+                            Forms\Components\Section::make('Asignación de Repartidor')
+                                ->description('Selecciona el repartidor que realizará la entrega')
+                                ->icon('heroicon-o-users')
+                                ->schema([
+                                    Forms\Components\Select::make('delivery_person_id')
+                                        ->label('Repartidor Disponible')
+                                        ->options(function () {
+                                            return Employee::where('position', 'Delivery')
+                                                ->get()
+                                                ->mapWithKeys(function ($employee) {
+                                                    $status = '🟢 Disponible'; // Aquí podrías agregar lógica para verificar disponibilidad
+                                                    return [$employee->id => "{$employee->first_name} {$employee->last_name} - {$status}"];
+                                                })
+                                                ->toArray();
+                                        })
+                                        ->searchable()
+                                        ->preload()
+                                        ->placeholder('Seleccionar repartidor...')
+                                        ->suffixIcon('heroicon-o-user-plus')
+                                        ->helperText('Puedes dejar vacío para asignar más tarde')
+                                        ->createOptionForm([
+                                            Forms\Components\TextInput::make('first_name')
+                                                ->label('Nombre')
+                                                ->required()
+                                                ->prefixIcon('heroicon-o-user'),
+                                            Forms\Components\TextInput::make('last_name')
+                                                ->label('Apellido')
+                                                ->required()
+                                                ->prefixIcon('heroicon-o-user'),
+                                            Forms\Components\TextInput::make('document_number')
+                                                ->label('Número de Documento')
+                                                ->required()
+                                                ->prefixIcon('heroicon-o-identification'),
+                                            Forms\Components\TextInput::make('phone')
+                                                ->label('Teléfono')
+                                                ->tel()
+                                                ->prefixIcon('heroicon-o-phone'),
+                                            Forms\Components\Hidden::make('position')
+                                                ->default('Delivery'),
+                                        ])
+                                        ->createOptionModalHeading('Crear Nuevo Repartidor'),
+                                ]),
+                        ]),
+                ])
+                ->skippable()
+                ->persistStepInQueryString()
+                ->columnSpanFull(),
             ])
             ->statePath('newDeliveryData');
     }

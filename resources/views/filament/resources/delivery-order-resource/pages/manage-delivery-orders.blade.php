@@ -1,5 +1,10 @@
 <x-filament-panels::page>
-    <div class="h-screen flex overflow-hidden bg-gray-50">
+    {{-- Incluir estilos específicos para los filtros de delivery --}}
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('css/delivery-table-filters.css') }}">
+    @endpush
+    
+    <div class="h-screen flex overflow-hidden bg-gray-50 delivery-orders-page">
         {{-- IZQUIERDA: TABLA FILAMENT DE DELIVERY CON SEMÁFOROS --}}
         <div class="flex-1 overflow-hidden">
             <div class="h-full p-6">
