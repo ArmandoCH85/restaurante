@@ -48,7 +48,7 @@ class AdminPanelProvider extends PanelProvider
             })
             ->maxContentWidth('7xl')
             ->sidebarFullyCollapsibleOnDesktop()
-            ->brandName('') // Ocultar el nombre de la aplicación
+            ->brandName('')
             ->brandLogo(asset('images/logoWayna.svg'))
             ->brandLogoHeight('4rem')
             ->colors([
@@ -136,6 +136,101 @@ class AdminPanelProvider extends PanelProvider
                         border-right: 1px solid var(--tailadmin-border) !important;
                     }
 
+                    /* 🎭 HEADER CON LOGO - ESTILO TAILADMIN */
+                    header.fi-sidebar-header {
+                        background: #FFFFFF !important;
+                        border-bottom: 1px solid #E5E7EB !important;
+                        padding: 1.5rem !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        min-height: 80px !important;
+                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+                        position: relative !important;
+                    }
+
+                    /* OCULTAR LOGO DE MODO OSCURO */
+                    header.fi-sidebar-header .fi-logo.hidden.dark\\:flex {
+                        display: none !important;
+                    }
+
+                    /* MOSTRAR SOLO LOGO DE MODO CLARO */
+                    header.fi-sidebar-header .fi-logo.flex.dark\\:hidden {
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        width: 100% !important;
+                    }
+
+                    /* LOGO STYLING - FORZAR VISIBILIDAD */
+                    header.fi-sidebar-header .fi-logo,
+                    header.fi-sidebar-header .fi-logo img,
+                    header.fi-sidebar-header img,
+                    header.fi-sidebar-header svg {
+                        display: block !important;
+                        max-height: 64px !important;
+                        height: 64px !important;
+                        width: auto !important;
+                        object-fit: contain !important;
+                        filter: brightness(1) !important;
+                        opacity: 1 !important;
+                        visibility: visible !important;
+                    }
+
+                    /* CONTENEDOR DEL LOGO */
+                    header.fi-sidebar-header a {
+                        display: flex !important;
+                        align-items: center !important;
+                        justify-content: center !important;
+                        text-decoration: none !important;
+                    }
+
+                    /* TEXTO DEL LOGO */
+                    header.fi-sidebar-header .fi-logo-text,
+                    header.fi-sidebar-header h1,
+                    header.fi-sidebar-header .text-xl {
+                        color: #1F2937 !important;
+                        font-size: 1.5rem !important;
+                        font-weight: 700 !important;
+                        letter-spacing: -0.025em !important;
+                        margin: 0 !important;
+                    }
+
+                    /* 🧭 NAVEGACIÓN PRINCIPAL - ESTILO TAILADMIN */
+                    nav.fi-sidebar-nav {
+                        background: #FFFFFF !important;
+                        padding: 1.5rem !important;
+                        border-radius: 0 !important;
+                        box-shadow: none !important;
+                        margin: 0 !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        gap: 0.5rem !important;
+                        height: 100% !important;
+                        overflow-y: auto !important;
+                        scrollbar-width: thin !important;
+                        scrollbar-color: #E5E7EB #FFFFFF !important;
+                    }
+
+                    /* SCROLLBAR TAILADMIN STYLE */
+                    nav.fi-sidebar-nav::-webkit-scrollbar {
+                        width: 6px !important;
+                    }
+
+                    nav.fi-sidebar-nav::-webkit-scrollbar-track {
+                        background: #F9FAFB !important;
+                        border-radius: 3px !important;
+                    }
+
+                    nav.fi-sidebar-nav::-webkit-scrollbar-thumb {
+                        background: #D1D5DB !important;
+                        border-radius: 3px !important;
+                    }
+
+                    nav.fi-sidebar-nav::-webkit-scrollbar-thumb:hover {
+                        background: #9CA3AF !important;
+                    }
+
                     /* 📁 NAVIGATION GROUPS - TAILADMIN STYLE */
                     .fi-sidebar-group-label {
                         background: transparent !important;
@@ -197,11 +292,19 @@ class AdminPanelProvider extends PanelProvider
                         border-left: 3px solid var(--tailadmin-accent) !important;
                     }
 
-                    .fi-sidebar-item.fi-active .fi-sidebar-item-button,
-                    .fi-sidebar-item.fi-active .fi-sidebar-item-label,
-                    .fi-sidebar-item.fi-active .fi-sidebar-item-icon {
+                    .fi-sidebar-item.fi-active > .fi-sidebar-item-button {
                         color: var(--tailadmin-accent) !important;
                         font-weight: 600 !important;
+                        background: transparent !important;
+                    }
+
+                    .fi-sidebar-item.fi-active .fi-sidebar-item-button .fi-sidebar-item-label {
+                        color: var(--tailadmin-accent) !important;
+                        font-weight: 600 !important;
+                    }
+
+                    .fi-sidebar-item.fi-active .fi-sidebar-item-button .fi-sidebar-item-icon {
+                        color: var(--tailadmin-accent) !important;
                     }
 
                     /* 🎨 ICONS */
