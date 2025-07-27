@@ -50,8 +50,10 @@
         
         .pos-categories-header {
             padding: 20px 16px 16px;
-            border-bottom: 1px solid var(--pos-gray-200);
+            border: 2px solid var(--pos-primary);
+            border-radius: var(--pos-border-radius);
             background: white;
+            margin: 12px;
         }
         
         .pos-categories-content {
@@ -66,10 +68,10 @@
             padding: 14px 16px;
             margin-bottom: 8px;
             text-align: left;
-            border: 1px solid transparent;
+            border: 2px solid var(--pos-primary);
             border-radius: var(--pos-border-radius);
             background: white;
-            color: #374151;
+            color: var(--pos-primary);
             font-weight: 500;
             font-size: 14px;
             transition: all 0.2s ease;
@@ -79,7 +81,7 @@
         
         .pos-category-btn:hover {
             background: #f3f4f6;
-            border-color: var(--pos-gray-200);
+            border-color: var(--pos-primary);
             transform: translateY(-1px);
             box-shadow: var(--pos-shadow);
         }
@@ -87,7 +89,7 @@
         .pos-category-btn.active {
             background: var(--pos-primary);
             color: white;
-            border-color: var(--pos-primary);
+            border: 2px solid var(--pos-primary);
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
         
