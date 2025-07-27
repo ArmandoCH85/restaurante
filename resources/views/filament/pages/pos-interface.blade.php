@@ -50,7 +50,7 @@
         
         .pos-categories-header {
             padding: 20px 16px 16px;
-            border: 2px solid var(--pos-primary);
+            border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
             background: white;
             margin: 12px;
@@ -68,10 +68,10 @@
             padding: 14px 16px;
             margin-bottom: 8px;
             text-align: left;
-            border: 2px solid var(--pos-primary);
+            border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
             background: white;
-            color: var(--pos-primary);
+            color: #64748b;
             font-weight: 500;
             font-size: 14px;
             transition: all 0.2s ease;
@@ -81,16 +81,16 @@
         
         .pos-category-btn:hover {
             background: #f3f4f6;
-            border-color: var(--pos-primary);
+            border-color: #64748b;
             transform: translateY(-1px);
             box-shadow: var(--pos-shadow);
         }
         
         .pos-category-btn.active {
-            background: var(--pos-primary);
+            background: #64748b;
             color: white;
-            border: 2px solid var(--pos-primary);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            border: 2px solid #64748b;
+            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
         }
         
         /* ÁREA DE PRODUCTOS OPTIMIZADA */
@@ -105,7 +105,7 @@
         .pos-search-bar {
             padding: 20px;
             background: white;
-            border: 2px solid var(--pos-primary);
+            border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
             margin: 12px;
         }
@@ -131,7 +131,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
-            border: 2px solid var(--pos-primary);
+            border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
             margin: 12px;
             background: white;
@@ -225,7 +225,7 @@
         .pos-cart-header {
             padding: 20px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 2px solid var(--pos-primary);
+            border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
             margin: 12px;
         }
@@ -358,7 +358,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px;
-            border: 2px solid var(--pos-primary);
+            border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
             margin: 12px;
             background: white;
@@ -486,7 +486,7 @@
         .pos-cart-totals {
             padding: 20px;
             background: white;
-            border: 2px solid var(--pos-primary);
+            border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
             margin: 12px;
         }
