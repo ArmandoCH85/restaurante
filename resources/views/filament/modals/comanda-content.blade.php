@@ -45,6 +45,16 @@
                                 <span class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-0.5 rounded ml-1">HELADA</span>
                             @elseif(strpos($detail->notes, 'AL TIEMPO') !== false)
                                 <span class="bg-yellow-100 text-yellow-800 text-xs font-bold px-2 py-0.5 rounded ml-1">AL TIEMPO</span>
+                            @elseif(strpos($detail->notes, 'FRESCA') !== false)
+                                <span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-0.5 rounded ml-1">FRESCA</span>
+                            @elseif(strpos($detail->notes, 'ROJO') !== false)
+                                <span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-0.5 rounded ml-1">ROJO</span>
+                            @elseif(strpos($detail->notes, 'JUGOSO') !== false)
+                                <span class="bg-pink-100 text-pink-800 text-xs font-bold px-2 py-0.5 rounded ml-1">JUGOSO</span>
+                            @elseif(strpos($detail->notes, 'TRES CUARTOS') !== false)
+                                <span class="bg-orange-100 text-orange-800 text-xs font-bold px-2 py-0.5 rounded ml-1">TRES CUARTOS</span>
+                            @elseif(strpos($detail->notes, 'BIEN COCIDO') !== false)
+                                <span class="bg-gray-100 text-gray-800 text-xs font-bold px-2 py-0.5 rounded ml-1">BIEN COCIDO</span>
                             @endif
                         </p>
                         
@@ -59,8 +69,8 @@
                         @if($detail->notes)
                             @php
                                 $notesText = $detail->notes;
-                                // Eliminar las palabras HELADA o AL TIEMPO de las notas para no mostrarlas dos veces
-                                $notesText = str_replace(['HELADA', 'AL TIEMPO'], '', $notesText);
+                                // Eliminar las palabras de temperatura y punto de cocción de las notas para no mostrarlas dos veces
+                                $notesText = str_replace(['HELADA', 'AL TIEMPO', 'FRESCA', 'ROJO', 'JUGOSO', 'TRES CUARTOS', 'BIEN COCIDO'], '', $notesText);
                                 $notesText = trim($notesText);
                             @endphp
                             
