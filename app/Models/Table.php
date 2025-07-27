@@ -29,6 +29,7 @@ class Table extends Model
     const STATUS_RESERVED = 'reserved';
     const STATUS_PENDING_PAYMENT = 'pending_payment';
     const STATUS_PREBILL = 'prebill';
+    const STATUS_MAINTENANCE = 'maintenance';
 
     public function scopeAvailable($query)
     {
@@ -78,6 +79,11 @@ class Table extends Model
     public function isPendingPayment()
     {
         return $this->status === self::STATUS_PENDING_PAYMENT;
+    }
+
+    public function isMaintenance()
+    {
+        return $this->status === self::STATUS_MAINTENANCE;
     }
 
     public function isSquare()

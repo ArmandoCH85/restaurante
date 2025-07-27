@@ -22,6 +22,7 @@
                         'available' => '#10b981', // emerald-500
                         'reserved' => '#3b82f6',  // blue-500
                         'occupied' => '#f59e0b',  // amber-500
+                        'prebill' => '#06b6d4',   // cyan-500
                         'maintenance' => '#6b7280', // gray-500
                         default => '#6b7280'
                     };

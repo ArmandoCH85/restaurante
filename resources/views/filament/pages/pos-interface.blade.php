@@ -942,6 +942,15 @@
                                             >
                                             <label for="room-{{ $index }}">Al tiempo</label>
                                         </div>
+                                        <div class="pos-radio-option">
+                                            <input 
+                                                type="radio" 
+                                                wire:model.live="cartItems.{{ $index }}.temperature"
+                                                value="FRESCA"
+                                                id="fresh-{{ $index }}"
+                                            >
+                                            <label for="fresh-{{ $index }}">Fresca</label>
+                                        </div>
                                     </div>
                                 </div>
                             @endif
@@ -950,7 +959,7 @@
                                 <div class="pos-special-options">
                                     <div class="pos-special-options-title">Punto de cocción:</div>
                                     <div class="pos-radio-group">
-                                        @foreach(['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'] as $point)
+                                        @foreach(['ROJO', 'JUGOSO', 'TRES CUARTOS', 'BIEN COCIDO'] as $point)
                                             <div class="pos-radio-option">
                                                 <input 
                                                     type="radio" 
