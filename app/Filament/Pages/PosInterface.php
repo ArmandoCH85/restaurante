@@ -50,6 +50,11 @@ class PosInterface extends Page
     protected static ?string $slug = 'pos-interface';
     protected static ?int $navigationSort = 1;
 
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full'; // Usar todo el ancho disponible para el POS
+    }
+
     public static function canAccess(): bool
     {
         $user = Auth::user();
