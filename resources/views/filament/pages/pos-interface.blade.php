@@ -350,6 +350,10 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px;
+            border: 2px solid var(--pos-primary);
+            border-radius: var(--pos-border-radius);
+            margin: 12px;
+            background: white;
         }
         
         .pos-cart-item {
@@ -808,16 +812,16 @@
                     {{-- CONTROLES PRINCIPALES --}}
                     <div class="pos-cart-actions" style="display: flex; align-items: end; gap: 8px;">
                         <div style="flex: 1;">
-                            <label style="display: block; font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 4px;">
+                            <label style="display: block; font-size: 10px; font-weight: 600; color: #374151; margin-bottom: 2px;">
                                 Comensales <span style="color: #ef4444;">*</span>
                             </label>
                             <div style="position: relative;">
-                                <x-heroicon-s-users style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #9ca3af;" />
+                                <x-heroicon-s-users style="position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; color: #9ca3af;" />
                                 <input
                                     type="number"
                                     wire:model.live="numberOfGuests"
                                     min="1"
-                                    style="width: 100%; padding: 8px 8px 8px 24px; border: 1px solid var(--pos-gray-200); border-radius: 6px; text-align: center; font-weight: 600; font-size: 14px;"
+                                    style="width: 60px; padding: 4px 4px 4px 18px; border: 1px solid var(--pos-gray-200); border-radius: 4px; text-align: center; font-weight: 600; font-size: 12px;"
                                     placeholder="0"
                                     required
                                 >
