@@ -105,7 +105,9 @@
         .pos-search-bar {
             padding: 20px;
             background: white;
-            border-bottom: 1px solid var(--pos-gray-200);
+            border: 2px solid var(--pos-primary);
+            border-radius: var(--pos-border-radius);
+            margin: 12px;
         }
         
         .pos-search-input {
@@ -129,6 +131,10 @@
             flex: 1;
             overflow-y: auto;
             padding: 20px;
+            border: 2px solid var(--pos-primary);
+            border-radius: var(--pos-border-radius);
+            margin: 12px;
+            background: white;
         }
         
         /* GRID DE PRODUCTOS RESPONSIVO */
@@ -219,7 +225,9 @@
         .pos-cart-header {
             padding: 20px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-bottom: 1px solid var(--pos-gray-200);
+            border: 2px solid var(--pos-primary);
+            border-radius: var(--pos-border-radius);
+            margin: 12px;
         }
         
         .pos-cart-title {
@@ -478,7 +486,9 @@
         .pos-cart-totals {
             padding: 20px;
             background: white;
-            border-top: 1px solid var(--pos-gray-200);
+            border: 2px solid var(--pos-primary);
+            border-radius: var(--pos-border-radius);
+            margin: 12px;
         }
         
         .pos-totals-container {
