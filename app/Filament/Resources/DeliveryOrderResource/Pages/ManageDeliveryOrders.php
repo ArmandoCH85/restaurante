@@ -35,7 +35,7 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
     
     public function getMaxContentWidth(): ?string
     {
-        return '7xl'; // Optimizado para POS - mejor uso del espacio sin ser demasiado ancho
+        return 'full'; // Margen izquierdo reducido, contenido más pegado al sidebar
     }
     
     protected function getHeaderWidgets(): array
