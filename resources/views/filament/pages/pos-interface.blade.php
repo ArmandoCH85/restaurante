@@ -262,6 +262,55 @@
             color: var(--pos-primary);
         }
         
+        /* COLORES REPRESENTATIVOS PARA CADA BOTÓN */
+        .pos-quick-action-btn.btn-mapa {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            color: #1d4ed8;
+        }
+        
+        .pos-quick-action-btn.btn-comanda {
+            background: #fed7aa;
+            border-color: #f97316;
+            color: #c2410c;
+        }
+        
+        .pos-quick-action-btn.btn-precuenta {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #d97706;
+        }
+        
+        .pos-quick-action-btn.btn-reabrir {
+            background: #dcfce7;
+            border-color: #22c55e;
+            color: #15803d;
+        }
+        
+        .pos-quick-action-btn.btn-dividir {
+            background: #f3e8ff;
+            border-color: #a855f7;
+            color: #7c3aed;
+        }
+        
+        .pos-quick-action-btn.btn-transferir {
+            background: #e0e7ff;
+            border-color: #6366f1;
+            color: #4338ca;
+        }
+        
+        .pos-quick-action-btn.btn-liberar {
+            background: #f1f5f9;
+            border-color: #64748b;
+            color: #475569;
+        }
+        
+        .pos-quick-action-btn.btn-cancelar {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #dc2626;
+        }
+        
         .pos-quick-action-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -771,7 +820,7 @@
                             {{-- Mapa --}}
                             <button 
                                 wire:click="mountAction('backToTableMap')"
-                                class="pos-quick-action-btn"
+                                class="pos-quick-action-btn btn-mapa"
                                 {{ !($this->order && $this->order->table_id !== null) ? 'disabled' : '' }}
                                 title="Ir a Mapa de Mesas"
                             >
@@ -782,7 +831,7 @@
                             {{-- Comanda --}}
                             <button 
                                 wire:click="mountAction('printComanda')"
-                                class="pos-quick-action-btn"
+                                class="pos-quick-action-btn btn-comanda"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
                                 title="Imprimir Comanda"
                             >
@@ -793,7 +842,7 @@
                             {{-- Pre-Cuenta --}}
                             <button 
                                 wire:click="mountAction('printPreBillNew')"
-                                class="pos-quick-action-btn"
+                                class="pos-quick-action-btn btn-precuenta"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
                                 title="Generar Pre-Cuenta"
                             >
@@ -804,7 +853,7 @@
                             {{-- Reabrir --}}
                             <button 
                                 wire:click="mountAction('reopen_order_for_editing')"
-                                class="pos-quick-action-btn"
+                                class="pos-quick-action-btn btn-reabrir"
                                 {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists()) ? 'disabled' : '' }}
                                 title="Reabrir Orden"
                             >
@@ -815,7 +864,7 @@
                             {{-- Dividir --}}
                             <button 
                                 wire:click="mountAction('split_items')"
-                                class="pos-quick-action-btn"
+                                class="pos-quick-action-btn btn-dividir"
                                 {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }}
                                 title="Dividir Cuenta"
                             >
@@ -827,7 +876,7 @@
                             @if(!auth()->user()->hasRole(['waiter', 'cashier']))
                                 <button 
                                     wire:click="mountAction('transferOrder')"
-                                    class="pos-quick-action-btn"
+                                    class="pos-quick-action-btn btn-transferir"
                                     {{ !($this->order && $this->order->table_id && $this->order->status === 'open') ? 'disabled' : '' }}
                                     title="Transferir Mesa"
                                 >
@@ -839,7 +888,7 @@
                             {{-- Liberar Mesa --}}
                             <button 
                                 wire:click="mountAction('releaseTable')"
-                                class="pos-quick-action-btn"
+                                class="pos-quick-action-btn btn-liberar"
                                 {{ !($this->order && $this->order->table_id) ? 'disabled' : '' }}
                                 title="Liberar Mesa"
                             >
@@ -850,12 +899,9 @@
                             {{-- Cancelar Pedido --}}
                             <button 
                                 wire:click="mountAction('cancelOrder')"
-                                class="pos-quick-action-btn"
+                                class="pos-quick-action-btn btn-cancelar"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
                                 title="Cancelar Pedido"
-                                style="color: #dc2626; border-color: #fca5a5;"
-                                onmouseover="this.style.background='#fef2f2'; this.style.borderColor='#dc2626'; this.style.color='#dc2626';"
-                                onmouseout="this.style.background='white'; this.style.borderColor='#fca5a5'; this.style.color='#dc2626';"
                             >
                                 <x-heroicon-o-x-circle class="pos-quick-action-icon" />
                                 <span>Cancelar Pedido</span>

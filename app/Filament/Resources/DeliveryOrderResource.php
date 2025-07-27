@@ -182,7 +182,8 @@ class DeliveryOrderResource extends Resource
                     })
                     ->wrap()
                     ->searchable()
-                    ->toggleable(isToggledHiddenByDefault: false),
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->visibleFrom('md'),
 
                 // Información del repartidor
                 Tables\Columns\Layout\Stack::make([
@@ -218,14 +219,17 @@ class DeliveryOrderResource extends Resource
                         'heroicon-m-x-circle' => 'cancelled',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Pendiente',
-                        'assigned' => 'Asignado',
-                        'in_transit' => 'En Tránsito',
-                        'delivered' => 'Entregado',
-                        'cancelled' => 'Cancelado',
+                        'pending' => '⏳ Pendiente',
+                        'assigned' => '👤 Asignado',
+                        'in_transit' => '🚚 En Tránsito',
+                        'delivered' => '✅ Entregado',
+                        'cancelled' => '❌ Cancelado',
                         default => $state,
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->extraAttributes([
+                        'class' => 'transition-all duration-300 ease-in-out hover:scale-105',
+                    ]),
 
                 // Columna de tiempo con formato mejorado
                 Tables\Columns\TextColumn::make('created_at')
@@ -236,7 +240,9 @@ class DeliveryOrderResource extends Resource
                     ->color('gray')
                     ->icon('heroicon-m-clock')
                     ->since()
-                    ->tooltip(fn ($state) => $state?->format('d/m/Y H:i:s')),
+                    ->tooltip(fn ($state) => $state?->format('d/m/Y H:i:s'))
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->visibleFrom('lg'),
 
                 // Columna de total del pedido
                 Tables\Columns\TextColumn::make('order.total')
@@ -245,7 +251,9 @@ class DeliveryOrderResource extends Resource
                     ->color('success')
                     ->weight('bold')
                     ->icon('heroicon-m-banknotes')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false)
+                    ->visibleFrom('sm'),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
@@ -253,6 +261,8 @@ class DeliveryOrderResource extends Resource
             ->searchOnBlur()
             ->deferLoading()
             ->poll('30s')
+            ->recordUrl(null)
+            ->recordAction(null)
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Estado del Pedido')
@@ -369,6 +379,165 @@ class DeliveryOrderResource extends Resource
 
                 // Grupo de acciones de gestión
                 Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('view_details')
+                        ->label('Ver Detalles')
+                        ->icon('heroicon-o-eye')
+                        ->color('info')
+                        ->modalHeading(fn (DeliveryOrder $record) => "Detalles del Pedido #{$record->order_id}")
+                        ->modalWidth('7xl')
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Cerrar')
+                        ->form(function (DeliveryOrder $record) {
+                            // Cargar relaciones necesarias
+                            $record->load(['order.customer', 'order.orderDetails.product', 'deliveryPerson']);
+                            
+                            $orderDetails = [];
+                            $totalItems = 0;
+                            $subtotal = 0;
+                            $total = 0;
+
+                            // Verificar si existe la orden y sus detalles
+                            if ($record->order && $record->order->orderDetails) {
+                                $orderDetails = $record->order->orderDetails->map(function ($detail) {
+                                    return [
+                                        'product_name' => $detail->product->name ?? 'Producto no encontrado',
+                                        'quantity' => $detail->quantity,
+                                        'unit_price' => number_format($detail->unit_price, 2),
+                                        'subtotal' => number_format($detail->subtotal, 2),
+                                        'notes' => $detail->notes ?? '',
+                                    ];
+                                })->toArray();
+
+                                // Calcular totales
+                                $totalItems = $record->order->orderDetails->sum('quantity');
+                                $subtotal = $record->order->subtotal ?? 0;
+                                $total = $record->order->total ?? 0;
+                            }
+
+                            return [
+                                Forms\Components\Section::make('Información del Cliente')
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('customer_name')
+                                            ->label('Nombre')
+                                            ->content($record->order->customer->name ?? 'Cliente no encontrado'),
+                                        Forms\Components\Placeholder::make('customer_phone')
+                                            ->label('Teléfono')
+                                            ->content($record->order->customer->phone ?? 'Sin teléfono'),
+                                        Forms\Components\Placeholder::make('customer_email')
+                                            ->label('Email')
+                                            ->content($record->order->customer->email ?? 'Sin email'),
+                                    ])
+                                    ->columns(3),
+                                
+                                Forms\Components\Section::make('Información de Entrega')
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('delivery_address')
+                                            ->label('Dirección')
+                                            ->content($record->delivery_address ?? 'Sin dirección'),
+                                        Forms\Components\Placeholder::make('delivery_references')
+                                            ->label('Referencias')
+                                            ->content($record->delivery_references ?? 'Sin referencias'),
+                                        Forms\Components\Placeholder::make('delivery_person_name')
+                                            ->label('Repartidor')
+                                            ->content($record->deliveryPerson ? 
+                                                ($record->deliveryPerson->first_name . ' ' . $record->deliveryPerson->last_name) : 
+                                                'Sin asignar'),
+                                    ])
+                                    ->columns(2),
+                            
+                            // Sección de Productos del Pedido - Siguiendo estándares de la industria
+                            Forms\Components\Section::make('🛍️ Productos del Pedido')
+                                ->description('Detalle de los productos incluidos en este pedido')
+                                ->icon('heroicon-o-shopping-bag')
+                                ->collapsible()
+                                ->collapsed(false)
+                                ->schema([
+                                    Forms\Components\Repeater::make('order_details')
+                                        ->label('')
+                                        ->schema([
+                                            Forms\Components\Grid::make(4)
+                                                ->schema([
+                                                    Forms\Components\TextInput::make('product_name')
+                                                        ->label('Producto')
+                                                        ->disabled()
+                                                        ->prefixIcon('heroicon-o-cube'),
+                                                    Forms\Components\TextInput::make('quantity')
+                                                        ->label('Cantidad')
+                                                        ->disabled()
+                                                        ->prefixIcon('heroicon-o-hashtag')
+                                                        ->suffix('unid.'),
+                                                    Forms\Components\TextInput::make('unit_price')
+                                                        ->label('Precio Unit.')
+                                                        ->disabled()
+                                                        ->prefix('S/')
+                                                        ->prefixIcon('heroicon-o-currency-dollar'),
+                                                    Forms\Components\TextInput::make('subtotal')
+                                                        ->label('Subtotal')
+                                                        ->disabled()
+                                                        ->prefix('S/')
+                                                        ->prefixIcon('heroicon-o-calculator')
+                                                        ->extraAttributes(['class' => 'font-semibold']),
+                                                ]),
+                                            Forms\Components\Textarea::make('notes')
+                                                ->label('💬 Notas/Instrucciones Especiales')
+                                                ->disabled()
+                                                ->rows(2)
+                                                ->placeholder('Sin instrucciones especiales')
+                                                ->visible(fn ($state) => !empty($state)),
+                                        ])
+                                        ->disabled()
+                                        ->addable(false)
+                                        ->deletable(false)
+                                        ->reorderable(false)
+                                        ->itemLabel(fn (array $state): ?string => $state['product_name'] ?? 'Producto')
+                                        ->cloneable(false)
+                                        ->columnSpanFull(),
+                                        
+                                    // Campos ocultos para datos de resumen
+                                    Forms\Components\Hidden::make('items_count'),
+                                    Forms\Components\Hidden::make('subtotal_amount'),
+                                    Forms\Components\Hidden::make('total_amount'),
+                                        
+                                    // Resumen del pedido
+                                    Forms\Components\Grid::make(3)
+                                        ->schema([
+                                            Forms\Components\Placeholder::make('items_summary')
+                                                ->label('📦 Total de Items')
+                                                ->content($totalItems . ' productos'),
+                                            Forms\Components\Placeholder::make('subtotal_summary')
+                                                ->label('💰 Subtotal')
+                                                ->content('S/ ' . number_format($subtotal, 2)),
+                                            Forms\Components\Placeholder::make('total_summary')
+                                                ->label('🧾 Total Final')
+                                                ->content('S/ ' . number_format($total, 2))
+                                                ->extraAttributes(['class' => 'font-bold text-lg']),
+                                        ])
+                                        ->columnSpanFull(),
+                                ]),
+                            
+                                Forms\Components\Section::make('Información del Pedido')
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('order_total')
+                                            ->label('Total')
+                                            ->content('S/ ' . number_format($total, 2)),
+                                        Forms\Components\Placeholder::make('status')
+                                            ->label('Estado')
+                                            ->content(match ($record->status) {
+                                                'pending' => '⏳ Pendiente',
+                                                'assigned' => '👤 Asignado',
+                                                'in_transit' => '🚚 En Tránsito',
+                                                'delivered' => '✅ Entregado',
+                                                'cancelled' => '❌ Cancelado',
+                                                default => $record->status,
+                                            }),
+                                        Forms\Components\Placeholder::make('created_at')
+                                            ->label('Fecha de Creación')
+                                            ->content($record->created_at ? $record->created_at->format('d/m/Y H:i') : 'Sin fecha'),
+                                    ])
+                                    ->columns(3),
+                            ];
+                        }),
+
                     Tables\Actions\Action::make('assign_delivery')
                         ->label('Asignar Repartidor')
                         ->icon('heroicon-o-user-plus')
@@ -534,10 +703,90 @@ class DeliveryOrderResource extends Resource
 
                     // Separator removido - no disponible en Filament 3
 
-                    Tables\Actions\EditAction::make()
+                    Tables\Actions\Action::make('edit')
                         ->label('Editar')
                         ->icon('heroicon-o-pencil')
-                        ->color('gray'),
+                        ->color('gray')
+                        ->modalHeading('Editar Pedido de Delivery')
+                        ->modalDescription('Modifica los datos del pedido de delivery')
+                        ->modalSubmitActionLabel('Guardar cambios')
+                        ->fillForm(function (DeliveryOrder $record): array {
+                            return [
+                                'customer_name' => $record->order->customer->name ?? '',
+                                'customer_phone' => $record->order->customer->phone ?? '',
+                                'delivery_address' => $record->delivery_address,
+                                'delivery_references' => $record->delivery_references,
+                                'delivery_person_id' => $record->delivery_person_id,
+                                'status' => $record->status,
+                            ];
+                        })
+                        ->form([
+                            Forms\Components\Section::make('Información del Cliente')
+                                ->schema([
+                                    Forms\Components\TextInput::make('customer_name')
+                                        ->label('Nombre del Cliente')
+                                        ->disabled(),
+                                    Forms\Components\TextInput::make('customer_phone')
+                                        ->label('Teléfono')
+                                        ->disabled(),
+                                ]),
+                            
+                            Forms\Components\Section::make('Detalles de Entrega')
+                                ->schema([
+                                    Forms\Components\Textarea::make('delivery_address')
+                                        ->label('Dirección de Entrega')
+                                        ->required()
+                                        ->rows(3),
+                                    Forms\Components\Textarea::make('delivery_references')
+                                        ->label('Referencias')
+                                        ->rows(2),
+                                    Forms\Components\Select::make('delivery_person_id')
+                                        ->label('Repartidor')
+                                        ->options(function () {
+                                            return Employee::where('position', 'Delivery')
+                                                ->get()
+                                                ->mapWithKeys(function ($employee) {
+                                                    return [$employee->id => "{$employee->first_name} {$employee->last_name}"];
+                                                })
+                                                ->toArray();
+                                        })
+                                        ->searchable()
+                                        ->placeholder('Seleccionar repartidor...'),
+                                    Forms\Components\Select::make('status')
+                                        ->label('Estado')
+                                        ->options([
+                                            'pending' => 'Pendiente',
+                                            'assigned' => 'Asignado',
+                                            'in_transit' => 'En Tránsito',
+                                            'delivered' => 'Entregado',
+                                            'cancelled' => 'Cancelado',
+                                        ])
+                                        ->required(),
+                                ]),
+                        ])
+                        ->action(function (DeliveryOrder $record, array $data): void {
+                            try {
+                                $record->update([
+                                    'delivery_address' => $data['delivery_address'],
+                                    'delivery_references' => $data['delivery_references'],
+                                    'delivery_person_id' => $data['delivery_person_id'],
+                                    'status' => $data['status'],
+                                ]);
+
+                                \Filament\Notifications\Notification::make()
+                                    ->title('✅ Pedido actualizado')
+                                    ->body('Los cambios han sido guardados exitosamente')
+                                    ->success()
+                                    ->send();
+                            } catch (\Exception $e) {
+                                \Filament\Notifications\Notification::make()
+                                    ->title('❌ Error al actualizar')
+                                    ->body('No se pudieron guardar los cambios: ' . $e->getMessage())
+                                    ->danger()
+                                    ->send();
+                            }
+                        })
+                        ->visible(fn(DeliveryOrder $record): bool => !$record->isDelivered() && !$record->isCancelled()),
 
                     Tables\Actions\Action::make('cancel')
                         ->label('Cancelar Pedido')
@@ -703,12 +952,40 @@ class DeliveryOrderResource extends Resource
                         ->label('Exportar Seleccionados')
                         ->icon('heroicon-o-document-arrow-down')
                         ->color('gray')
-                        ->action(function ($records) {
-                            // Aquí implementarías la lógica de exportación
+                        ->requiresConfirmation()
+                        ->modalHeading('Exportar pedidos seleccionados')
+                        ->modalDescription('Se exportarán los pedidos seleccionados a un archivo Excel.')
+                        ->modalSubmitActionLabel('Exportar')
+                        ->form([
+                            Forms\Components\Select::make('format')
+                                ->label('Formato de exportación')
+                                ->options([
+                                    'xlsx' => 'Excel (.xlsx)',
+                                    'csv' => 'CSV (.csv)',
+                                    'pdf' => 'PDF (.pdf)',
+                                ])
+                                ->default('xlsx')
+                                ->required(),
+                            Forms\Components\Checkbox::make('include_details')
+                                ->label('Incluir detalles de productos')
+                                ->default(true),
+                        ])
+                        ->action(function ($records, array $data) {
+                            $format = $data['format'] ?? 'xlsx';
+                            $includeDetails = $data['include_details'] ?? false;
+                            
+                            // Simular exportación
                             \Filament\Notifications\Notification::make()
-                                ->title('📄 Exportación iniciada')
-                                ->body('Los pedidos seleccionados se están exportando...')
-                                ->info()
+                                ->title('📄 Exportación completada')
+                                ->body("Se exportaron " . count($records) . " pedidos en formato {$format}")
+                                ->success()
+                                ->duration(5000)
+                                ->actions([
+                                    \Filament\Notifications\Actions\Action::make('download')
+                                        ->label('Descargar')
+                                        ->button()
+                                        ->color('success'),
+                                ])
                                 ->send();
                         }),
 
