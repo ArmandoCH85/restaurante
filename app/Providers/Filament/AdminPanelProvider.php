@@ -37,6 +37,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->sidebarCollapsibleOnDesktop()
+            ->sidebarWidth('18rem') // Ancho optimizado para mejor legibilidad
+            ->collapsedSidebarWidth('4rem') // Ancho colapsado elegante
             ->homeUrl(function () {
                 $user = Auth::user();
                 if ($user && $user->hasRole('waiter')) {
@@ -85,18 +87,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\PaymentMethodsChart::class,
                 \App\Filament\Widgets\CashRegisterPerformanceChart::class,
             ])
-            ->navigationGroups([
-                // OPERACIONES PRINCIPALES - DIARIAS (Único grupo con icono conservado)
-                NavigationGroup::make()
-                    ->label('🏪 Operaciones Diarias')
-                    ->collapsed(false) // Siempre expandido - uso diario
-                    ->collapsible(false), // No colapsable - crítico
-            ])
-            ->navigationItems([
-                // Todos los navigation items se mantienen igual pero solo se mostrarán 
-                // aquellos que pertenezcan al grupo "🏪 Operaciones Diarias" 
-                // Los demás estarán disponibles pero sin grupo visible
-            ])
+            // Eliminar grupos personalizados para que funcione con los recursos automáticos
+            // Usar navegación automática de Filament
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -127,177 +119,117 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_NAV_START,
                 fn (): string => '<style>
+                    /* 🎨 TAILADMIN DESIGN SYSTEM - FONDO BLANCO */
                     :root {
-                        --sidebar-bg-primary: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);
-                        --sidebar-bg-secondary: #0f172a;
-                        --sidebar-accent: #3C50E0;
-                        --sidebar-text: #f8fafc;
-                        --sidebar-text-muted: #cbd5e1;
+                        --tailadmin-sidebar-bg: #FFFFFF;
+                        --tailadmin-sidebar-hover: #EEF2FF;
+                        --tailadmin-accent: #3C50E0;
+                        --tailadmin-accent-hover: #5570F1;
+                        --tailadmin-text: #1F2937;
+                        --tailadmin-text-muted: #6B7280;
+                        --tailadmin-border: #E5E7EB;
                     }
-                    
-                    /* Fondo corporativo del sidebar */
+
+                    /* 🏗️ SIDEBAR BASE - TAILADMIN FONDO BLANCO */
                     .fi-sidebar {
-                        background: var(--sidebar-bg-primary) !important;
-                        border-right: 2px solid var(--sidebar-accent) !important;
-                        box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15) !important;
+                        background: var(--tailadmin-sidebar-bg) !important;
+                        border-right: 1px solid var(--tailadmin-border) !important;
                     }
-                    
-                    /* Logo con fondo destacado */
-                    .fi-sidebar-header {
-                        background: var(--sidebar-bg-secondary) !important;
-                        border-bottom: 1px solid var(--sidebar-accent) !important;
-                        padding: 1.5rem 1rem !important;
-                    }
-                    
-                    /* Navegación con colores armonizados */
-                    .fi-sidebar-nav {
-                        background: transparent !important;
-                    }
-                    
-                    /* Grupos de navegación - Headers principales */
+
+                    /* 📁 NAVIGATION GROUPS - TAILADMIN STYLE */
                     .fi-sidebar-group-label {
-                        background: linear-gradient(90deg, rgba(60, 80, 224, 0.15) 0%, rgba(60, 80, 224, 0.05) 100%) !important;
-                        color: #60a5fa !important;
-                        font-weight: 600 !important;
+                        background: transparent !important;
+                        color: var(--tailadmin-text-muted) !important;
                         font-size: 0.75rem !important;
-                        text-transform: uppercase !important;
-                        letter-spacing: 0.05em !important;
-                        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
-                        border: none !important;
-                        border-left: 3px solid var(--sidebar-accent) !important;
-                        border-radius: 0 6px 6px 0 !important;
-                        padding: 0.75rem 1rem !important;
-                        margin: 0.5rem 0 1rem 0 !important;
-                        position: relative !important;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-                    }
-                    
-                    .fi-sidebar-group-label::before {
-                        content: "" !important;
-                        position: absolute !important;
-                        left: 0 !important;
-                        top: 0 !important;
-                        height: 100% !important;
-                        width: 2px !important;
-                        background: linear-gradient(180deg, var(--sidebar-accent) 0%, rgba(60, 80, 224, 0.3) 100%) !important;
-                        border-radius: 0 2px 2px 0 !important;
-                    }
-                    
-                    .fi-sidebar-group-label::after {
-                        content: "" !important;
-                        position: absolute !important;
-                        right: 0.5rem !important;
-                        top: 50% !important;
-                        transform: translateY(-50%) !important;
-                        width: 4px !important;
-                        height: 4px !important;
-                        background: var(--sidebar-accent) !important;
-                        border-radius: 50% !important;
-                        box-shadow: 0 0 6px rgba(60, 80, 224, 0.6) !important;
-                    }
-                    
-                    /* Items de navegación */
-                    .fi-sidebar-item-button {
-                        color: #e2e8f0 !important;
-                        border-radius: 8px !important;
-                        transition: all 0.3s ease !important;
-                        margin-bottom: 0.25rem !important;
-                    }
-                    
-                    .fi-sidebar-item-button:hover {
-                        background: rgba(60, 80, 224, 0.2) !important;
-                        transform: translateX(4px) !important;
-                        box-shadow: 0 2px 8px rgba(60, 80, 224, 0.3) !important;
-                        color: #ffffff !important;
-                    }
-                    
-                    .fi-sidebar-item.fi-active .fi-sidebar-item-button {
-                        background: var(--sidebar-accent) !important;
-                        color: #ffffff !important;
-                        box-shadow: 0 4px 12px rgba(60, 80, 224, 0.4) !important;
-                    }
-                    
-                    /* Textos específicos del sidebar */
-                    .fi-sidebar-item-label {
-                        color: #e2e8f0 !important;
                         font-weight: 500 !important;
+                        text-transform: uppercase !important;
+                        letter-spacing: 0.1em !important;
+                        padding: 0.75rem 1.5rem 0.5rem 1.5rem !important;
+                        margin-bottom: 0.5rem !important;
+                        border: none !important;
+                        border-left: 3px solid var(--tailadmin-accent) !important;
+                        border-radius: 0 !important;
                     }
-                    
+
+                    /* 🎯 NAVIGATION ITEMS - TAILADMIN STYLE */
+                    .fi-sidebar-item {
+                        margin: 0.125rem 1.5rem !important;
+                        border-radius: 0.5rem !important;
+                        transition: all 0.3s ease !important;
+                    }
+
+                    .fi-sidebar-item-button {
+                        color: var(--tailadmin-text-muted) !important;
+                        padding: 0.875rem 1rem !important;
+                        font-size: 0.875rem !important;
+                        font-weight: 500 !important;
+                        transition: all 0.3s ease !important;
+                        border-radius: 0.5rem !important;
+                        width: 100% !important;
+                        display: flex !important;
+                        align-items: center !important;
+                        gap: 0.75rem !important;
+                    }
+
+                    /* HOVER STATE */
+                    .fi-sidebar-item:hover {
+                        background: var(--tailadmin-sidebar-hover) !important;
+                        background-color: #EEF2FF !important;
+                    }
+
+                    .fi-sidebar-item:hover .fi-sidebar-item-button {
+                        color: var(--tailadmin-text) !important;
+                    }
+
                     .fi-sidebar-item:hover .fi-sidebar-item-label {
-                        color: #ffffff !important;
+                        color: var(--tailadmin-text) !important;
                     }
-                    
-                    .fi-sidebar-item.fi-active .fi-sidebar-item-label {
-                        color: #ffffff !important;
+
+                    .fi-sidebar-item:hover .fi-sidebar-item-icon {
+                        color: var(--tailadmin-text) !important;
+                    }
+
+                    /* ACTIVE STATE - FONDO AZUL CLARO CON TEXTO OSCURO */
+                    .fi-sidebar-item.fi-active {
+                        background: #EEF2FF !important;
+                        background-color: #EEF2FF !important;
+                        border-radius: 0.5rem !important;
+                        border-left: 3px solid var(--tailadmin-accent) !important;
+                    }
+
+                    .fi-sidebar-item.fi-active .fi-sidebar-item-button,
+                    .fi-sidebar-item.fi-active .fi-sidebar-item-label,
+                    .fi-sidebar-item.fi-active .fi-sidebar-item-icon {
+                        color: var(--tailadmin-accent) !important;
                         font-weight: 600 !important;
                     }
-                    
-                    /* Iconos con efecto */
+
+                    /* 🎨 ICONS */
                     .fi-sidebar-item-icon {
-                        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) !important;
-                        color: #cbd5e1 !important;
+                        width: 1.25rem !important;
+                        height: 1.25rem !important;
+                        flex-shrink: 0 !important;
+                        color: inherit !important;
                     }
-                    
-                    .fi-sidebar-item:hover .fi-sidebar-item-icon {
-                        color: #ffffff !important;
+
+                    /* 🏷️ LABELS */
+                    .fi-sidebar-item-label {
+                        color: inherit !important;
+                        font-size: 0.875rem !important;
+                        font-weight: inherit !important;
                     }
-                    
-                    .fi-sidebar-item.fi-active .fi-sidebar-item-icon {
-                        color: #ffffff !important;
-                    }
-                    
-                    /* Modo oscuro */
+
+                    /* 🌙 DARK MODE - MANTENER FONDO BLANCO */
                     .dark .fi-sidebar {
-                        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
-                    }
-                    
-                    .dark .fi-sidebar-header {
-                        background: #020617 !important;
-                    }
-                    
-                    .dark .fi-sidebar-item-button {
-                        color: #f1f5f9 !important;
-                    }
-                    
-                    .dark .fi-sidebar-item-label {
-                        color: #f1f5f9 !important;
-                    }
-                    
-                    .dark .fi-sidebar-item-icon {
-                        color: #e2e8f0 !important;
-                    }
-                    
-                    /* Headers en modo oscuro */
-                    .dark .fi-sidebar-group-label {
-                        background: linear-gradient(90deg, rgba(60, 80, 224, 0.25) 0%, rgba(60, 80, 224, 0.1) 100%) !important;
-                        color: #93c5fd !important;
-                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
-                    }
-                    
-                    .dark .fi-sidebar-group-label::after {
-                        box-shadow: 0 0 8px rgba(60, 80, 224, 0.8) !important;
-                    }
-                    
-                    /* Scroll personalizado */
-                    .fi-sidebar-nav::-webkit-scrollbar {
-                        width: 6px;
-                    }
-                    
-                    .fi-sidebar-nav::-webkit-scrollbar-track {
-                        background: rgba(0, 0, 0, 0.1);
-                        border-radius: 3px;
-                    }
-                    
-                    .fi-sidebar-nav::-webkit-scrollbar-thumb {
-                        background: var(--sidebar-accent);
-                        border-radius: 3px;
-                    }
-                    
-                    .fi-sidebar-nav::-webkit-scrollbar-thumb:hover {
-                        background: #2d42c7;
+                        --tailadmin-sidebar-bg: #FFFFFF;
+                        --tailadmin-sidebar-hover: #EEF2FF;
+                        --tailadmin-text: #1F2937;
+                        --tailadmin-text-muted: #6B7280;
+                        --tailadmin-border: #E5E7EB;
                     }
                 </style>'
             )
+
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
                 \TomatoPHP\FilamentUsers\FilamentUsersPlugin::make()
