@@ -48,44 +48,40 @@
 
         {{-- 🎯 Vista Grid - 100% Componentes Nativos de Filament --}}
         @if ($viewMode === 'grid')
-            {{-- Grid responsivo optimizado según las mejores prácticas de Filament --}}
+            {{-- Grid responsivo optimizado para aprovechar mejor el espacio --}}
             {{-- TEMPORALMENTE DESHABILITADO: wire:poll.5s --}}
             <div
-                class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-8 gap-4">
+                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 px-4 justify-items-center"
+                style="grid-column-gap: 4px; grid-row-gap: 16px;">
                 @forelse($tables as $table)
                     @php
                         $style = match($table->status) {
-                            'available' => 'background-color: #d1fae5 !important; color: #065f46 !important; border: 1px solid #6ee7b7 !important;',
-                            'occupied'  => 'background-color: #fee2e2 !important; color: #991b1b !important; border: 1px solid #fca5a5 !important;',
-                            'reserved'  => 'background-color: #fef3c7 !important; color: #92400e !important; border: 1px solid #fcd34d !important;',
-                            'prebill'   => 'background-color: #dbeafe !important; color: #1e40af !important; border: 1px solid #60a5fa !important;',
-                            'maintenance' => 'background-color: #e0f2fe !important; color: #0277bd !important; border: 1px solid #4fc3f7 !important;',
-                            default     => 'background-color: #f3f4f6 !important; color: #1f2937 !important; border: 1px solid #d1d5db !important;',
+                            'available' => 'background-color: #137F37 !important; color: #ffffff !important; border-left-color: #137F37 !important;',
+                            'occupied'  => 'background-color: #E7444C !important; color: #ffffff !important; border-left-color: #E7444C !important;',
+                            'reserved'  => 'background-color: #78350f !important; color: #fde68a !important; border-left-color: #f59e0b !important;',
+                            'prebill'   => 'background-color: #1E90FF !important; color: #ffffff !important; border-left-color: #1E90FF !important;',
+                            'maintenance' => 'background-color: #1E90FF !important; color: #ffffff !important; border-left-color: #1E90FF !important;',
+                            default     => 'background-color: #1f2937 !important; color: #f3f4f6 !important; border-left-color: #6b7280 !important;',
                         };
                     @endphp
                     <div wire:click="openPOS({{ $table->id }})" wire:key="table-{{ $table->id }}"
-                        class="rounded-lg p-4 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                        class="rounded-2xl p-6 hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 table-card-original max-w-sm mx-auto"
                         style="{{ $style }}">
-                        {{-- Header de la mesa con componentes nativos --}}
+                        {{-- Header original como en la imagen --}}
                         <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                {{-- Número de mesa destacado --}}
-                                <div
-                                    class="flex items-center justify-center w-12 h-12 bg-black/10 rounded-lg">
-                                    <span class="text-xl font-bold">
-                                        #{{ $table->number ?? str_replace('Mesa ', '', $table->name) }}
-                                    </span>
-                                </div>
-
-                                {{-- Forma de la mesa con icono nativo --}}
+                            <div class="flex items-center space-x-2">
+                                {{-- Número de mesa - UX/UI mejorado --}}
+                                <span class="text-3xl font-black tracking-tight table-number">
+                                    #{{ $table->number ?? str_replace('Mesa ', '', $table->name) }}
+                                </span>
                                 <x-filament::icon :icon="match ($table->shape ?? 'square') {
                                     'round' => 'heroicon-o-stop',
                                     'oval' => 'heroicon-o-stop',
                                     default => 'heroicon-o-square-3-stack-3d',
-                                }" class="w-5 h-5 opacity-60" />
+                                }" class="w-4 h-4 opacity-60" />
                             </div>
 
-                            {{-- Badge de estado nativo (tamaño grande + icono) --}}
+                            {{-- Badge de estado como en el original --}}
                             <x-filament::badge
                                 :color="match ($table->status) {
                                     'available' => 'success',
@@ -95,6 +91,7 @@
                                     'maintenance' => 'gray',
                                     default => 'gray',
                                 }"
+                                size="lg"
                                 :icon="match ($table->status) {
                                     'available' => 'heroicon-m-check-circle',
                                     'occupied' => 'heroicon-m-users',
@@ -103,8 +100,7 @@
                                     'maintenance' => 'heroicon-m-wrench-screwdriver',
                                     default => 'heroicon-m-question-mark-circle',
                                 }"
-                                size="lg"
-                                class="font-bold tracking-wide px-3 py-1.5"
+                                class="font-bold text-sm px-4 py-2 tracking-wide"
                             >
                                 {{ match ($table->status) {
                                     'available' => 'Disponible',
@@ -117,27 +113,78 @@
                             </x-filament::badge>
                         </div>
 
-                        {{-- Información de la mesa con iconos nativos --}}
-                        <div class="space-y-2.5">
+                        {{-- 🎯 ÁREA DE ICONOS DINÁMICOS - FORMATO ORIGINAL --}}
+                        <div class="flex items-center justify-center h-16 bg-white/10 rounded-lg border border-white/20 transition-all duration-300 hover:bg-white/15 mb-4">
+                            @if ($table->status === 'available')
+                                {{-- Mesa Disponible: Icono de mesa vacía --}}
+                                <div class="flex flex-col items-center space-y-2 text-green-200">
+                                    <x-filament::icon icon="heroicon-o-squares-plus" class="w-8 h-8 table-icon-available" />
+                                    <span class="text-sm font-semibold tracking-wide">Lista para usar</span>
+                                </div>
+                            @elseif ($table->status === 'occupied')
+                                {{-- Mesa Ocupada: Iconos de personas + timer --}}
+                                <div class="flex flex-col items-center space-y-1 text-red-200">
+                                    <div class="flex items-center space-x-1">
+                                        <x-filament::icon icon="heroicon-s-users" class="w-6 h-6 table-icon-occupied" />
+                                        <x-filament::icon icon="heroicon-s-clock" class="w-5 h-5" />
+                                    </div>
+                                    @php
+                                        $occupationTime = $table->getOccupationTime();
+                                    @endphp
+                                    @if ($occupationTime)
+                                        <span class="text-sm font-bold bg-red-500/40 px-3 py-1.5 rounded-md animate-pulse tracking-wide">{{ $occupationTime }}</span>
+                                    @else
+                                        <span class="text-sm font-semibold tracking-wide">En uso</span>
+                                    @endif
+                                </div>
+                            @elseif ($table->status === 'reserved')
+                                {{-- Mesa Reservada: Icono de calendario --}}
+                                <div class="flex flex-col items-center space-y-2 text-amber-200">
+                                    <x-filament::icon icon="heroicon-o-calendar-days" class="w-8 h-8 table-icon-reserved" />
+                                    <span class="text-sm font-semibold tracking-wide">Reservada</span>
+                                </div>
+                            @elseif ($table->status === 'prebill')
+                                {{-- Pre-Cuenta: Icono de factura --}}
+                                <div class="flex flex-col items-center space-y-2 text-blue-200">
+                                    <x-filament::icon icon="heroicon-o-document-text" class="w-8 h-8 table-icon-prebill" />
+                                    <span class="text-sm font-semibold tracking-wide">Solicitó cuenta</span>
+                                </div>
+                            @elseif ($table->status === 'maintenance')
+                                {{-- Mantenimiento: Icono de herramientas --}}
+                                <div class="flex flex-col items-center space-y-2 text-gray-300">
+                                    <x-filament::icon icon="heroicon-o-wrench-screwdriver" class="w-8 h-8 table-icon-maintenance" />
+                                    <span class="text-sm font-semibold tracking-wide">Mantenimiento</span>
+                                </div>
+                            @else
+                                {{-- Estado desconocido --}}
+                                <div class="flex flex-col items-center space-y-2 text-gray-400">
+                                    <x-filament::icon icon="heroicon-o-question-mark-circle" class="w-8 h-8" />
+                                    <span class="text-sm font-semibold tracking-wide">Estado desconocido</span>
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Información mejorada con UX/UI --}}
+                        <div class="space-y-2 text-base font-medium table-info">
                             {{-- Capacidad --}}
-                            <div class="flex items-center space-x-2 text-sm font-medium opacity-90">
-                                <x-filament::icon icon="heroicon-o-users" class="w-5 h-5" />
-                                <span>{{ $table->capacity }} personas</span>
+                            <div class="flex items-center space-x-3">
+                                <x-filament::icon icon="heroicon-o-users" class="w-5 h-5 opacity-80" />
+                                <span class="tracking-wide">{{ $table->capacity }} personas</span>
                             </div>
 
                             {{-- Piso --}}
                             @if ($table->floor)
-                                <div class="flex items-center space-x-2 text-sm font-medium opacity-90">
-                                    <x-filament::icon icon="heroicon-o-building-storefront" class="w-5 h-5" />
-                                    <span>{{ $table->floor->name }}</span>
+                                <div class="flex items-center space-x-3">
+                                    <x-filament::icon icon="heroicon-o-building-storefront" class="w-5 h-5 opacity-80" />
+                                    <span class="tracking-wide">{{ $table->floor->name }}</span>
                                 </div>
                             @endif
 
                             {{-- Ubicación --}}
                             @if ($table->location)
-                                <div class="flex items-center space-x-2 text-sm font-medium opacity-90">
-                                    <x-filament::icon icon="heroicon-o-map-pin" class="w-5 h-5" />
-                                    <span>
+                                <div class="flex items-center space-x-3">
+                                    <x-filament::icon icon="heroicon-o-map-pin" class="w-5 h-5 opacity-80" />
+                                    <span class="tracking-wide">
                                         {{ match ($table->location) {
                                             'interior' => 'Interior',
                                             'exterior' => 'Exterior',
@@ -199,7 +246,7 @@
 
         {{-- 🗺️ Vista Map - Estilo mejorado --}}
         @if ($viewMode === 'map')
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 p-6">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-x-0 gap-y-6 p-6">
                 @forelse($tables as $table)
                     @php
                         $mapStyles = match ($table->status) {

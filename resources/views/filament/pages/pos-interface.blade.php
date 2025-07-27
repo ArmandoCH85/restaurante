@@ -97,6 +97,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            height: calc(100vh - 120px);
         }
         
         .pos-search-bar {
@@ -131,27 +132,35 @@
         /* GRID DE PRODUCTOS RESPONSIVO */
         .pos-products-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 8px;
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 20px;
         }
         
         /* CARDS DE PRODUCTOS MEJORADAS */
         .pos-product-card {
             background: white;
             border: 1px solid var(--pos-gray-200);
-            border-radius: var(--pos-border-radius);
-            padding: 16px;
+            border-radius: 8px;
+            padding: 8px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             position: relative;
             overflow: hidden;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
         
         .pos-product-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--pos-shadow-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             border-color: var(--pos-primary);
+            background: #f8fafc;
         }
         
         .pos-product-card:active {
@@ -159,33 +168,41 @@
         }
         
         .pos-product-image {
-            width: 64px;
-            height: 64px;
-            border-radius: 8px;
-            margin: 0 auto 12px;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            margin: 0 auto 6px;
             background: var(--pos-gray-100);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            flex-shrink: 0;
         }
         
         .pos-product-name {
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 600;
             color: #1f2937;
-            margin-bottom: 8px;
-            line-height: 1.3;
-            min-height: 36px;
+            margin-bottom: 4px;
+            line-height: 1.2;
+            min-height: 26px;
             display: flex;
             align-items: center;
             justify-content: center;
+            text-align: center;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
         
         .pos-product-price {
-            font-size: 16px;
+            font-size: 12px;
             font-weight: 700;
             color: var(--pos-success);
+            margin-top: auto;
+            padding-top: 2px;
         }
         
         /* CARRITO OPTIMIZADO */
@@ -241,19 +258,20 @@
         }
         
         .pos-quick-action-btn {
-            padding: 12px 8px;
+            padding: 8px 6px;
             border: 1px solid var(--pos-gray-200);
-            border-radius: 8px;
+            border-radius: 6px;
             background: white;
             color: #6b7280;
-            font-size: 11px;
+            font-size: 0;
             text-align: center;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
+            gap: 0;
+            position: relative;
         }
         
         .pos-quick-action-btn:hover:not(:disabled) {
@@ -264,51 +282,51 @@
         
         /* COLORES REPRESENTATIVOS PARA CADA BOTÓN */
         .pos-quick-action-btn.btn-mapa {
-            background: #dbeafe;
-            border-color: #3b82f6;
-            color: #1d4ed8;
+            background: #1e40af;
+            border-color: #1e40af;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn.btn-comanda {
-            background: #fed7aa;
-            border-color: #f97316;
-            color: #c2410c;
+            background: #c2410c;
+            border-color: #c2410c;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn.btn-precuenta {
-            background: #fef3c7;
-            border-color: #f59e0b;
-            color: #d97706;
+            background: #d97706;
+            border-color: #d97706;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn.btn-reabrir {
-            background: #dcfce7;
-            border-color: #22c55e;
-            color: #15803d;
+            background: #15803d;
+            border-color: #15803d;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn.btn-dividir {
-            background: #f3e8ff;
-            border-color: #a855f7;
-            color: #7c3aed;
+            background: #7c3aed;
+            border-color: #7c3aed;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn.btn-transferir {
-            background: #e0e7ff;
-            border-color: #6366f1;
-            color: #4338ca;
+            background: #4338ca;
+            border-color: #4338ca;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn.btn-liberar {
-            background: #f1f5f9;
-            border-color: #64748b;
-            color: #475569;
+            background: #475569;
+            border-color: #475569;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn.btn-cancelar {
-            background: #fee2e2;
-            border-color: #ef4444;
-            color: #dc2626;
+            background: #dc2626;
+            border-color: #dc2626;
+            color: #ffffff;
         }
         
         .pos-quick-action-btn:disabled {
@@ -317,8 +335,12 @@
         }
         
         .pos-quick-action-icon {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .pos-quick-action-btn span {
+            display: none;
         }
         
         /* ITEMS DEL CARRITO MEJORADOS */
@@ -332,8 +354,8 @@
             background: var(--pos-gray-50);
             border: 1px solid var(--pos-gray-200);
             border-radius: var(--pos-border-radius);
-            padding: 16px;
-            margin-bottom: 12px;
+            padding: 10px;
+            margin-bottom: 8px;
             transition: all 0.2s ease;
         }
         
@@ -346,11 +368,11 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         
         .pos-cart-item-name {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: 600;
             color: #1f2937;
             flex: 1;
@@ -358,7 +380,7 @@
         }
         
         .pos-cart-item-price {
-            font-size: 13px;
+            font-size: 11px;
             color: #6b7280;
             white-space: nowrap;
         }
@@ -369,16 +391,16 @@
             align-items: center;
             justify-content: space-between;
             background: white;
-            padding: 8px;
-            border-radius: 8px;
+            padding: 6px;
+            border-radius: 6px;
             border: 1px solid var(--pos-gray-200);
         }
         
         .pos-quantity-btn {
-            width: 32px;
-            height: 32px;
+            width: 28px;
+            height: 28px;
             border: none;
-            border-radius: 6px;
+            border-radius: 4px;
             background: var(--pos-gray-100);
             color: #374151;
             display: flex;
@@ -455,24 +477,24 @@
         
         .pos-totals-container {
             background: var(--pos-gray-50);
-            padding: 16px;
+            padding: 12px;
             border-radius: var(--pos-border-radius);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
         
         .pos-total-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-size: 13px;
         }
         
         .pos-total-row:last-child {
             margin-bottom: 0;
-            padding-top: 8px;
+            padding-top: 6px;
             border-top: 1px solid var(--pos-gray-200);
             font-weight: 700;
-            font-size: 16px;
+            font-size: 14px;
         }
         
         .pos-total-row.final {
@@ -776,25 +798,24 @@
                 {{-- HEADER DEL CARRITO --}}
                 <div class="pos-cart-header">
                     <div class="pos-cart-title">
-                        <h3 style="font-size: 18px; font-weight: 700; color: #1f2937;">Carrito</h3>
                         <span style="background: var(--pos-success); color: white; padding: 4px 12px; border-radius: 16px; font-size: 14px; font-weight: 600;">
                             {{ count($cartItems) }} items
                         </span>
                     </div>
 
                     {{-- CONTROLES PRINCIPALES --}}
-                    <div class="pos-cart-actions">
-                        <div>
-                            <label style="display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px;">
+                    <div class="pos-cart-actions" style="display: flex; align-items: end; gap: 8px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 4px;">
                                 Comensales <span style="color: #ef4444;">*</span>
                             </label>
                             <div style="position: relative;">
-                                <x-heroicon-s-users style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: #9ca3af;" />
+                                <x-heroicon-s-users style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #9ca3af;" />
                                 <input
                                     type="number"
                                     wire:model.live="numberOfGuests"
                                     min="1"
-                                    style="width: 100%; padding: 12px 12px 12px 36px; border: 1px solid var(--pos-gray-200); border-radius: 8px; text-align: center; font-weight: 600;"
+                                    style="width: 100%; padding: 8px 8px 8px 24px; border: 1px solid var(--pos-gray-200); border-radius: 6px; text-align: center; font-weight: 600; font-size: 14px;"
                                     placeholder="0"
                                     required
                                 >
@@ -803,13 +824,13 @@
                         
                         <button
                             wire:click="clearCart"
-                            style="width: 44px; height: 44px; border: 1px solid #fca5a5; border-radius: 8px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;"
+                            style="width: 32px; height: 32px; border: 1px solid #fca5a5; border-radius: 6px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;"
                             title="Limpiar carrito"
                             {{ !$canClearCart ? 'disabled' : '' }}
                             onmouseover="this.style.background='#fee2e2'"
                             onmouseout="this.style.background='#fef2f2'"
                         >
-                            <x-heroicon-s-trash style="width: 20px; height: 20px;" />
+                            <x-heroicon-s-trash style="width: 16px; height: 16px;" />
                         </button>
                     </div>
                     
@@ -822,10 +843,9 @@
                                 wire:click="mountAction('backToTableMap')"
                                 class="pos-quick-action-btn btn-mapa"
                                 {{ !($this->order && $this->order->table_id !== null) ? 'disabled' : '' }}
-                                title="Ir a Mapa de Mesas"
+                                title="Mapa"
                             >
                                 <x-heroicon-o-map class="pos-quick-action-icon" />
-                                <span>Mapa</span>
                             </button>
                             
                             {{-- Comanda --}}
@@ -833,10 +853,9 @@
                                 wire:click="mountAction('printComanda')"
                                 class="pos-quick-action-btn btn-comanda"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
-                                title="Imprimir Comanda"
+                                title="Comanda"
                             >
                                 <x-heroicon-o-document-text class="pos-quick-action-icon" />
-                                <span>Comanda</span>
                             </button>
                             
                             {{-- Pre-Cuenta --}}
@@ -844,10 +863,9 @@
                                 wire:click="mountAction('printPreBillNew')"
                                 class="pos-quick-action-btn btn-precuenta"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
-                                title="Generar Pre-Cuenta"
+                                title="Pre-Cuenta"
                             >
                                 <x-heroicon-o-document-duplicate class="pos-quick-action-icon" />
-                                <span>Pre-Cuenta</span>
                             </button>
                             
                             {{-- Reabrir --}}
@@ -855,10 +873,9 @@
                                 wire:click="mountAction('reopen_order_for_editing')"
                                 class="pos-quick-action-btn btn-reabrir"
                                 {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists()) ? 'disabled' : '' }}
-                                title="Reabrir Orden"
+                                title="Reabrir"
                             >
                                 <x-heroicon-o-lock-open class="pos-quick-action-icon" />
-                                <span>Reabrir</span>
                             </button>
                             
                             {{-- Dividir --}}
@@ -866,10 +883,9 @@
                                 wire:click="mountAction('split_items')"
                                 class="pos-quick-action-btn btn-dividir"
                                 {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }}
-                                title="Dividir Cuenta"
+                                title="Dividir"
                             >
                                 <x-heroicon-o-scissors class="pos-quick-action-icon" />
-                                <span>Dividir</span>
                             </button>
                             
                             {{-- Transferir --}}
@@ -878,10 +894,9 @@
                                     wire:click="mountAction('transferOrder')"
                                     class="pos-quick-action-btn btn-transferir"
                                     {{ !($this->order && $this->order->table_id && $this->order->status === 'open') ? 'disabled' : '' }}
-                                    title="Transferir Mesa"
+                                    title="Transferir"
                                 >
                                     <x-heroicon-o-arrow-path-rounded-square class="pos-quick-action-icon" />
-                                    <span>Transferir</span>
                                 </button>
                             @endif
                             
@@ -893,7 +908,6 @@
                                 title="Liberar Mesa"
                             >
                                 <x-heroicon-o-home class="pos-quick-action-icon" />
-                                <span>Liberar Mesa</span>
                             </button>
                             
                             {{-- Cancelar Pedido --}}
@@ -904,7 +918,6 @@
                                 title="Cancelar Pedido"
                             >
                                 <x-heroicon-o-x-circle class="pos-quick-action-icon" />
-                                <span>Cancelar Pedido</span>
                             </button>
                         </div>
                     </div>

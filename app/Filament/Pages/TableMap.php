@@ -481,6 +481,12 @@ class TableMap extends Page
         return true;
     }
 
+    // Optimizar el ancho del contenido para aprovechar mejor el espacio
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full'; // Aprovechamos todo el ancho disponible para el mapa de mesas
+    }
+
     // 🚚 MÉTODO PARA OBTENER LAS ACCIONES DEL HEADER - INCLUYE BOTÓN DE DELIVERY
     protected function getHeaderActions(): array
     {
