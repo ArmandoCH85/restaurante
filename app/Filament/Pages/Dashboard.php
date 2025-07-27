@@ -9,10 +9,15 @@ use App\Models\User;
 
 class Dashboard extends BaseDashboard
 {
-    protected static ?string $navigationIcon = 'heroicon-o-home';
+    protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Escritorio';
     protected static ?string $title = 'Escritorio';
     protected static ?int $navigationSort = -1;
+
+    public function getMaxContentWidth(): ?string
+    {
+        return 'full'; // Margen izquierdo reducido en dashboard
+    }
 
     /**
      * 🎯 WIDGETS ESPECÍFICOS POR ROL
@@ -153,7 +158,7 @@ class Dashboard extends BaseDashboard
         }
 
         if ($user->hasRole('super_admin')) {
-            return '👑 Dashboard Administrativo';
+            return 'Dashboard Administrativo';
         }
         
         if ($user->hasRole('admin')) {
