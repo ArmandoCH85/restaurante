@@ -1,0 +1,386 @@
+/* ========================================
+   LOGIN CON ESTILO DAISYUI - COMPILADO
+   Solo para la página de login
+   ======================================== */
+
+/* Importar fuente Inter */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* ========================================
+   VARIABLES CSS ESTILO DAISYUI
+   ======================================== */
+
+:root {
+    /* Colores base estilo DaisyUI */
+    --primary: #3b82f6;
+    --primary-focus: #2563eb;
+    --primary-content: #ffffff;
+    --secondary: #f8fafc;
+    --secondary-focus: #f1f5f9;
+    --secondary-content: #334155;
+    --accent: #10b981;
+    --accent-focus: #059669;
+    --accent-content: #ffffff;
+    --neutral: #334155;
+    --neutral-focus: #1e293b;
+    --neutral-content: #ffffff;
+    --base-100: #ffffff;
+    --base-200: #f8fafc;
+    --base-300: #f1f5f9;
+    --base-content: #1f2937;
+    --info: #3b82f6;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+
+    /* Espaciado */
+    --spacing-1: 0.25rem;
+    --spacing-2: 0.5rem;
+    --spacing-3: 0.75rem;
+    --spacing-4: 1rem;
+    --spacing-6: 1.5rem;
+    --spacing-8: 2rem;
+
+    /* Bordes */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+
+    /* Sombras */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+        0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* ========================================
+   RESET Y BASE
+   ======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   OCULTAR ELEMENTOS FILAMENT
+   ======================================== */
+
+.fi-simple-header {
+    display: none !important;
+}
+
+.fi-logo {
+    display: none !important;
+}
+
+/* ========================================
+   LAYOUT PRINCIPAL ESTILO DAISYUI
+   ======================================== */
+
+.fi-simple-layout {
+    min-height: 100vh !important;
+    background: linear-gradient(
+        135deg,
+        var(--base-200) 0%,
+        var(--base-300) 100%
+    ) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: var(--spacing-6) !important;
+    position: relative !important;
+}
+
+/* Patrón de fondo sutil */
+.fi-simple-layout::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(
+            circle at 25% 25%,
+            rgba(59, 130, 246, 0.03) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 75% 75%,
+            rgba(59, 130, 246, 0.03) 0%,
+            transparent 50%
+        );
+    pointer-events: none;
+}
+
+/* ========================================
+   CARD PRINCIPAL ESTILO DAISYUI REAL
+   ======================================== */
+
+.fi-simple-main {
+    /* Estilo card de DaisyUI basado en ejemplos reales */
+    background: var(--base-100) !important;
+    border-radius: 0.5rem !important; /* rounded-md */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* shadow-md */
+    border: 2px solid transparent !important;
+    border-top: 4px solid var(--neutral) !important; /* border-t-4 border-gray-600 */
+    width: 100% !important;
+    max-width: 28rem !important; /* lg:max-w-lg */
+    padding: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+    animation: fadeInUp 0.6s ease-out;
+    margin: 1.5rem auto !important; /* m-auto */
+}
+
+.fi-simple-main > div {
+    /* Card body - p-6 */
+    padding: 1.5rem !important;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   HEADER ESTILO DAISYUI
+   ======================================== */
+
+.pos-header {
+    text-align: center;
+    margin-bottom: var(--spacing-8);
+}
+
+.pos-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--spacing-6);
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.pos-logo:hover {
+    transform: scale(1.05);
+}
+
+.pos-title {
+    /* Estilo basado en ejemplos DaisyUI reales */
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: 600; /* font-semibold */
+    color: var(--neutral); /* text-gray-700 */
+    margin: 0 0 var(--spacing-6);
+    text-align: center;
+    letter-spacing: -0.025em;
+}
+
+.pos-subtitle {
+    font-size: 0.875rem;
+    color: var(--neutral);
+    margin: 0 0 var(--spacing-6);
+    opacity: 0.7;
+    text-align: center;
+}
+
+.pos-security-badge {
+    /* Badge estilo DaisyUI */
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: var(--primary);
+    color: var(--primary-content);
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: var(--shadow-sm);
+}
+
+.pos-security-icon {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+/* ========================================
+   FORMULARIO ESTILO DAISYUI
+   ======================================== */
+
+.fi-form {
+    margin-bottom: var(--spacing-6) !important;
+}
+
+/* Form control */
+.fi-field-wrp {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: var(--spacing-2) !important;
+    margin-bottom: var(--spacing-6) !important;
+}
+
+/* Labels estilo DaisyUI real */
+.fi-fo-field-wrp-label {
+    margin-bottom: var(--spacing-2) !important;
+}
+
+.fi-fo-field-wrp-label .fi-fo-field-wrp-label-text {
+    /* Estilo label basado en ejemplos DaisyUI */
+    font-size: 1rem !important; /* text-base */
+    font-weight: 400 !important; /* font-normal */
+    color: var(--base-content) !important;
+    letter-spacing: 0.025em !important;
+    display: block !important;
+}
+
+/* Inputs estilo DaisyUI real */
+.fi-input {
+    /* Input basado en ejemplos DaisyUI reales */
+    width: 100% !important; /* w-full */
+    padding: 0.75rem 1rem !important; /* input padding estándar */
+    border-radius: 0.5rem !important; /* rounded-md */
+    border: 1px solid #d1d5db !important; /* input-bordered */
+    background-color: var(--base-100) !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: none !important; /* Sin sombra por defecto */
+    font-family: "Inter", sans-serif !important;
+    height: 3rem !important; /* Altura estándar de DaisyUI */
+    outline: 2px solid transparent !important;
+    outline-offset: 2px !important;
+}
+
+.fi-input:focus {
+    /* Focus state estilo DaisyUI */
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 2px !important;
+    border-color: var(--primary) !important;
+    box-shadow: none !important;
+}
+
+.fi-input:hover:not(:focus) {
+    border-color: #9ca3af !important;
+}
+
+.fi-input[aria-invalid="true"] {
+    border-color: var(--error) !important;
+    outline: 2px solid var(--error) !important;
+    outline-offset: 2px !important;
+}
+
+/* ========================================
+   BOTONES ESTILO DAISYUI
+   ======================================== */
+
+.fi-btn {
+    /* Btn base de DaisyUI */
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: var(--radius-lg) !important;
+    font-weight: 500 !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer !important;
+    border: none !important;
+    text-decoration: none !important;
+    gap: var(--spacing-2) !important;
+    padding: var(--spacing-3) var(--spacing-6) !important;
+    font-size: 1rem !important;
+    line-height: 1.5 !important;
+    font-family: "Inter", sans-serif !important;
+    height: auto !important;
+}
+
+.fi-btn-primary {
+    /* Btn primary de DaisyUI real */
+    background-color: var(--primary) !important;
+    color: var(--primary-content) !important;
+    box-shadow: none !important;
+    border: 1px solid var(--primary) !important;
+}
+
+.fi-btn-primary:hover {
+    background-color: var(--primary-focus) !important;
+    border-color: var(--primary-focus) !important;
+    transform: none !important; /* Sin transform en DaisyUI */
+    box-shadow: none !important;
+}
+
+.fi-btn-primary:active {
+    background-color: #1d4ed8 !important;
+    border-color: #1d4ed8 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+.fi-btn-block {
+    width: 100% !important; /* btn-block */
+}
+
+.fi-btn:disabled,
+.fi-btn[aria-disabled="true"] {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+/* ========================================
+   ENLACES ESTILO DAISYUI
+   ======================================== */
+
+.forgot-password-link {
+    font-size: 0.75rem; /* text-xs */
+    color: #6b7280; /* text-gray-600 */
+    text-decoration: none;
+    transition: all 0.2s ease;
+    display: block;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.forgot-password-link:hover {
+    color: #2563eb; /* hover:text-blue-600 */
+    text-decoration: underline; /* hover:underline */
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 480px) {
+    .fi-simple-main {
+        margin: var(--spacing-4) !important;
+        max-width: none !important;
+    }
+
+    .fi-simple-main > div {
+        padding: var(--spacing-6) !important;
+    }
+
+    .pos-title {
+        font-size: 1.5rem;
+    }
+}

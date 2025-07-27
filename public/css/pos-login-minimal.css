@@ -1,0 +1,438 @@
+/* ========================================
+   DISEÑO MINIMALISTA PROFESIONAL - LOGIN POS
+   Basado en principios de Material Design 3 y Apple HIG
+   ======================================== */
+
+/* Importar fuente Inter para tipografía moderna */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* ========================================
+   VARIABLES CSS - SISTEMA DE DISEÑO
+   ======================================== */
+
+:root {
+    /* ===== PALETA DE COLORES PROFESIONAL ===== */
+
+    /* Grises neutrales (base del diseño minimalista) */
+    --neutral-50: #f8fafc;
+    --neutral-100: #f1f5f9;
+    --neutral-200: #e2e8f0;
+    --neutral-300: #cbd5e1;
+    --neutral-400: #94a3b8;
+    --neutral-500: #64748b;
+    --neutral-600: #475569;
+    --neutral-700: #334155;
+    --neutral-800: #1e293b;
+    --neutral-900: #0f172a;
+
+    /* Azul de acento (confiable y profesional) */
+    --accent-50: #eff6ff;
+    --accent-100: #dbeafe;
+    --accent-200: #bfdbfe;
+    --accent-300: #93c5fd;
+    --accent-400: #60a5fa;
+    --accent-500: #3b82f6;
+    --accent-600: #2563eb;
+    --accent-700: #1d4ed8;
+    --accent-800: #1e40af;
+    --accent-900: #1e3a8a;
+
+    /* Colores de estado semánticos */
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --info: #06b6d4;
+
+    /* ===== TIPOGRAFÍA MODERNA ===== */
+    --font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* Escala tipográfica armoniosa */
+    --text-xs: 0.75rem; /* 12px */
+    --text-sm: 0.875rem; /* 14px */
+    --text-base: 1rem; /* 16px */
+    --text-lg: 1.125rem; /* 18px */
+    --text-xl: 1.25rem; /* 20px */
+    --text-2xl: 1.5rem; /* 24px */
+    --text-3xl: 1.875rem; /* 30px */
+
+    /* ===== SISTEMA DE ESPACIADO (8px grid) ===== */
+    --space-1: 0.25rem; /* 4px */
+    --space-2: 0.5rem; /* 8px */
+    --space-3: 0.75rem; /* 12px */
+    --space-4: 1rem; /* 16px */
+    --space-5: 1.25rem; /* 20px */
+    --space-6: 1.5rem; /* 24px */
+    --space-8: 2rem; /* 32px */
+    --space-10: 2.5rem; /* 40px */
+    --space-12: 3rem; /* 48px */
+    --space-16: 4rem; /* 64px */
+    --space-20: 5rem; /* 80px */
+
+    /* ===== BORDES Y RADIOS ===== */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 20px;
+
+    /* ===== SOMBRAS SUTILES ===== */
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1),
+        0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+        0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+    /* ===== TRANSICIONES PROFESIONALES ===== */
+    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   RESET Y BASE STYLES
+   ======================================== */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+    color: var(--neutral-700);
+    background-color: var(--neutral-50);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================
+   OCULTAR ELEMENTOS POR DEFECTO DE FILAMENT
+   ======================================== */
+
+/* Ocultar el header por defecto de Filament */
+.fi-simple-header {
+    display: none !important;
+}
+
+/* Ocultar cualquier logo por defecto */
+.fi-logo {
+    display: none !important;
+}
+
+/* ========================================
+   LAYOUT PRINCIPAL MINIMALISTA
+   ======================================== */
+
+.fi-simple-layout {
+    background: linear-gradient(
+        135deg,
+        var(--neutral-50) 0%,
+        var(--neutral-100) 100%
+    ) !important;
+    min-height: 100vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: var(--space-6) !important;
+    position: relative !important;
+}
+
+/* Patrón sutil de fondo */
+.fi-simple-layout::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: radial-gradient(
+            circle at 25% 25%,
+            rgba(59, 130, 246, 0.02) 0%,
+            transparent 50%
+        ),
+        radial-gradient(
+            circle at 75% 75%,
+            rgba(59, 130, 246, 0.02) 0%,
+            transparent 50%
+        );
+    pointer-events: none;
+}
+
+/* ========================================
+   CARD PRINCIPAL ELEGANTE
+   ======================================== */
+
+.fi-simple-main {
+    width: 100% !important;
+    max-width: 400px !important;
+    background: white !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: var(--shadow-lg) !important;
+    padding: var(--space-12) var(--space-8) !important;
+    border: 1px solid var(--neutral-200) !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* Responsive para móviles */
+@media (max-width: 480px) {
+    .fi-simple-main {
+        margin: var(--space-4) !important;
+        padding: var(--space-8) var(--space-6) !important;
+        max-width: none !important;
+    }
+}
+
+/* ========================================
+   HEADER PERSONALIZADO MINIMALISTA
+   ======================================== */
+
+.pos-header {
+    text-align: center;
+    margin-bottom: var(--space-8);
+}
+
+.pos-logo {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto var(--space-6);
+    display: block;
+    transition: var(--transition-base);
+}
+
+.pos-logo:hover {
+    transform: scale(1.05);
+}
+
+.pos-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--neutral-900);
+    margin: 0 0 var(--space-2);
+    letter-spacing: -0.025em;
+}
+
+.pos-subtitle {
+    font-size: var(--text-sm);
+    color: var(--neutral-500);
+    margin: 0 0 var(--space-6);
+    font-weight: var(--font-weight-normal);
+}
+
+.pos-security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    background: var(--accent-50);
+    color: var(--accent-700);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--text-xs);
+    font-weight: var(--font-weight-medium);
+    border: 1px solid var(--accent-200);
+}
+
+.pos-security-icon {
+    width: 12px;
+    height: 12px;
+    fill: currentColor;
+}
+
+/* ========================================
+   FORMULARIO MINIMALISTA
+   ======================================== */
+
+.fi-form {
+    margin-bottom: var(--space-6) !important;
+}
+
+/* ========================================
+   INPUTS PROFESIONALES
+   ======================================== */
+
+/* Contenedor de campo */
+.fi-field-wrp {
+    margin-bottom: var(--space-6) !important;
+}
+
+/* Etiquetas limpias */
+.fi-fo-field-wrp-label {
+    margin-bottom: var(--space-3) !important;
+}
+
+.fi-fo-field-wrp-label .fi-fo-field-wrp-label-text {
+    font-size: var(--text-sm) !important;
+    font-weight: var(--font-weight-medium) !important;
+    color: var(--neutral-700) !important;
+    letter-spacing: 0.025em !important;
+}
+
+/* Input fields minimalistas */
+.fi-input {
+    height: 48px !important;
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0 var(--space-4) !important;
+    font-size: var(--text-base) !important;
+    font-family: var(--font-family) !important;
+    background: white !important;
+    color: var(--neutral-700) !important;
+    transition: var(--transition-base) !important;
+    box-shadow: var(--shadow-xs) !important;
+}
+
+.fi-input:focus {
+    border-color: var(--accent-500) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), var(--shadow-sm) !important;
+    outline: none !important;
+}
+
+.fi-input:hover:not(:focus) {
+    border-color: var(--neutral-400) !important;
+}
+
+/* Input con error */
+.fi-input[aria-invalid="true"] {
+    border-color: var(--error) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* ========================================
+   BOTONES MINIMALISTAS
+   ======================================== */
+
+/* Botón principal */
+.fi-btn {
+    height: 48px !important;
+    padding: 0 var(--space-6) !important;
+    border-radius: var(--radius-md) !important;
+    font-size: var(--text-base) !important;
+    font-weight: var(--font-weight-medium) !important;
+    font-family: var(--font-family) !important;
+    transition: var(--transition-base) !important;
+    cursor: pointer !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: var(--space-2) !important;
+    text-decoration: none !important;
+    letter-spacing: 0.025em !important;
+}
+
+/* Botón primario */
+.fi-btn-primary {
+    background: var(--accent-500) !important;
+    color: white !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.fi-btn-primary:hover {
+    background: var(--accent-600) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-md) !important;
+}
+
+.fi-btn-primary:active {
+    background: var(--accent-700) !important;
+    transform: translateY(0) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+/* Botón de ancho completo */
+.fi-btn-block {
+    width: 100% !important;
+}
+
+/* ========================================
+   CHECKBOX MINIMALISTA
+   ======================================== */
+
+.fi-checkbox {
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--space-3) !important;
+    margin: var(--space-4) 0 !important;
+}
+
+.fi-checkbox input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: var(--radius-sm) !important;
+    background: white !important;
+    cursor: pointer !important;
+    transition: var(--transition-base) !important;
+}
+
+.fi-checkbox input[type="checkbox"]:checked {
+    background: var(--accent-500) !important;
+    border-color: var(--accent-500) !important;
+}
+
+.fi-checkbox label {
+    font-size: var(--text-sm) !important;
+    color: var(--neutral-600) !important;
+    cursor: pointer !important;
+    user-select: none !important;
+}
+
+/* ========================================
+   MENSAJES DE ERROR ELEGANTES
+   ======================================== */
+
+.fi-fo-field-wrp-error-message {
+    margin-top: var(--space-2) !important;
+    font-size: var(--text-sm) !important;
+    color: var(--error) !important;
+    font-weight: var(--font-weight-normal) !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: var(--space-2) !important;
+}
+
+/* ========================================
+   LINKS MINIMALISTAS
+   ======================================== */
+
+.fi-link {
+    color: var(--accent-600) !important;
+    text-decoration: none !important;
+    font-size: var(--text-sm) !important;
+    font-weight: var(--font-weight-medium) !important;
+    transition: var(--transition-base) !important;
+}
+
+.fi-link:hover {
+    color: var(--accent-700) !important;
+    text-decoration: underline !important;
+}
+
+/* ========================================
+   ESTADOS DE CARGA
+   ======================================== */
+
+.fi-btn:disabled,
+.fi-btn[aria-disabled="true"] {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+}
+
+.fi-input:disabled {
+    background: var(--neutral-100) !important;
+    color: var(--neutral-400) !important;
+    cursor: not-allowed !important;
+}
