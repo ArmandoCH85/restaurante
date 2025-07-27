@@ -9,6 +9,9 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Filament\Support\Colors\Color;
 
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -44,23 +47,16 @@ class AdminPanelProvider extends PanelProvider
             ->maxContentWidth('7xl')
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('') // Ocultar el nombre de la aplicación
-            ->brandLogo('/images/logoWayna.svg')
-            ->brandLogoHeight('8rem')
+            ->brandLogo(asset('images/logoWayna.svg'))
+            ->brandLogoHeight('4rem')
             ->colors([
-                'primary' => [
-                    50 => '#eff6ff',
-                    100 => '#dbeafe',
-                    200 => '#bfdbfe',
-                    300 => '#93c5fd',
-                    400 => '#60a5fa',
-                    500 => '#3C50E0',
-                    600 => '#2563eb',
-                    700 => '#1d4ed8',
-                    800 => '#1e40af',
-                    900 => '#1e3a8a',
-                    950 => '#172554',
-                ],
+                'primary' => Color::Blue,
+                'gray' => Color::Slate,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
+                'danger' => Color::Red,
             ])
+            ->font('Inter')
             ->darkMode()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             // Registrar páginas explícitamente en lugar de descubrirlas automáticamente
@@ -115,8 +111,21 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            // Render Hooks para personalización del login POS
             ->renderHook(
-                'panels::sidebar.nav.start',
+                PanelsRenderHook::HEAD_END,
+                fn (): string => '<link rel="stylesheet" href="' . asset('css/login-daisyui-compiled.css') . '">'
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
+                fn (): string => view('filament.auth.login-header')->render()
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn (): string => '<a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>'
+            )
+            ->renderHook(
+                PanelsRenderHook::SIDEBAR_NAV_START,
                 fn (): string => '<style>
                     :root {
                         --sidebar-bg-primary: linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%);

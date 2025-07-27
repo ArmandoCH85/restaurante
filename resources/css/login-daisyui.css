@@ -1,0 +1,239 @@
+/* ========================================
+   LOGIN CON DAISYUI - ARCHIVO SEPARADO
+   Solo para la página de login
+   ======================================== */
+
+@import "tailwindcss";
+
+/* Configuración específica de DaisyUI para login */
+@config "./tailwind-login.config.js";
+
+/* ========================================
+   ESTILOS BASE PARA LOGIN
+   ======================================== */
+
+/* Ocultar elementos por defecto de Filament */
+.fi-simple-header {
+    display: none !important;
+}
+
+.fi-logo {
+    display: none !important;
+}
+
+/* ========================================
+   LAYOUT PRINCIPAL CON DAISYUI
+   ======================================== */
+
+.fi-simple-layout {
+    @apply min-h-screen bg-gradient-to-br from-base-200 to-base-300;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.5rem !important;
+}
+
+/* ========================================
+   CARD PRINCIPAL CON DAISYUI
+   ======================================== */
+
+.fi-simple-main {
+    @apply card bg-base-100 shadow-2xl;
+    width: 100% !important;
+    max-width: 400px !important;
+    padding: 0 !important;
+}
+
+.fi-simple-main > div {
+    @apply card-body;
+}
+
+/* ========================================
+   HEADER PERSONALIZADO CON DAISYUI
+   ======================================== */
+
+.pos-header {
+    @apply text-center mb-8;
+}
+
+.pos-logo {
+    @apply w-20 h-20 mx-auto mb-4 transition-transform duration-300;
+}
+
+.pos-logo:hover {
+    @apply scale-105;
+}
+
+.pos-title {
+    @apply text-3xl font-bold text-base-content mb-2;
+}
+
+.pos-subtitle {
+    @apply text-base-content/70 mb-6;
+}
+
+.pos-security-badge {
+    @apply badge badge-primary badge-outline gap-2;
+}
+
+/* ========================================
+   FORMULARIO CON COMPONENTES DAISYUI
+   ======================================== */
+
+.fi-form {
+    @apply space-y-6;
+}
+
+/* Contenedores de campos */
+.fi-field-wrp {
+    @apply form-control w-full;
+}
+
+/* Etiquetas */
+.fi-fo-field-wrp-label .fi-fo-field-wrp-label-text {
+    @apply label-text font-medium;
+}
+
+/* Inputs con estilo DaisyUI */
+.fi-input {
+    @apply input input-bordered w-full;
+    height: auto !important;
+    padding: 0.75rem 1rem !important;
+}
+
+.fi-input:focus {
+    @apply input-primary;
+}
+
+/* Input con error */
+.fi-input[aria-invalid="true"] {
+    @apply input-error;
+}
+
+/* ========================================
+   BOTONES CON DAISYUI
+   ======================================== */
+
+.fi-btn {
+    @apply btn;
+    height: auto !important;
+    padding: 0.75rem 1.5rem !important;
+}
+
+.fi-btn-primary {
+    @apply btn-primary;
+}
+
+.fi-btn-block {
+    @apply btn-block;
+}
+
+/* ========================================
+   CHECKBOX CON DAISYUI
+   ======================================== */
+
+.fi-checkbox {
+    @apply form-control;
+}
+
+.fi-checkbox input[type="checkbox"] {
+    @apply checkbox checkbox-primary;
+}
+
+.fi-checkbox label {
+    @apply label cursor-pointer;
+}
+
+/* ========================================
+   MENSAJES DE ERROR CON DAISYUI
+   ======================================== */
+
+.fi-fo-field-wrp-error-message {
+    @apply text-error text-sm mt-1;
+}
+
+/* ========================================
+   LINKS CON DAISYUI
+   ======================================== */
+
+.fi-link {
+    @apply link link-primary;
+}
+
+/* ========================================
+   ESTADOS DE CARGA CON DAISYUI
+   ======================================== */
+
+.fi-btn:disabled,
+.fi-btn[aria-disabled="true"] {
+    @apply btn-disabled;
+}
+
+.fi-input:disabled {
+    @apply input-disabled;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+@media (max-width: 480px) {
+    .fi-simple-main {
+        margin: 1rem !important;
+        max-width: none !important;
+    }
+    
+    .pos-title {
+        @apply text-2xl;
+    }
+}
+
+/* ========================================
+   ANIMACIONES SUTILES
+   ======================================== */
+
+.fi-simple-main {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   TEMA PERSONALIZADO PARA LOGIN
+   ======================================== */
+
+[data-theme="login-theme"] {
+    --p: 214 88% 56%;          /* Primary: Azul profesional */
+    --pf: 214 88% 46%;         /* Primary focus */
+    --pc: 0 0% 100%;           /* Primary content */
+    --s: 210 20% 98%;          /* Secondary */
+    --sf: 210 20% 88%;         /* Secondary focus */
+    --sc: 215 25% 27%;         /* Secondary content */
+    --a: 158 64% 52%;          /* Accent: Verde éxito */
+    --af: 158 64% 42%;         /* Accent focus */
+    --ac: 0 0% 100%;           /* Accent content */
+    --n: 215 28% 17%;          /* Neutral */
+    --nf: 215 28% 12%;         /* Neutral focus */
+    --nc: 0 0% 100%;           /* Neutral content */
+    --b1: 0 0% 100%;           /* Base 100 */
+    --b2: 210 20% 98%;         /* Base 200 */
+    --b3: 216 12% 84%;         /* Base 300 */
+    --bc: 215 25% 27%;         /* Base content */
+    --in: 198 93% 60%;         /* Info */
+    --inc: 0 0% 100%;          /* Info content */
+    --su: 158 64% 52%;         /* Success */
+    --suc: 0 0% 100%;          /* Success content */
+    --wa: 43 96% 56%;          /* Warning */
+    --wac: 0 0% 100%;          /* Warning content */
+    --er: 0 91% 71%;           /* Error */
+    --erc: 0 0% 100%;          /* Error content */
+}
