@@ -10,6 +10,7 @@
                 {{ $table->status === 'available' ? 'bg-emerald-500' : '' }}
                 {{ $table->status === 'reserved' ? 'bg-blue-500' : '' }}
                 {{ $table->status === 'occupied' ? 'bg-amber-500' : '' }}
+                {{ $table->status === 'prebill' ? 'bg-cyan-500' : '' }}
                 {{ $table->status === 'maintenance' ? 'bg-gray-500' : '' }}
             "></div>
             
@@ -21,6 +22,7 @@
                         {{ $table->status === 'available' ? 'bg-emerald-100 text-emerald-800' : '' }}
                         {{ $table->status === 'reserved' ? 'bg-blue-100 text-blue-800' : '' }}
                         {{ $table->status === 'occupied' ? 'bg-amber-100 text-amber-800' : '' }}
+                        {{ $table->status === 'prebill' ? 'bg-cyan-100 text-cyan-800' : '' }}
                         {{ $table->status === 'maintenance' ? 'bg-gray-100 text-gray-800' : '' }}
                     ">
                         {{ $statusOptions[$table->status] ?? $table->status }}

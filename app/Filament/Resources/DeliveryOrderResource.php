@@ -163,11 +163,15 @@ class DeliveryOrderResource extends Resource
                         ->icon('heroicon-m-user')
                         ->searchable(),
                     Tables\Columns\TextColumn::make('order.customer.phone')
-                        ->color('gray')
+                        ->color('info')
                         ->size('sm')
                         ->icon('heroicon-m-phone')
                         ->prefix('+51 ')
-                        ->placeholder('Sin teléfono'),
+                        ->placeholder('Sin teléfono')
+                        ->weight('medium')
+                        ->extraAttributes([
+                            'class' => 'text-cyan-600 dark:text-cyan-400 font-semibold'
+                        ]),
                 ])
                 ->space(1),
 
@@ -188,48 +192,56 @@ class DeliveryOrderResource extends Resource
                 // Información del repartidor
                 Tables\Columns\Layout\Stack::make([
                     Tables\Columns\TextColumn::make('deliveryPerson.full_name')
-                        ->weight('medium')
+                        ->weight('semibold')
                         ->placeholder('Sin asignar')
                         ->icon('heroicon-m-user-circle')
-                        ->color(fn ($state) => $state ? 'success' : 'gray'),
+                        ->color(fn ($state) => $state ? 'info' : 'gray')
+                        ->extraAttributes(fn ($state) => [
+                            'class' => $state ? 'text-blue-700 dark:text-blue-400' : 'text-gray-500'
+                        ]),
                     Tables\Columns\TextColumn::make('deliveryPerson.phone')
                         ->size('sm')
-                        ->color('gray')
+                        ->color('info')
                         ->icon('heroicon-m-device-phone-mobile')
                         ->prefix('+51 ')
-                        ->placeholder(''),
+                        ->placeholder('')
+                        ->weight('medium')
+                        ->extraAttributes([
+                            'class' => 'text-cyan-600 dark:text-cyan-400 font-semibold'
+                        ]),
                 ])
                 ->space(1),
 
-                // Badge column para estado con colores dinámicos
+                // Badge column para estado con colores dinámicos optimizados para POS
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
                     ->colors([
-                        'secondary' => 'pending',
-                        'primary' => 'assigned',
-                        'warning' => 'in_transit',
-                        'success' => 'delivered',
-                        'danger' => 'cancelled',
+                        'gray' => 'pending',        // Gris neutro para pendiente
+                        'info' => 'assigned',       // Azul info para asignado
+                        'warning' => 'in_transit',  // Amarillo/naranja para en tránsito
+                        'success' => 'delivered',   // Verde para entregado
+                        'danger' => 'cancelled',    // Rojo para cancelado
                     ])
                     ->icons([
                         'heroicon-m-clock' => 'pending',
-                        'heroicon-m-user-plus' => 'assigned',
+                        'heroicon-m-user-check' => 'assigned',
                         'heroicon-m-truck' => 'in_transit',
-                        'heroicon-m-check-circle' => 'delivered',
-                        'heroicon-m-x-circle' => 'cancelled',
+                        'heroicon-m-check-badge' => 'delivered',
+                        'heroicon-m-x-mark' => 'cancelled',
                     ])
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => '⏳ Pendiente',
-                        'assigned' => '👤 Asignado',
-                        'in_transit' => '🚚 En Tránsito',
-                        'delivered' => '✅ Entregado',
-                        'cancelled' => '❌ Cancelado',
-                        default => $state,
+                        'pending' => 'PENDIENTE',
+                        'assigned' => 'ASIGNADO',
+                        'in_transit' => 'EN RUTA',
+                        'delivered' => 'ENTREGADO',
+                        'cancelled' => 'CANCELADO',
+                        default => strtoupper($state),
                     })
                     ->sortable()
                     ->extraAttributes([
-                        'class' => 'transition-all duration-300 ease-in-out hover:scale-105',
-                    ]),
+                        'class' => 'transition-all duration-200 ease-in-out hover:scale-102 font-semibold tracking-wide',
+                    ])
+                    ->size('sm'),
 
                 // Columna de tiempo con formato mejorado
                 Tables\Columns\TextColumn::make('created_at')
@@ -244,7 +256,7 @@ class DeliveryOrderResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: false)
                     ->visibleFrom('lg'),
 
-                // Columna de total del pedido
+                // Columna de total del pedido - Optimizada para POS
                 Tables\Columns\TextColumn::make('order.total')
                     ->label('Total')
                     ->money('PEN')
@@ -253,7 +265,11 @@ class DeliveryOrderResource extends Resource
                     ->icon('heroicon-m-banknotes')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: false)
-                    ->visibleFrom('sm'),
+                    ->visibleFrom('sm')
+                    ->extraAttributes([
+                        'class' => 'text-green-700 dark:text-green-400 font-bold text-base'
+                    ])
+                    ->size('md'),
             ])
             ->defaultSort('created_at', 'desc')
             ->striped()
@@ -267,11 +283,11 @@ class DeliveryOrderResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Estado del Pedido')
                     ->options([
-                        'pending' => '⏳ Pendiente',
-                        'assigned' => '👤 Asignado',
-                        'in_transit' => '🚚 En Tránsito',
+                        'pending' => '🕐 Pendiente',
+                        'assigned' => '👨‍💼 Asignado',
+                        'in_transit' => '🚛 En Ruta',
                         'delivered' => '✅ Entregado',
-                        'cancelled' => '❌ Cancelado',
+                        'cancelled' => '🚫 Cancelado',
                     ])
                     ->indicator('Estado')
                     ->multiple()
@@ -422,7 +438,8 @@ class DeliveryOrderResource extends Resource
                                             ->content($record->order->customer->name ?? 'Cliente no encontrado'),
                                         Forms\Components\Placeholder::make('customer_phone')
                                             ->label('Teléfono')
-                                            ->content($record->order->customer->phone ?? 'Sin teléfono'),
+                                            ->content($record->order->customer->phone ?? 'Sin teléfono')
+                                            ->extraAttributes(['class' => 'text-cyan-600 dark:text-cyan-400 font-semibold']),
                                         Forms\Components\Placeholder::make('customer_email')
                                             ->label('Email')
                                             ->content($record->order->customer->email ?? 'Sin email'),
@@ -523,13 +540,23 @@ class DeliveryOrderResource extends Resource
                                         Forms\Components\Placeholder::make('status')
                                             ->label('Estado')
                                             ->content(match ($record->status) {
-                                                'pending' => '⏳ Pendiente',
-                                                'assigned' => '👤 Asignado',
-                                                'in_transit' => '🚚 En Tránsito',
-                                                'delivered' => '✅ Entregado',
-                                                'cancelled' => '❌ Cancelado',
-                                                default => $record->status,
-                                            }),
+                                                'pending' => '🕐 PENDIENTE',
+                                                'assigned' => '👨‍💼 ASIGNADO',
+                                                'in_transit' => '🚛 EN RUTA',
+                                                'delivered' => '✅ ENTREGADO',
+                                                'cancelled' => '🚫 CANCELADO',
+                                                default => strtoupper($record->status),
+                                            })
+                                            ->extraAttributes([
+                                                'class' => 'font-bold text-lg ' . match ($record->status) {
+                                                    'pending' => 'text-gray-600',
+                                                    'assigned' => 'text-blue-600',
+                                                    'in_transit' => 'text-amber-600',
+                                                    'delivered' => 'text-green-600',
+                                                    'cancelled' => 'text-red-600',
+                                                    default => 'text-gray-600',
+                                                }
+                                            ]),
                                         Forms\Components\Placeholder::make('created_at')
                                             ->label('Fecha de Creación')
                                             ->content($record->created_at ? $record->created_at->format('d/m/Y H:i') : 'Sin fecha'),

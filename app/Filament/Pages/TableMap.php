@@ -61,6 +61,8 @@ class TableMap extends Page
     public $availableCount = 0;
     public $occupiedCount = 0;
     public $reservedCount = 0;
+    public $preBillCount = 0;
+    public $maintenanceCount = 0;
 
     // Datos adicionales
     public $floors;
@@ -133,6 +135,10 @@ class TableMap extends Page
         $this->availableCount = $this->tables->where('status', 'available')->count();
         $this->occupiedCount = $this->tables->where('status', 'occupied')->count();
         $this->reservedCount = $this->tables->where('status', 'reserved')->count();
+        
+        // Agregar estadísticas para nuevos estados POS
+        $this->preBillCount = $this->tables->whereIn('status', ['pending_payment', 'prebill'])->count();
+        $this->maintenanceCount = $this->tables->where('status', 'maintenance')->count();
     }
 
     // 🚚 MÉTODO PARA OBTENER ESTADÍSTICAS DE DELIVERY
@@ -329,10 +335,12 @@ class TableMap extends Page
     public function getStatusOptions(): array
     {
         return [
-            'available' => 'Disponible',
-            'occupied' => 'Ocupada',
-            'reserved' => 'Reservada',
-            'maintenance' => 'Mantenimiento',
+            'available' => '🟢 Disponible',
+            'occupied' => '🔴 Ocupada',
+            'reserved' => '🟡 Reservada',
+            'pending_payment' => '🔵 Pre-Cuenta',
+            'prebill' => '🔵 Pre-Factura',
+            'maintenance' => '⚫ Mantenimiento',
         ];
     }
 
