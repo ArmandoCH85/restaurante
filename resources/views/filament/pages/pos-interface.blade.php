@@ -213,12 +213,13 @@
             padding-top: 2px;
         }
         
-        /* CARRITO OPTIMIZADO */
+        /* CARRITO OPTIMIZADO - FILAMENT 3 BEST PRACTICES */
         .pos-cart {
             background: white;
             border-left: 1px solid var(--pos-gray-200);
             display: flex;
             flex-direction: column;
+            height: 100vh;
             overflow: hidden;
         }
         
@@ -244,33 +245,33 @@
             align-items: end;
         }
         
-        /* ACCIONES RÁPIDAS REORGANIZADAS */
+        /* ACCIONES RÁPIDAS COMPACTAS - 4 POR FILA */
         .pos-quick-actions {
-            margin-top: 16px;
-            padding: 16px;
+            margin-top: 8px;
+            padding: 8px;
             background: white;
             border-radius: var(--pos-border-radius);
             border: 1px solid var(--pos-gray-200);
         }
         
         .pos-quick-actions-title {
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
             color: #6b7280;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
             text-align: center;
         }
         
         .pos-quick-actions-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 3px;
         }
         
         .pos-quick-action-btn {
-            padding: 8px 6px;
+            padding: 4px 2px;
             border: 1px solid var(--pos-gray-200);
-            border-radius: 6px;
+            border-radius: 4px;
             background: white;
             color: #6b7280;
             font-size: 0;
@@ -280,14 +281,24 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 0;
             position: relative;
+            min-height: 24px;
+            height: 24px;
         }
         
         .pos-quick-action-btn:hover:not(:disabled) {
             background: var(--pos-gray-50);
             border-color: var(--pos-primary);
             color: var(--pos-primary);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pos-quick-action-btn:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         /* COLORES REPRESENTATIVOS PARA CADA BOTÓN */
@@ -340,28 +351,34 @@
         }
         
         .pos-quick-action-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.4;
             cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
         }
         
         .pos-quick-action-icon {
-            width: 16px;
-            height: 16px;
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
         }
         
         .pos-quick-action-btn span {
             display: none;
         }
         
-        /* ITEMS DEL CARRITO MEJORADOS */
+        /* ITEMS DEL CARRITO - PATRÓN POS OPTIMIZADO */
         .pos-cart-items {
             flex: 1;
             overflow-y: auto;
-            padding: 16px;
+            padding: 8px 8px 20px 8px;
             border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
-            margin: 12px;
+            margin: 8px;
             background: white;
+            max-height: calc(100vh - 400px);
+            min-height: 200px;
+            scroll-padding-bottom: 20px;
         }
         
         .pos-cart-item {
@@ -482,56 +499,66 @@
             cursor: pointer;
         }
         
-        /* TOTALES DEL CARRITO */
+        /* TOTALES DEL CARRITO - PATRÓN STICKY POS */
         .pos-cart-totals {
-            padding: 20px;
+            padding: 8px;
             background: white;
             border: 2px solid #64748b;
             border-radius: var(--pos-border-radius);
-            margin: 12px;
+            margin: 8px;
+            flex-shrink: 0;
+            position: sticky;
+            bottom: 0;
         }
         
         .pos-totals-container {
             background: var(--pos-gray-50);
-            padding: 12px;
-            border-radius: var(--pos-border-radius);
-            margin-bottom: 12px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
         }
         
         .pos-total-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 6px;
-            font-size: 13px;
+            margin-bottom: 2px;
+            font-size: 11px;
+            line-height: 1.3;
         }
         
         .pos-total-row:last-child {
             margin-bottom: 0;
-            padding-top: 6px;
+            padding-top: 3px;
             border-top: 1px solid var(--pos-gray-200);
             font-weight: 700;
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .pos-total-row.final {
             color: var(--pos-success);
         }
         
-        /* BOTONES DE ACCIÓN PRINCIPALES */
+        /* BOTONES DE ACCIÓN - PATRÓN POS COMPACTO */
         .pos-action-btn {
             width: 100%;
-            padding: 16px;
+            padding: 8px;
             border: none;
-            border-radius: var(--pos-border-radius);
-            font-size: 16px;
-            font-weight: 700;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            margin-bottom: 12px;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+        
+        /* BOTÓN SUCCESS ULTRA COMPACTO */
+        .pos-action-btn.success {
+            padding: 6px;
+            font-size: 11px;
         }
         
         .pos-action-btn.primary {
@@ -553,6 +580,40 @@
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+        
+        /* LOGO DEL SISTEMA - ESTADO INICIAL */
+        .pos-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 400px;
+            padding: 40px 20px;
+            text-align: center;
+        }
+        
+        .pos-system-logo {
+            width: 200px;
+            height: auto;
+            max-width: 80%;
+            margin-bottom: 24px;
+            opacity: 0.9;
+            transition: all 0.3s ease;
+        }
+        
+        .pos-system-logo:hover {
+            opacity: 1;
+            transform: scale(1.02);
+        }
+        
+        .pos-logo-text {
+            font-size: 16px;
+            font-weight: 500;
+            color: #6b7280;
+            margin: 0;
+            opacity: 0.8;
         }
         
         /* ESTADO VACÍO */
@@ -748,55 +809,67 @@
 
                 {{-- GRID DE PRODUCTOS --}}
                 <div class="pos-products-grid">
-                    <div class="pos-products-container">
-                        @forelse ($products as $product)
-                            <div
-                                wire:click="addToCart({{ $product->id }})"
-                                class="pos-product-card {{ !$canAddProducts ? 'pos-loading' : '' }}"
-                                @if(!$canAddProducts) style="pointer-events: none;" @endif
-                            >
-                                <div class="pos-product-image">
-                                    @if($product->image_path)
-                                        <img 
-                                            src="{{ $product->image }}" 
-                                            alt="{{ $product->name }}" 
-                                            style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"
-                                        />
-                                    @else
-                                        <span style="font-weight: bold; color: #9ca3af; font-size: 18px;">
-                                            {{ strtoupper(substr($product->name, 0, 2)) }}
-                                        </span>
+                    @if(!$selectedCategoryId && !$search)
+                        {{-- LOGO DEL SISTEMA - ESTADO INICIAL --}}
+                        <div class="pos-logo-container">
+                            <img 
+                                src="{{ asset('images/logoWayna.svg') }}" 
+                                alt="Logo Wayna" 
+                                class="pos-system-logo"
+                            />
+                            <p class="pos-logo-text">Selecciona una categoría para ver los productos</p>
+                        </div>
+                    @else
+                        <div class="pos-products-container">
+                            @forelse ($products as $product)
+                                <div
+                                    wire:click="addToCart({{ $product->id }})"
+                                    class="pos-product-card {{ !$canAddProducts ? 'pos-loading' : '' }}"
+                                    @if(!$canAddProducts) style="pointer-events: none;" @endif
+                                >
+                                    <div class="pos-product-image">
+                                        @if($product->image_path)
+                                            <img 
+                                                src="{{ $product->image }}" 
+                                                alt="{{ $product->name }}" 
+                                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"
+                                            />
+                                        @else
+                                            <span style="font-weight: bold; color: #9ca3af; font-size: 18px;">
+                                                {{ strtoupper(substr($product->name, 0, 2)) }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                    
+                                    <div class="pos-product-name">{{ $product->name }}</div>
+                                    <div class="pos-product-price">S/ {{ number_format($product->sale_price, 2) }}</div>
+                                    
+                                    @if($product->category)
+                                        <div style="margin-top: 8px;">
+                                            <span style="background: #e5e7eb; color: #374151; padding: 2px 8px; border-radius: 12px; font-size: 10px;">
+                                                {{ $product->category->name }}
+                                            </span>
+                                        </div>
                                     @endif
                                 </div>
-                                
-                                <div class="pos-product-name">{{ $product->name }}</div>
-                                <div class="pos-product-price">S/ {{ number_format($product->sale_price, 2) }}</div>
-                                
-                                @if($product->category)
-                                    <div style="margin-top: 8px;">
-                                        <span style="background: #e5e7eb; color: #374151; padding: 2px 8px; border-radius: 12px; font-size: 10px;">
-                                            {{ $product->category->name }}
-                                        </span>
-                                    </div>
-                                @endif
-                            </div>
-                        @empty
-                            <div class="pos-empty-state" style="grid-column: 1 / -1;">
-                                <x-heroicon-o-shopping-bag class="pos-empty-icon" />
-                                <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No hay productos</h3>
-                                <p style="font-size: 14px;">
-                                    @if($search || $selectedCategoryId)
-                                        No se encontraron productos con los filtros aplicados.
-                                    @else
-                                        No hay productos registrados en el sistema.
-                                    @endif
-                                </p>
-                            </div>
-                        @endforelse
-                    </div>
+                            @empty
+                                <div class="pos-empty-state" style="grid-column: 1 / -1;">
+                                    <x-heroicon-o-shopping-bag class="pos-empty-icon" />
+                                    <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">No hay productos</h3>
+                                    <p style="font-size: 14px;">
+                                        @if($search || $selectedCategoryId)
+                                            No se encontraron productos con los filtros aplicados.
+                                        @else
+                                            No hay productos registrados en el sistema.
+                                        @endif
+                                    </p>
+                                </div>
+                            @endforelse
+                        </div>
+                    @endif
 
                     {{-- INFORMACIÓN ADICIONAL --}}
-                    @if($products && $products->count() > 0)
+                    @if(($selectedCategoryId || $search) && $products && $products->count() > 0)
                         <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--pos-gray-200); display: flex; justify-content: space-between; align-items: center;">
                             <span style="font-size: 14px; color: #6b7280;">
                                 {{ $products->count() }} productos {{ $search || $selectedCategoryId ? 'filtrados' : 'disponibles' }}
@@ -813,41 +886,42 @@
             <div class="pos-cart">
                 {{-- HEADER DEL CARRITO --}}
                 <div class="pos-cart-header">
-                    <div class="pos-cart-title">
+                    {{-- TÍTULO Y CONTROLES EN LA MISMA LÍNEA --}}
+                    <div class="pos-cart-title" style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="background: var(--pos-success); color: white; padding: 4px 12px; border-radius: 16px; font-size: 14px; font-weight: 600;">
                             {{ count($cartItems) }} items
                         </span>
-                    </div>
-
-                    {{-- CONTROLES PRINCIPALES --}}
-                    <div class="pos-cart-actions" style="display: flex; align-items: end; gap: 8px;">
-                        <div style="flex: 1;">
-                            <label style="display: block; font-size: 10px; font-weight: 600; color: #374151; margin-bottom: 2px;">
-                                Comensales <span style="color: #ef4444;">*</span>
-                            </label>
-                            <div style="position: relative;">
-                                <x-heroicon-s-users style="position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; color: #9ca3af;" />
-                                <input
-                                    type="number"
-                                    wire:model.live="numberOfGuests"
-                                    min="1"
-                                    style="width: 60px; padding: 4px 4px 4px 18px; border: 1px solid var(--pos-gray-200); border-radius: 4px; text-align: center; font-weight: 600; font-size: 12px;"
-                                    placeholder="0"
-                                    required
-                                >
-                            </div>
-                        </div>
                         
-                        <button
-                            wire:click="clearCart"
-                            style="width: 32px; height: 32px; border: 1px solid #fca5a5; border-radius: 6px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;"
-                            title="Limpiar carrito"
-                            {{ !$canClearCart ? 'disabled' : '' }}
-                            onmouseover="this.style.background='#fee2e2'"
-                            onmouseout="this.style.background='#fef2f2'"
-                        >
-                            <x-heroicon-s-trash style="width: 16px; height: 16px;" />
-                        </button>
+                        {{-- CONTROLES MOVIDOS AL LADO DERECHO DEL "0 items" --}}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div>
+                                <label style="display: block; font-size: 10px; font-weight: 600; color: #374151; margin-bottom: 2px;">
+                                    Comensales <span style="color: #ef4444;">*</span>
+                                </label>
+                                <div style="position: relative;">
+                                    <x-heroicon-s-users style="position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; color: #9ca3af;" />
+                                    <input
+                                        type="number"
+                                        wire:model.live="numberOfGuests"
+                                        min="1"
+                                        style="width: 60px; padding: 4px 4px 4px 18px; border: 1px solid var(--pos-gray-200); border-radius: 4px; text-align: center; font-weight: 600; font-size: 12px;"
+                                        placeholder="0"
+                                        required
+                                    >
+                                </div>
+                            </div>
+                            
+                            <button
+                                wire:click="clearCart"
+                                style="width: 32px; height: 32px; border: 1px solid #fca5a5; border-radius: 6px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; margin-top: 16px;"
+                                title="Limpiar carrito"
+                                {{ !$canClearCart ? 'disabled' : '' }}
+                                onmouseover="this.style.background='#fee2e2'"
+                                onmouseout="this.style.background='#fef2f2'"
+                            >
+                                <x-heroicon-s-trash style="width: 16px; height: 16px;" />
+                            </button>
+                        </div>
                     </div>
                     
                     {{-- ACCIONES RÁPIDAS REORGANIZADAS --}}
