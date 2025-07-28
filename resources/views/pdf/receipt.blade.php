@@ -138,14 +138,16 @@
         </table>
         <hr>
         <div class="totals">
-            <div class="row" style="display: flex; justify-content: space-between;">
-                <span class="col-label">OP. GRAVADAS:</span>
-                <span class="col-value">S/ {{ number_format($invoice->taxable_amount, 2) }}</span>
-            </div>
-            <div class="row" style="display: flex; justify-content: space-between;">
-                <span class="col-label">IGV (18%):</span>
-                <span class="col-value">S/ {{ number_format($invoice->tax, 2) }}</span>
-            </div>
+            @if($invoice->total > 0)
+                <div class="row" style="display: flex; justify-content: space-between;">
+                    <span class="col-label">OP. GRAVADAS:</span>
+                    <span class="col-value">S/ {{ number_format($invoice->correct_subtotal, 2) }}</span>
+                </div>
+                <div class="row" style="display: flex; justify-content: space-between;">
+                    <span class="col-label">IGV (18%):</span>
+                    <span class="col-value">S/ {{ number_format($invoice->correct_igv, 2) }}</span>
+                </div>
+            @endif
             <div class="row total-final" style="display: flex; justify-content: space-between; margin-top: 5px;">
                 <span class="col-label">TOTAL:</span>
                 <span class="col-value">S/ {{ number_format($invoice->total, 2) }}</span>
