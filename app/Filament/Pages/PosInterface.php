@@ -1953,9 +1953,9 @@ class PosInterface extends Page
         return Action::make('processBilling')
             ->label('💳 Procesar Pago')
             ->modal()
-            ->modalWidth('4xl')
+            ->modalWidth('2xl')
             ->modalAlignment('center')
-            ->extraModalWindowAttributes(['style' => 'max-height: 95vh; overflow-y: auto;'])
+            ->extraModalWindowAttributes(['style' => 'max-height: 550px; overflow-y: auto; max-width: 800px; width: 800px;'])
             ->visible(fn() => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
             
             // 🚀 HOOK ANTES DE MOSTRAR MODAL - LIMPIAR Y CREAR ORDEN SI NO EXISTE

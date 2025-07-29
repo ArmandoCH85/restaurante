@@ -8,13 +8,13 @@
         /* SISTEMA POS OPTIMIZADO - DISEÑO MODERNO */
         /* ========================================= */
         
-        /* VARIABLES GLOBALES */
+        /* VARIABLES GLOBALES OPTIMIZADAS PARA 1024x637 AL 100% ZOOM */
         :root {
-            --pos-cart-width: 380px;
-            --pos-sidebar-width: 200px;
-            --pos-border-radius: 12px;
-            --pos-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --pos-shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --pos-cart-width: 300px;
+            --pos-sidebar-width: 150px;
+            --pos-border-radius: 6px;
+            --pos-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+            --pos-shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.12);
             --pos-primary: #3b82f6;
             --pos-success: #10b981;
             --pos-warning: #f59e0b;
@@ -29,14 +29,18 @@
             box-sizing: border-box;
         }
         
-        /* LAYOUT PRINCIPAL - GRID OPTIMIZADO */
+        /* LAYOUT PRINCIPAL OPTIMIZADO PARA 1024x637 AL 100% ZOOM */
         .pos-main-container {
             display: grid;
             grid-template-columns: var(--pos-sidebar-width) 1fr var(--pos-cart-width);
-            height: 100vh;
+            height: 600px;
+            max-height: 600px;
             overflow: hidden;
             gap: 0;
             background: var(--pos-gray-50);
+            width: 1024px;
+            max-width: 1024px;
+            margin: 0 auto;
         }
         
         /* SIDEBAR CATEGORÍAS - MEJORADO */
@@ -49,34 +53,34 @@
         }
         
         .pos-categories-header {
-            padding: 20px 16px 16px;
-            border: 2px solid #64748b;
+            padding: 12px 8px 8px;
+            border: 1px solid #64748b;
             border-radius: var(--pos-border-radius);
             background: white;
-            margin: 12px;
+            margin: 6px;
         }
         
         .pos-categories-content {
             flex: 1;
             overflow-y: auto;
-            padding: 16px 12px;
+            padding: 8px 6px;
         }
         
-        /* BOTONES DE CATEGORÍA MEJORADOS */
+        /* BOTONES DE CATEGORÍA OPTIMIZADOS PARA 1024x637 AL 100% ZOOM */
         .pos-category-btn {
             width: 100%;
-            padding: 14px 16px;
-            margin-bottom: 8px;
+            padding: 6px 8px;
+            margin-bottom: 3px;
             text-align: left;
-            border: 2px solid #64748b;
+            border: 1px solid #64748b;
             border-radius: var(--pos-border-radius);
             background: white;
             color: #64748b;
             font-weight: 500;
-            font-size: 14px;
+            font-size: 11px;
             transition: all 0.2s ease;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         .pos-category-btn:hover {
@@ -93,29 +97,30 @@
             box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
         }
         
-        /* ÁREA DE PRODUCTOS OPTIMIZADA */
+        /* ÁREA DE PRODUCTOS OPTIMIZADA PARA 1024x637 AL 100% ZOOM */
         .pos-products-area {
             background: white;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            height: calc(100vh - 120px);
+            height: 600px;
+            max-height: 600px;
         }
         
         .pos-search-bar {
-            padding: 20px;
+            padding: 10px;
             background: white;
-            border: 2px solid #64748b;
+            border: 1px solid #64748b;
             border-radius: var(--pos-border-radius);
-            margin: 12px;
+            margin: 6px;
         }
         
         .pos-search-input {
             width: 100%;
-            padding: 16px 20px;
-            border: 2px solid var(--pos-gray-200);
+            padding: 8px 12px;
+            border: 1px solid var(--pos-gray-200);
             border-radius: var(--pos-border-radius);
-            font-size: 16px;
+            font-size: 14px;
             transition: all 0.2s ease;
             background: var(--pos-gray-50);
         }
@@ -124,41 +129,41 @@
             outline: none;
             border-color: var(--pos-primary);
             background: white;
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
         }
         
         .pos-products-grid {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
-            border: 2px solid #64748b;
+            padding: 10px;
+            border: 1px solid #64748b;
             border-radius: var(--pos-border-radius);
-            margin: 12px;
+            margin: 6px;
             background: white;
         }
         
-        /* GRID DE PRODUCTOS RESPONSIVO */
+        /* GRID DE PRODUCTOS OPTIMIZADO PARA 1024x637 */
         .pos-products-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 6px;
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 20px;
+            padding-bottom: 10px;
         }
         
-        /* CARDS DE PRODUCTOS MEJORADAS */
+        /* CARDS DE PRODUCTOS OPTIMIZADAS PARA 1024x637 */
         .pos-product-card {
             background: white;
             border: 1px solid var(--pos-gray-200);
-            border-radius: 8px;
-            padding: 8px;
+            border-radius: 6px;
+            padding: 6px;
             text-align: center;
             cursor: pointer;
             transition: all 0.15s ease;
             position: relative;
             overflow: hidden;
-            min-height: 100px;
+            min-height: 80px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -166,7 +171,7 @@
         
         .pos-product-card:hover {
             transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             border-color: var(--pos-primary);
             background: #f8fafc;
         }
@@ -176,10 +181,10 @@
         }
         
         .pos-product-image {
-            width: 40px;
-            height: 40px;
-            border-radius: 6px;
-            margin: 0 auto 6px;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            margin: 0 auto 4px;
             background: var(--pos-gray-100);
             display: flex;
             align-items: center;
@@ -192,7 +197,7 @@
             font-size: 11px;
             font-weight: 600;
             color: #1f2937;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             line-height: 1.2;
             min-height: 26px;
             display: flex;
@@ -213,35 +218,36 @@
             padding-top: 2px;
         }
         
-        /* CARRITO OPTIMIZADO - FILAMENT 3 BEST PRACTICES */
+        /* CARRITO OPTIMIZADO PARA 1024x637 AL 100% ZOOM */
         .pos-cart {
             background: white;
             border-left: 1px solid var(--pos-gray-200);
             display: flex;
             flex-direction: column;
-            height: 100vh;
+            height: 600px;
+            max-height: 600px;
             overflow: hidden;
         }
         
         .pos-cart-header {
-            padding: 20px;
+            padding: 10px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 2px solid #64748b;
+            border: 1px solid #64748b;
             border-radius: var(--pos-border-radius);
-            margin: 12px;
+            margin: 6px;
         }
         
         .pos-cart-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
         
         .pos-cart-actions {
             display: grid;
             grid-template-columns: 1fr auto;
-            gap: 12px;
+            gap: 6px;
             align-items: end;
         }
         
@@ -367,26 +373,25 @@
             display: none;
         }
         
-        /* ITEMS DEL CARRITO - PATRÓN POS OPTIMIZADO */
+        /* ITEMS DEL CARRITO OPTIMIZADOS PARA 1024x637 AL 100% ZOOM */
         .pos-cart-items {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 8px 20px 8px;
-            border: 2px solid #64748b;
+            padding: 4px;
+            border: 1px solid #64748b;
             border-radius: var(--pos-border-radius);
-            margin: 8px;
+            margin: 4px;
             background: white;
-            max-height: calc(100vh - 400px);
+            max-height: calc(600px - 250px);
             min-height: 200px;
-            scroll-padding-bottom: 20px;
         }
         
         .pos-cart-item {
             background: var(--pos-gray-50);
             border: 1px solid var(--pos-gray-200);
             border-radius: var(--pos-border-radius);
-            padding: 10px;
-            margin-bottom: 8px;
+            padding: 6px;
+            margin-bottom: 4px;
             transition: all 0.2s ease;
         }
         
@@ -499,13 +504,13 @@
             cursor: pointer;
         }
         
-        /* TOTALES DEL CARRITO - PATRÓN STICKY POS */
+        /* TOTALES DEL CARRITO OPTIMIZADOS PARA 1024x637 */
         .pos-cart-totals {
-            padding: 8px;
+            padding: 6px;
             background: white;
-            border: 2px solid #64748b;
+            border: 1px solid #64748b;
             border-radius: var(--pos-border-radius);
-            margin: 8px;
+            margin: 6px;
             flex-shrink: 0;
             position: sticky;
             bottom: 0;
@@ -513,7 +518,7 @@
         
         .pos-totals-container {
             background: var(--pos-gray-50);
-            padding: 6px 8px;
+            padding: 4px 6px;
             border-radius: 6px;
             margin-bottom: 6px;
         }

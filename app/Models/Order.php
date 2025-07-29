@@ -790,7 +790,11 @@ class Order extends Model
                 throw new \Exception("No se encontró el cliente con ID: {$customerId}");
             }
 
-            // 4. Crear la factura
+            // 4. Calcular correctamente subtotal e IGV desde el total
+            $correctSubtotal = $this->total / 1.18; // Subtotal sin IGV
+            $correctIgv = $this->total - $correctSubtotal; // IGV incluido
+            
+            // 5. Crear la factura
             $invoice = Invoice::create([
                 'order_id' => $this->id,
             'invoice_type' => $invoiceType,
@@ -801,14 +805,14 @@ class Order extends Model
                 'client_name' => $customer->name,
                 'client_document' => $customer->document_number,
                 'client_address' => $customer->address,
-            'taxable_amount' => $this->subtotal,
-            'tax' => $this->tax,
+            'taxable_amount' => round($correctSubtotal, 2),
+            'tax' => round($correctIgv, 2),
             'total' => $this->total,
                 'status' => 'issued',
                 'sunat_status' => 'PENDIENTE',
         ]);
 
-            // 5. Agregar detalles de la factura
+            // 6. Agregar detalles de la factura
         foreach ($this->orderDetails as $detail) {
             $invoice->details()->create([
                 'product_id' => $detail->product_id,
