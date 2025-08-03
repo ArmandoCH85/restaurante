@@ -20,8 +20,8 @@ class DocumentSeriesResource extends Resource
 
     protected static ?string $navigationLabel = 'Series de Comprobantes';
 
-    // Deshabilitar navegación automática para usar NavigationItem personalizado
-    protected static bool $shouldRegisterNavigation = false;
+    // Habilitar navegación para gestionar series de comprobantes
+    protected static bool $shouldRegisterNavigation = true;
 
     protected static ?string $modelLabel = 'Serie de Comprobante';
 
