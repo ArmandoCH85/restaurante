@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Filament\Pages\Dashboard\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use App\Models\Order;
 use App\Models\DeliveryOrder;
@@ -25,26 +26,33 @@ class SalesStatsWidget extends BaseWidget
 
     protected function getStats(): array
     {
-        // 📅 FILTRO TEMPORAL - HOY POR DEFECTO
-        $today = Carbon::today();
+        // 📅 OBTENER RANGO DE FECHAS DESDE LOS FILTROS
+        $dateRange = $this->filters['date_range'] ?? 'today';
+        $startDate = $this->filters['start_date'] ?? null;
+        $endDate = $this->filters['end_date'] ?? null;
+
+        // 🎯 CALCULAR FECHAS SEGÚN EL RANGO SELECCIONADO
+        $dates = $this->getDateRange($dateRange, $startDate, $endDate);
 
         return [
-            // 📊 SOLO LAS 3 MÉTRICAS MÁS IMPORTANTES
-            $this->getTotalSalesStat($today),          // 💰 Total Ventas (LO MÁS IMPORTANTE)
-            $this->getOperationsCountStat($today),      // 🔢 N° Operaciones
-            $this->getMesaSalesStat($today),           // 🍽️ Ventas Mesa (principal tipo de servicio)
+            // 📊 LAS 3 MÉTRICAS MÁS IMPORTANTES CON FILTRO DE FECHA
+            $this->getTotalSalesStat($dates['start'], $dates['end']),          // 💰 Total Ventas
+            $this->getOperationsCountStat($dates['start'], $dates['end']),      // 🔢 N° Operaciones
+            $this->getMesaSalesStat($dates['start'], $dates['end']),           // 🍽️ Ventas Mesa
         ];
     }
 
     // 🔢 N° OPERACIONES
-    private function getOperationsCountStat(Carbon $date): Stat
+    private function getOperationsCountStat(Carbon $startDate, Carbon $endDate): Stat
     {
-        $count = Order::whereDate('created_at', $date)
+        $count = Order::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', '!=', 'cancelled')
             ->count();
 
+        $dateRange = $this->getDateRangeDescription($startDate, $endDate);
+
         return Stat::make('N° Operaciones', number_format($count))
-            ->description('Órdenes procesadas hoy')
+            ->description("Órdenes procesadas {$dateRange}")
             ->descriptionIcon('heroicon-m-calculator')
             ->color('primary')
             ->chart([7, 12, 8, 15, 10, 18, $count])
@@ -54,14 +62,16 @@ class SalesStatsWidget extends BaseWidget
     }
 
     // 💰 TOTAL VENTAS
-    private function getTotalSalesStat(Carbon $date): Stat
+    private function getTotalSalesStat(Carbon $startDate, Carbon $endDate): Stat
     {
-        $total = Order::whereDate('created_at', $date)
+        $total = Order::whereBetween('created_at', [$startDate, $endDate])
             ->where('status', '!=', 'cancelled')
             ->sum('total');
 
+        $dateRange = $this->getDateRangeDescription($startDate, $endDate);
+
         return Stat::make('Total Ventas', 'S/ ' . number_format($total, 2))
-            ->description('Ingresos del día')
+            ->description("Ingresos {$dateRange}")
             ->descriptionIcon('heroicon-m-banknotes')
             ->color('success')
             ->chart([120, 180, 150, 200, 170, 250, $total])
@@ -140,15 +150,17 @@ class SalesStatsWidget extends BaseWidget
     }
 
     // 🍽️ TOTAL VENTA MESA
-    private function getMesaSalesStat(Carbon $date): Stat
+    private function getMesaSalesStat(Carbon $startDate, Carbon $endDate): Stat
     {
-        $total = Order::whereDate('created_at', $date)
+        $total = Order::whereBetween('created_at', [$startDate, $endDate])
             ->where('service_type', 'dine_in')
             ->where('status', '!=', 'cancelled')
             ->sum('total');
 
+        $dateRange = $this->getDateRangeDescription($startDate, $endDate);
+
         return Stat::make('Total Venta Mesa', 'S/ ' . number_format($total, 2))
-            ->description('Ventas en mesa')
+            ->description("Ventas en mesa {$dateRange}")
             ->descriptionIcon('heroicon-m-home')
             ->color('emerald')
             ->extraAttributes([
@@ -188,6 +200,98 @@ class SalesStatsWidget extends BaseWidget
             ->extraAttributes([
                 'class' => 'bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200'
             ]);
+    }
+
+    /**
+     * 🎯 CALCULAR RANGO DE FECHAS SEGÚN SELECCIÓN
+     */
+    private function getDateRange(string $range, ?string $startDate, ?string $endDate): array
+    {
+        $now = Carbon::now();
+        
+        switch ($range) {
+            case 'yesterday':
+                return [
+                    'start' => Carbon::yesterday()->startOfDay(),
+                    'end' => Carbon::yesterday()->endOfDay(),
+                ];
+            case 'last_7_days':
+                return [
+                    'start' => Carbon::today()->subDays(6)->startOfDay(),
+                    'end' => Carbon::today()->endOfDay(),
+                ];
+            case 'last_30_days':
+                return [
+                    'start' => Carbon::today()->subDays(29)->startOfDay(),
+                    'end' => Carbon::today()->endOfDay(),
+                ];
+            case 'this_month':
+                return [
+                    'start' => Carbon::today()->startOfMonth()->startOfDay(),
+                    'end' => Carbon::today()->endOfMonth()->endOfDay(),
+                ];
+            case 'last_month':
+                return [
+                    'start' => Carbon::today()->subMonth()->startOfMonth()->startOfDay(),
+                    'end' => Carbon::today()->subMonth()->endOfMonth()->endOfDay(),
+                ];
+            case 'custom':
+                if ($startDate && $endDate) {
+                    return [
+                        'start' => Carbon::parse($startDate)->startOfDay(),
+                        'end' => Carbon::parse($endDate)->endOfDay(),
+                    ];
+                }
+                // Si no hay fechas personalizadas, usar hoy
+                return [
+                    'start' => Carbon::today()->startOfDay(),
+                    'end' => Carbon::today()->endOfDay(),
+                ];
+            default: // today
+                return [
+                    'start' => Carbon::today()->startOfDay(),
+                    'end' => Carbon::today()->endOfDay(),
+                ];
+        }
+    }
+
+    /**
+     * 📝 GENERAR DESCRIPCIÓN DEL RANGO DE FECHAS
+     */
+    private function getDateRangeDescription(Carbon $startDate, Carbon $endDate): string
+    {
+        $today = Carbon::today();
+        $yesterday = Carbon::yesterday();
+
+        if ($startDate->isSameDay($today) && $endDate->isSameDay($today)) {
+            return 'del día';
+        }
+
+        if ($startDate->isSameDay($yesterday) && $endDate->isSameDay($yesterday)) {
+            return 'de ayer';
+        }
+
+        if ($startDate->isSameDay($today->subDays(6)) && $endDate->isSameDay($today)) {
+            return 'de los últimos 7 días';
+        }
+
+        if ($startDate->isSameDay($today->subDays(29)) && $endDate->isSameDay($today)) {
+            return 'de los últimos 30 días';
+        }
+
+        if ($startDate->isSameDay($today->startOfMonth()) && $endDate->isSameDay($today->endOfMonth())) {
+            return 'del mes';
+        }
+
+        if ($startDate->isSameDay($today->subMonth()->startOfMonth()) && $endDate->isSameDay($today->subMonth()->endOfMonth())) {
+            return 'del mes pasado';
+        }
+
+        if ($startDate->isSameDay($endDate)) {
+            return 'del ' . $startDate->format('d/m/Y');
+        }
+
+        return 'del ' . $startDate->format('d/m/Y') . ' al ' . $endDate->format('d/m/Y');
     }
 
     /**

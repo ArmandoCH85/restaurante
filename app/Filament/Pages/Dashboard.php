@@ -4,11 +4,18 @@ namespace App\Filament\Pages;
 
 use App\Filament\Widgets;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
+
+use Filament\Forms\Form;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Section;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 
 class Dashboard extends BaseDashboard
 {
+    use HasFiltersForm;
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Escritorio';
     protected static ?string $title = 'Escritorio';
@@ -178,6 +185,48 @@ class Dashboard extends BaseDashboard
         }
 
         return 'Escritorio';
+    }
+
+    /**
+     * 🎯 FILTROS DE FECHA PARA LAS ESTADÍSTICAS
+     */
+    public function filtersForm(Form $form): Form
+    {
+        return $form->schema([
+            Section::make('Filtros de Fecha')
+                ->schema([
+                    Select::make('date_range')
+                        ->label('Rango de Fecha')
+                        ->options([
+                            'today' => 'Hoy',
+                            'yesterday' => 'Ayer',
+                            'last_7_days' => 'Últimos 7 días',
+                            'last_30_days' => 'Últimos 30 días',
+                            'this_month' => 'Este mes',
+                            'last_month' => 'Mes pasado',
+                            'custom' => 'Personalizado',
+                        ])
+                        ->default('today')
+                        ->live()
+                        ->afterStateUpdated(function ($state, callable $set) {
+                            if ($state !== 'custom') {
+                                $set('start_date', null);
+                                $set('end_date', null);
+                            }
+                        }),
+                        
+                    DatePicker::make('start_date')
+                        ->label('Fecha Inicio')
+                        ->visible(fn (callable $get) => $get('date_range') === 'custom')
+                        ->required(fn (callable $get) => $get('date_range') === 'custom'),
+                        
+                    DatePicker::make('end_date')
+                        ->label('Fecha Fin')
+                        ->visible(fn (callable $get) => $get('date_range') === 'custom')
+                        ->required(fn (callable $get) => $get('date_range') === 'custom'),
+                ])
+                ->columns(3),
+        ]);
     }
 
     /**
