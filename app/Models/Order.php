@@ -808,6 +808,8 @@ class Order extends Model
             'taxable_amount' => round($correctSubtotal, 2),
             'tax' => round($correctIgv, 2),
             'total' => $this->total,
+                'payment_method' => $this->payment_method ?? 'cash',
+                'payment_amount' => $this->payment_amount ?? $this->total,
                 'status' => 'issued',
                 'sunat_status' => 'PENDIENTE',
         ]);

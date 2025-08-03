@@ -157,9 +157,15 @@
                 {{ ucfirst(match($invoice->payment_method) {
                     'cash' => 'Efectivo',
                     'card' => 'Tarjeta',
+                    'credit_card' => 'Tarjeta de Crédito',
+                    'debit_card' => 'Tarjeta de Débito',
                     'yape' => 'Yape',
                     'plin' => 'Plin',
-                    default => $invoice->payment_method
+                    'transfer' => 'Transferencia',
+                    'bank_transfer' => 'Transferencia Bancaria',
+                    'digital_wallet' => 'Billetera Digital',
+                    'multiple' => 'Pago Múltiple',
+                    default => ucfirst(str_replace('_', ' ', $invoice->payment_method ?? 'Efectivo'))
                 }) }}
             </p>
         </div>
