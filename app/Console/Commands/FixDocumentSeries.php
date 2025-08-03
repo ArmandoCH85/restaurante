@@ -95,21 +95,25 @@ class FixDocumentSeries extends Command
                 if ($isDryRun) {
                     $this->line("  📝 ID {$invoice->id}: {$invoice->invoice_type} | {$oldSeries} → {$newSeries}");
                 } else {
-                    // Actualizar la serie de la factura
-                    $invoice->update(['series' => $newSeries]);
+                    // Encontrar el siguiente número disponible para la serie correcta
+                    $nextNumber = $this->findNextAvailableNumber($newSeries);
+                    $formattedNumber = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
                     
-                    // Obtener el siguiente número para la serie correcta
-                    $nextNumber = $correctSeries->getNextNumber();
+                    // Actualizar la serie y número de la factura
+                    $invoice->update([
+                        'series' => $newSeries,
+                        'number' => $formattedNumber
+                    ]);
                     
-                    // Actualizar el número de la factura
-                    $invoice->update(['number' => str_pad($nextNumber, 8, '0', STR_PAD_LEFT)]);
-                    
-                    $this->line("  ✅ ID {$invoice->id}: {$invoice->invoice_type} | {$oldSeries} → {$newSeries} | Número: {$invoice->number}");
+                    $this->line("  ✅ ID {$invoice->id}: {$invoice->invoice_type} | {$oldSeries} → {$newSeries} | Número: {$formattedNumber}");
                     $correctedCount++;
                 }
             }
 
             if (!$isDryRun) {
+                // Actualizar los contadores de las series después de todas las correcciones
+                $this->updateSeriesCounters($activeSeries);
+                
                 DB::commit();
                 $this->info("\n🎉 Corrección completada exitosamente!");
                 $this->info("📊 Facturas corregidas: {$correctedCount}");
@@ -133,5 +137,53 @@ class FixDocumentSeries extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Encuentra el siguiente número disponible para una serie
+     */
+    private function findNextAvailableNumber($series)
+    {
+        // Obtener el número más alto existente para esta serie
+        $lastNumber = Invoice::where('series', $series)
+            ->orderBy('number', 'desc')
+            ->value('number');
+
+        if (!$lastNumber) {
+            return 1; // Si no hay facturas, empezar desde 1
+        }
+
+        // Convertir a entero y sumar 1
+        $nextNumber = intval($lastNumber) + 1;
+
+        // Verificar que no exista ya una factura con este número
+        while (Invoice::where('series', $series)
+                     ->where('number', str_pad($nextNumber, 8, '0', STR_PAD_LEFT))
+                     ->exists()) {
+            $nextNumber++;
+        }
+
+        return $nextNumber;
+    }
+
+    /**
+     * Actualiza los contadores de las series después de las correcciones
+     */
+    private function updateSeriesCounters($activeSeries)
+    {
+        $this->info("\n🔄 Actualizando contadores de series...");
+
+        foreach ($activeSeries as $type => $series) {
+            // Obtener el número más alto para esta serie
+            $lastNumber = Invoice::where('series', $series->series)
+                ->orderBy('number', 'desc')
+                ->value('number');
+
+            if ($lastNumber) {
+                $nextNumber = intval($lastNumber) + 1;
+                $series->update(['next_number' => $nextNumber]);
+                $this->line("  ✅ Serie {$series->series}: próximo número = {$nextNumber}");
+            }
+        }
     }
 }
