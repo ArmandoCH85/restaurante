@@ -3,22 +3,30 @@
 namespace App\Filament\Widgets;
 
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use App\Models\Order;
 use Carbon\Carbon;
 
 class SalesChartWidget extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?string $heading = '📈 Tendencia de Ventas por Tipo';
 
-        protected static ?int $sort = 2;
+    protected static ?int $sort = 2;
 
     protected static ?string $maxHeight = '400px';
 
     // 📐 ANCHO COMPLETO PARA EL GRÁFICO
     protected int | string | array $columnSpan = 'full';
 
-    // 🔄 FILTRO TEMPORAL
-    public ?string $filter = 'last_7_days';
+    // 🔄 REACTIVIDAD A FILTROS DEL DASHBOARD
+    protected static bool $isLazy = false;
+    
+    protected $listeners = [
+        'filtersFormUpdated' => '$refresh',
+        'updateCharts' => '$refresh',
+    ];
 
     protected function getData(): array
     {
@@ -63,20 +71,7 @@ class SalesChartWidget extends ChartWidget
         return 'line';
     }
 
-    // 🎛️ FILTROS TEMPORALES
-    protected function getFilters(): ?array
-    {
-        return [
-            'today' => 'Hoy',
-            'yesterday' => 'Ayer',
-            'last_7_days' => 'Últimos 7 días',
-            'last_30_days' => 'Últimos 30 días',
-            'this_month' => 'Este mes',
-            'last_month' => 'Mes pasado',
-        ];
-    }
-
-    // 📊 OBTENER DATOS SEGÚN FILTRO
+    // 📊 OBTENER DATOS SEGÚN FILTRO DEL DASHBOARD
     private function getSalesData(): array
     {
         $labels = [];
@@ -125,12 +120,14 @@ class SalesChartWidget extends ChartWidget
         ];
     }
 
-    // 📅 GENERAR RANGO DE FECHAS SEGÚN FILTRO
+    // 📅 GENERAR RANGO DE FECHAS SEGÚN FILTRO DEL DASHBOARD
     private function getDateRange(): array
     {
         $dates = [];
+        $filters = $this->filters ?? [];
+        $dateRange = $filters['date_range'] ?? 'today';
 
-        switch ($this->filter) {
+        switch ($dateRange) {
             case 'today':
                 $dates[] = [
                     'date' => Carbon::today(),

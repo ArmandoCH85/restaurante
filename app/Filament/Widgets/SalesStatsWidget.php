@@ -3,7 +3,7 @@
 namespace App\Filament\Widgets;
 
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
-use Filament\Pages\Dashboard\Concerns\InteractsWithPageFilters;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use App\Models\Order;
 use App\Models\DeliveryOrder;
@@ -12,6 +12,8 @@ use App\Models\Invoice;
 
 class SalesStatsWidget extends BaseWidget
 {
+    use InteractsWithPageFilters;
+    
     protected static ?int $sort = 1;
 
     // 📐 GRID RESPONSIVO - 3 ESTADÍSTICAS PRINCIPALES
@@ -23,6 +25,21 @@ class SalesStatsWidget extends BaseWidget
         'xl' => 'full',       // Desktop grande: ancho completo
         '2xl' => 'full',      // Desktop extra: ancho completo
     ];
+
+    // 🔄 PROPIEDADES PARA REACTIVIDAD
+    protected static bool $isLazy = false;
+    
+    // 📊 LISTENERS PARA ACTUALIZACIÓN AUTOMÁTICA
+    protected $listeners = [
+        'filtersFormUpdated' => '$refresh',
+        'updateCharts' => '$refresh',
+    ];
+    
+    // 🎯 MÉTODO PARA FORZAR ACTUALIZACIÓN CUANDO CAMBIAN LOS FILTROS
+    public function updatedFilters(): void
+    {
+        $this->dispatch('updateCharts');
+    }
 
     protected function getStats(): array
     {

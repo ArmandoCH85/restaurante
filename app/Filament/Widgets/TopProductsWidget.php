@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use App\Models\OrderDetail;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Builder;
@@ -13,6 +14,8 @@ use Carbon\Carbon;
 
 class TopProductsWidget extends BaseWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?string $heading = '🏆 Productos Más Vendidos';
 
     protected static ?int $sort = 3;
@@ -20,8 +23,13 @@ class TopProductsWidget extends BaseWidget
     // 📐 ANCHO COMPLETO PARA LA TABLA
     protected int | string | array $columnSpan = 'full';
 
-        // 🔄 FILTRO TEMPORAL
-    public ?string $filter = 'today';
+    // 🔄 REACTIVIDAD A FILTROS DEL DASHBOARD
+    protected static bool $isLazy = false;
+    
+    protected $listeners = [
+        'filtersFormUpdated' => '$refresh',
+        'updateCharts' => '$refresh',
+    ];
 
     // 🔑 CLAVE ÚNICA PARA CADA REGISTRO (usando product_id)
     public function getTableRecordKey($record): string
@@ -101,20 +109,6 @@ class TopProductsWidget extends BaseWidget
             ->striped();
     }
 
-    // 🎛️ FILTROS TEMPORALES
-    protected function getFilters(): ?array
-    {
-        return [
-            'today' => '📅 Hoy',
-            'yesterday' => '📅 Ayer',
-            'last_7_days' => '📅 Últimos 7 días',
-            'this_week' => '📅 Esta semana',
-            'last_30_days' => '📅 Últimos 30 días',
-            'this_month' => '📅 Este mes',
-            'last_month' => '📅 Mes pasado',
-        ];
-    }
-
     // 📊 QUERY PARA OBTENER PRODUCTOS MÁS VENDIDOS
     protected function getTableQuery(): Builder
     {
@@ -148,10 +142,22 @@ class TopProductsWidget extends BaseWidget
             ->orderByDesc('total_quantity');
     }
 
-    // 📅 OBTENER RANGO DE FECHAS SEGÚN FILTRO
+    // 📅 OBTENER RANGO DE FECHAS SEGÚN FILTRO DEL DASHBOARD
     private function getDateRange(): array
     {
-        switch ($this->filter) {
+        $filters = $this->filters ?? [];
+        $dateRange = $filters['date_range'] ?? 'today';
+        $startDate = $filters['start_date'] ?? null;
+        $endDate = $filters['end_date'] ?? null;
+
+        if ($dateRange === 'custom' && $startDate && $endDate) {
+            return [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ];
+        }
+
+        switch ($dateRange) {
             case 'today':
                 return [
                     Carbon::today()->startOfDay(),

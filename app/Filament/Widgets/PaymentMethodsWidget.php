@@ -3,11 +3,14 @@
 namespace App\Filament\Widgets;
 
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use App\Models\Payment;
 use Carbon\Carbon;
 
 class PaymentMethodsWidget extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?string $heading = '💳 Distribución de Métodos de Pago';
 
     protected static ?int $sort = 4;
@@ -23,8 +26,13 @@ class PaymentMethodsWidget extends ChartWidget
         '2xl' => 4,      // Desktop extra: 4 de 8 columnas
     ];
 
-    // 🔄 FILTRO TEMPORAL
-    public ?string $filter = 'today';
+    // 🔄 REACTIVIDAD A FILTROS DEL DASHBOARD
+    protected static bool $isLazy = false;
+    
+    protected $listeners = [
+        'filtersFormUpdated' => '$refresh',
+        'updateCharts' => '$refresh',
+    ];
 
     protected function getData(): array
     {
@@ -111,18 +119,30 @@ class PaymentMethodsWidget extends ChartWidget
             ->join('orders', 'payments.order_id', '=', 'orders.id')
             ->where('orders.billed', true);
 
-        // 🗓️ APLICAR FILTRO TEMPORAL
-        match ($this->filter) {
-            'today' => $query->whereDate('payments.created_at', Carbon::today()),
-            'yesterday' => $query->whereDate('payments.created_at', Carbon::yesterday()),
-            'last_7_days' => $query->where('payments.created_at', '>=', Carbon::today()->subDays(7)),
-            'last_30_days' => $query->where('payments.created_at', '>=', Carbon::today()->subDays(30)),
-            'this_month' => $query->whereMonth('payments.created_at', Carbon::now()->month)
-                                 ->whereYear('payments.created_at', Carbon::now()->year),
-            'last_month' => $query->whereMonth('payments.created_at', Carbon::now()->subMonth()->month)
-                                 ->whereYear('payments.created_at', Carbon::now()->subMonth()->year),
-            default => $query->whereDate('payments.created_at', Carbon::today()),
-        };
+        // 🗓️ APLICAR FILTRO TEMPORAL DEL DASHBOARD
+        $filters = $this->filters ?? [];
+        $dateRange = $filters['date_range'] ?? 'today';
+        $startDate = $filters['start_date'] ?? null;
+        $endDate = $filters['end_date'] ?? null;
+
+        if ($dateRange === 'custom' && $startDate && $endDate) {
+            $query->whereBetween('payments.created_at', [
+                Carbon::parse($startDate)->startOfDay(),
+                Carbon::parse($endDate)->endOfDay()
+            ]);
+        } else {
+            match ($dateRange) {
+                'today' => $query->whereDate('payments.created_at', Carbon::today()),
+                'yesterday' => $query->whereDate('payments.created_at', Carbon::yesterday()),
+                'last_7_days' => $query->where('payments.created_at', '>=', Carbon::today()->subDays(7)),
+                'last_30_days' => $query->where('payments.created_at', '>=', Carbon::today()->subDays(30)),
+                'this_month' => $query->whereMonth('payments.created_at', Carbon::now()->month)
+                                     ->whereYear('payments.created_at', Carbon::now()->year),
+                'last_month' => $query->whereMonth('payments.created_at', Carbon::now()->subMonth()->month)
+                                     ->whereYear('payments.created_at', Carbon::now()->subMonth()->year),
+                default => $query->whereDate('payments.created_at', Carbon::today()),
+            };
+        }
 
         $payments = $query->get();
 
@@ -171,18 +191,6 @@ class PaymentMethodsWidget extends ChartWidget
             'amounts' => $amounts,
             'total_amount' => $totalAmount,
             'total_transactions' => $totalTransactions,
-        ];
-    }
-
-    protected function getFilters(): ?array
-    {
-        return [
-            'today' => '📅 Hoy',
-            'yesterday' => '📅 Ayer',
-            'last_7_days' => '📊 Últimos 7 días',
-            'last_30_days' => '📊 Últimos 30 días',
-            'this_month' => '📆 Este mes',
-            'last_month' => '📆 Mes pasado',
         ];
     }
 
