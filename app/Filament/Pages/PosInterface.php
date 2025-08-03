@@ -2483,10 +2483,13 @@ class PosInterface extends Page
                     $customerId = $defaultCustomer->id;
                 }
 
+                // Obtener la serie correcta según el tipo de documento
+                $series = $this->getNextSeries($data['document_type'] ?? 'receipt');
+                
                 // Crear la factura usando el método del modelo Order
                 $invoice = $this->order->generateInvoice(
                     $data['document_type'] ?? 'receipt',
-                    $data['series'] ?? 'B001',
+                    $series,
                     $customerId
                 );
 
@@ -3161,5 +3164,27 @@ class PosInterface extends Page
                 }
             })
             ->visible(fn (): bool => $this->order !== null && count($this->order->orderDetails) > 0);
+    }
+
+    /**
+     * Obtiene la siguiente serie disponible para el tipo de documento especificado
+     */
+    private function getNextSeries(string $documentType): string
+    {
+        $series = \App\Models\DocumentSeries::where('document_type', $documentType)
+            ->where('active', true)
+            ->first();
+
+        if ($series) {
+            return $series->series;
+        }
+
+        // Fallback a series por defecto si no se encuentra una serie activa
+        return match ($documentType) {
+            'sales_note' => 'NV001',
+            'receipt' => 'B001',
+            'invoice' => 'F001',
+            default => 'B001',
+        };
     }
 }
