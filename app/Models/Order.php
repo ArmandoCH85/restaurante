@@ -50,7 +50,9 @@ class Order extends Model
         'total',
         'notes',
         'billed',
-        'parent_id'
+        'parent_id',
+        'payment_method',
+        'payment_amount'
     ];
 
     /**
@@ -64,6 +66,7 @@ class Order extends Model
         'tax' => 'decimal:2',
         'discount' => 'decimal:2',
         'total' => 'decimal:2',
+        'payment_amount' => 'decimal:2',
         'billed' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime'
@@ -770,11 +773,8 @@ class Order extends Model
      */
     public function generateInvoice(string $invoiceType, string $series, int $customerId): ?Invoice
     {
-        if ($this->billed) {
-            return null; // Ya facturado
-        }
-
-        return DB::transaction(function () use ($invoiceType, $series, $customerId) {
+        try {
+            return DB::transaction(function () use ($invoiceType, $series, $customerId) {
             // 1. Obtener el siguiente número de factura de forma segura
             $lastInvoice = Invoice::where('series', $series)->lockForUpdate()->latest('number')->first();
             $nextNumber = $lastInvoice ? ((int) $lastInvoice->number) + 1 : 1;
@@ -787,8 +787,18 @@ class Order extends Model
 
             // Verificar que el cliente existe
             if (!$customer) {
+                \Illuminate\Support\Facades\Log::error('❌ Cliente no encontrado', ['customer_id' => $customerId]);
                 throw new \Exception("No se encontró el cliente con ID: {$customerId}");
             }
+
+            \Illuminate\Support\Facades\Log::info('📋 Generando factura', [
+                'order_id' => $this->id,
+                'invoice_type' => $invoiceType,
+                'series' => $series,
+                'customer_id' => $customerId,
+                'payment_method' => $this->payment_method,
+                'payment_amount' => $this->payment_amount
+            ]);
 
             // 4. Calcular correctamente subtotal e IGV desde el total
             $correctSubtotal = $this->total / 1.18; // Subtotal sin IGV
@@ -825,17 +835,28 @@ class Order extends Model
             ]);
         }
 
-            // 6. Actualizar la orden como facturada
-            $this->update(['billed' => true, 'status' => self::STATUS_COMPLETED]);
-
-            // 7. Actualizar el correlativo en la serie del documento
+            // 6. Actualizar el correlativo en la serie del documento
             $documentSeries = DocumentSeries::where('series', $series)->first();
             if ($documentSeries) {
                 $documentSeries->increment('current_number');
             }
 
+            \Illuminate\Support\Facades\Log::info('✅ Factura generada exitosamente', [
+                'invoice_id' => $invoice->id,
+                'series' => $invoice->series,
+                'number' => $invoice->number
+            ]);
+
         return $invoice;
         });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('❌ Error generando factura', [
+                'order_id' => $this->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
     /**

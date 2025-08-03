@@ -2483,6 +2483,26 @@ class PosInterface extends Page
                     $customerId = $defaultCustomer->id;
                 }
 
+                // Determinar método de pago y monto PRIMERO
+                $paymentMethod = 'cash';
+                $paymentAmount = $this->order->total;
+                
+                if ($data['split_payment'] ?? false) {
+                    // Pago dividido - usar "multiple" como método
+                    $paymentMethod = 'multiple';
+                    $paymentAmount = $this->order->total;
+                } else {
+                    // Pago simple
+                    $paymentMethod = $data['payment_method'] ?? 'cash';
+                    $paymentAmount = $data['payment_amount'] ?? $this->order->total;
+                }
+
+                // Actualizar orden con método de pago PERO SIN marcar como facturada aún
+                $this->order->update([
+                    'payment_method' => $paymentMethod,
+                    'payment_amount' => $paymentAmount,
+                ]);
+
                 // Obtener la serie correcta según el tipo de documento
                 $series = $this->getNextSeries($data['document_type'] ?? 'receipt');
                 
@@ -2497,16 +2517,14 @@ class PosInterface extends Page
                     throw new \Exception('No se pudo generar la factura');
                 }
 
-                // Determinar método de pago y monto
-                $paymentMethod = 'cash';
-                $paymentAmount = $this->order->total;
-                
+                // AHORA SÍ marcar orden como completada y facturada (después de generar factura exitosamente)
+                $this->order->update([
+                    'status' => 'completed',
+                    'billed' => true,
+                ]);
+
+                // Para pagos divididos, guardar detalles en las notas de la factura
                 if ($data['split_payment'] ?? false) {
-                    // Pago dividido - usar "multiple" como método
-                    $paymentMethod = 'multiple';
-                    $paymentAmount = $this->order->total;
-                    
-                    // Guardar detalles del pago dividido en las notas de la factura
                     $paymentDetails = [];
                     foreach ($data['payment_methods'] as $payment) {
                         $paymentDetails[] = $payment['method'] . ': S/ ' . number_format($payment['amount'], 2);
@@ -2514,19 +2532,26 @@ class PosInterface extends Page
                     $invoice->update([
                         'notes' => 'Pago dividido: ' . implode(', ', $paymentDetails)
                     ]);
-                } else {
-                    // Pago simple
-                    $paymentMethod = $data['payment_method'] ?? 'cash';
-                    $paymentAmount = $data['payment_amount'] ?? $this->order->total;
                 }
 
-                // Marcar orden como pagada/facturada
-                $this->order->update([
-                    'status' => 'completed',
-                    'billed' => true,
-                    'payment_method' => $paymentMethod,
-                    'payment_amount' => $paymentAmount,
-                ]);
+                // Registrar el pago en la tabla payments
+                if ($data['split_payment'] ?? false) {
+                    // Para pagos divididos, registrar cada método por separado
+                    foreach ($data['payment_methods'] as $payment) {
+                        $this->order->registerPayment(
+                            $payment['method'],
+                            (float) $payment['amount'],
+                            $payment['reference'] ?? null
+                        );
+                    }
+                } else {
+                    // Para pago simple, registrar un solo pago
+                    $this->order->registerPayment(
+                        $paymentMethod,
+                        $paymentAmount,
+                        $data['payment_reference'] ?? null
+                    );
+                }
 
                 // Liberar mesa automáticamente después del pago
                 if ($this->order->table) {
