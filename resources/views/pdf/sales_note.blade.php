@@ -169,6 +169,8 @@
                     'card' => 'Tarjeta',
                     'yape' => 'Yape',
                     'plin' => 'Plin',
+                    'pedidos_ya' => 'Pedidos Ya',
+                    'didi_food' => 'Didi Food',
                     default => $invoice->payment_method ?? 'Efectivo'
                 }) }}
             </p>

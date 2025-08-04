@@ -163,6 +163,8 @@
                     'debit_card' => 'Tarjeta de Débito',
                     'yape' => 'Yape',
                     'plin' => 'Plin',
+                    'pedidos_ya' => 'Pedidos Ya',
+                    'didi_food' => 'Didi Food',
                     'transfer' => 'Transferencia',
                     'bank_transfer' => 'Transferencia Bancaria',
                     'digital_wallet' => 'Billetera Digital',

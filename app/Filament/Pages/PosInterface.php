@@ -2082,6 +2082,8 @@ class PosInterface extends Page
                                         'card' => '💳 Tarjeta',
                                         'yape' => '📱 Yape',
                                         'plin' => '💙 Plin',
+                                        'pedidos_ya' => '🛵 Pedidos Ya',
+                                        'didi_food' => '🚗 Didi Food',
                                     ])
                                     ->default('cash')
                                     ->live()
@@ -2185,6 +2187,8 @@ class PosInterface extends Page
                                                 'card' => '💳 Tarjeta',
                                                 'yape' => '📱 Yape',
                                                 'plin' => '💙 Plin',
+                                                'pedidos_ya' => '🛵 Pedidos Ya',
+                                                'didi_food' => '🚗 Didi Food',
                                             ])
                                             ->required()
                                             ->columnSpan(1),

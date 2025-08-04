@@ -151,6 +151,8 @@ class PaymentMethodsWidget extends ChartWidget
             '💳 Tarjetas' => 0,
             '📱 Yape' => 0,
             '💙 Plin' => 0,
+            '🛵 Pedidos Ya' => 0,
+            '🚗 Didi Food' => 0,
             '🏦 Transferencias' => 0,
         ];
 
@@ -175,6 +177,10 @@ class PaymentMethodsWidget extends ChartWidget
                 $amounts['📱 Yape'] += $amount;
             } elseif ($payment->payment_method === 'plin') {
                 $amounts['💙 Plin'] += $amount;
+            } elseif ($payment->payment_method === 'pedidos_ya') {
+                $amounts['🛵 Pedidos Ya'] += $amount;
+            } elseif ($payment->payment_method === 'didi_food') {
+                $amounts['🚗 Didi Food'] += $amount;
             } elseif (in_array($payment->payment_method, ['bank_transfer', 'transfer'])) {
                 $amounts['🏦 Transferencias'] += $amount;
             }
