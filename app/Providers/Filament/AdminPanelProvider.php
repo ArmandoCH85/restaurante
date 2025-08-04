@@ -128,6 +128,14 @@ class AdminPanelProvider extends PanelProvider
                         --tailadmin-text: #1F2937;
                         --tailadmin-text-muted: #6B7280;
                         --tailadmin-border: #E5E7EB;
+
+                        /* 🎨 COLORES CORPORATIVOS PARA ICONOS */
+                        --corporate-primary: #2563EB;
+                        --corporate-secondary: #059669;
+                        --corporate-accent: #DC2626;
+                        --corporate-warning: #D97706;
+                        --corporate-info: #0891B2;
+                        --corporate-neutral: #6B7280;
                     }
 
                     /* 🏗️ SIDEBAR BASE - TAILADMIN FONDO BLANCO */
@@ -307,12 +315,71 @@ class AdminPanelProvider extends PanelProvider
                         color: var(--tailadmin-accent) !important;
                     }
 
-                    /* 🎨 ICONS */
+                    /* 🎨 ICONS CON COLORES CORPORATIVOS */
                     .fi-sidebar-item-icon {
                         width: 1.25rem !important;
                         height: 1.25rem !important;
                         flex-shrink: 0 !important;
-                        color: inherit !important;
+                        color: var(--corporate-neutral) !important;
+                        transition: color 0.3s ease !important;
+                    }
+
+                    /* MÉTODO ALTERNATIVO: Aplicar colores por posición en el DOM */
+                    .fi-sidebar-nav .fi-sidebar-item:nth-child(1) .fi-sidebar-item-icon {
+                        color: var(--corporate-primary) !important; /* Dashboard */
+                    }
+
+                    .fi-sidebar-nav .fi-sidebar-item:nth-child(2) .fi-sidebar-item-icon {
+                        color: var(--corporate-secondary) !important; /* POS */
+                    }
+
+                    .fi-sidebar-nav .fi-sidebar-item:nth-child(3) .fi-sidebar-item-icon {
+                        color: var(--corporate-secondary) !important; /* Mapa Mesas */
+                    }
+
+                    /* ICONOS ESPECÍFICOS CON COLORES CORPORATIVOS - RUTAS REALES DE FILAMENT */
+
+                    /* 🔵 AZUL CORPORATIVO - Dashboard y Admin */
+                    .fi-sidebar-item[href*="/admin/dashboard"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="/admin"] .fi-sidebar-item-icon:first-child {
+                        color: var(--corporate-primary) !important;
+                    }
+
+                    /* 🟢 VERDE CORPORATIVO - POS y Operaciones de Caja */
+                    .fi-sidebar-item[href*="pos-interface"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="operaciones-caja"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="mapa-mesas"] .fi-sidebar-item-icon {
+                        color: var(--corporate-secondary) !important;
+                    }
+
+                    /* 🟠 NARANJA CORPORATIVO - Reportes */
+                    .fi-sidebar-item[href*="reportes"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="reports"] .fi-sidebar-item-icon {
+                        color: var(--corporate-warning) !important;
+                    }
+
+                    /* 🔷 CIAN CORPORATIVO - Configuración y Usuarios */
+                    .fi-sidebar-item[href*="configuracion"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="users"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="shield/roles"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="company-config"] .fi-sidebar-item-icon {
+                        color: var(--corporate-info) !important;
+                    }
+
+                    /* 🔴 ROJO CORPORATIVO - Inventario y Productos */
+                    .fi-sidebar-item[href*="products"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="product-categories"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="ingredients"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="inventario"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="warehouse"] .fi-sidebar-item-icon {
+                        color: var(--corporate-accent) !important;
+                    }
+
+                    /* 🟣 PÚRPURA CORPORATIVO - Facturación y Ventas */
+                    .fi-sidebar-item[href*="document-series"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="invoices"] .fi-sidebar-item-icon,
+                    .fi-sidebar-item[href*="customers"] .fi-sidebar-item-icon {
+                        color: #7C3AED !important;
                     }
 
                     /* 🏷️ LABELS */
@@ -330,7 +397,81 @@ class AdminPanelProvider extends PanelProvider
                         --tailadmin-text-muted: #6B7280;
                         --tailadmin-border: #E5E7EB;
                     }
-                </style>'
+                </style>
+
+                <script>
+                    /* 📱 SIDEBAR COLAPSADO POR DEFECTO - SEGÚN DOCUMENTACIÓN FILAMENT */
+                    document.addEventListener("DOMContentLoaded", function() {
+                        // Verificar si Alpine.js está disponible
+                        if (typeof Alpine !== "undefined" && Alpine.store) {
+                            // Usar el store de Alpine.js para colapsar el sidebar
+                            const sidebarStore = Alpine.store("sidebar");
+                            if (sidebarStore && typeof sidebarStore.collapse === "function") {
+                                // Colapsar sidebar al cargar la página
+                                sidebarStore.collapse();
+                            }
+                        }
+
+                        // Método alternativo usando clases CSS
+                        setTimeout(() => {
+                            const sidebar = document.querySelector(".fi-sidebar");
+                            const body = document.body;
+
+                            if (sidebar && body) {
+                                // Agregar clase de sidebar colapsado
+                                body.classList.add("fi-sidebar-collapsed");
+                                sidebar.classList.add("fi-collapsed");
+
+                                // Trigger evento para notificar el cambio
+                                window.dispatchEvent(new CustomEvent("sidebar-collapsed", {
+                                    detail: { collapsed: true }
+                                }));
+                            }
+
+                            // 🎨 APLICAR COLORES CORPORATIVOS A ICONOS
+                            applyIconColors();
+                        }, 100);
+                    });
+
+                    /* 🎨 FUNCIÓN PARA APLICAR COLORES CORPORATIVOS */
+                    function applyIconColors() {
+                        const colorMap = {
+                            "dashboard": "#2563EB",      // Azul corporativo
+                            "pos-interface": "#059669",   // Verde corporativo
+                            "mapa-mesas": "#059669",      // Verde corporativo
+                            "operaciones-caja": "#059669", // Verde corporativo
+                            "reportes": "#D97706",        // Naranja corporativo
+                            "products": "#DC2626",        // Rojo corporativo
+                            "product-categories": "#DC2626", // Rojo corporativo
+                            "ingredients": "#DC2626",     // Rojo corporativo
+                            "users": "#0891B2",          // Cian corporativo
+                            "shield/roles": "#0891B2",   // Cian corporativo
+                            "configuracion": "#0891B2",  // Cian corporativo
+                            "document-series": "#7C3AED", // Púrpura corporativo
+                            "customers": "#7C3AED"       // Púrpura corporativo
+                        };
+
+                        // Aplicar colores a los iconos del sidebar
+                        document.querySelectorAll(".fi-sidebar-item").forEach(item => {
+                            const href = item.getAttribute("href") || "";
+                            const icon = item.querySelector(".fi-sidebar-item-icon");
+
+                            if (icon) {
+                                // Buscar coincidencia en el mapa de colores
+                                for (const [route, color] of Object.entries(colorMap)) {
+                                    if (href.includes(route)) {
+                                        icon.style.color = color + " !important";
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+
+                    /* 🔄 REAPLICA COLORES CUANDO CAMBIA LA NAVEGACIÓN */
+                    document.addEventListener("livewire:navigated", applyIconColors);
+                    document.addEventListener("turbo:load", applyIconColors);
+                </script>'
             )
 
             ->plugins([
