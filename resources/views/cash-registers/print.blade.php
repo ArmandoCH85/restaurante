@@ -411,6 +411,76 @@
                 </div>
             </div>
 
+            <!-- Vouchers de Tarjeta -->
+            @if($isSupervisor && !$cashRegister->is_active)
+            @php
+                $cardPayments = $cashRegister->payments()
+                    ->where('payment_method', \App\Models\Payment::METHOD_CARD)
+                    ->whereNotNull('reference_number')
+                    ->where('reference_number', '!=', '')
+                    ->orderBy('payment_datetime', 'desc')
+                    ->get();
+            @endphp
+            @if($cardPayments->count() > 0)
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Vouchers de Tarjeta
+                </h3>
+                
+                <!-- Resumen de vouchers -->
+                <div class="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-sm font-medium text-blue-800">Total Vouchers</p>
+                            <p class="text-xl font-bold text-blue-900">{{ $cardPayments->count() }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-blue-800">Monto Total</p>
+                            <p class="text-xl font-bold text-blue-900">S/ {{ number_format($cardPayments->sum('amount'), 2) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-blue-800">Tipo</p>
+                            <p class="text-sm text-blue-900">
+                                Tarjeta: {{ $cardPayments->count() }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista detallada de vouchers -->
+                <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border-b border-gray-200 p-3 text-left font-semibold">Tipo</th>
+                                <th class="border-b border-gray-200 p-3 text-right font-semibold">Monto</th>
+                                <th class="border-b border-gray-200 p-3 text-center font-semibold">Fecha/Hora</th>
+                                <th class="border-b border-gray-200 p-3 text-left font-semibold">Código Voucher</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($cardPayments as $payment)
+                            <tr class="hover:bg-gray-50">
+                                <td class="border-b border-gray-200 p-3">
+                                    <span class="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                        Tarjeta
+                                    </span>
+                                </td>
+                                <td class="border-b border-gray-200 p-3 text-right font-semibold">S/ {{ number_format($payment->amount, 2) }}</td>
+                                <td class="border-b border-gray-200 p-3 text-center text-sm">{{ $payment->payment_datetime->format('d/m/Y H:i') }}</td>
+                                <td class="border-b border-gray-200 p-3 font-mono text-sm">{{ $payment->reference_number }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
+            @endif
+
             <!-- Aprobación -->
             @if(!$cashRegister->is_active)
             <div class="mb-8">

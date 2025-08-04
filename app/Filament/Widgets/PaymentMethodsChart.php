@@ -50,8 +50,7 @@ class PaymentMethodsChart extends ChartWidget
                 ->mapWithKeys(function ($item) {
                     $methodName = match($item->payment_method) {
                         Payment::METHOD_CASH => 'Efectivo',
-                        Payment::METHOD_CREDIT_CARD => 'Tarjeta de Crédito',
-                        Payment::METHOD_DEBIT_CARD => 'Tarjeta de Débito',
+                        Payment::METHOD_CARD => 'Tarjeta',
                         Payment::METHOD_BANK_TRANSFER => 'Transferencia',
                         Payment::METHOD_DIGITAL_WALLET => 'Billetera Digital',
                         default => $item->payment_method,

@@ -52,7 +52,7 @@ class UpdateCashRegisterForVoidedPayment
         // Actualizar los totales según el método de pago (restar el monto)
         if ($payment->payment_method === Payment::METHOD_CASH) {
             $cashRegister->cash_sales -= $payment->amount;
-        } elseif (in_array($payment->payment_method, [Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])) {
+        } elseif ($payment->payment_method === Payment::METHOD_CARD) {
             $cashRegister->card_sales -= $payment->amount;
         } else {
             $cashRegister->other_sales -= $payment->amount;

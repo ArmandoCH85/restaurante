@@ -328,7 +328,7 @@ class PointOfSale extends Component
                 $orderDetail->product_id = $productId;
                 $orderDetail->quantity = $item['quantity'];
                 $orderDetail->unit_price = $item['price'];
-                $orderDetail->total_price = $item['subtotal'];
+                $orderDetail->subtotal = $item['subtotal'];
                 $orderDetail->notes = $item['notes'] ?? null;
                 $orderDetail->status = 'pending';
                 $orderDetail->save();

@@ -444,12 +444,29 @@ class PosInterface extends Page
 
                     // Obtener datos de la orden con productos
                     $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
-                    
+
+                    // Recalcular totales para asegurar valores actualizados
+                    $order->recalculateTotals();
+
+                    // Usar los totales ya calculados del modelo Order
+                    $subtotal = $order->subtotal;
+                    $tax = $order->tax;
+                    $total = $order->total;
+
+                    // DEBUG: Log temporal para verificar valores
+                    \Log::info('DEBUG Pre-Bill Values', [
+                        'order_id' => $order->id,
+                        'order_details_sum' => $order->orderDetails->sum('subtotal'),
+                        'subtotal' => $subtotal,
+                        'tax' => $tax,
+                        'total' => $total
+                    ]);
+
                     return view('filament.modals.pre-bill-content', [
                         'order' => $order,
-                        'subtotal' => $this->subtotal,
-                        'tax' => $this->tax,
-                        'total' => $this->total
+                        'subtotal' => $subtotal,
+                        'tax' => $tax,
+                        'total' => $total
                     ]);
                 })
                 ->modalSubmitAction(false)
@@ -1593,6 +1610,9 @@ class PosInterface extends Page
                 ]);
             }
 
+            // Recalcular totales después de crear todos los detalles
+            $order->recalculateTotals();
+
             DB::commit();
             return $order;
 
@@ -2130,6 +2150,16 @@ class PosInterface extends Page
                                     ->columnSpan(1),
                             ]),
 
+                            // Campo de voucher para pagos con tarjeta
+                            Forms\Components\TextInput::make('voucher_code')
+                                ->label('🎫 Código de Voucher')
+                                ->placeholder('Ingrese el código del voucher de la transacción')
+                                ->helperText('Código único generado por el terminal POS')
+                                ->visible(fn(Get $get) => $get('payment_method') === 'card')
+                                ->required(fn(Get $get) => $get('payment_method') === 'card')
+                                ->maxLength(50)
+                                ->live(),
+
                             // Botones de denominaciones compactos
                             Forms\Components\Actions::make([
                                 Forms\Components\Actions\Action::make('exact')
@@ -2191,6 +2221,7 @@ class PosInterface extends Page
                                                 'didi_food' => '🚗 Didi Food',
                                             ])
                                             ->required()
+                                            ->live()
                                             ->columnSpan(1),
 
                                         Forms\Components\TextInput::make('amount')
@@ -2240,6 +2271,16 @@ class PosInterface extends Page
                                             ->live()
                                             ->columnSpan(1),
                                     ]),
+
+                                    // Campo de voucher para pagos con tarjeta en pago dividido
+                                    Forms\Components\TextInput::make('voucher_code')
+                                        ->label('🎫 Código de Voucher')
+                                        ->placeholder('Ingrese el código del voucher de la transacción')
+                                        ->helperText('Código único generado por el terminal POS')
+                                        ->visible(fn(Get $get) => $get('method') === 'card')
+                                        ->required(fn(Get $get) => $get('method') === 'card')
+                                        ->maxLength(50)
+                                        ->live(),
                                 ])
                                 ->defaultItems(1)
                                 ->addActionLabel('+ Agregar Método de Pago')
@@ -2542,18 +2583,33 @@ class PosInterface extends Page
                 if ($data['split_payment'] ?? false) {
                     // Para pagos divididos, registrar cada método por separado
                     foreach ($data['payment_methods'] as $payment) {
+                        // Para pagos con tarjeta, usar el voucher_code como referencia
+                        $reference = null;
+                        if ($payment['method'] === 'card' && !empty($payment['voucher_code'])) {
+                            $reference = $payment['voucher_code'];
+                        } else {
+                            $reference = $payment['reference'] ?? null;
+                        }
+                        
                         $this->order->registerPayment(
                             $payment['method'],
                             (float) $payment['amount'],
-                            $payment['reference'] ?? null
+                            $reference
                         );
                     }
                 } else {
                     // Para pago simple, registrar un solo pago
+                    $reference = null;
+                    if ($paymentMethod === 'card' && !empty($data['voucher_code'])) {
+                        $reference = $data['voucher_code'];
+                    } else {
+                        $reference = $data['payment_reference'] ?? null;
+                    }
+                    
                     $this->order->registerPayment(
                         $paymentMethod,
                         $paymentAmount,
-                        $data['payment_reference'] ?? null
+                        $reference
                     );
                 }
 
@@ -2812,12 +2868,15 @@ class PosInterface extends Page
 
                 // Obtener datos de la orden con productos
                 $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
-                
+
+                // Recalcular totales para asegurar valores actualizados
+                $order->recalculateTotals();
+
                 return view('filament.modals.pre-bill-content', [
                     'order' => $order,
-                    'subtotal' => $order->subtotal ?? $this->subtotal,
-                    'tax' => $order->tax ?? $this->tax,
-                    'total' => $order->total ?? $this->total
+                    'subtotal' => $order->subtotal,
+                    'tax' => $order->tax,
+                    'total' => $order->total
                 ]);
             })
             ->modalSubmitAction(false)

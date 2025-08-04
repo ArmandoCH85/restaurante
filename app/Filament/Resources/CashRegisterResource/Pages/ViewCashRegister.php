@@ -142,157 +142,267 @@ class ViewCashRegister extends ViewRecord
 
         return $infolist
             ->schema([
-                Section::make('Información General')
+                // Header con información principal mejorado
+                Section::make('📋 Información General')
+                    ->description('Datos principales de la operación de caja')
+                    ->icon('heroicon-o-information-circle')
                     ->schema([
-                        Split::make([
-                            Grid::make(2)
-                                ->schema([
-                                    Group::make([
-                                        TextEntry::make('id')
-                                            ->label('ID de Caja')
-                                            ->weight(FontWeight::Bold),
-                                        TextEntry::make('status')
-                                            ->label('Estado')
-                                            ->badge()
-                                            ->color(fn (string $state): string => $state === 'Abierta' ? 'success' : 'danger'),
-                                    ]),
-                                    Group::make([
-                                        TextEntry::make('opening_datetime')
-                                            ->label('Fecha de Apertura')
-                                            ->dateTime('d/m/Y H:i'),
-                                        TextEntry::make('closing_datetime')
-                                            ->label('Fecha de Cierre')
-                                            ->dateTime('d/m/Y H:i')
-                                            ->placeholder('No cerrada'),
-                                    ]),
-                                ]),
-                            Grid::make(2)
-                                ->schema([
-                                    Group::make([
-                                        TextEntry::make('openedBy.name')
-                                            ->label('Abierto por'),
-                                        TextEntry::make('closedBy.name')
-                                            ->label('Cerrado por')
-                                            ->placeholder('No cerrada'),
-                                    ]),
-                                    Group::make([
-                                        TextEntry::make('opening_amount')
-                                            ->label('Monto Inicial')
-                                            ->money('PEN'),
-                                        TextEntry::make('observations')
-                                            ->label('Observaciones')
-                                            ->placeholder('Sin observaciones'),
-                                    ]),
-                                ]),
-                        ]),
-                    ]),
+                        // Primera fila: Estado de la operación (más ancho)
+                        Grid::make(['default' => 1, 'md' => 3, 'lg' => 4])
+                            ->schema([
+                                TextEntry::make('id')
+                                    ->label('🆔 ID de Caja')
+                                    ->badge()
+                                    ->size('xl')
+                                    ->color('primary')
+                                    ->icon('heroicon-o-hashtag')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('status')
+                                    ->label('📊 Estado')
+                                    ->state(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
+                                    ->badge()
+                                    ->size('xl')
+                                    ->color(fn ($record) => $record->is_active ? 'success' : 'danger')
+                                    ->icon(fn ($record) => $record->is_active ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('opening_amount')
+                                    ->label('💰 Monto Inicial')
+                                    ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                    ->badge()
+                                    ->size('xl')
+                                    ->color('info')
+                                    ->icon('heroicon-o-banknotes')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('opening_datetime')
+                                    ->label('📅 Apertura')
+                                    ->dateTime('d/m/Y H:i')
+                                    ->badge()
+                                    ->color('info')
+                                    ->icon('heroicon-o-calendar-days'),
+                            ]),
+                        
+                        // Segunda fila: Personal y fechas
+                        Grid::make(['default' => 1, 'md' => 2, 'lg' => 4])
+                            ->schema([
+                                TextEntry::make('openedBy.name')
+                                    ->label('👤 Abierto por')
+                                    ->badge()
+                                    ->color('success')
+                                    ->icon('heroicon-o-user-circle'),
+                                TextEntry::make('closedBy.name')
+                                    ->label('👤 Cerrado por')
+                                    ->placeholder('Aún abierta')
+                                    ->badge()
+                                    ->color('warning')
+                                    ->icon('heroicon-o-user-circle'),
+                                TextEntry::make('closing_datetime')
+                                    ->label('📅 Cierre')
+                                    ->dateTime('d/m/Y H:i')
+                                    ->placeholder('Aún abierta')
+                                    ->badge()
+                                    ->color('warning')
+                                    ->icon('heroicon-o-calendar-days'),
+                                TextEntry::make('duration')
+                                    ->label('⏱️ Duración')
+                                    ->state(function ($record) {
+                                        if ($record->is_active) {
+                                            $duration = now()->diff($record->opening_datetime);
+                                            return $duration->format('%h h %i min');
+                                        } else {
+                                            $duration = $record->closing_datetime->diff($record->opening_datetime);
+                                            return $duration->format('%h h %i min');
+                                        }
+                                    })
+                                    ->badge()
+                                    ->color('gray')
+                                    ->icon('heroicon-o-clock'),
+                            ]),
+                        
+                        // Observaciones mejoradas
+                        TextEntry::make('observations')
+                            ->label('📝 Observaciones')
+                            ->state(function ($record) {
+                                if (!$record->observations) {
+                                    return $record->is_active ? 'Sin observaciones' : 'Sin observaciones';
+                                }
+                                
+                                // Si contiene información de denominaciones, formatearla mejor
+                                if (str_contains($record->observations, 'Desglose de denominaciones')) {
+                                    return $this->formatObservations($record->observations);
+                                }
+                                
+                                return $record->observations;
+                            })
+                            ->formatStateUsing(fn ($state) => $state)
+                            ->extraAttributes(['style' => 'white-space: pre-line; font-family: monospace; font-size: 0.9rem; line-height: 1.4; max-width: 100%; word-wrap: break-word;'])
+                            ->icon('heroicon-o-document-text')
+                            ->placeholder('Sin observaciones')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible()
+                    ->persistCollapsed(),
 
-                Section::make('Resumen de Ventas')
+                // Resumen de Ventas con mejor diseño
+                Section::make('💰 Resumen de Ventas')
+                    ->description($isSupervisor ? 'Desglose detallado de ventas por método de pago' : 'Información disponible solo para supervisores')
+                    ->icon('heroicon-o-chart-bar')
                     ->schema([
-                        Grid::make(4)
+                        // Métricas principales en cards
+                        Grid::make(['default' => 1, 'sm' => 2, 'lg' => 4])
                             ->schema([
                                 TextEntry::make('cash_sales')
-                                    ->label('Ventas en Efectivo')
-                                    ->state(function ($record) use ($isSupervisor) {
+                                    ->label('💵 Efectivo')
+                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
                                         if ($isSupervisor) {
-                                            return $record->cash_sales;
+                                            return 'S/ ' . number_format($state ?? 0, 2);
                                         } else {
-                                            return 'Información reservada';
+                                            return 'Restringido';
                                         }
                                     })
-                                    ->money(fn () => $isSupervisor ? 'PEN' : null)
+                                    ->badge()
+                                    ->color($isSupervisor ? 'success' : 'gray')
+                                    ->icon('heroicon-o-banknotes')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('card_sales')
-                                    ->label('Ventas con Tarjeta')
-                                    ->state(function ($record) use ($isSupervisor) {
+                                    ->label('💳 Tarjetas')
+                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
                                         if ($isSupervisor) {
-                                            return $record->card_sales;
+                                            return 'S/ ' . number_format($state ?? 0, 2);
                                         } else {
-                                            return 'Información reservada';
+                                            return 'Restringido';
                                         }
                                     })
-                                    ->money(fn () => $isSupervisor ? 'PEN' : null),
+                                    ->badge()
+                                    ->color($isSupervisor ? 'info' : 'gray')
+                                    ->icon('heroicon-o-credit-card')
+                                    ->weight(FontWeight::Bold),
                                 TextEntry::make('other_sales')
-                                    ->label('Otras Ventas')
-                                    ->state(function ($record) use ($isSupervisor) {
+                                    ->label('🔄 Otros')
+                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
                                         if ($isSupervisor) {
-                                            return $record->other_sales;
+                                            return 'S/ ' . number_format($state ?? 0, 2);
                                         } else {
-                                            return 'Información reservada';
+                                            return 'Restringido';
                                         }
                                     })
-                                    ->money(fn () => $isSupervisor ? 'PEN' : null),
+                                    ->badge()
+                                    ->color($isSupervisor ? 'warning' : 'gray')
+                                    ->icon('heroicon-o-device-phone-mobile')
+                                    ->weight(FontWeight::Bold),
                                 TextEntry::make('total_sales')
-                                    ->label('Ventas Totales')
-                                    ->state(function ($record) use ($isSupervisor) {
+                                    ->label('📊 Total')
+                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
                                         if ($isSupervisor) {
-                                            return $record->total_sales;
+                                            return 'S/ ' . number_format($state ?? 0, 2);
                                         } else {
-                                            return 'Información reservada';
+                                            return 'Restringido';
                                         }
                                     })
-                                    ->money(fn () => $isSupervisor ? 'PEN' : null)
-                                    ->weight(FontWeight::Bold)
-                                    ->color('success'),
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color($isSupervisor ? 'primary' : 'gray')
+                                    ->icon('heroicon-o-calculator')
+                                    ->weight(FontWeight::Bold),
                             ]),
+                        
+                        // Mensaje para usuarios no supervisores
                         TextEntry::make('sales_info')
-                            ->label('Nota Importante')
-                            ->state('Esta información solo es visible para supervisores')
+                            ->label('🔒 Acceso Restringido')
+                            ->state('Esta información financiera solo es visible para supervisores y administradores del sistema.')
                             ->visible(!$isSupervisor)
                             ->color('warning')
-                            ->icon('heroicon-o-information-circle'),
-                    ]),
-
-                Section::make('Información de Cierre')
-                    ->schema([
-                        Grid::make(3)
-                            ->schema([
-                                TextEntry::make('expected_amount')
-                                    ->label('Monto Esperado')
-                                    ->money('PEN')
-                                    ->visible($isSupervisor),
-                                TextEntry::make('actual_amount')
-                                    ->label('Monto Final')
-                                    ->money('PEN'),
-                                TextEntry::make('difference')
-                                    ->label('Diferencia')
-                                    ->money('PEN')
-                                    ->color(fn ($record) => $record->difference < 0 ? 'danger' : ($record->difference > 0 ? 'warning' : 'success'))
-                                    ->visible($isSupervisor),
-                            ]),
-                        Grid::make(2)
-                            ->schema([
-                                TextEntry::make('reconciliationStatus')
-                                    ->label('Estado de Aprobación')
-                                    ->badge()
-                                    ->color(fn ($record) => match($record->reconciliationStatus) {
-                                        'Aprobada' => 'success',
-                                        'Rechazada' => 'danger',
-                                        default => 'warning',
-                                    })
-                                    ->icon(fn ($record) => match($record->reconciliationStatus) {
-                                        'Aprobada' => 'heroicon-o-check-circle',
-                                        'Rechazada' => 'heroicon-o-x-circle',
-                                        default => 'heroicon-o-clock',
-                                    })
-                                    ->visible($isSupervisor),
-                                TextEntry::make('approvedBy.name')
-                                    ->label('Revisado por')
-                                    ->placeholder('Pendiente de revisión')
-                                    ->visible($isSupervisor),
-                            ]),
-                        TextEntry::make('approval_datetime')
-                            ->label('Fecha de Revisión')
-                            ->dateTime('d/m/Y H:i')
-                            ->placeholder('Pendiente de revisión')
-                            ->visible(fn ($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes && $record->approval_datetime))),
-                        TextEntry::make('approval_notes')
-                            ->label(fn ($record) => $record->is_approved ? 'Notas de Aprobación' : 'Motivo del Rechazo')
-                            ->placeholder('Sin notas')
-                            ->color(fn ($record) => !$record->is_approved && $record->approval_notes ? 'danger' : 'gray')
-                            ->visible(fn ($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes))),
+                            ->icon('heroicon-o-shield-exclamation')
+                            ->badge()
+                            ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => !$record->is_active),
+                    ->collapsible()
+                    ->collapsed(!$isSupervisor),
+
+                // Información de Cierre mejorada
+                Section::make('🔒 Información de Cierre')
+                    ->description('Detalles del proceso de cierre y reconciliación')
+                    ->icon('heroicon-o-lock-closed')
+                    ->schema([
+                        Split::make([
+                            // Montos principales
+                            Section::make('Montos de Cierre')
+                                ->icon('heroicon-o-calculator')
+                                ->schema([
+                                    Grid::make(['default' => 1, 'md' => 3])
+                                        ->schema([
+                                            TextEntry::make('expected_amount')
+                                                ->label('💰 Esperado')
+                                                ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                                ->badge()
+                                                ->color('info')
+                                                ->icon('heroicon-o-chart-bar-square')
+                                                ->visible($isSupervisor),
+                                            TextEntry::make('actual_amount')
+                                                ->label('💵 Contado')
+                                                ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                                ->badge()
+                                                ->color('primary')
+                                                ->icon('heroicon-o-banknotes'),
+                                            TextEntry::make('difference')
+                                                ->label('⚖️ Diferencia')
+                                                ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                                ->badge()
+                                                ->size('lg')
+                                                ->color(fn ($record) => $record->difference < 0 ? 'danger' : ($record->difference > 0 ? 'warning' : 'success'))
+                                                ->icon(fn ($record) => $record->difference < 0 ? 'heroicon-o-arrow-trending-down' : ($record->difference > 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-check-circle'))
+                                                ->visible($isSupervisor),
+                                        ]),
+                                ]),
+                            
+                            // Estado de aprobación
+                            Section::make('Estado de Revisión')
+                                ->icon('heroicon-o-clipboard-document-check')
+                                ->schema([
+                                    TextEntry::make('reconciliationStatus')
+                                        ->label('Estado')
+                                        ->badge()
+                                        ->size('lg')
+                                        ->color(fn ($record) => match($record->reconciliationStatus) {
+                                            'Aprobada' => 'success',
+                                            'Rechazada' => 'danger',
+                                            default => 'warning',
+                                        })
+                                        ->icon(fn ($record) => match($record->reconciliationStatus) {
+                                            'Aprobada' => 'heroicon-o-check-circle',
+                                            'Rechazada' => 'heroicon-o-x-circle',
+                                            default => 'heroicon-o-clock',
+                                        })
+                                        ->visible($isSupervisor),
+                                    TextEntry::make('approvedBy.name')
+                                        ->label('Revisado por')
+                                        ->placeholder('Pendiente de revisión')
+                                        ->badge()
+                                        ->color('gray')
+                                        ->icon('heroicon-o-user-circle')
+                                        ->visible($isSupervisor),
+                                    TextEntry::make('approval_datetime')
+                                        ->label('Fecha de Revisión')
+                                        ->dateTime('d/m/Y H:i')
+                                        ->placeholder('Pendiente de revisión')
+                                        ->badge()
+                                        ->color('gray')
+                                        ->icon('heroicon-o-calendar-days')
+                                        ->visible(fn ($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes && $record->approval_datetime))),
+                                ])
+                                ->grow(false),
+                        ])->from('md'),
+                        
+                        // Notas de aprobación/rechazo
+                        TextEntry::make('approval_notes')
+                            ->label(fn ($record) => $record->is_approved ? '📝 Notas de Aprobación' : '❌ Motivo del Rechazo')
+                            ->placeholder('Sin notas adicionales')
+                            ->color(fn ($record) => !$record->is_approved && $record->approval_notes ? 'danger' : 'gray')
+                            ->icon(fn ($record) => $record->is_approved ? 'heroicon-o-document-check' : 'heroicon-o-exclamation-triangle')
+                            ->visible(fn ($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes)))
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn ($record) => !$record->is_active)
+                    ->collapsible(),
 
                 Section::make('Reconciliación Final')
                     ->description('Detalles del proceso de reconciliación y aprobación')
@@ -368,34 +478,130 @@ class ViewCashRegister extends ViewRecord
                     ])
                     ->visible($isSupervisor),
 
-                Section::make('Métodos de Pago')
+                // Métodos de Pago mejorados
+                Section::make('💳 Métodos de Pago')
+                    ->description('Desglose de pagos por método utilizado')
+                    ->icon('heroicon-o-credit-card')
                     ->schema([
-                        Grid::make(3)
+                        Grid::make(['default' => 1, 'md' => 3])
                             ->schema([
                                 TextEntry::make('payments_count_cash')
-                                    ->label('Pagos en Efectivo')
+                                    ->label('💵 Efectivo')
                                     ->state(function ($record) {
                                         return $record->payments()->where('payment_method', Payment::METHOD_CASH)->count();
-                                    }),
+                                    })
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color('success')
+                                    ->icon('heroicon-o-banknotes'),
                                 TextEntry::make('payments_count_card')
-                                    ->label('Pagos con Tarjeta')
+                                    ->label('💳 Tarjeta')
                                     ->state(function ($record) {
-                                        return $record->payments()->whereIn('payment_method', [
-                                            Payment::METHOD_CREDIT_CARD,
-                                            Payment::METHOD_DEBIT_CARD
-                                        ])->count();
-                                    }),
+                                        return $record->payments()->where('payment_method', Payment::METHOD_CARD)->count();
+                                    })
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color('info')
+                                    ->icon('heroicon-o-credit-card'),
                                 TextEntry::make('payments_count_other')
-                                    ->label('Otros Pagos')
+                                    ->label('🔄 Otros')
                                     ->state(function ($record) {
                                         return $record->payments()->whereNotIn('payment_method', [
                                             Payment::METHOD_CASH,
-                                            Payment::METHOD_CREDIT_CARD,
-                                            Payment::METHOD_DEBIT_CARD
+                                            Payment::METHOD_CARD
                                         ])->count();
-                                    }),
+                                    })
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color('warning')
+                                    ->icon('heroicon-o-ellipsis-horizontal-circle'),
                             ]),
-                    ]),
+                    ])
+                    ->collapsible(),
+
+                // Vouchers de Tarjeta mejorados
+                Section::make('🧾 Vouchers de Tarjeta')
+                    ->description('Detalle de transacciones con tarjeta y sus códigos de voucher')
+                    ->icon('heroicon-o-document-text')
+                    ->schema([
+                        Split::make([
+                            // Lista de vouchers
+                            Section::make('Transacciones')
+                                ->icon('heroicon-o-list-bullet')
+                                ->schema([
+                                    TextEntry::make('card_vouchers')
+                                        ->label('📋 Vouchers Registrados')
+                                        ->state(function ($record) {
+                                            $cardPayments = $record->payments()
+                                                ->where('payment_method', Payment::METHOD_CARD)
+                                                ->whereNotNull('reference_number')
+                                                ->where('reference_number', '!=', '')
+                                                ->orderBy('payment_datetime', 'desc')
+                                                ->get();
+
+                                            if ($cardPayments->isEmpty()) {
+                                                return '❌ No hay transacciones con voucher registradas';
+                                            }
+
+                                            $voucherList = [];
+                                            foreach ($cardPayments as $payment) {
+                                                $paymentMethod = 'Tarjeta';
+                                                $datetime = $payment->payment_datetime->format('d/m/Y H:i');
+                                                $amount = 'S/ ' . number_format($payment->amount, 2);
+                                                $voucher = $payment->reference_number;
+                                                
+                                                $voucherList[] = "🎫 {$voucher} → {$amount} ({$datetime})";
+                                            }
+
+                                            return implode("\n", $voucherList);
+                                        })
+                                        ->formatStateUsing(fn ($state) => $state)
+                                        ->extraAttributes(['style' => 'white-space: pre-line; font-family: monospace; font-size: 0.875rem;'])
+                                        ->placeholder('Sin vouchers registrados')
+                                        ->color('gray')
+                                        ->icon('heroicon-o-ticket'),
+                                ]),
+                            
+                            // Resumen
+                            Section::make('Resumen')
+                                ->icon('heroicon-o-chart-pie')
+                                ->schema([
+                                    Grid::make(['default' => 1, 'lg' => 2])
+                                        ->schema([
+                                            TextEntry::make('voucher_count')
+                                                ->label('📊 Total Vouchers')
+                                                ->state(function ($record) {
+                                                    return $record->payments()
+                                                        ->where('payment_method', Payment::METHOD_CARD)
+                                                        ->whereNotNull('reference_number')
+                                                        ->where('reference_number', '!=', '')
+                                                        ->count();
+                                                })
+                                                ->badge()
+                                                ->size('lg')
+                                                ->color('info')
+                                                ->icon('heroicon-o-hashtag'),
+                                            TextEntry::make('voucher_total')
+                                                ->label('💰 Monto Total')
+                                                ->state(function ($record) {
+                                                    $total = $record->payments()
+                                                        ->where('payment_method', Payment::METHOD_CARD)
+                                                        ->whereNotNull('reference_number')
+                                                        ->where('reference_number', '!=', '')
+                                                        ->sum('amount');
+                                                    return 'S/ ' . number_format($total, 2);
+                                                })
+                                                ->badge()
+                                                ->size('lg')
+                                                ->color('success')
+                                                ->icon('heroicon-o-currency-dollar'),
+                                        ]),
+                                ])
+                                ->grow(false),
+                        ])->from('lg'),
+                    ])
+                     ->visible(fn ($record) => $isSupervisor && !$record->is_active)
+                     ->collapsible(),
             ]);
     }
 
@@ -404,4 +610,79 @@ class ViewCashRegister extends ViewRecord
         $user = Auth::user();
         return $user && $user->hasAnyRole(['cashier', 'admin', 'super_admin', 'manager']);
     }
+
+    /**
+      * Formatear observaciones para mostrar mejor el desglose de denominaciones
+      */
+     protected function formatObservations(string $observations): string
+     {
+         // Si contiene desglose de denominaciones, formatearlo mejor
+         if (str_contains($observations, 'Desglose de denominaciones')) {
+             $formatted = [];
+             
+             // Separar por secciones principales
+             if (preg_match('/Cierre de caja - Desglose de denominaciones:\s*(.+?)Total contado:\s*(.+?)$/s', $observations, $matches)) {
+                 $formatted[] = "💰 DESGLOSE DE DENOMINACIONES";
+                 $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+                 
+                 $content = $matches[1];
+                 $total = trim($matches[2]);
+                 
+                 // Procesar billetes
+                 if (preg_match('/Billetes:\s*(.+?)(?=Monedas:|$)/s', $content, $billetes)) {
+                     $formatted[] = "";
+                     $formatted[] = "💵 BILLETES:";
+                     $billetesData = trim($billetes[1]);
+                     $items = preg_split('/\s*\|\s*/', $billetesData);
+                     
+                     foreach ($items as $item) {
+                         if (preg_match('/S\/(\d+):\s*(\d+)/', $item, $match)) {
+                             $denomination = $match[1];
+                             $quantity = $match[2];
+                             $subtotal = $denomination * $quantity;
+                             
+                             if ($quantity > 0) {
+                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ {$subtotal}.00";
+                             } else {
+                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades";
+                             }
+                         }
+                     }
+                 }
+                 
+                 // Procesar monedas
+                 if (preg_match('/Monedas:\s*(.+?)$/s', $content, $monedas)) {
+                     $formatted[] = "";
+                     $formatted[] = "🪙 MONEDAS:";
+                     $monedasData = trim($monedas[1]);
+                     $items = preg_split('/\s*\|\s*/', $monedasData);
+                     
+                     foreach ($items as $item) {
+                         if (preg_match('/S\/(\d+(?:\.\d+)?):\s*(\d+)/', $item, $match)) {
+                             $denomination = $match[1];
+                             $quantity = $match[2];
+                             $subtotal = $denomination * $quantity;
+                             
+                             if ($quantity > 0) {
+                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ " . number_format($subtotal, 2);
+                             } else {
+                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades";
+                             }
+                         }
+                     }
+                 }
+                 
+                 $formatted[] = "";
+                 $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+                 $formatted[] = "💰 TOTAL CONTADO: {$total}";
+             } else {
+                 // Formato de respaldo si no coincide el patrón esperado
+                 $formatted[] = $observations;
+             }
+             
+             return implode("\n", $formatted);
+         }
+         
+         return $observations;
+     }
 }

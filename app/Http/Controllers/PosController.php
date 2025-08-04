@@ -206,8 +206,11 @@ class PosController extends Controller
         // Cargar relaciones necesarias
         $order->load('orderDetails.product', 'table');
 
+        // Recalcular totales para asegurar valores actualizados
+        $order->recalculateTotals();
+
         // Mostrar vista HTML directamente con meta print
-        return view('pos.pre-bill-print', [
+        return view('print.prebill-ticket', [
             'order' => $order,
             'table' => $order->table,
             'date' => now()->format('d/m/Y H:i:s'),

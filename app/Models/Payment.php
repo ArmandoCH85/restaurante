@@ -39,6 +39,7 @@ class Payment extends Model
      * Métodos de pago disponibles
      */
     const METHOD_CASH = 'cash';
+    const METHOD_CARD = 'card';
     const METHOD_CREDIT_CARD = 'credit_card';
     const METHOD_DEBIT_CARD = 'debit_card';
     const METHOD_BANK_TRANSFER = 'bank_transfer';
@@ -77,8 +78,7 @@ class Payment extends Model
         // Si no es un caso especial, usar el match normal
         return match($this->payment_method) {
             self::METHOD_CASH => 'Efectivo',
-            self::METHOD_CREDIT_CARD => 'Tarjeta de Crédito',
-            self::METHOD_DEBIT_CARD => 'Tarjeta de Débito',
+            self::METHOD_CARD => 'Tarjeta',
             self::METHOD_BANK_TRANSFER => 'Transferencia Bancaria',
             self::METHOD_DIGITAL_WALLET => 'Billetera Digital',
             default => $this->payment_method,

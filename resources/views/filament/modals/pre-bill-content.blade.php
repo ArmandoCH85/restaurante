@@ -34,6 +34,11 @@
         @endforelse
     </div>
 
+    {{-- DEBUG TEMPORAL --}}
+    <div class="bg-red-100 p-2 text-xs">
+        DEBUG: subtotal={{ $subtotal ?? 'NULL' }}, tax={{ $tax ?? 'NULL' }}, total={{ $total ?? 'NULL' }}
+    </div>
+
     {{-- TOTALES --}}
     <div class="border-t border-gray-200 pt-4 space-y-2">
         <div class="flex justify-between text-sm">
@@ -83,4 +88,4 @@
             </div>
         </div>
     @endif
-</div> 
+</div>
