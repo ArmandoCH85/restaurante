@@ -2866,25 +2866,7 @@ class PosInterface extends Page
                 }
             })
             ->modalSubmitActionLabel('✅ Confirmar y Procesar')
-            ->modalSubmitAction(fn() => Action::make('submit')
-                ->label('✅ Confirmar y Procesar')
-                ->icon('heroicon-m-check-circle')
-                ->color('warning')
-                ->size('xl')
-                ->extraAttributes([
-                    'class' => 'font-semibold shadow-lg hover:shadow-xl transition-all duration-200'
-                ])
-            )
             ->modalCancelActionLabel('❌ Cancelar')
-            ->modalCancelAction(fn() => Action::make('cancel')
-                ->label('❌ Cancelar')
-                ->icon('heroicon-m-x-mark')
-                ->color('gray')
-                ->size('xl')
-                ->extraAttributes([
-                    'class' => 'font-medium hover:bg-gray-100 transition-colors duration-200'
-                ])
-            )
             ->extraModalFooterActions([
                 Action::make('printComanda')
                     ->label('🖨️ Imprimir')
