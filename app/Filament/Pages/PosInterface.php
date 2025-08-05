@@ -1231,6 +1231,12 @@ class PosInterface extends Page
         $this->loadProductsLazy();
     }
 
+    public function clearSearch()
+    {
+        $this->search = '';
+        $this->loadProductsLazy();
+    }
+
     public function loadProductsLazy(): void
     {
         // PERMITIR BÚSQUEDA SIEMPRE - Solo restringir al agregar al carrito
@@ -1322,6 +1328,34 @@ class PosInterface extends Page
             }
         }
         $this->calculateTotals();
+    }
+
+    public function removeItem(int $index): void
+    {
+        // Verificar si se puede modificar el carrito
+        if (!$this->canClearCart) {
+            Notification::make()
+                ->title('No se puede eliminar el producto')
+                ->body('La orden está guardada. Debe reabrir la orden primero.')
+                ->warning()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
+        if (isset($this->cartItems[$index])) {
+            $productName = $this->cartItems[$index]['name'];
+            unset($this->cartItems[$index]);
+            $this->cartItems = array_values($this->cartItems);
+            $this->calculateTotals();
+
+            Notification::make()
+                ->title('Producto eliminado')
+                ->body($productName . ' fue eliminado del carrito')
+                ->success()
+                ->duration(2000)
+                ->send();
+        }
     }
 
     public function calculateTotals()
@@ -2723,24 +2757,49 @@ class PosInterface extends Page
     {
         return Action::make('printComanda')
             ->label('Comanda')
-            ->icon('heroicon-o-printer')
+            ->icon('heroicon-o-document-text')
             ->color('warning')
             ->size('lg')
             ->modal()
-            ->modalHeading('👨‍🍳 Comanda')
-            ->modalDescription('Orden para la cocina')
-            ->modalWidth('md')
+            ->modalHeading('👨‍🍳 Comanda para Cocina')
+            ->modalDescription('Generar orden detallada para el área de preparación')
+            ->modalWidth('4xl')
+            ->modalIcon('heroicon-o-document-text')
+            ->modalIconColor('warning')
+            ->modalAlignment('center')
+            ->slideOver(false)
             ->form(function () {
                 // ✅ Si es venta directa (sin mesa), solicitar nombre del cliente
                 if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
                     return [
-                        Forms\Components\TextInput::make('customerNameForComanda')
-                            ->label('Nombre del Cliente')
-                            ->placeholder('Ingrese el nombre del cliente')
-                            ->required()
-                            ->maxLength(100)
-                            ->helperText('Este nombre aparecerá en la comanda')
-                            ->default($this->customerNameForComanda)
+                        Forms\Components\Section::make('Información del Cliente')
+                            ->description('Complete los datos del cliente para la comanda')
+                            ->icon('heroicon-m-user-circle')
+                            ->schema([
+                                Forms\Components\TextInput::make('customerNameForComanda')
+                                    ->label('👤 Nombre del Cliente')
+                                    ->placeholder('Ej: Juan Pérez, Mesa Delivery, Cliente Mostrador...')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->helperText('💡 Este nombre aparecerá en la comanda para identificar la orden en cocina')
+                                    ->default($this->customerNameForComanda)
+                                    ->prefixIcon('heroicon-m-user')
+                                    ->suffixIcon('heroicon-m-pencil')
+                                    ->autocomplete('name')
+                                    ->columnSpanFull()
+                                    ->extraInputAttributes([
+                                        'class' => 'text-lg font-medium'
+                                    ])
+                                    ->datalist([
+                                        'Mesa Delivery',
+                                        'Para Llevar',
+                                        'Cliente Mostrador',
+                                        'Pedido Telefónico',
+                                        'Servicio a Domicilio'
+                                    ])
+                            ])
+                            ->collapsible(false)
+                            ->compact()
                     ];
                 }
                 return [];
@@ -2806,28 +2865,76 @@ class PosInterface extends Page
                     }
                 }
             })
-            ->modalSubmitActionLabel('Confirmar')
+            ->modalSubmitActionLabel('✅ Confirmar y Procesar')
+            ->modalSubmitAction(fn() => Action::make('submit')
+                ->label('✅ Confirmar y Procesar')
+                ->icon('heroicon-m-check-circle')
+                ->color('warning')
+                ->size('xl')
+                ->extraAttributes([
+                    'class' => 'font-semibold shadow-lg hover:shadow-xl transition-all duration-200'
+                ])
+            )
+            ->modalCancelActionLabel('❌ Cancelar')
+            ->modalCancelAction(fn() => Action::make('cancel')
+                ->label('❌ Cancelar')
+                ->icon('heroicon-m-x-mark')
+                ->color('gray')
+                ->size('xl')
+                ->extraAttributes([
+                    'class' => 'font-medium hover:bg-gray-100 transition-colors duration-200'
+                ])
+            )
             ->extraModalFooterActions([
                 Action::make('printComanda')
                     ->label('🖨️ Imprimir')
+                    ->icon('heroicon-m-printer')
                     ->color('primary')
+                    ->size('xl')
+                    ->tooltip('Imprimir comanda para cocina')
+                    ->extraAttributes([
+                        'class' => 'font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
+                    ])
                     ->action(function () {
                         $url = route('orders.comanda.pdf', [
                             'order' => $this->order,
                             'customerName' => $this->customerNameForComanda
                         ]);
-                        $this->js("window.open('$url', 'comanda_print', 'width=800,height=600,scrollbars=yes,resizable=yes')");
+                        $this->js("window.open('$url', 'comanda_print', 'width=900,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no')");
+
+                        // Mostrar notificación de éxito
+                        Notification::make()
+                            ->title('Comanda enviada a impresión')
+                            ->body('La comanda se ha abierto en una nueva ventana para imprimir')
+                            ->success()
+                            ->duration(3000)
+                            ->send();
                     })
                     ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
+
                 Action::make('downloadComanda')
                     ->label('📥 Descargar')
+                    ->icon('heroicon-m-arrow-down-tray')
                     ->color('success')
+                    ->size('xl')
+                    ->tooltip('Descargar PDF de la comanda')
+                    ->extraAttributes([
+                        'class' => 'font-semibold bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
+                    ])
                     ->action(function () {
                         $url = route('orders.comanda.pdf', [
                             'order' => $this->order,
                             'customerName' => $this->customerNameForComanda
                         ]);
                         $this->js("window.open('$url', '_blank')");
+
+                        // Mostrar notificación de éxito
+                        Notification::make()
+                            ->title('Descarga iniciada')
+                            ->body('El PDF de la comanda se está descargando')
+                            ->success()
+                            ->duration(3000)
+                            ->send();
                     })
                     ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
             ])

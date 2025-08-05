@@ -29,6 +29,9 @@
             --pos-gray-50: #f8fafc;
             --pos-gray-100: #f1f5f9;
             --pos-gray-200: #e2e8f0;       /* Gris más definido */
+            --pos-gray-300: #cbd5e1;       /* Gris medio */
+            --pos-gray-400: #94a3b8;       /* Gris para iconos */
+            --pos-gray-600: #475569;       /* Gris oscuro */
             --pos-border-subtle: #e2e8f0;  /* Bordes más suaves */
             --pos-border-focus: #6366f1;   /* Focus indigo */
 
@@ -191,27 +194,104 @@
             border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             margin: 6px;
+            position: relative;
         }
-        
+
+        .pos-search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        .pos-search-icon {
+            position: absolute;
+            left: clamp(8px, 1.5vw, 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            width: clamp(14px, 2vw, 18px);
+            height: clamp(14px, 2vw, 18px);
+            color: var(--pos-gray-400);
+            pointer-events: none;
+            z-index: 2;
+        }
+
         .pos-search-input {
             width: 100%;
-            padding: clamp(6px, 1.5vw, 12px);
+            padding: clamp(6px, 1.5vw, 12px) clamp(35px, 4vw, 45px) clamp(6px, 1.5vw, 12px) clamp(35px, 4vw, 45px);
             border: 1px solid var(--pos-gray-200);
             border-radius: var(--pos-border-radius);
             font-size: clamp(12px, 2vw, 16px);
             transition: var(--pos-transition);
-            background: var(--pos-gray-50);
+            background: white;
             /* Mejorar en móviles */
             -webkit-appearance: none;
             appearance: none;
             touch-action: manipulation;
         }
-        
+
         .pos-search-input:focus {
             outline: none;
             border-color: var(--pos-primary);
             background: white;
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .pos-search-clear {
+            position: absolute;
+            right: clamp(8px, 1.5vw, 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            width: clamp(20px, 2.5vw, 24px);
+            height: clamp(20px, 2.5vw, 24px);
+            border: none;
+            background: var(--pos-gray-300);
+            color: var(--pos-gray-600);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(12px, 1.8vw, 16px);
+            font-weight: bold;
+            transition: var(--pos-transition);
+            z-index: 2;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .pos-search-clear.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .pos-search-clear:hover {
+            background: var(--pos-gray-400);
+            color: white;
+        }
+
+        .pos-search-loading {
+            position: absolute;
+            right: clamp(35px, 4vw, 45px);
+            top: 50%;
+            transform: translateY(-50%);
+            width: clamp(14px, 2vw, 18px);
+            height: clamp(14px, 2vw, 18px);
+            z-index: 2;
+        }
+
+        .pos-search-spinner {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--pos-gray-200);
+            border-top: 2px solid var(--pos-primary);
+            border-radius: 50%;
+            animation: pos-spin 1s linear infinite;
+        }
+
+        @keyframes pos-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
         .pos-products-grid {
@@ -362,102 +442,182 @@
         }
         
         .pos-quick-action-btn {
-            padding: 4px 2px;
+            padding: clamp(8px, 1.5vw, 12px) clamp(4px, 1vw, 6px);
             border: 1px solid var(--pos-gray-200);
-            border-radius: 4px;
+            border-radius: var(--pos-border-radius);
             background: white;
             color: #6b7280;
-            font-size: 0;
+            font-size: clamp(9px, 1.5vw, 11px);
+            font-weight: 500;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--pos-transition);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 0;
+            gap: clamp(2px, 0.5vw, 4px);
             position: relative;
-            min-height: 24px;
-            height: 24px;
+            min-height: clamp(36px, 5vw, 44px);
+            height: clamp(36px, 5vw, 44px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
         
         .pos-quick-action-btn:hover:not(:disabled) {
-            background: var(--pos-gray-50);
-            border-color: var(--pos-primary);
-            color: var(--pos-primary);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            filter: brightness(1.1);
         }
-        
+
         .pos-quick-action-btn:active:not(:disabled) {
             transform: translateY(0);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* JERARQUÍA VISUAL - ACCIONES PRIMARIAS */
+        .pos-quick-action-btn.primary {
+            min-height: clamp(44px, 6vw, 52px);
+            height: clamp(44px, 6vw, 52px);
+            font-weight: 600;
+            font-size: clamp(10px, 1.8vw, 12px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            border-width: 2px;
+        }
+
+        .pos-quick-action-btn.primary .pos-quick-action-icon {
+            width: clamp(16px, 2.5vw, 20px);
+            height: clamp(16px, 2.5vw, 20px);
+        }
+
+        /* JERARQUÍA VISUAL - ACCIONES SECUNDARIAS */
+        .pos-quick-action-btn.secondary {
+            min-height: clamp(40px, 5.5vw, 48px);
+            height: clamp(40px, 5.5vw, 48px);
+            font-weight: 550;
+            font-size: clamp(9px, 1.6vw, 11px);
+        }
+
+        .pos-quick-action-btn.secondary .pos-quick-action-icon {
+            width: clamp(14px, 2.2vw, 18px);
+            height: clamp(14px, 2.2vw, 18px);
+        }
+
+        /* JERARQUÍA VISUAL - ACCIONES TERCIARIAS */
+        .pos-quick-action-btn.tertiary {
+            min-height: clamp(36px, 5vw, 42px);
+            height: clamp(36px, 5vw, 42px);
+            opacity: 0.9;
+            font-size: clamp(8px, 1.4vw, 10px);
+        }
+
+        .pos-quick-action-btn.tertiary .pos-quick-action-icon {
+            width: clamp(12px, 2vw, 16px);
+            height: clamp(12px, 2vw, 16px);
         }
         
-        /* COLORES REPRESENTATIVOS PARA CADA BOTÓN */
+        /* COLORES OPTIMIZADOS CON JERARQUÍA VISUAL */
         .pos-quick-action-btn.btn-mapa {
-            background: #1e40af;
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
             border-color: #1e40af;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(30, 64, 175, 0.3);
         }
-        
+
         .pos-quick-action-btn.btn-comanda {
-            background: #c2410c;
+            background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
             border-color: #c2410c;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(194, 65, 12, 0.3);
         }
-        
+
         .pos-quick-action-btn.btn-precuenta {
-            background: #d97706;
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
             border-color: #d97706;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);
         }
-        
+
         .pos-quick-action-btn.btn-reabrir {
-            background: #15803d;
+            background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
             border-color: #15803d;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(21, 128, 61, 0.3);
         }
-        
+
         .pos-quick-action-btn.btn-dividir {
-            background: #7c3aed;
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
             border-color: #7c3aed;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(124, 58, 237, 0.3);
         }
-        
+
         .pos-quick-action-btn.btn-transferir {
-            background: #4338ca;
+            background: linear-gradient(135deg, #4338ca 0%, #6366f1 100%);
             border-color: #4338ca;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(67, 56, 202, 0.3);
         }
-        
+
         .pos-quick-action-btn.btn-liberar {
-            background: #475569;
+            background: linear-gradient(135deg, #475569 0%, #64748b 100%);
             border-color: #475569;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(71, 85, 105, 0.3);
         }
-        
+
         .pos-quick-action-btn.btn-cancelar {
-            background: #dc2626;
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
             border-color: #dc2626;
             color: #ffffff;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
         }
         
         .pos-quick-action-btn:disabled {
-            opacity: 0.4;
+            background: var(--pos-gray-200) !important;
+            border-color: var(--pos-gray-300) !important;
+            color: var(--pos-gray-400) !important;
             cursor: not-allowed;
             transform: none !important;
             box-shadow: none !important;
+            filter: none !important;
+            opacity: 0.6;
         }
-        
+
+        .pos-quick-action-btn:disabled .pos-quick-action-icon {
+            opacity: 0.5;
+        }
+
         .pos-quick-action-icon {
-            width: 12px;
-            height: 12px;
+            width: clamp(12px, 2vw, 16px);
+            height: clamp(12px, 2vw, 16px);
             flex-shrink: 0;
+            transition: var(--pos-transition);
         }
-        
-        .pos-quick-action-btn span {
-            display: none;
+
+        /* ETIQUETAS DE TEXTO */
+        .pos-quick-action-btn .btn-label {
+            font-size: clamp(8px, 1.2vw, 10px);
+            font-weight: 500;
+            line-height: 1;
+            margin-top: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .pos-quick-action-btn.primary .btn-label {
+            font-size: clamp(9px, 1.4vw, 11px);
+            font-weight: 600;
+        }
+
+        .pos-quick-action-btn.secondary .btn-label {
+            font-size: clamp(8px, 1.3vw, 10px);
+            font-weight: 550;
+        }
+
+        .pos-quick-action-btn.tertiary .btn-label {
+            font-size: clamp(7px, 1.1vw, 9px);
         }
         
         /* ITEMS DEL CARRITO OPTIMIZADOS PARA 1024x637 AL 100% ZOOM */
@@ -492,69 +652,636 @@
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 8px;
+            gap: clamp(6px, 1vw, 8px);
         }
-        
+
+        .pos-cart-item-info {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-right: clamp(6px, 1vw, 8px);
+        }
+
         .pos-cart-item-name {
-            font-size: 12px;
+            font-size: clamp(12px, 2vw, 14px);
             font-weight: 600;
             color: #1f2937;
             flex: 1;
             margin-right: 8px;
+            line-height: 1.3;
         }
-        
+
         .pos-cart-item-price {
-            font-size: 11px;
+            font-size: clamp(11px, 1.8vw, 13px);
             color: #6b7280;
             white-space: nowrap;
         }
+
+        /* BOTÓN DE ELIMINACIÓN INDIVIDUAL */
+        .pos-item-remove-btn {
+            width: clamp(28px, 4vw, 32px);
+            height: clamp(28px, 4vw, 32px);
+            border: none;
+            border-radius: var(--pos-border-radius);
+            background: var(--pos-danger);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--pos-transition);
+            font-size: clamp(12px, 2vw, 14px);
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+        }
+
+        .pos-item-remove-btn:hover:not(:disabled) {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+        }
+
+        .pos-item-remove-btn:active:not(:disabled) {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
+
+        .pos-item-remove-btn:disabled {
+            background: var(--pos-gray-300);
+            color: var(--pos-gray-500);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .pos-item-remove-btn:focus {
+            outline: 2px solid var(--pos-danger);
+            outline-offset: 2px;
+        }
+
+        .pos-item-remove-btn:focus:not(:focus-visible) {
+            outline: none;
+        }
         
-        /* CONTROLES DE CANTIDAD MEJORADOS */
+        /* CONTROLES DE CANTIDAD OPTIMIZADOS PARA TOUCH */
         .pos-quantity-controls {
             display: flex;
             align-items: center;
             justify-content: space-between;
             background: white;
-            padding: 6px;
-            border-radius: 6px;
+            padding: clamp(8px, 1.5vw, 12px);
+            border-radius: var(--pos-border-radius);
             border: 1px solid var(--pos-gray-200);
+            gap: clamp(8px, 1.5vw, 12px);
         }
-        
+
         .pos-quantity-btn {
-            width: 28px;
-            height: 28px;
+            width: clamp(40px, 5vw, 48px);
+            height: clamp(40px, 5vw, 48px);
             border: none;
-            border-radius: 4px;
-            background: var(--pos-gray-100);
-            color: #374151;
+            border-radius: var(--pos-border-radius);
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: var(--pos-transition);
+            font-weight: 600;
+            font-size: clamp(16px, 2.5vw, 20px);
+            position: relative;
+            overflow: hidden;
         }
-        
-        .pos-quantity-btn:hover:not(:disabled) {
-            background: var(--pos-primary);
+
+        /* DIFERENCIACIÓN POR FUNCIÓN */
+        .pos-quantity-btn.decrease {
+            background: var(--pos-danger);
             color: white;
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
         }
-        
+
+        .pos-quantity-btn.increase {
+            background: var(--pos-success);
+            color: white;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        }
+
+        /* ESTADOS INTERACTIVOS MEJORADOS */
+        .pos-quantity-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .pos-quantity-btn.decrease:hover:not(:disabled) {
+            background: #dc2626;
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .pos-quantity-btn.increase:hover:not(:disabled) {
+            background: #059669;
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        /* FEEDBACK TÁCTIL - ESTADO ACTIVO */
+        .pos-quantity-btn:active:not(:disabled) {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
+        }
+
+        /* ESTADOS DISABLED MEJORADOS */
         .pos-quantity-btn:disabled {
-            opacity: 0.5;
+            background: var(--pos-gray-200);
+            color: var(--pos-gray-400);
             cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .pos-quantity-btn:disabled svg {
+            opacity: 0.5;
         }
         
         .pos-quantity-value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f2937;
-            min-width: 40px;
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 700;
+            color: var(--pos-gray-600);
+            min-width: clamp(45px, 6vw, 55px);
             text-align: center;
+            background: var(--pos-gray-50);
+            border-radius: var(--pos-border-radius);
+            padding: clamp(8px, 1.5vw, 12px) clamp(6px, 1vw, 8px);
+            border: 1px solid var(--pos-gray-200);
+            transition: var(--pos-transition);
+            position: relative;
         }
-        
+
+        /* ANIMACIÓN DE CAMBIO DE CANTIDAD */
+        .pos-quantity-value.updating {
+            background: var(--pos-primary);
+            color: white;
+            transform: scale(1.05);
+            border-color: var(--pos-primary);
+        }
+
         .pos-quantity-total {
-            font-size: 14px;
+            font-size: clamp(14px, 2.2vw, 16px);
             font-weight: 700;
             color: var(--pos-success);
+            background: rgba(16, 185, 129, 0.1);
+            padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
+            border-radius: var(--pos-border-radius);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        /* INDICADORES DE LÍMITES */
+        .pos-quantity-controls.at-minimum .pos-quantity-btn.decrease {
+            background: var(--pos-gray-300);
+            color: var(--pos-gray-500);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .pos-quantity-controls.at-minimum .pos-quantity-btn.decrease:hover {
+            transform: none;
+            background: var(--pos-gray-300);
+        }
+
+        /* EFECTOS DE RIPPLE PARA FEEDBACK TÁCTIL */
+        .pos-quantity-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease, height 0.3s ease;
+        }
+
+        .pos-quantity-btn:active::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* MEJORAS DE ACCESIBILIDAD */
+        .pos-quantity-btn:focus {
+            outline: 2px solid var(--pos-primary);
+            outline-offset: 2px;
+        }
+
+        .pos-quantity-btn:focus:not(:focus-visible) {
+            outline: none;
+        }
+
+        /* INDICADOR DE CARGA PARA ACTUALIZACIONES */
+        .pos-quantity-controls.updating {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .pos-quantity-controls.updating .pos-quantity-btn {
+            cursor: wait;
+        }
+
+        /* RESPONSIVE PARA MÓVILES */
+        @media (max-width: 767px) {
+            .pos-quantity-controls {
+                padding: 6px;
+                gap: 6px;
+            }
+
+            .pos-quantity-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+
+            .pos-quantity-value {
+                min-width: 40px;
+                font-size: 16px;
+                padding: 6px 4px;
+            }
+
+            .pos-quantity-total {
+                font-size: 13px;
+                padding: 3px 6px;
+            }
+        }
+
+        /* RESPONSIVE PARA TABLETS */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .pos-quantity-btn {
+                width: 42px;
+                height: 42px;
+            }
+
+            .pos-quantity-value {
+                min-width: 48px;
+                font-size: 18px;
+            }
+
+            .pos-item-remove-btn {
+                width: 30px;
+                height: 30px;
+            }
+        }
+
+        /* RESPONSIVE ESPECÍFICO PARA BOTÓN DE ELIMINACIÓN */
+        @media (max-width: 767px) {
+            .pos-item-remove-btn {
+                width: 26px;
+                height: 26px;
+                font-size: 11px;
+            }
+
+            .pos-cart-item-header {
+                gap: 4px;
+            }
+
+            .pos-cart-item-info {
+                margin-right: 4px;
+            }
+
+            .pos-cart-item-name {
+                font-size: 11px;
+            }
+
+            .pos-cart-item-price {
+                font-size: 10px;
+            }
+        }
+
+        /* ANIMACIÓN DE ELIMINACIÓN */
+        .pos-cart-item.removing {
+            animation: slideOut 0.3s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes slideOut {
+            0% {
+                opacity: 1;
+                transform: translateX(0);
+                max-height: 200px;
+            }
+            50% {
+                opacity: 0.5;
+                transform: translateX(-20px);
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(-100%);
+                max-height: 0;
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        /* ========================================= */
+        /* MODAL DE COMANDA - DISEÑO PROFESIONAL */
+        /* ========================================= */
+
+        /* OVERLAY DEL MODAL */
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-window {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* CONTENEDOR PRINCIPAL DEL MODAL */
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--pos-gray-200);
+            max-width: 500px;
+            width: 90vw;
+            animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* HEADER DEL MODAL */
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-header {
+            background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
+            color: white;
+            padding: 20px 24px;
+            border-radius: 12px 12px 0 0;
+            border-bottom: none;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-heading {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.2;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-description {
+            font-size: 14px;
+            opacity: 0.9;
+            margin: 6px 0 0 0;
+            font-weight: 500;
+            line-height: 1.3;
+        }
+
+        /* BOTÓN CERRAR */
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-close-btn {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            transition: var(--pos-transition);
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        /* CUERPO DEL MODAL */
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-body {
+            padding: 24px;
+            background: white;
+        }
+
+        /* FORMULARIO */
+        .fi-modal[data-modal-id*="printComanda"] .fi-form {
+            margin: 0;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-input-wrapper {
+            background: var(--pos-gray-50);
+            border: 2px solid var(--pos-gray-200);
+            border-radius: var(--pos-border-radius);
+            transition: var(--pos-transition);
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-input-wrapper:focus-within {
+            border-color: #c2410c;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.1);
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-input {
+            font-size: 15px;
+            padding: 12px 14px;
+            border: none;
+            background: transparent;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-input:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-field-wrp-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--pos-gray-600);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            line-height: 1.3;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-field-wrp-hint {
+            font-size: 13px;
+            color: var(--pos-gray-400);
+            margin-top: 6px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+
+        /* ESTADO VACÍO DEL MODAL */
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-body:empty::before {
+            content: "✅ Listo para generar comanda";
+            display: block;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--pos-success);
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px dashed var(--pos-success);
+            border-radius: var(--pos-border-radius);
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* FOOTER DEL MODAL - COMPACTO */
+        .fi-modal[data-modal-id*="printComanda"] .fi-modal-footer {
+            background: var(--pos-gray-50);
+            border-top: 1px solid var(--pos-gray-200);
+            padding: 16px 20px;
+            border-radius: 0 0 12px 12px;
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        /* BOTONES DEL MODAL - TAMAÑO COMPACTO */
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn {
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 13px;
+            padding: 8px 12px;
+            transition: var(--pos-transition);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 32px;
+            min-width: 100px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            line-height: 1.2;
+            border: 1px solid transparent;
+        }
+
+        /* BOTÓN CONFIRMAR - COMPACTO */
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn-primary {
+            background: #ea580c;
+            border-color: #ea580c;
+            color: white;
+            font-weight: 600;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn-primary:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
+        }
+
+        /* BOTÓN IMPRIMIR - COMPACTO */
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn:has([data-icon="printer"]) {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn:has([data-icon="printer"]):hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.25);
+        }
+
+        /* BOTÓN DESCARGAR - COMPACTO */
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn:has([data-icon="download"]) {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn:has([data-icon="download"]):hover {
+            background: #059669;
+            border-color: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.25);
+        }
+
+        /* BOTÓN CANCELAR - COMPACTO */
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn-secondary {
+            background: white;
+            border-color: #d1d5db;
+            color: #6b7280;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+            color: #374151;
+        }
+
+        /* RESPONSIVE PARA MODAL DE COMANDA */
+        @media (max-width: 767px) {
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-content {
+                width: 95vw;
+                max-width: none;
+                margin: 10px;
+                border-radius: 8px;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-header {
+                padding: 18px 20px;
+                border-radius: 8px 8px 0 0;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-heading {
+                font-size: 18px;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-description {
+                font-size: 13px;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-body {
+                padding: 20px;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-footer {
+                padding: 16px 18px;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-btn {
+                width: 100%;
+                justify-content: center;
+                height: 36px;
+                font-size: 13px;
+                min-width: auto;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-content {
+                width: 85vw;
+                max-width: 480px;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-modal-footer {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .fi-modal[data-modal-id*="printComanda"] .fi-btn {
+                flex: 0 1 auto;
+                min-width: 95px;
+                height: 34px;
+            }
+        }
+
+        /* ANIMACIONES SUTILES */
+        .fi-modal[data-modal-id*="printComanda"] .fi-btn:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
+        }
+
+        .fi-modal[data-modal-id*="printComanda"] .fi-input-wrapper:focus-within {
+            transform: translateY(-1px);
         }
         
         /* OPCIONES ESPECIALES MEJORADAS */
@@ -591,43 +1318,125 @@
             cursor: pointer;
         }
         
-        /* TOTALES DEL CARRITO OPTIMIZADOS PARA 1024x637 */
+        /* TOTALES DEL CARRITO MEJORADOS - UX OPTIMIZADO */
         .pos-cart-totals {
-            padding: 6px;
+            padding: clamp(12px, 2vw, 16px);
             background: white;
             border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             margin: 6px;
             flex-shrink: 0;
-            position: sticky;
-            bottom: 0;
+            box-shadow: var(--pos-shadow-sm);
         }
-        
+
+        .pos-totals-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: clamp(8px, 1.5vw, 12px);
+            padding-bottom: clamp(6px, 1vw, 8px);
+            border-bottom: 1px solid var(--pos-gray-200);
+        }
+
+        .pos-totals-header-title {
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 600;
+            color: var(--pos-gray-600);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pos-items-count {
+            font-size: clamp(11px, 1.8vw, 13px);
+            color: var(--pos-gray-400);
+            background: var(--pos-gray-100);
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
         .pos-totals-container {
             background: var(--pos-gray-50);
-            padding: 4px 6px;
-            border-radius: 6px;
-            margin-bottom: 6px;
+            padding: clamp(12px, 2vw, 16px);
+            border-radius: var(--pos-border-radius);
+            margin-bottom: clamp(8px, 1.5vw, 12px);
         }
-        
+
         .pos-total-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2px;
-            font-size: 11px;
-            line-height: 1.3;
+            align-items: center;
+            margin-bottom: clamp(6px, 1vw, 8px);
+            font-size: clamp(13px, 2.2vw, 15px);
+            line-height: 1.4;
+            color: var(--pos-gray-600);
         }
-        
+
         .pos-total-row:last-child {
             margin-bottom: 0;
-            padding-top: 3px;
-            border-top: 1px solid var(--pos-gray-200);
-            font-weight: 700;
-            font-size: 12px;
         }
-        
+
         .pos-total-row.final {
+            padding-top: clamp(8px, 1.5vw, 12px);
+            border-top: 2px solid var(--pos-primary);
+            font-weight: 700;
+            font-size: clamp(16px, 2.8vw, 18px);
             color: var(--pos-success);
+            background: rgba(16, 185, 129, 0.05);
+            margin: clamp(8px, 1.5vw, 12px) -12px -12px -12px;
+            padding-left: clamp(12px, 2vw, 16px);
+            padding-right: clamp(12px, 2vw, 16px);
+            border-radius: 0 0 var(--pos-border-radius) var(--pos-border-radius);
+        }
+
+        .pos-total-amount {
+            font-weight: 600;
+        }
+
+        .pos-total-row.final .pos-total-amount {
+            font-weight: 800;
+            font-size: clamp(17px, 3vw, 20px);
+        }
+
+        /* INDICADORES DE ESTADO MEJORADOS */
+        .pos-totals-header-title svg {
+            flex-shrink: 0;
+        }
+
+        .pos-totals-header-title span {
+            font-weight: 600;
+        }
+
+        /* RESPONSIVE PARA MÓVILES */
+        @media (max-width: 767px) {
+            .pos-cart-totals {
+                padding: 10px;
+            }
+
+            .pos-totals-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .pos-items-count {
+                align-self: flex-end;
+            }
+
+            .pos-total-row.final {
+                margin: 8px -10px -10px -10px;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        }
+
+        /* ANIMACIÓN SUTIL PARA CAMBIOS DE ESTADO */
+        .pos-totals-header-title {
+            transition: var(--pos-transition);
+        }
+
+        .pos-total-amount {
+            transition: var(--pos-transition);
         }
         
         /* BOTONES DE ACCIÓN - PATRÓN POS COMPACTO */
@@ -774,6 +1583,28 @@
 
             .pos-quick-actions-grid {
                 grid-template-columns: repeat(2, 1fr);
+                gap: 4px;
+            }
+
+            .pos-quick-action-btn {
+                min-height: 38px;
+                height: 38px;
+                padding: 8px 4px;
+            }
+
+            .pos-quick-action-btn.primary {
+                min-height: 42px;
+                height: 42px;
+            }
+
+            .pos-quick-action-btn.secondary {
+                min-height: 40px;
+                height: 40px;
+            }
+
+            .pos-quick-action-icon {
+                width: 14px;
+                height: 14px;
             }
         }
 
@@ -819,13 +1650,34 @@
             }
 
             .pos-quick-actions-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 2px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3px;
             }
 
             .pos-quick-action-btn {
-                padding: 6px 2px;
-                font-size: 10px;
+                min-height: 32px;
+                height: 32px;
+                padding: 6px 3px;
+                font-size: 8px;
+            }
+
+            .pos-quick-action-btn.primary {
+                min-height: 36px;
+                height: 36px;
+            }
+
+            .pos-quick-action-btn.secondary {
+                min-height: 34px;
+                height: 34px;
+            }
+
+            .pos-quick-action-btn .btn-label {
+                font-size: 7px;
+            }
+
+            .pos-quick-action-icon {
+                width: 10px;
+                height: 10px;
             }
         }
 
@@ -1175,12 +2027,44 @@
             <div class="pos-products-area">
                 {{-- BARRA DE BÚSQUEDA --}}
                 <div class="pos-search-bar">
-                    <input
-                        type="text"
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="Buscar productos..."
-                        class="pos-search-input"
-                    />
+                    <div class="pos-search-container" x-data="{ hasText: false }">
+                        {{-- Icono de búsqueda --}}
+                        <svg class="pos-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m21 21-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+
+                        {{-- Input de búsqueda --}}
+                        <input
+                            type="text"
+                            wire:model.live.debounce.300ms="search"
+                            placeholder="Buscar productos..."
+                            class="pos-search-input"
+                            x-init="$watch('$el.value', value => hasText = value.length > 0)"
+                            @input="hasText = $el.value.length > 0"
+                        />
+
+                        {{-- Botón limpiar búsqueda --}}
+                        <button
+                            type="button"
+                            class="pos-search-clear"
+                            x-show="hasText"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            wire:click="clearSearch"
+                            title="Limpiar búsqueda"
+                        >
+                            ×
+                        </button>
+
+                        {{-- Indicador de carga --}}
+                        <div class="pos-search-loading" wire:loading wire:target="search">
+                            <div class="pos-search-spinner"></div>
+                        </div>
+                    </div>
                 </div>
 
                 {{-- GRID DE PRODUCTOS --}}
@@ -1304,64 +2188,73 @@
                     <div class="pos-quick-actions">
                         <div class="pos-quick-actions-title">Acciones Rápidas</div>
                         <div class="pos-quick-actions-grid">
+                            {{-- ACCIONES PRIMARIAS - Más frecuentes --}}
                             {{-- Mapa --}}
                             <button
                                 wire:click="mountAction('backToTableMap')"
-                                class="pos-quick-action-btn btn-mapa"
-                                title="Mapa"
+                                class="pos-quick-action-btn btn-mapa primary"
+                                title="Ir al mapa de mesas"
                             >
                                 <x-heroicon-o-map class="pos-quick-action-icon" />
+                                <span class="btn-label">Mapa</span>
                             </button>
-                            
+
                             {{-- Comanda --}}
-                            <button 
+                            <button
                                 wire:click="mountAction('printComanda')"
-                                class="pos-quick-action-btn btn-comanda"
+                                class="pos-quick-action-btn btn-comanda primary"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
-                                title="Comanda"
+                                title="Imprimir comanda para cocina"
                             >
                                 <x-heroicon-o-document-text class="pos-quick-action-icon" />
+                                <span class="btn-label">Comanda</span>
                             </button>
-                            
+
+                            {{-- ACCIONES SECUNDARIAS - Uso moderado --}}
                             {{-- Pre-Cuenta --}}
-                            <button 
+                            <button
                                 wire:click="mountAction('printPreBillNew')"
-                                class="pos-quick-action-btn btn-precuenta"
+                                class="pos-quick-action-btn btn-precuenta secondary"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
-                                title="Pre-Cuenta"
+                                title="Imprimir pre-cuenta para cliente"
                             >
                                 <x-heroicon-o-document-duplicate class="pos-quick-action-icon" />
+                                <span class="btn-label">Pre-Cuenta</span>
                             </button>
-                            
+
                             {{-- Reabrir --}}
-                            <button 
+                            <button
                                 wire:click="mountAction('reopen_order_for_editing')"
-                                class="pos-quick-action-btn btn-reabrir"
+                                class="pos-quick-action-btn btn-reabrir secondary"
                                 {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists()) ? 'disabled' : '' }}
-                                title="Reabrir"
+                                title="Reabrir orden para edición"
                             >
                                 <x-heroicon-o-lock-open class="pos-quick-action-icon" />
+                                <span class="btn-label">Reabrir</span>
                             </button>
-                            
+
+                            {{-- ACCIONES TERCIARIAS - Uso ocasional --}}
                             {{-- Dividir --}}
-                            <button 
+                            <button
                                 wire:click="mountAction('split_items')"
-                                class="pos-quick-action-btn btn-dividir"
+                                class="pos-quick-action-btn btn-dividir tertiary"
                                 {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }}
-                                title="Dividir"
+                                title="Dividir cuenta entre mesas"
                             >
                                 <x-heroicon-o-scissors class="pos-quick-action-icon" />
+                                <span class="btn-label">Dividir</span>
                             </button>
-                            
+
                             {{-- Transferir --}}
                             @if(!auth()->user()->hasRole(['waiter', 'cashier']))
-                                <button 
+                                <button
                                     wire:click="mountAction('transferOrder')"
-                                    class="pos-quick-action-btn btn-transferir"
+                                    class="pos-quick-action-btn btn-transferir tertiary"
                                     {{ !($this->order && $this->order->table_id && $this->order->status === 'open') ? 'disabled' : '' }}
-                                    title="Transferir"
+                                    title="Transferir orden a otra mesa"
                                 >
                                     <x-heroicon-o-arrow-path-rounded-square class="pos-quick-action-icon" />
+                                    <span class="btn-label">Transferir</span>
                                 </button>
                             @endif
                             
@@ -1393,8 +2286,25 @@
                     @forelse($cartItems as $index => $item)
                         <div class="pos-cart-item">
                             <div class="pos-cart-item-header">
-                                <div class="pos-cart-item-name">{{ $item['name'] }}</div>
-                                <div class="pos-cart-item-price">S/ {{ number_format($item['unit_price'], 2) }} c/u</div>
+                                <div class="pos-cart-item-info">
+                                    <div class="pos-cart-item-name">{{ $item['name'] }}</div>
+                                    <div class="pos-cart-item-price">S/ {{ number_format($item['unit_price'], 2) }} c/u</div>
+                                </div>
+
+                                {{-- Botón de Eliminación Individual --}}
+                                <button
+                                    wire:click="removeItem({{ $index }})"
+                                    class="pos-item-remove-btn"
+                                    {{ !$canClearCart ? 'disabled' : '' }}
+                                    title="Eliminar {{ $item['name'] }} del carrito"
+                                    x-data="{ pressed: false }"
+                                    @click="pressed = true; setTimeout(() => pressed = false, 150)"
+                                    :class="{ 'scale-95': pressed }"
+                                >
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
                             </div>
                             
                             {{-- OPCIONES ESPECIALES --}}
@@ -1478,28 +2388,55 @@
                                 </div>
                             @endif
 
-                            {{-- CONTROLES DE CANTIDAD --}}
-                            <div class="pos-quantity-controls">
+                            {{-- CONTROLES DE CANTIDAD MEJORADOS --}}
+                            <div class="pos-quantity-controls {{ $item['quantity'] <= 1 ? 'at-minimum' : '' }}">
+                                {{-- Botón Disminuir --}}
                                 <button
                                     wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})"
-                                    class="pos-quantity-btn"
-                                    {{ !$canClearCart ? 'disabled' : '' }}
+                                    class="pos-quantity-btn decrease"
+                                    {{ (!$canClearCart || $item['quantity'] <= 1) ? 'disabled' : '' }}
+                                    title="Disminuir cantidad"
+                                    x-data="{ pressed: false }"
+                                    @click="pressed = true; setTimeout(() => pressed = false, 150)"
+                                    :class="{ 'scale-95': pressed }"
                                 >
-                                    <x-heroicon-m-minus style="width: 16px; height: 16px;" />
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"></path>
+                                    </svg>
                                 </button>
-                                
-                                <div class="pos-quantity-value">{{ $item['quantity'] }}</div>
-                                
+
+                                {{-- Valor de Cantidad con Animación --}}
+                                <div
+                                    class="pos-quantity-value"
+                                    x-data="{ updating: false, currentValue: {{ $item['quantity'] }} }"
+                                    x-init="$watch('currentValue', () => { updating = true; setTimeout(() => updating = false, 200) })"
+                                    :class="{ 'updating': updating }"
+                                    wire:key="quantity-{{ $index }}-{{ $item['quantity'] }}"
+                                >
+                                    {{ $item['quantity'] }}
+                                </div>
+
+                                {{-- Botón Aumentar --}}
                                 <button
                                     wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})"
-                                    class="pos-quantity-btn"
+                                    class="pos-quantity-btn increase"
                                     {{ !$canClearCart ? 'disabled' : '' }}
+                                    title="Aumentar cantidad"
+                                    x-data="{ pressed: false }"
+                                    @click="pressed = true; setTimeout(() => pressed = false, 150)"
+                                    :class="{ 'scale-95': pressed }"
                                 >
-                                    <x-heroicon-m-plus style="width: 16px; height: 16px;" />
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
+                                    </svg>
                                 </button>
-                                
+
+                                {{-- Total del Item Mejorado --}}
                                 <div class="pos-quantity-total">
-                                    S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 4px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                    {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                                 </div>
                             </div>
                         </div>
@@ -1515,18 +2452,59 @@
                 {{-- TOTALES Y ACCIONES --}}
                 @if(count($cartItems) > 0)
                     <div class="pos-cart-totals">
+                        {{-- HEADER CON INFORMACIÓN CONTEXTUAL --}}
+                        <div class="pos-totals-header">
+                            <div class="pos-totals-header-title">
+                                @if($order && $order->invoices()->exists())
+                                    {{-- Estado: Facturado --}}
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-success);">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span style="color: var(--pos-success);">Facturado</span>
+                                @elseif($order && !$order->invoices()->exists())
+                                    {{-- Estado: Orden Guardada --}}
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-warning);">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span style="color: var(--pos-warning);">Orden Pendiente</span>
+                                @elseif($selectedTableId && !$order)
+                                    {{-- Estado: Mesa Seleccionada --}}
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-primary);">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v0H8v0z"></path>
+                                    </svg>
+                                    <span style="color: var(--pos-primary);">Nueva Orden</span>
+                                @else
+                                    {{-- Estado: Venta Directa --}}
+                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-secondary);">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                    </svg>
+                                    <span style="color: var(--pos-secondary);">Venta Directa</span>
+                                @endif
+                            </div>
+                            <div class="pos-items-count">
+                                {{ count($cartItems) }} {{ count($cartItems) === 1 ? 'producto' : 'productos' }}
+                            </div>
+                        </div>
+
+                        {{-- DESGLOSE DE TOTALES --}}
                         <div class="pos-totals-container">
                             <div class="pos-total-row">
                                 <span>Subtotal:</span>
-                                <span>S/ {{ number_format($subtotal, 2) }}</span>
+                                <span class="pos-total-amount">S/ {{ number_format($subtotal, 2) }}</span>
                             </div>
                             <div class="pos-total-row">
                                 <span>IGV (18%):</span>
-                                <span>S/ {{ number_format($tax, 2) }}</span>
+                                <span class="pos-total-amount">S/ {{ number_format($tax, 2) }}</span>
                             </div>
                             <div class="pos-total-row final">
-                                <span>Total:</span>
-                                <span>S/ {{ number_format($total, 2) }}</span>
+                                <span>
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 6px;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                    Total:
+                                </span>
+                                <span class="pos-total-amount">S/ {{ number_format($total, 2) }}</span>
                             </div>
                         </div>
 
