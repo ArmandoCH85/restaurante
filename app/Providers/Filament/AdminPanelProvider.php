@@ -37,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->sidebarCollapsibleOnDesktop()
-            ->sidebarWidth('18rem') // Ancho optimizado para mejor legibilidad
+            ->sidebarWidth('16rem') // Ancho optimizado - balance perfecto
             ->collapsedSidebarWidth('4rem') // Ancho colapsado elegante
             ->homeUrl(function () {
                 $user = Auth::user();
@@ -60,6 +60,7 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->font('Inter')
             ->darkMode()
+            ->globalSearch(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             // Registrar páginas explícitamente en lugar de descubrirlas automáticamente
             ->pages([
@@ -77,6 +78,8 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\PaymentMethodsWidget::class,
                 \App\Filament\Widgets\SalesStatsWidget::class,
                 \App\Filament\Widgets\SalesChartWidget::class,
+                \App\Filament\Widgets\SalesOverviewWidget::class, // ✅ Widget agregado para resolver error de componente
+                \App\Filament\Widgets\SalesByUserWidget::class, // ✅ Widget agregado para resolver error de componente
                 \App\Filament\Widgets\TopProductsWidget::class,
                 \App\Filament\Widgets\SalesHoursWidget::class,
                 \App\Filament\Widgets\TableStatsWidget::class,
@@ -145,17 +148,7 @@ class AdminPanelProvider extends PanelProvider
                     }
 
                     /* 🎭 HEADER CON LOGO - ESTILO TAILADMIN */
-                    header.fi-sidebar-header {
-                        background: #FFFFFF !important;
-                        border-bottom: 1px solid #E5E7EB !important;
-                        padding: 1.5rem !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        justify-content: center !important;
-                        min-height: 80px !important;
-                        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-                        position: relative !important;
-                    }
+              
 
                     /* OCULTAR LOGO DE MODO OSCURO */
                     header.fi-sidebar-header .fi-logo.hidden.dark\\:flex {
@@ -204,16 +197,16 @@ class AdminPanelProvider extends PanelProvider
                         margin: 0 !important;
                     }
 
-                    /* 🧭 NAVEGACIÓN PRINCIPAL - ESTILO TAILADMIN */
+                    /* 🧭 NAVEGACIÓN PRINCIPAL - OPTIMIZADA PARA 16REM */
                     nav.fi-sidebar-nav {
                         background: #FFFFFF !important;
-                        padding: 1.5rem !important;
+                        padding: 1rem 1.25rem !important;
                         border-radius: 0 !important;
                         box-shadow: none !important;
                         margin: 0 !important;
                         display: flex !important;
                         flex-direction: column !important;
-                        gap: 0.5rem !important;
+                        gap: 0.375rem !important;
                         height: 100% !important;
                         overflow-y: auto !important;
                         scrollbar-width: thin !important;
@@ -254,24 +247,24 @@ class AdminPanelProvider extends PanelProvider
                         border-radius: 0 !important;
                     }
 
-                    /* 🎯 NAVIGATION ITEMS - TAILADMIN STYLE */
+                    /* 🎯 NAVIGATION ITEMS - OPTIMIZADO PARA 16REM */
                     .fi-sidebar-item {
-                        margin: 0.125rem 1.5rem !important;
+                        margin: 0.125rem 1.25rem !important;
                         border-radius: 0.5rem !important;
                         transition: all 0.3s ease !important;
                     }
 
                     .fi-sidebar-item-button {
                         color: var(--tailadmin-text-muted) !important;
-                        padding: 0.875rem 1rem !important;
-                        font-size: 0.875rem !important;
+                        padding: 0.75rem 0.875rem !important;
+                        font-size: 0.8125rem !important;
                         font-weight: 500 !important;
                         transition: all 0.3s ease !important;
                         border-radius: 0.5rem !important;
                         width: 100% !important;
                         display: flex !important;
                         align-items: center !important;
-                        gap: 0.75rem !important;
+                        gap: 0.625rem !important;
                     }
 
                     /* HOVER STATE */
@@ -382,11 +375,15 @@ class AdminPanelProvider extends PanelProvider
                         color: #7C3AED !important;
                     }
 
-                    /* 🏷️ LABELS */
+                    /* 🏷️ LABELS OPTIMIZADOS */
                     .fi-sidebar-item-label {
                         color: inherit !important;
-                        font-size: 0.875rem !important;
+                        font-size: 0.8125rem !important;
                         font-weight: inherit !important;
+                        line-height: 1.2 !important;
+                        overflow: hidden !important;
+                        text-overflow: ellipsis !important;
+                        white-space: nowrap !important;
                     }
 
                     /* 🌙 DARK MODE - MANTENER FONDO BLANCO */

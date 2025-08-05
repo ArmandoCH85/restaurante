@@ -49,7 +49,7 @@ class SalesByUserWidget extends ChartWidget
         // Obtener ventas por usuario
         $salesData = Order::whereBetween('order_datetime', [$startDate, $endDate])
             ->where('billed', true)
-            ->join('users', 'orders.user_id', '=', 'users.id')
+            ->join('users', 'orders.employee_id', '=', 'users.id')
             ->select(
                 'users.name as user_name',
                 DB::raw('COUNT(*) as total_orders'),

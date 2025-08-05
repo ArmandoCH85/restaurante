@@ -1233,16 +1233,7 @@ class PosInterface extends Page
 
     public function loadProductsLazy(): void
     {
-        // Si no se pueden agregar productos, retornar
-        if (!$this->canAddProducts) {
-            Notification::make()
-                ->title('No se pueden agregar productos')
-                ->body('La orden ya está guardada. Debe reabrir la orden para agregar más productos.')
-                ->warning()
-                ->duration(3000)
-                ->send();
-            return;
-        }
+        // PERMITIR BÚSQUEDA SIEMPRE - Solo restringir al agregar al carrito
 
         $query = Product::query()
             ->select('id', 'name', 'sale_price', 'category_id')
@@ -1260,6 +1251,9 @@ class PosInterface extends Page
                 ->toArray();
 
             $query->whereIn('category_id', $subcategoryIds);
+        } else {
+            // Sin filtros - cargar productos limitados (como en mount)
+            $query->orderBy('id')->limit(150);
         }
 
         $this->products = $query->orderBy('name')->limit(150)->get();
@@ -2956,7 +2950,7 @@ class PosInterface extends Page
             ->action(function () {
                 return redirect(TableMap::getUrl());
             })
-            ->visible(fn(): bool => $this->order && $this->order->table_id !== null);
+            ->visible(fn(): bool => true); // Siempre visible
     }
 
     /**

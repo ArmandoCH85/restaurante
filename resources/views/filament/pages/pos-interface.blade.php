@@ -8,20 +8,38 @@
         /* SISTEMA POS OPTIMIZADO - DISEÑO MODERNO */
         /* ========================================= */
         
-        /* VARIABLES GLOBALES OPTIMIZADAS PARA 1024x637 AL 100% ZOOM */
+        /* VARIABLES GLOBALES RESPONSIVAS */
         :root {
-            --pos-cart-width: 300px;
-            --pos-sidebar-width: 150px;
+            --pos-cart-width: clamp(280px, 25vw, 350px);
+            --pos-sidebar-width: clamp(140px, 20vw, 200px);
             --pos-border-radius: 6px;
-            --pos-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-            --pos-shadow-hover: 0 2px 8px rgba(0, 0, 0, 0.12);
-            --pos-primary: #3b82f6;
-            --pos-success: #10b981;
-            --pos-warning: #f59e0b;
-            --pos-danger: #ef4444;
+            /* Sistema de sombras profesional */
+            --pos-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --pos-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --pos-shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --pos-shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            /* Paleta profesional inspirada en Square POS */
+            --pos-primary: #6366f1;        /* Indigo vibrante */
+            --pos-secondary: #8b5cf6;      /* Púrpura elegante */
+            --pos-success: #10b981;        /* Verde esmeralda */
+            --pos-warning: #f59e0b;        /* Ámbar cálido */
+            --pos-danger: #ef4444;         /* Rojo coral */
+            --pos-surface: #ffffff;        /* Blanco puro */
+            --pos-background: #f8fafc;     /* Gris muy claro */
             --pos-gray-50: #f8fafc;
             --pos-gray-100: #f1f5f9;
-            --pos-gray-200: #e2e8f0;
+            --pos-gray-200: #e2e8f0;       /* Gris más definido */
+            --pos-border-subtle: #e2e8f0;  /* Bordes más suaves */
+            --pos-border-focus: #6366f1;   /* Focus indigo */
+
+            /* Variables responsivas adicionales */
+            --pos-product-min-width: 100px;
+            --pos-product-max-width: 150px;
+            --pos-gap: clamp(4px, 0.5vw, 8px);
+
+            /* Transiciones profesionales */
+            --pos-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --pos-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         /* RESET Y BASE */
@@ -29,35 +47,93 @@
             box-sizing: border-box;
         }
         
-        /* LAYOUT PRINCIPAL OPTIMIZADO PARA 1024x637 AL 100% ZOOM */
+        /* LAYOUT PRINCIPAL RESPONSIVO */
         .pos-main-container {
             display: grid;
             grid-template-columns: var(--pos-sidebar-width) 1fr var(--pos-cart-width);
-            height: 600px;
-            max-height: 600px;
+            grid-template-areas: "sidebar products cart";
+            height: calc(100vh - 120px);
+            min-height: 500px;
+            max-height: calc(100vh - 120px);
             overflow: hidden;
-            gap: 0;
+            gap: var(--pos-gap);
             background: var(--pos-gray-50);
-            width: 1024px;
-            max-width: 1024px;
-            margin: 0 auto;
+            width: 100%;
+            max-width: 100vw;
+            margin: 0;
+            padding: var(--pos-gap);
+            box-sizing: border-box;
         }
         
-        /* SIDEBAR CATEGORÍAS - MEJORADO */
+        /* SIDEBAR CATEGORÍAS RESPONSIVO */
         .pos-categories {
+            grid-area: sidebar;
             background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-            border-right: 1px solid var(--pos-gray-200);
+            border: 1px solid var(--pos-border-subtle);
+            border-radius: var(--pos-border-radius);
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            box-shadow: var(--pos-shadow);
         }
         
         .pos-categories-header {
             padding: 12px 8px 8px;
-            border: 1px solid #64748b;
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             background: white;
             margin: 6px;
+        }
+
+        /* BOTÓN TOGGLE FIJO DE CATEGORÍAS */
+        .pos-categories-toggle-btn-fixed {
+            position: fixed;
+            top: 70px;
+            left: 10px;
+            width: 40px;
+            height: 40px;
+            padding: 8px;
+            background: var(--pos-primary);
+            color: white;
+            border: none;
+            border-radius: var(--pos-border-radius);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--pos-transition);
+            z-index: 1000;
+            box-shadow: var(--pos-shadow);
+        }
+
+        .pos-categories-toggle-btn-fixed:hover {
+            background: var(--pos-border-focus);
+            transform: translateY(-1px);
+            box-shadow: var(--pos-shadow-hover);
+        }
+
+        .pos-categories-toggle-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* ANIMACIÓN DE DESLIZAMIENTO HORIZONTAL DE CATEGORÍAS */
+        .pos-categories {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(0); /* Estado normal - visible */
+        }
+
+        .pos-categories.collapsed {
+            transform: translateX(-100%); /* Deslizar hacia la izquierda - oculto */
+        }
+
+        /* EXPANSIÓN DEL ÁREA DE PRODUCTOS CUANDO CATEGORÍAS ESTÁ COLAPSADA */
+        .pos-main-container {
+            transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pos-main-container.categories-collapsed {
+            grid-template-columns: 0 1fr var(--pos-cart-width); /* Sin espacio para sidebar */
         }
         
         .pos-categories-content {
@@ -72,20 +148,20 @@
             padding: 6px 8px;
             margin-bottom: 3px;
             text-align: left;
-            border: 1px solid #64748b;
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             background: white;
             color: #64748b;
             font-weight: 500;
             font-size: 11px;
-            transition: all 0.2s ease;
+            transition: var(--pos-transition);
             cursor: pointer;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         
         .pos-category-btn:hover {
             background: #f3f4f6;
-            border-color: #64748b;
+            border-color: var(--pos-border-focus);
             transform: translateY(-1px);
             box-shadow: var(--pos-shadow);
         }
@@ -93,36 +169,42 @@
         .pos-category-btn.active {
             background: #64748b;
             color: white;
-            border: 2px solid #64748b;
+            border: 2px solid var(--pos-border-focus);
             box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
         }
         
-        /* ÁREA DE PRODUCTOS OPTIMIZADA PARA 1024x637 AL 100% ZOOM */
+        /* ÁREA DE PRODUCTOS RESPONSIVA */
         .pos-products-area {
+            grid-area: products;
             background: white;
             display: flex;
             flex-direction: column;
+            border-radius: var(--pos-border-radius);
+            box-shadow: var(--pos-shadow);
             overflow: hidden;
-            height: 600px;
-            max-height: 600px;
+            min-width: 0; /* Permite que el grid se contraiga */
         }
         
         .pos-search-bar {
             padding: 10px;
             background: white;
-            border: 1px solid #64748b;
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             margin: 6px;
         }
         
         .pos-search-input {
             width: 100%;
-            padding: 8px 12px;
+            padding: clamp(6px, 1.5vw, 12px);
             border: 1px solid var(--pos-gray-200);
             border-radius: var(--pos-border-radius);
-            font-size: 14px;
-            transition: all 0.2s ease;
+            font-size: clamp(12px, 2vw, 16px);
+            transition: var(--pos-transition);
             background: var(--pos-gray-50);
+            /* Mejorar en móviles */
+            -webkit-appearance: none;
+            appearance: none;
+            touch-action: manipulation;
         }
         
         .pos-search-input:focus {
@@ -136,44 +218,48 @@
             flex: 1;
             overflow-y: auto;
             padding: 10px;
-            border: 1px solid #64748b;
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             margin: 6px;
             background: white;
         }
         
-        /* GRID DE PRODUCTOS OPTIMIZADO PARA 1024x637 */
+        /* GRID DE PRODUCTOS RESPONSIVO */
         .pos-products-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 6px;
+            grid-template-columns: repeat(auto-fill, minmax(var(--pos-product-min-width), 1fr));
+            gap: var(--pos-gap);
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 10px;
+            padding: var(--pos-gap);
+            padding-bottom: calc(var(--pos-gap) * 2);
         }
         
-        /* CARDS DE PRODUCTOS OPTIMIZADAS PARA 1024x637 */
+        /* CARDS DE PRODUCTOS RESPONSIVAS */
         .pos-product-card {
             background: white;
-            border: 1px solid var(--pos-gray-200);
-            border-radius: 6px;
-            padding: 6px;
+            border: 1px solid var(--pos-border-subtle);
+            border-radius: var(--pos-border-radius);
+            padding: clamp(4px, 1vw, 8px);
             text-align: center;
             cursor: pointer;
-            transition: all 0.15s ease;
+            transition: var(--pos-transition-fast);
             position: relative;
             overflow: hidden;
-            min-height: 80px;
+            min-height: clamp(70px, 10vw, 100px);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            /* Mejorar experiencia táctil */
+            touch-action: manipulation;
+            user-select: none;
         }
         
         .pos-product-card:hover {
             transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            border-color: var(--pos-primary);
-            background: #f8fafc;
+            box-shadow: var(--pos-shadow-hover);
+            border-color: var(--pos-border-focus);
+            background: var(--pos-surface);
         }
         
         .pos-product-card:active {
@@ -218,21 +304,22 @@
             padding-top: 2px;
         }
         
-        /* CARRITO OPTIMIZADO PARA 1024x637 AL 100% ZOOM */
+        /* CARRITO RESPONSIVO */
         .pos-cart {
+            grid-area: cart;
             background: white;
-            border-left: 1px solid var(--pos-gray-200);
+            border: 1px solid var(--pos-border-subtle);
+            border-radius: var(--pos-border-radius);
             display: flex;
             flex-direction: column;
-            height: 600px;
-            max-height: 600px;
             overflow: hidden;
+            box-shadow: var(--pos-shadow);
         }
         
         .pos-cart-header {
             padding: 10px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border: 1px solid #64748b;
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             margin: 6px;
         }
@@ -378,7 +465,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 4px;
-            border: 1px solid #64748b;
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             margin: 4px;
             background: white;
@@ -388,7 +475,7 @@
         
         .pos-cart-item {
             background: var(--pos-gray-50);
-            border: 1px solid var(--pos-gray-200);
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             padding: 6px;
             margin-bottom: 4px;
@@ -508,7 +595,7 @@
         .pos-cart-totals {
             padding: 6px;
             background: white;
-            border: 1px solid #64748b;
+            border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
             margin: 6px;
             flex-shrink: 0;
@@ -639,41 +726,136 @@
             opacity: 0.5;
         }
         
-        /* RESPONSIVE BREAKPOINTS */
-        @media (max-width: 1400px) {
+        /* BREAKPOINTS RESPONSIVOS MEJORADOS */
+
+        /* Pantallas grandes (1400px+) */
+        @media (min-width: 1400px) {
             :root {
                 --pos-cart-width: 350px;
-                --pos-sidebar-width: 180px;
-            }
-            
-            .pos-products-container {
-                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                --pos-sidebar-width: 200px;
+                --pos-product-min-width: 140px;
+                --pos-gap: 8px;
             }
         }
-        
-        @media (max-width: 1200px) {
+
+        /* Pantallas medianas (1024px - 1399px) */
+        @media (max-width: 1399px) and (min-width: 1024px) {
             :root {
                 --pos-cart-width: 320px;
-                --pos-sidebar-width: 160px;
+                --pos-sidebar-width: 180px;
+                --pos-product-min-width: 120px;
+                --pos-gap: 6px;
             }
-            
+
+            .pos-quick-actions-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        /* Tablets (768px - 1023px) */
+        @media (max-width: 1023px) and (min-width: 768px) {
+            :root {
+                --pos-cart-width: 280px;
+                --pos-sidebar-width: 160px;
+                --pos-product-min-width: 100px;
+                --pos-gap: 4px;
+            }
+
+            .pos-main-container {
+                grid-template-columns: var(--pos-sidebar-width) 1fr var(--pos-cart-width);
+                height: calc(100vh - 100px);
+                padding: 4px;
+            }
+
+            .pos-category-btn {
+                padding: 8px 4px;
+                font-size: 12px;
+            }
+
             .pos-quick-actions-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-        
-        @media (max-width: 1024px) {
+
+        /* Móviles (hasta 767px) */
+        @media (max-width: 767px) {
+            :root {
+                --pos-gap: 4px;
+            }
+
             .pos-main-container {
-                grid-template-columns: 140px 1fr 300px;
+                grid-template-columns: 1fr;
+                grid-template-rows: auto 1fr auto;
+                grid-template-areas:
+                    "sidebar"
+                    "products"
+                    "cart";
+                height: calc(100vh - 80px);
+                padding: 4px;
             }
-            
+
+            .pos-categories {
+                max-height: 120px;
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+
+            .pos-categories-content {
+                display: flex;
+                flex-direction: row;
+                gap: 4px;
+                padding: 4px;
+            }
+
             .pos-category-btn {
-                padding: 12px;
-                font-size: 13px;
+                min-width: 80px;
+                padding: 8px 12px;
+                font-size: 11px;
+                white-space: nowrap;
             }
-            
-            .pos-products-container {
-                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+
+            .pos-cart {
+                max-height: 200px;
+            }
+
+            .pos-quick-actions-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 2px;
+            }
+
+            .pos-quick-action-btn {
+                padding: 6px 2px;
+                font-size: 10px;
+            }
+        }
+
+        /* Pantallas muy pequeñas (hasta 480px) */
+        @media (max-width: 480px) {
+            .pos-main-container {
+                padding: 2px;
+                gap: 2px;
+            }
+
+            .pos-categories-header h3 {
+                font-size: 12px;
+            }
+
+            .pos-product-card {
+                min-height: 60px;
+                padding: 2px;
+            }
+
+            .pos-product-name {
+                font-size: 10px;
+                line-height: 1.2;
+            }
+
+            .pos-product-price {
+                font-size: 10px;
+            }
+
+            .pos-cart-header h3 {
+                font-size: 12px;
             }
         }
         
@@ -755,10 +937,199 @@
         }
     </style>
 
+    <script>
+        /* ========================================= */
+        /* OCULTAR SIDEBAR COMPLETAMENTE EN POS */
+        /* ========================================= */
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar que estamos en POS
+            if (window.location.pathname.includes('pos-interface')) {
+                console.log('🎯 POS: Ocultando sidebar completamente');
+
+                // BUSCAR TOGGLE EN MÚLTIPLES UBICACIONES
+                let toggle = null;
+                const toggleSelectors = [
+                    '.fi-topbar [data-sidebar-toggle]',
+                    '.fi-header [data-sidebar-toggle]',
+                    '.fi-sidebar [data-sidebar-toggle]',
+                    '.fi-topbar .fi-sidebar-toggle',
+                    '.fi-header .fi-sidebar-toggle',
+                    '.fi-sidebar .fi-sidebar-toggle',
+                    '.fi-topbar button[aria-label*="sidebar"]',
+                    '.fi-header button[aria-label*="sidebar"]',
+                    '.fi-sidebar button[aria-label*="sidebar"]',
+                    '.fi-topbar button[aria-label*="menu"]',
+                    '.fi-header button[aria-label*="menu"]',
+                    '.fi-sidebar button[aria-label*="menu"]',
+                    '.fi-topbar .fi-icon-btn:first-child',
+                    '.fi-header .fi-icon-btn:first-child'
+                ];
+
+                for (const selector of toggleSelectors) {
+                    toggle = document.querySelector(selector);
+                    if (toggle) {
+                        console.log('🎯 Toggle encontrado con selector:', selector);
+                        break;
+                    }
+                }
+
+                // Si NO encontramos toggle, crear uno custom
+                if (!toggle) {
+                    console.log('🎯 Creando toggle custom');
+                    toggle = document.createElement('button');
+                    toggle.innerHTML = '☰';
+                    toggle.setAttribute('aria-label', 'Toggle sidebar');
+                }
+
+                // SIEMPRE agregar el atributo para identificarlo después
+                toggle.setAttribute('data-sidebar-toggle', 'pos-custom');
+                toggle.setAttribute('id', 'pos-sidebar-toggle');
+
+                // POSICIONAR toggle fijo y MUY VISIBLE
+                toggle.style.display = 'flex !important';
+                toggle.style.position = 'fixed !important';
+                toggle.style.top = '20px !important';
+                toggle.style.left = '20px !important';
+                toggle.style.zIndex = '99999 !important';
+                toggle.style.background = '#3b82f6 !important'; // Azul vibrante
+                toggle.style.color = 'white !important';
+                toggle.style.border = '2px solid #1d4ed8 !important';
+                toggle.style.borderRadius = '8px !important';
+                toggle.style.padding = '12px !important';
+                toggle.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4) !important';
+                toggle.style.cursor = 'pointer !important';
+                toggle.style.fontSize = '18px !important';
+                toggle.style.fontWeight = 'bold !important';
+                toggle.style.lineHeight = '1 !important';
+                toggle.style.width = '50px !important';
+                toggle.style.height = '50px !important';
+                toggle.style.alignItems = 'center !important';
+                toggle.style.justifyContent = 'center !important';
+                toggle.style.transition = 'all 0.2s ease !important';
+
+                // Efecto hover
+                toggle.addEventListener('mouseenter', function() {
+                    this.style.background = '#1d4ed8 !important';
+                    this.style.transform = 'scale(1.1) !important';
+                });
+                toggle.addEventListener('mouseleave', function() {
+                    this.style.background = '#3b82f6 !important';
+                    this.style.transform = 'scale(1) !important';
+                });
+
+                // Agregar al body para que siempre esté visible
+                document.body.appendChild(toggle);
+                console.log('🎯 Toggle agregado al body con ID:', toggle.id);
+
+                // OCULTAR sidebar completamente
+                const sidebar = document.querySelector('.fi-sidebar');
+                if (sidebar) {
+                    sidebar.style.display = 'none';
+                }
+
+                // EXPANDIR main content al 100%
+                const main = document.querySelector('.fi-main');
+                if (main) {
+                    main.style.marginLeft = '0';
+                    main.style.width = '100%';
+                    main.style.maxWidth = 'none';
+                }
+
+                // EXPANDIR layout principal
+                const layout = document.querySelector('.fi-layout');
+                if (layout) {
+                    layout.style.gridTemplateColumns = '1fr';
+                }
+
+                // Función para manejar el toggle del sidebar
+                function setupSidebarToggle() {
+                    // El toggle ya está garantizado en el body con ID específico
+                    const toggleBtn = document.getElementById('pos-sidebar-toggle');
+                    if (toggleBtn) {
+                        console.log('🎯 Configurando toggle funcional');
+
+                        // Limpiar listeners anteriores
+                        const newToggleBtn = toggleBtn.cloneNode(true);
+                        toggleBtn.parentNode.replaceChild(newToggleBtn, toggleBtn);
+
+                        newToggleBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            const sidebar = document.querySelector('.fi-sidebar');
+                            if (sidebar) {
+                                if (sidebar.style.display === 'none') {
+                                    console.log('🎯 Mostrando sidebar');
+                                    // Mostrar sidebar como overlay
+                                    sidebar.style.display = 'block';
+                                    sidebar.style.position = 'fixed';
+                                    sidebar.style.top = '0';
+                                    sidebar.style.left = '0';
+                                    sidebar.style.height = '100vh';
+                                    sidebar.style.zIndex = '9998'; // Menor que el toggle
+                                    sidebar.style.background = 'white';
+                                    sidebar.style.boxShadow = '2px 0 10px rgba(0,0,0,0.1)';
+                                    sidebar.style.width = '16rem'; // Ancho fijo
+                                } else {
+                                    console.log('🎯 Ocultando sidebar');
+                                    // Ocultar sidebar
+                                    sidebar.style.display = 'none';
+                                }
+                            }
+                        });
+                    } else {
+                        console.log('❌ No se encontró toggle en el body');
+                    }
+                }
+
+                // Configurar toggle después de que todo esté listo
+                setTimeout(setupSidebarToggle, 100);
+            }
+        });
+
+        /* ========================================= */
+        /* TOGGLE DE CATEGORÍAS */
+        /* ========================================= */
+        function toggleCategories() {
+            const categoriesSection = document.getElementById('pos-categories');
+            const mainContainer = document.querySelector('.pos-main-container');
+
+            if (categoriesSection && mainContainer) {
+                // Toggle clase en categorías para animación de deslizamiento
+                categoriesSection.classList.toggle('collapsed');
+
+                // Toggle clase en main container para expansión del grid
+                mainContainer.classList.toggle('categories-collapsed');
+            }
+        }
+
+        // INICIALIZAR CATEGORÍAS COLAPSADAS AL CARGAR
+        document.addEventListener('DOMContentLoaded', function() {
+            const categoriesSection = document.getElementById('pos-categories');
+            const mainContainer = document.querySelector('.pos-main-container');
+
+            if (categoriesSection && mainContainer) {
+                // Inicializar ambos elementos colapsados
+                categoriesSection.classList.add('collapsed');
+                mainContainer.classList.add('categories-collapsed');
+            }
+        });
+    </script>
+
     <div class="pos-interface">
+        {{-- BOTÓN TOGGLE FIJO PARA CATEGORÍAS --}}
+        <button
+            id="categories-toggle-btn"
+            onclick="toggleCategories()"
+            class="pos-categories-toggle-btn-fixed"
+            title="Mostrar/Ocultar Categorías"
+        >
+            <x-heroicon-o-squares-2x2 class="pos-categories-toggle-icon" />
+        </button>
+
         <div class="pos-main-container">
             {{-- SIDEBAR IZQUIERDO: CATEGORÍAS --}}
-            <div class="pos-categories">
+            <div class="pos-categories" id="pos-categories">
                 <div class="pos-categories-header">
                     <h3 class="text-sm font-bold text-gray-800 text-center">Categorías</h3>
                 </div>
@@ -806,7 +1177,7 @@
                 <div class="pos-search-bar">
                     <input
                         type="text"
-                        wire:model.debounce.300ms="search"
+                        wire:model.live.debounce.300ms="search"
                         placeholder="Buscar productos..."
                         class="pos-search-input"
                     />
@@ -934,10 +1305,9 @@
                         <div class="pos-quick-actions-title">Acciones Rápidas</div>
                         <div class="pos-quick-actions-grid">
                             {{-- Mapa --}}
-                            <button 
+                            <button
                                 wire:click="mountAction('backToTableMap')"
                                 class="pos-quick-action-btn btn-mapa"
-                                {{ !($this->order && $this->order->table_id !== null) ? 'disabled' : '' }}
                                 title="Mapa"
                             >
                                 <x-heroicon-o-map class="pos-quick-action-icon" />
