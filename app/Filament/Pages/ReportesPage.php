@@ -135,6 +135,11 @@ class ReportesPage extends Page implements HasForms
         ];
     }
 
+    public function exportReport(): void
+    {
+        $this->generate();
+    }
+
     public function generate(): void
     {
         // Obtener datos del formulario
