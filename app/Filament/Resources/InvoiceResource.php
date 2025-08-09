@@ -139,7 +139,7 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('formattedNumber')
                     ->label('Número')
                     ->searchable(['series', 'number'])
-                    ->sortable()
+                    ->sortable(['series', 'number'])
                     ->copyable(),
 
                 Tables\Columns\BadgeColumn::make('invoice_type')

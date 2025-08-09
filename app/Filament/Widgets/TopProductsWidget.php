@@ -104,7 +104,7 @@ class TopProductsWidget extends BaseWidget
                 // Sin bulk actions
             ])
             ->defaultSort('total_quantity', 'desc')
-            ->paginated([10, 25, 50])
+            ->paginated([10])
             ->poll('60s') // Actualización cada minuto
             ->striped();
     }
