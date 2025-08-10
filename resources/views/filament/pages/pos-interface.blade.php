@@ -7,7 +7,7 @@
         /* ========================================= */
         /* SISTEMA POS OPTIMIZADO - DISEÑO MODERNO */
         /* ========================================= */
-        
+
         /* VARIABLES GLOBALES RESPONSIVAS */
         :root {
             --pos-cart-width: clamp(280px, 25vw, 350px);
@@ -44,12 +44,12 @@
             --pos-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             --pos-transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         /* RESET Y BASE */
         .pos-interface * {
             box-sizing: border-box;
         }
-        
+
         /* LAYOUT PRINCIPAL RESPONSIVO */
         .pos-main-container {
             display: grid;
@@ -67,7 +67,7 @@
             padding: var(--pos-gap);
             box-sizing: border-box;
         }
-        
+
         /* SIDEBAR CATEGORÍAS RESPONSIVO */
         .pos-categories {
             grid-area: sidebar;
@@ -79,7 +79,7 @@
             overflow: hidden;
             box-shadow: var(--pos-shadow);
         }
-        
+
         .pos-categories-header {
             padding: 12px 8px 8px;
             border: 1px solid var(--pos-border-subtle);
@@ -138,13 +138,13 @@
         .pos-main-container.categories-collapsed {
             grid-template-columns: 0 1fr var(--pos-cart-width); /* Sin espacio para sidebar */
         }
-        
+
         .pos-categories-content {
             flex: 1;
             overflow-y: auto;
             padding: 8px 6px;
         }
-        
+
         /* BOTONES DE CATEGORÍA OPTIMIZADOS PARA 1024x637 AL 100% ZOOM */
         .pos-category-btn {
             width: 100%;
@@ -161,21 +161,21 @@
             cursor: pointer;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
-        
+
         .pos-category-btn:hover {
             background: #f3f4f6;
             border-color: var(--pos-border-focus);
             transform: translateY(-1px);
             box-shadow: var(--pos-shadow);
         }
-        
+
         .pos-category-btn.active {
             background: #64748b;
             color: white;
             border: 2px solid var(--pos-border-focus);
             box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
         }
-        
+
         /* ÁREA DE PRODUCTOS RESPONSIVA */
         .pos-products-area {
             grid-area: products;
@@ -187,7 +187,7 @@
             overflow: hidden;
             min-width: 0; /* Permite que el grid se contraiga */
         }
-        
+
         .pos-search-bar {
             padding: 10px;
             background: white;
@@ -293,7 +293,7 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         .pos-products-grid {
             flex: 1;
             overflow-y: auto;
@@ -303,7 +303,7 @@
             margin: 6px;
             background: white;
         }
-        
+
         /* GRID DE PRODUCTOS RESPONSIVO */
         .pos-products-container {
             display: grid;
@@ -314,7 +314,7 @@
             padding: var(--pos-gap);
             padding-bottom: calc(var(--pos-gap) * 2);
         }
-        
+
         /* CARDS DE PRODUCTOS RESPONSIVAS */
         .pos-product-card {
             background: white;
@@ -334,18 +334,18 @@
             touch-action: manipulation;
             user-select: none;
         }
-        
+
         .pos-product-card:hover {
             transform: translateY(-1px);
             box-shadow: var(--pos-shadow-hover);
             border-color: var(--pos-border-focus);
             background: var(--pos-surface);
         }
-        
+
         .pos-product-card:active {
             transform: translateY(0);
         }
-        
+
         .pos-product-image {
             width: 32px;
             height: 32px;
@@ -358,7 +358,7 @@
             overflow: hidden;
             flex-shrink: 0;
         }
-        
+
         .pos-product-name {
             font-size: 11px;
             font-weight: 600;
@@ -375,7 +375,7 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
         }
-        
+
         .pos-product-price {
             font-size: 12px;
             font-weight: 700;
@@ -383,7 +383,7 @@
             margin-top: auto;
             padding-top: 2px;
         }
-        
+
         /* CARRITO RESPONSIVO */
         .pos-cart {
             grid-area: cart;
@@ -395,7 +395,7 @@
             overflow: hidden;
             box-shadow: var(--pos-shadow);
         }
-        
+
         .pos-cart-header {
             padding: 10px;
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
@@ -403,21 +403,21 @@
             border-radius: var(--pos-border-radius);
             margin: 6px;
         }
-        
+
         .pos-cart-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 8px;
         }
-        
+
         .pos-cart-actions {
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 6px;
             align-items: end;
         }
-        
+
         /* ACCIONES RÁPIDAS COMPACTAS - 4 POR FILA */
         .pos-quick-actions {
             margin-top: 8px;
@@ -426,7 +426,7 @@
             border-radius: var(--pos-border-radius);
             border: 1px solid var(--pos-gray-200);
         }
-        
+
         .pos-quick-actions-title {
             font-size: 10px;
             font-weight: 600;
@@ -434,13 +434,13 @@
             margin-bottom: 6px;
             text-align: center;
         }
-        
+
         .pos-quick-actions-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 3px;
         }
-        
+
         .pos-quick-action-btn {
             padding: clamp(8px, 1.5vw, 12px) clamp(4px, 1vw, 6px);
             border: 1px solid var(--pos-gray-200);
@@ -462,7 +462,7 @@
             height: clamp(36px, 5vw, 44px);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
-        
+
         .pos-quick-action-btn:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -514,7 +514,7 @@
             width: clamp(12px, 2vw, 16px);
             height: clamp(12px, 2vw, 16px);
         }
-        
+
         /* COLORES OPTIMIZADOS CON JERARQUÍA VISUAL */
         .pos-quick-action-btn.btn-mapa {
             background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
@@ -571,7 +571,7 @@
             color: #ffffff;
             box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
         }
-        
+
         .pos-quick-action-btn:disabled {
             background: var(--pos-gray-200) !important;
             border-color: var(--pos-gray-300) !important;
@@ -619,7 +619,7 @@
         .pos-quick-action-btn.tertiary .btn-label {
             font-size: clamp(7px, 1.1vw, 9px);
         }
-        
+
         /* ITEMS DEL CARRITO OPTIMIZADOS PARA 1024x637 AL 100% ZOOM */
         .pos-cart-items {
             flex: 1;
@@ -632,7 +632,7 @@
             max-height: calc(600px - 250px);
             min-height: 200px;
         }
-        
+
         .pos-cart-item {
             background: var(--pos-gray-50);
             border: 1px solid var(--pos-border-subtle);
@@ -641,12 +641,12 @@
             margin-bottom: 4px;
             transition: all 0.2s ease;
         }
-        
+
         .pos-cart-item:hover {
             background: white;
             box-shadow: var(--pos-shadow);
         }
-        
+
         .pos-cart-item-header {
             display: flex;
             justify-content: space-between;
@@ -723,7 +723,7 @@
         .pos-item-remove-btn:focus:not(:focus-visible) {
             outline: none;
         }
-        
+
         /* CONTROLES DE CANTIDAD OPTIMIZADOS PARA TOUCH */
         .pos-quantity-controls {
             display: flex;
@@ -799,7 +799,7 @@
         .pos-quantity-btn:disabled svg {
             opacity: 0.5;
         }
-        
+
         .pos-quantity-value {
             font-size: clamp(16px, 2.5vw, 20px);
             font-weight: 700;
@@ -1283,7 +1283,7 @@
         .fi-modal[data-modal-id*="printComanda"] .fi-input-wrapper:focus-within {
             transform: translateY(-1px);
         }
-        
+
         /* OPCIONES ESPECIALES MEJORADAS */
         .pos-special-options {
             margin: 12px 0;
@@ -1292,32 +1292,32 @@
             border: 1px solid #fbbf24;
             border-radius: 8px;
         }
-        
+
         .pos-special-options-title {
             font-size: 12px;
             font-weight: 600;
             color: #92400e;
             margin-bottom: 8px;
         }
-        
+
         .pos-radio-group {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
-        
+
         .pos-radio-option {
             display: flex;
             align-items: center;
             gap: 4px;
         }
-        
+
         .pos-radio-option label {
             font-size: 11px;
             color: #374151;
             cursor: pointer;
         }
-        
+
         /* TOTALES DEL CARRITO MEJORADOS - UX OPTIMIZADO */
         .pos-cart-totals {
             padding: clamp(12px, 2vw, 16px);
@@ -1438,7 +1438,7 @@
         .pos-total-amount {
             transition: var(--pos-transition);
         }
-        
+
         /* BOTONES DE ACCIÓN - PATRÓN POS COMPACTO */
         .pos-action-btn {
             width: 100%;
@@ -1455,34 +1455,34 @@
             gap: 4px;
             margin-bottom: 4px;
         }
-        
+
         /* BOTÓN SUCCESS ULTRA COMPACTO */
         .pos-action-btn.success {
             padding: 6px;
             font-size: 11px;
         }
-        
+
         .pos-action-btn.primary {
             background: var(--pos-primary);
             color: white;
         }
-        
+
         .pos-action-btn.success {
             background: var(--pos-success);
             color: white;
         }
-        
+
         .pos-action-btn:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: var(--pos-shadow-hover);
         }
-        
+
         .pos-action-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         /* LOGO DEL SISTEMA - ESTADO INICIAL */
         .pos-logo-container {
             display: flex;
@@ -1494,7 +1494,7 @@
             padding: 40px 20px;
             text-align: center;
         }
-        
+
         .pos-system-logo {
             width: 200px;
             height: auto;
@@ -1503,12 +1503,12 @@
             opacity: 0.9;
             transition: all 0.3s ease;
         }
-        
+
         .pos-system-logo:hover {
             opacity: 1;
             transform: scale(1.02);
         }
-        
+
         .pos-logo-text {
             font-size: 16px;
             font-weight: 500;
@@ -1516,7 +1516,7 @@
             margin: 0;
             opacity: 0.8;
         }
-        
+
         /* ESTADO VACÍO */
         .pos-empty-state {
             display: flex;
@@ -1527,14 +1527,14 @@
             text-align: center;
             color: #6b7280;
         }
-        
+
         .pos-empty-icon {
             width: 48px;
             height: 48px;
             margin-bottom: 16px;
             opacity: 0.5;
         }
-        
+
         /* BREAKPOINTS RESPONSIVOS MEJORADOS */
 
         /* Pantallas grandes (1400px+) */
@@ -1710,40 +1710,40 @@
                 font-size: 12px;
             }
         }
-        
+
         /* SCROLLBARS PERSONALIZADOS */
         .pos-categories-content::-webkit-scrollbar,
         .pos-cart-items::-webkit-scrollbar,
         .pos-products-grid::-webkit-scrollbar {
             width: 6px;
         }
-        
+
         .pos-categories-content::-webkit-scrollbar-track,
         .pos-cart-items::-webkit-scrollbar-track,
         .pos-products-grid::-webkit-scrollbar-track {
             background: var(--pos-gray-100);
         }
-        
+
         .pos-categories-content::-webkit-scrollbar-thumb,
         .pos-cart-items::-webkit-scrollbar-thumb,
         .pos-products-grid::-webkit-scrollbar-thumb {
             background: var(--pos-gray-200);
             border-radius: 3px;
         }
-        
+
         .pos-categories-content::-webkit-scrollbar-thumb:hover,
         .pos-cart-items::-webkit-scrollbar-thumb:hover,
         .pos-products-grid::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
-        
+
         /* ANIMACIONES Y FEEDBACK VISUAL */
         .pos-loading {
             pointer-events: none;
             opacity: 0.7;
             position: relative;
         }
-        
+
         .pos-loading::after {
             content: '';
             position: absolute;
@@ -1757,12 +1757,12 @@
             border-radius: 50%;
             animation: pos-spin 1s linear infinite;
         }
-        
+
         @keyframes pos-spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         /* TOAST NOTIFICATIONS */
         .pos-toast {
             position: fixed;
@@ -1776,7 +1776,7 @@
             z-index: 1000;
             animation: pos-slide-in 0.3s ease;
         }
-        
+
         @keyframes pos-slide-in {
             from {
                 transform: translateX(100%);
@@ -1985,7 +1985,7 @@
                 <div class="pos-categories-header">
                     <h3 class="text-sm font-bold text-gray-800 text-center">Categorías</h3>
                 </div>
-                
+
                 <div class="pos-categories-content">
                     @foreach($this->getCategoriesProperty() as $category)
                         <button
@@ -1996,7 +1996,7 @@
                         </button>
                     @endforeach
                 </div>
-                
+
                 {{-- SUBCATEGORÍAS --}}
                 @if($selectedCategoryId && $subcategories->isNotEmpty())
                     <div class="border-t border-gray-200 p-3">
@@ -2022,7 +2022,7 @@
                     </div>
                 @endif
             </div>
-            
+
             {{-- ÁREA CENTRAL: PRODUCTOS --}}
             <div class="pos-products-area">
                 {{-- BARRA DE BÚSQUEDA --}}
@@ -2072,9 +2072,9 @@
                     @if(!$selectedCategoryId && !$search)
                         {{-- LOGO DEL SISTEMA - ESTADO INICIAL --}}
                         <div class="pos-logo-container">
-                            <img 
-                                src="{{ asset('images/logoWayna.svg') }}" 
-                                alt="Logo Wayna" 
+                            <img
+                                src="{{ asset('images/logoWayna.svg') }}"
+                                alt="Logo Wayna"
                                 class="pos-system-logo"
                             />
                             <p class="pos-logo-text">Selecciona una categoría para ver los productos</p>
@@ -2089,9 +2089,9 @@
                                 >
                                     <div class="pos-product-image">
                                         @if($product->image_path)
-                                            <img 
-                                                src="{{ $product->image }}" 
-                                                alt="{{ $product->name }}" 
+                                            <img
+                                                src="{{ $product->image }}"
+                                                alt="{{ $product->name }}"
                                                 style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"
                                             />
                                         @else
@@ -2100,10 +2100,10 @@
                                             </span>
                                         @endif
                                     </div>
-                                    
+
                                     <div class="pos-product-name">{{ $product->name }}</div>
                                     <div class="pos-product-price">S/ {{ number_format($product->sale_price, 2) }}</div>
-                                    
+
                                     @if($product->category)
                                         <div style="margin-top: 8px;">
                                             <span style="background: #e5e7eb; color: #374151; padding: 2px 8px; border-radius: 12px; font-size: 10px;">
@@ -2151,7 +2151,7 @@
                         <span style="background: var(--pos-success); color: white; padding: 4px 12px; border-radius: 16px; font-size: 14px; font-weight: 600;">
                             {{ count($cartItems) }} items
                         </span>
-                        
+
                         {{-- CONTROLES MOVIDOS AL LADO DERECHO DEL "0 items" --}}
                         <div style="display: flex; align-items: center; gap: 8px;">
                             <div>
@@ -2170,7 +2170,7 @@
                                     >
                                 </div>
                             </div>
-                            
+
                             <button
                                 wire:click="clearCart"
                                 style="width: 32px; height: 32px; border: 1px solid #fca5a5; border-radius: 6px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; margin-top: 16px;"
@@ -2183,7 +2183,7 @@
                             </button>
                         </div>
                     </div>
-                    
+
                     {{-- ACCIONES RÁPIDAS REORGANIZADAS --}}
                     <div class="pos-quick-actions">
                         <div class="pos-quick-actions-title">Acciones Rápidas</div>
@@ -2257,9 +2257,9 @@
                                     <span class="btn-label">Transferir</span>
                                 </button>
                             @endif
-                            
+
                             {{-- Liberar Mesa --}}
-                            <button 
+                            <button
                                 wire:click="mountAction('releaseTable')"
                                 class="pos-quick-action-btn btn-liberar"
                                 {{ !($this->order && $this->order->table_id) ? 'disabled' : '' }}
@@ -2267,9 +2267,9 @@
                             >
                                 <x-heroicon-o-home class="pos-quick-action-icon" />
                             </button>
-                            
+
                             {{-- Cancelar Pedido --}}
-                            <button 
+                            <button
                                 wire:click="mountAction('cancelOrder')"
                                 class="pos-quick-action-btn btn-cancelar"
                                 {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }}
@@ -2306,15 +2306,15 @@
                                     </svg>
                                 </button>
                             </div>
-                            
+
                             {{-- OPCIONES ESPECIALES --}}
                             @if($item['is_cold_drink'] ?? false)
                                 <div class="pos-special-options">
                                     <div class="pos-special-options-title">Temperatura:</div>
                                     <div class="pos-radio-group">
                                         <div class="pos-radio-option">
-                                            <input 
-                                                type="radio" 
+                                            <input
+                                                type="radio"
                                                 wire:model.live="cartItems.{{ $index }}.temperature"
                                                 value="HELADA"
                                                 id="cold-{{ $index }}"
@@ -2322,8 +2322,8 @@
                                             <label for="cold-{{ $index }}">Helada</label>
                                         </div>
                                         <div class="pos-radio-option">
-                                            <input 
-                                                type="radio" 
+                                            <input
+                                                type="radio"
                                                 wire:model.live="cartItems.{{ $index }}.temperature"
                                                 value="AL TIEMPO"
                                                 id="room-{{ $index }}"
@@ -2331,8 +2331,8 @@
                                             <label for="room-{{ $index }}">Al tiempo</label>
                                         </div>
                                         <div class="pos-radio-option">
-                                            <input 
-                                                type="radio" 
+                                            <input
+                                                type="radio"
                                                 wire:model.live="cartItems.{{ $index }}.temperature"
                                                 value="FRESCA"
                                                 id="fresh-{{ $index }}"
@@ -2342,15 +2342,15 @@
                                     </div>
                                 </div>
                             @endif
-                            
+
                             @if($item['is_grill_item'] ?? false)
                                 <div class="pos-special-options">
                                     <div class="pos-special-options-title">Punto de cocción:</div>
                                     <div class="pos-radio-group">
                                         @foreach(['ROJO', 'JUGOSO', 'TRES CUARTOS', 'BIEN COCIDO'] as $point)
                                             <div class="pos-radio-option">
-                                                <input 
-                                                    type="radio" 
+                                                <input
+                                                    type="radio"
                                                     wire:model.live="cartItems.{{ $index }}.cooking_point"
                                                     value="{{ $point }}"
                                                     id="grill-{{ $index }}-{{ $loop->index }}"
@@ -2361,14 +2361,14 @@
                                     </div>
                                 </div>
                             @endif
-                            
+
                             @if($item['is_chicken_cut'] ?? false)
                                 <div class="pos-special-options">
                                     <div class="pos-special-options-title">Tipo de presa:</div>
                                     <div class="pos-radio-group">
                                         <div class="pos-radio-option">
-                                            <input 
-                                                type="radio" 
+                                            <input
+                                                type="radio"
                                                 wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
                                                 value="PECHO"
                                                 id="chicken-{{ $index }}-breast"
@@ -2376,8 +2376,8 @@
                                             <label for="chicken-{{ $index }}-breast">Pecho</label>
                                         </div>
                                         <div class="pos-radio-option">
-                                            <input 
-                                                type="radio" 
+                                            <input
+                                                type="radio"
                                                 wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
                                                 value="PIERNA"
                                                 id="chicken-{{ $index }}-leg"
@@ -2691,7 +2691,7 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
-@endpush   
+@endpush
 
 <script>
 // Listener para redirección automática al mapa de mesas después de imprimir comprobantes
