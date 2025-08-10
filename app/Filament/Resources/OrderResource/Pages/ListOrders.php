@@ -6,6 +6,7 @@ use App\Filament\Resources\OrderResource;
 use Filament\Actions;
 use Filament\Forms;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\OrderDetail;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\DB;
 
 class ListOrders extends ListRecords
 {
+    use HasFiltersForm;
+    
     protected static string $resource = OrderResource::class;
 
     // 🎯 TÍTULO DEL DASHBOARD
