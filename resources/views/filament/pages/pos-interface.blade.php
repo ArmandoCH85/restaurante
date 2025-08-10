@@ -2508,13 +2508,23 @@
                             </div>
                         </div>
 
+                        {{-- AVISO DE CAJA CERRADA --}}
+                        @if(!$this->hasOpenCashRegister)
+                            <div style="background: #fee2e2; border: 1px solid #ef4444; border-radius: var(--pos-border-radius); padding: 12px; text-align: center; margin-bottom: 12px;">
+                                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; color: #b91c1c; font-weight: 600;">
+                                    <x-heroicon-o-exclamation-triangle style="width: 20px; height: 20px;" />
+                                    Abra una caja para poder crear órdenes o emitir comprobantes.
+                                </div>
+                            </div>
+                        @endif
+
                         {{-- BOTONES DE ACCIÓN --}}
                         @if($selectedTableId === null && !$order)
                             @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
                                 <button
                                     wire:click="mountAction('processBilling')"
                                     class="pos-action-btn success"
-                                    {{ !count($cartItems) ? 'disabled' : '' }}
+                                    {{ (!count($cartItems) || !$this->hasOpenCashRegister) ? 'disabled' : '' }}
                                 >
                                     <x-heroicon-m-credit-card style="width: 20px; height: 20px;" />
                                     Emitir Comprobante
@@ -2524,7 +2534,7 @@
                             <button
                                 wire:click="processOrder"
                                 class="pos-action-btn primary"
-                                {{ !count($cartItems) ? 'disabled' : '' }}
+                                {{ (!count($cartItems) || !$this->hasOpenCashRegister) ? 'disabled' : '' }}
                             >
                                 <x-heroicon-m-check-circle style="width: 20px; height: 20px;" />
                                 Guardar Orden
@@ -2535,6 +2545,7 @@
                             <button
                                 wire:click="mountAction('processBilling')"
                                 class="pos-action-btn success"
+                                {{ !$this->hasOpenCashRegister ? 'disabled' : '' }}
                             >
                                 <x-heroicon-m-credit-card style="width: 20px; height: 20px;" />
                                 Emitir Comprobante

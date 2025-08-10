@@ -32,3 +32,4 @@ yarn-error.log
 .env.example
 limpiar.sh
 count()
+docs/restaurante_db.sql

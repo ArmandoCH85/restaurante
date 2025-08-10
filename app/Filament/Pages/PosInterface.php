@@ -92,6 +92,7 @@ class PosInterface extends Page
     public bool $isCartDisabled = false;
     public array $transferItems = [];
     public ?Order $order = null;
+    public bool $hasOpenCashRegister = true;
     public ?int $selectedCustomerId = null;
     public string $selectedDocumentType = 'receipt';
     public string $customerName = '';
@@ -107,11 +108,11 @@ class PosInterface extends Page
     protected function getEmployeeId(): int
     {
         $employee = Employee::where('user_id', auth()->id())->first();
-        
+
         if (!$employee) {
             throw new \Exception('No se encontró un empleado asociado al usuario actual.');
         }
-        
+
         return $employee->id;
     }
 
@@ -144,13 +145,13 @@ class PosInterface extends Page
     {
         try {
             $employeeId = $this->getEmployeeId();
-            
+
             $cleaned = Order::where('employee_id', $employeeId)
                 ->where('status', Order::STATUS_OPEN)
                 ->where('billed', false)
                 ->where('created_at', '<', now()->subHours(2)) // 2 horas timeout
                 ->delete();
-                
+
             if ($cleaned > 0) {
                 Log::info("🧹 Órdenes abandonadas limpiadas del empleado", [
                     'user_id' => auth()->id(),
@@ -228,10 +229,10 @@ class PosInterface extends Page
 
         // Obtener el nombre de la categoría del producto
         $categoryName = $product->category?->name ?? '';
-        
+
         return in_array($categoryName, $drinkCategories);
     }
-    
+
     /**
      * Verifica si un producto pertenece a la categoría Parrillas o sus subcategorías
      * o si es uno de los productos específicos de Fusion Q'RICO que requieren punto de cocción
@@ -245,28 +246,28 @@ class PosInterface extends Page
             'Spaghetti Saltado de Lomo',
             'Medallón de Lomo al Grill c/ Pasta'
         ];
-        
+
         // Verificar si es uno de los productos específicos
         if (in_array($product->name, $specificProducts)) {
             return true;
         }
-        
+
         // Categoría principal "Parrillas"
         $grillCategory = 'Parrillas';
-        
+
         // Obtener el nombre de la categoría del producto
         $categoryName = $product->category?->name ?? '';
-        
+
         // Verificar si es la categoría principal de parrillas
         if ($categoryName === $grillCategory) {
             return true;
         }
-        
+
         // Verificar si es una subcategoría de Parrillas
         if ($product->category && $product->category->parent) {
             return $product->category->parent->name === $grillCategory;
         }
-        
+
         return false;
     }
 
@@ -285,20 +286,20 @@ class PosInterface extends Page
             '¼ Parrillero',
             '¼ Pollo'
         ];
-        
+
         // Verificar si es uno de los productos específicos
         if (in_array($product->name, $specificProducts)) {
             return true;
         }
-        
+
         // IDs de las subcategorías "Gustitos a la leña" y "Promociones Familiares"
         $chickenSubcategories = [132, 133]; // Gustitos a la leña (132) y Promociones Familiares (133)
-        
+
         // Verificar si pertenece a alguna de estas subcategorías
         if ($product->category && in_array($product->category->id, $chickenSubcategories)) {
             return true;
         }
-        
+
         return false;
     }
 
@@ -350,7 +351,7 @@ class PosInterface extends Page
 
                     // Obtener datos de la orden con productos
                     $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
-                    
+
                     return view('filament.modals.comanda-content', [
                         'order' => $order,
                         'customerNameForComanda' => $this->customerNameForComanda,
@@ -372,7 +373,7 @@ class PosInterface extends Page
                     if ($this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))) {
                         // Cerrar el modal para mostrar el contenido
                         $this->dispatch('refreshModalContent');
-                        
+
                         // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
                         if ($this->selectedTableId) {
                             $redirectUrl = TableMap::getUrl();
@@ -762,6 +763,7 @@ class PosInterface extends Page
                             'table_id' => $this->order->table_id,
                             'customer_id' => $this->order->customer_id,
                             'employee_id' => $this->order->employee_id,
+                            'cash_register_id' => CashRegister::getActiveCashRegisterId(),
                             'status' => Order::STATUS_OPEN,
                             'created_by' => auth()->guard('web')->id(),
                             'order_datetime' => now(),
@@ -861,10 +863,25 @@ class PosInterface extends Page
         @ini_set('memory_limit', '1024M');
         @ini_set('max_execution_time', 600);
         @ini_set('max_input_time', 600);
-        
+
         // Limpiar memoria
         if (function_exists('gc_collect_cycles')) {
             gc_collect_cycles();
+        }
+
+        // Estado de caja: bloquear UX si no hay caja abierta
+        $this->hasOpenCashRegister = CashRegister::hasOpenRegister();
+        if (!$this->hasOpenCashRegister) {
+            // Endurecer controles de UI para evitar acciones
+            $this->isCartDisabled = true;
+            $this->canAddProducts = false;
+
+            Notification::make()
+                ->title('Caja no abierta')
+                ->body('Abra una caja para crear órdenes o procesar pagos en el POS.')
+                ->danger()
+                ->persistent()
+                ->send();
         }
 
         // Obtener parámetros de la URL
@@ -878,25 +895,25 @@ class PosInterface extends Page
         $fromDelivery = request()->get('from');
         if ($fromDelivery === 'delivery') {
             $deliveryData = session('delivery_data');
-            
+
             if ($deliveryData) {
                 Log::info('🚚 DATOS DE DELIVERY RECIBIDOS EN POS', $deliveryData);
-                
+
                 // Configurar cliente para delivery
                 $this->selectedCustomerId = $deliveryData['customer_id'] ?? null;
                 $this->customerName = $deliveryData['customer_name'] ?? '';
-                
+
                 // Configurar datos adicionales de delivery
                 if (isset($deliveryData['customer_phone'])) {
                     $this->customerPhone = $deliveryData['customer_phone'];
                 }
-                
+
                 // Obtener datos completos del cliente para facturación
                 $customer = null;
                 if (isset($deliveryData['customer_id'])) {
                     $customer = Customer::find($deliveryData['customer_id']);
                 }
-                
+
                 // Guardar datos originales del cliente para facturación
                 $this->originalCustomerData = [
                     'customer_id' => $deliveryData['customer_id'] ?? null,
@@ -908,21 +925,21 @@ class PosInterface extends Page
                     'customer_email' => $customer ? $customer->email : '',
                     'service_type' => 'delivery'
                 ];
-                
+
                 Log::info('✅ CLIENTE CONFIGURADO PARA DELIVERY', [
                     'customer_id' => $this->selectedCustomerId,
                     'customer_name' => $this->customerName,
                     'customer_phone' => $this->customerPhone,
                     'original_data' => $this->originalCustomerData
                 ]);
-                
+
                 // Mostrar notificación de confirmación
                 Notification::make()
                     ->title('🚚 Delivery Configurado')
                     ->body("Cliente: {$this->customerName} - Listo para tomar pedido")
                     ->success()
                     ->send();
-                
+
                 // Limpiar datos de sesión después de usarlos
                 session()->forget('delivery_data');
             }
@@ -978,12 +995,12 @@ class PosInterface extends Page
                     $temperature = null;
                     $isGrillItem = false;
                     $cookingPoint = null;
-                    
+
                     // Verificar si el producto es una bebida que puede ser helada
                     if ($detail->product) {
                         $isColdDrink = $this->isColdDrinkCategory($detail->product);
                         $isGrillItem = $this->isGrillCategory($detail->product);
-                        
+
                         // Si es una bebida, detectar la temperatura desde las notas
                         if ($isColdDrink && $detail->notes) {
                             if (strpos($detail->notes, 'HELADA') !== false) {
@@ -992,12 +1009,12 @@ class PosInterface extends Page
                                 $temperature = 'AL TIEMPO';
                             }
                         }
-                        
+
                         // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
                         if ($isColdDrink && !$temperature) {
                             $temperature = 'HELADA';
                         }
-                        
+
                         // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                         if ($isGrillItem && $detail->notes) {
                             $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
@@ -1008,12 +1025,12 @@ class PosInterface extends Page
                                 }
                             }
                         }
-                        
+
                         // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
                         if ($isGrillItem && !$cookingPoint) {
                             $cookingPoint = 'MEDIO';
                         }
-                        
+
                         // Si es un producto de pollo, detectar el tipo de presa desde las notas
                         $chickenCutType = null;
                         if ($this->isChickenCutCategory($detail->product) && $detail->notes) {
@@ -1025,13 +1042,13 @@ class PosInterface extends Page
                                 }
                             }
                         }
-                        
+
                         // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
                         if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
                             $chickenCutType = 'PECHO';
                         }
                     }
-                    
+
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
                         'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
@@ -1073,7 +1090,7 @@ class PosInterface extends Page
                 $this->order = $activeOrder;
                 $this->cartItems = []; // Limpiar por si acaso
                 $this->canClearCart = false;
-                
+
                 // ✅ LÓGICA KISS: Si la orden tiene detalles, debe estar bloqueada
                 $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
 
@@ -1083,12 +1100,12 @@ class PosInterface extends Page
                     $temperature = null;
                     $isGrillItem = false;
                     $cookingPoint = null;
-                    
+
                     // Verificar si el producto es una bebida que puede ser helada
                     if ($detail->product) {
                         $isColdDrink = $this->isColdDrinkCategory($detail->product);
                         $isGrillItem = $this->isGrillCategory($detail->product);
-                        
+
                         // Si es una bebida, detectar la temperatura desde las notas
                         if ($isColdDrink && $detail->notes) {
                             if (strpos($detail->notes, 'HELADA') !== false) {
@@ -1097,12 +1114,12 @@ class PosInterface extends Page
                                 $temperature = 'AL TIEMPO';
                             }
                         }
-                        
+
                         // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
                         if ($isColdDrink && !$temperature) {
                             $temperature = 'HELADA';
                         }
-                        
+
                         // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                         if ($isGrillItem && $detail->notes) {
                             $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
@@ -1113,12 +1130,12 @@ class PosInterface extends Page
                                 }
                             }
                         }
-                        
+
                         // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
                         if ($isGrillItem && !$cookingPoint) {
                             $cookingPoint = 'MEDIO';
                         }
-                        
+
                         // Si es un producto de pollo, detectar el tipo de presa desde las notas
                         $chickenCutType = null;
                         if ($this->isChickenCutCategory($detail->product) && $detail->notes) {
@@ -1130,13 +1147,13 @@ class PosInterface extends Page
                                 }
                             }
                         }
-                        
+
                         // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
                         if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
                             $chickenCutType = 'PECHO';
                         }
                     }
-                    
+
                     $this->cartItems[] = [
                         'product_id' => $detail->product_id,
                         'name' => $detail->product ? $detail->product->name : 'Producto eliminado',
@@ -1287,7 +1304,7 @@ class PosInterface extends Page
             $isColdDrink = $this->isColdDrinkCategory($product);
             $isGrillItem = $this->isGrillCategory($product);
             $isChickenCut = $this->isChickenCutCategory($product);
-            
+
             $this->cartItems[] = [
                 'product_id' => $product->id,
                 'name' => $product->name,
@@ -1364,7 +1381,7 @@ class PosInterface extends Page
         $totalConIGV = collect($this->cartItems)->sum(function ($item) {
             return $item['unit_price'] * $item['quantity'];
         });
-        
+
         // 🧮 CÁLCULO INVERSO DEL IGV (18%)
         $this->subtotal = $totalConIGV / 1.18;  // Base imponible sin IGV
         $this->tax = $this->subtotal * 0.18;    // IGV calculado
@@ -1382,6 +1399,16 @@ class PosInterface extends Page
 
     public function processOrder(): void
     {
+        // Bloqueo por ausencia de caja abierta
+        if (!CashRegister::hasOpenRegister()) {
+            Notification::make()
+                ->title('Caja cerrada')
+                ->body('No puede crear o actualizar órdenes sin una caja abierta.')
+                ->danger()
+                ->send();
+            return;
+        }
+
         if (empty($this->cartItems)) {
             Notification::make()
                 ->title('Error')
@@ -1417,25 +1444,25 @@ class PosInterface extends Page
                     // Actualizar o crear detalles para los productos en el carrito
                     foreach ($this->cartItems as $item) {
                         $notes = $item['notes'] ?? '';
-                        
+
                         // Agregar información de bebida helada/al tiempo si corresponde
                         if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
                             $temperatureNote = $item['temperature'];
                             $notes = trim($notes . ' ' . $temperatureNote);
                         }
-                        
+
                         // Agregar información de punto de cocción para parrillas si corresponde
                         if (($item['is_grill_item'] ?? false) === true && !empty($item['cooking_point'])) {
                             $cookingPointNote = $item['cooking_point'];
                             $notes = trim($notes . ' ' . $cookingPointNote);
                         }
-                        
+
                         // Agregar información de tipo de presa para pollos si corresponde
                         if (($item['is_chicken_cut'] ?? false) === true && !empty($item['chicken_cut_type'])) {
                             $chickenCutNote = $item['chicken_cut_type'];
                             $notes = trim($notes . ' ' . $chickenCutNote);
                         }
-                        
+
                         $this->order->orderDetails()->updateOrCreate(
                             ['product_id' => $item['product_id']],
                             [
@@ -1497,48 +1524,82 @@ class PosInterface extends Page
                         throw new Halt();
                     }
 
+                    // Determinar service_type válido según esquema (dine_in | takeout | delivery | drive_thru)
+                    $serviceType = $this->selectedTableId ? 'dine_in' : 'takeout';
+                    $allowedServiceTypes = ['dine_in', 'takeout', 'delivery', 'drive_thru'];
+                    if (!in_array($serviceType, $allowedServiceTypes, true)) {
+                        Log::warning('service_type inválido detectado al crear orden; aplicando fallback', [
+                            'propuesto' => $serviceType,
+                            'fallback' => 'takeout',
+                        ]);
+                        $serviceType = 'takeout';
+                    }
+
                     $orderData = [
+                        'service_type' => $serviceType,
                         'table_id' => $this->selectedTableId,
                         'customer_id' => null,
                         'employee_id' => $employee->id,
+                        'cash_register_id' => CashRegister::getActiveCashRegisterId(),
                         'status' => Order::STATUS_OPEN,
-                        'total_price' => $this->total,
+                        'subtotal' => $this->subtotal,
+                        'tax' => $this->tax,
+                        'total' => $this->total,
                         'order_datetime' => now(),
                         'number_of_guests' => $this->numberOfGuests,
-                        'order_type' => $this->selectedTableId ? 'in_place' : 'direct_sale',
                     ];
 
                     $this->order = Order::create($orderData);
 
                     foreach ($this->cartItems as $item) {
                         $notes = $item['notes'] ?? '';
-                        
+
                         // Agregar información de bebida helada/al tiempo si corresponde
                         if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
                             $temperatureNote = $item['temperature'];
                             $notes = trim($notes . ' ' . $temperatureNote);
                         }
-                        
+
                         // Agregar información de punto de cocción para parrillas si corresponde
                         if (($item['is_grill_item'] ?? false) === true && !empty($item['cooking_point'])) {
                             $cookingPointNote = $item['cooking_point'];
                             $notes = trim($notes . ' ' . $cookingPointNote);
                         }
-                        
+
                         // Agregar información de tipo de presa para pollos si corresponde
                         if (($item['is_chicken_cut'] ?? false) === true && !empty($item['chicken_cut_type'])) {
                             $chickenCutNote = $item['chicken_cut_type'];
                             $notes = trim($notes . ' ' . $chickenCutNote);
                         }
-                        
+
                         $this->order->orderDetails()->create([
                             'product_id' => $item['product_id'],
                             'quantity' => $item['quantity'],
                             'unit_price' => $item['unit_price'],
                             'subtotal' => $item['quantity'] * $item['unit_price'],
-                            'price' => $item['unit_price'] * $item['quantity'],
                             'notes' => $notes,
                         ]);
+                    }
+
+                    // Recalcular totales desde los detalles para garantizar consistencia
+                    $this->order->recalculateTotals();
+
+                    // Check adicional: verificar que el total almacenado sea coherente
+                    $expectedTotal = (float) $this->total;
+                    $storedTotal = (float) $this->order->total;
+                    if (abs($storedTotal - $expectedTotal) > 0.01) {
+                        Log::warning('Desajuste de totales al crear orden; se usará el total recalculado desde BD', [
+                            'expected_ui_total' => $expectedTotal,
+                            'stored_total' => $storedTotal,
+                            'order_id' => $this->order->id ?? null,
+                        ]);
+                        // No arrojamos Halt; priorizamos el total recalculado por consistencia
+                        Notification::make()
+                            ->title('Aviso: total ajustado')
+                            ->body('El total de la orden fue ajustado para coincidir con los detalles.')
+                            ->warning()
+                            ->duration(4000)
+                            ->send();
                     }
 
                     if ($this->selectedTableId) {
@@ -1582,17 +1643,31 @@ class PosInterface extends Page
     public function createOrderFromCart(?Customer $customer = null, array $orderItems = []): Order
     {
         try {
+            // Validación previa: requiere caja abierta
+            $activeRegisterId = CashRegister::getActiveCashRegisterId();
+            if (!$activeRegisterId) {
+                Notification::make()
+                    ->title('Caja no abierta')
+                    ->body('Abra una caja antes de crear la orden.')
+                    ->danger()
+                    ->send();
+                throw new Halt();
+            }
+
             DB::beginTransaction();
 
             // Usar los items proporcionados o los del carrito si no se proporcionan
             $items = !empty($orderItems) ? $orderItems : $this->cartItems;
 
             // Crear la orden
+            // Determinar service_type válido
+            $serviceType = $this->selectedTableId ? 'dine_in' : 'takeout';
             $order = new Order([
+                'service_type' => $serviceType,
                 'table_id' => $this->selectedTableId,
                 'customer_id' => $customer?->id,
-                'user_id' => auth()->id(),
                 'employee_id' => $this->getEmployeeId(), // Obtener employee_id correcto
+                'cash_register_id' => $activeRegisterId,
                 'order_datetime' => now(), // Agregar order_datetime requerido
                 'status' => Order::STATUS_OPEN,
                 'number_of_guests' => $this->numberOfGuests,
@@ -1607,28 +1682,28 @@ class PosInterface extends Page
             // Crear los detalles de la orden
             foreach ($items as $item) {
                 $notes = $item['notes'] ?? '';
-                
+
                 // Agregar información de bebida helada/al tiempo si corresponde
                 if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
                     // Asegurarse de que la temperatura esté en mayúsculas y destacada
                     $temperatureNote = $item['temperature'];
                     $notes = trim($notes . ' ' . $temperatureNote);
                 }
-                
+
                 // Agregar información de punto de cocción para parrillas si corresponde
                 if (($item['is_grill_item'] ?? false) === true && !empty($item['cooking_point'])) {
                     // Asegurarse de que el punto de cocción esté en mayúsculas y destacado
                     $cookingPointNote = $item['cooking_point'];
                     $notes = trim($notes . ' ' . $cookingPointNote);
                 }
-                
+
                 // Agregar información de tipo de presa para pollos si corresponde
                 if (($item['is_chicken_cut'] ?? false) === true && !empty($item['chicken_cut_type'])) {
                     // Asegurarse de que el tipo de presa esté en mayúsculas y destacado
                     $chickenCutNote = $item['chicken_cut_type'];
                     $notes = trim($notes . ' ' . $chickenCutNote);
                 }
-                
+
                 $order->orderDetails()->create([
                     'product_id' => $item['product_id'],
                     'quantity' => $item['quantity'],
@@ -1640,6 +1715,17 @@ class PosInterface extends Page
 
             // Recalcular totales después de crear todos los detalles
             $order->recalculateTotals();
+
+            // Validación defensiva: no permitir totales <= 0 o sin detalles
+            if ($order->orderDetails()->count() === 0 || $order->total <= 0) {
+                DB::rollBack();
+                Notification::make()
+                    ->title('❌ No se pudo crear la orden')
+                    ->body('La orden no tiene ítems o el total es 0. Agregue productos válidos.')
+                    ->danger()
+                    ->send();
+                throw new Halt();
+            }
 
             DB::commit();
             return $order;
@@ -1816,10 +1902,10 @@ class PosInterface extends Page
                         'occupied_at' => null
                     ]);
                 }
-                
+
                 // Eliminar orden vacía
                 $this->order->delete();
-                
+
                 // ✅ CONFIRMAR TRANSACCIÓN Y REDIRECCIONAR
                 DB::commit();
 
@@ -1918,12 +2004,12 @@ class PosInterface extends Page
             $temperature = null;
             $isGrillItem = false;
             $cookingPoint = null;
-            
+
             // Verificar si el producto es una bebida que puede ser helada o un producto de parrilla
             if ($detail->product) {
                 $isColdDrink = $this->isColdDrinkCategory($detail->product);
                 $isGrillItem = $this->isGrillCategory($detail->product);
-                
+
                 // Si es una bebida, detectar la temperatura desde las notas
                 if ($isColdDrink && $detail->notes) {
                     if (strpos($detail->notes, 'HELADA') !== false) {
@@ -1932,12 +2018,12 @@ class PosInterface extends Page
                         $temperature = 'AL TIEMPO';
                     }
                 }
-                
+
                 // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
                 if ($isColdDrink && !$temperature) {
                     $temperature = 'HELADA';
                 }
-                
+
                 // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                 if ($isGrillItem && $detail->notes) {
                     $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
@@ -1948,12 +2034,12 @@ class PosInterface extends Page
                         }
                     }
                 }
-                
+
                 // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
                 if ($isGrillItem && !$cookingPoint) {
                     $cookingPoint = 'MEDIO';
                 }
-                
+
                 // Si es un producto de pollo, detectar el tipo de presa desde las notas
                 $chickenCutType = null;
                 if ($this->isChickenCutCategory($detail->product) && $detail->notes) {
@@ -1965,13 +2051,13 @@ class PosInterface extends Page
                         }
                     }
                 }
-                
+
                 // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
                 if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
                     $chickenCutType = 'PECHO';
                 }
             }
-            
+
             $this->cartItems[] = [
                 'product_id' => $detail->product_id,
                 'name'       => $detail->product->name,
@@ -2005,12 +2091,24 @@ class PosInterface extends Page
             ->modalAlignment('center')
             ->extraModalWindowAttributes(['style' => 'max-height: 550px; overflow-y: auto; max-width: 800px; width: 800px;'])
             ->visible(fn() => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
-            
+
             // 🚀 HOOK ANTES DE MOSTRAR MODAL - LIMPIAR Y CREAR ORDEN SI NO EXISTE
             ->before(function () {
+                // Verificar caja abierta antes de cualquier preparación
+                if (!CashRegister::hasOpenRegister()) {
+                    $this->hasOpenCashRegister = false;
+                    Notification::make()
+                        ->title('Caja no abierta')
+                        ->body('Abra una caja para procesar pagos.')
+                        ->danger()
+                        ->persistent()
+                        ->send();
+                    throw new Halt();
+                }
+
                 // PASO 1: Limpiar órdenes abandonadas del usuario actual
                 $this->cleanUserAbandonedOrders();
-                
+
                 // PASO 2: Crear orden si es necesario
                 if (!$this->order && !empty($this->cartItems)) {
                     Log::info('🔄 Auto-creando orden desde carrito para pago', [
@@ -2019,7 +2117,7 @@ class PosInterface extends Page
                         'has_original_customer_data' => !empty($this->originalCustomerData),
                         'service_type' => $this->originalCustomerData['service_type'] ?? 'dine_in'
                     ]);
-                    
+
                     try {
                         // Obtener cliente desde datos de delivery o selección
                         $customer = null;
@@ -2030,23 +2128,23 @@ class PosInterface extends Page
                                 'customer_name' => $customer->name
                             ]);
                         }
-                        
+
                         // Crear orden usando método existente
                         $this->order = $this->createOrderFromCart($customer);
-                        
+
                         // Configurar service_type si es delivery
                         if ($this->originalCustomerData && ($this->originalCustomerData['service_type'] ?? '') === 'delivery') {
                             $this->order->update([
                                 'service_type' => 'delivery',
                                 'table_id' => null // Delivery no usa mesa
                             ]);
-                            
+
                             Log::info('🚚 Orden configurada como delivery', [
                                 'order_id' => $this->order->id,
                                 'service_type' => 'delivery'
                             ]);
                         }
-                        
+
                         Log::info('✅ Orden creada exitosamente para pago', [
                             'order_id' => $this->order->id,
                             'customer_id' => $this->order->customer_id,
@@ -2054,14 +2152,14 @@ class PosInterface extends Page
                             'total' => $this->order->total,
                             'items_count' => $this->order->orderDetails()->count()
                         ]);
-                        
+
                         Notification::make()
                             ->title('📋 Orden Preparada')
                             ->body("Orden #{$this->order->id} creada automáticamente para procesar pago")
                             ->success()
                             ->duration(3000)
                             ->send();
-                            
+
                     } catch (\Exception $e) {
                         Log::error('❌ Error auto-creando orden para pago', [
                             'error_message' => $e->getMessage(),
@@ -2070,14 +2168,14 @@ class PosInterface extends Page
                             'cart_items' => $this->cartItems,
                             'selected_customer_id' => $this->selectedCustomerId
                         ]);
-                        
+
                         Notification::make()
                             ->title('❌ Error al Preparar Orden')
                             ->body('No se pudo crear la orden: ' . $e->getMessage())
                             ->danger()
                             ->persistent()
                             ->send();
-                            
+
                         throw $e;
                     }
                 } else {
@@ -2095,7 +2193,7 @@ class PosInterface extends Page
                     }
                 }
             })
-            
+
             ->form(function () {
                 return [
                     // RESUMEN COMPACTO DEL TOTAL
@@ -2152,7 +2250,7 @@ class PosInterface extends Page
                                     ->content(function (Get $get) {
                                         $amount = (float) ($get('payment_amount') ?? 0);
                                         $change = $amount - $this->total;
-                                        
+
                                         if ($change > 0) {
                                             return new \Illuminate\Support\HtmlString(
                                                 "<div class='p-1 bg-green-50 border border-green-200 rounded text-center'>" .
@@ -2267,15 +2365,15 @@ class PosInterface extends Page
                                             ->content(function (Get $get) {
                                                 $payments = $get('../../payment_methods') ?? [];
                                                 $totalPaid = 0;
-                                                
+
                                                 foreach ($payments as $payment) {
                                                     if (isset($payment['amount']) && is_numeric($payment['amount'])) {
                                                         $totalPaid += (float) $payment['amount'];
                                                     }
                                                 }
-                                                
+
                                                 $remaining = $this->total - $totalPaid;
-                                                
+
                                                 if ($remaining > 0) {
                                                     return new \Illuminate\Support\HtmlString(
                                                         "<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'>" .
@@ -2320,7 +2418,7 @@ class PosInterface extends Page
                                         ->modalSubmitActionLabel('Eliminar')
                                         ->modalCancelActionLabel('Cancelar')
                                 )
-                                ->itemLabel(fn (array $state): ?string => 
+                                ->itemLabel(fn (array $state): ?string =>
                                     ($state['method'] ?? 'Método') . ': S/ ' . number_format($state['amount'] ?? 0, 2)
                                 )
                                 ->collapsible()
@@ -2337,17 +2435,17 @@ class PosInterface extends Page
                                 ->content(function (Get $get) {
                                     $payments = $get('payment_methods') ?? [];
                                     $totalPaid = 0;
-                                    
+
                                     foreach ($payments as $payment) {
                                         if (isset($payment['amount']) && is_numeric($payment['amount'])) {
                                             $totalPaid += (float) $payment['amount'];
                                         }
                                     }
-                                    
+
                                     $remaining = $this->total - $totalPaid;
                                     $status = $remaining == 0 ? 'success' : ($remaining > 0 ? 'warning' : 'danger');
                                     $statusText = $remaining == 0 ? 'Pago Completo' : ($remaining > 0 ? 'Pago Incompleto' : 'Pago Excedido');
-                                    
+
                                     return new \Illuminate\Support\HtmlString(
                                         '<div class="p-2 bg-gray-50 border border-gray-200 rounded">' .
                                         '<div class="flex justify-between text-sm">' .
@@ -2496,10 +2594,41 @@ class PosInterface extends Page
     {
         try {
             $invoice = null;
-            
+
             DB::transaction(function () use ($data, &$invoice) {
+                // Verificar caja abierta antes de pagar
+                if (!CashRegister::hasOpenRegister()) {
+                    $this->hasOpenCashRegister = false;
+                    Notification::make()
+                        ->title('Caja no abierta')
+                        ->body('Abra una caja para procesar pagos.')
+                        ->danger()
+                        ->persistent()
+                        ->send();
+                    throw new Halt();
+                }
+
                 if (!$this->order) {
                     throw new \Exception('No hay orden activa para procesar el pago');
+                }
+
+                // Validación previa: recalcular y asegurar que hay detalles y total > 0
+                $this->order->recalculateTotals();
+                if ($this->order->orderDetails()->count() === 0) {
+                    Notification::make()
+                        ->title('❌ No se puede facturar')
+                        ->body('La orden no tiene productos. Agregue ítems antes de pagar.')
+                        ->danger()
+                        ->send();
+                    throw new Halt();
+                }
+                if ($this->order->total <= 0) {
+                    Notification::make()
+                        ->title('❌ Total inválido')
+                        ->body('El total de la orden es 0. Verifique los ítems antes de pagar.')
+                        ->danger()
+                        ->send();
+                    throw new Halt();
                 }
 
                 // Validar pago dividido si está activado
@@ -2509,7 +2638,7 @@ class PosInterface extends Page
 
                 // Obtener o crear cliente
                 $customerId = $data['customer_id'] ?? $this->selectedCustomerId;
-                
+
                 // Si hay datos de cliente nuevo, crear cliente
                 if (!empty($data['new_customer_name'])) {
                     // Preparar datos del cliente
@@ -2519,7 +2648,7 @@ class PosInterface extends Page
                         'address' => $data['new_customer_address'] ?? '',
                         'email' => '',
                     ];
-                    
+
                     // Solo agregar document_type y document_number si hay documento
                     $documentNumber = $data['new_customer_document'] ?? '';
                     if (!empty($documentNumber)) {
@@ -2530,10 +2659,10 @@ class PosInterface extends Page
                         $customerData['document_number'] = null;
                         $customerData['document_type'] = null;
                     }
-                    
+
                     $newCustomer = Customer::create($customerData);
                     $customerId = $newCustomer->id;
-                    
+
                     Log::info('👤 Cliente nuevo creado', [
                         'customer_id' => $newCustomer->id,
                         'name' => $newCustomer->name,
@@ -2541,7 +2670,7 @@ class PosInterface extends Page
                         'document_number' => $newCustomer->document_number
                     ]);
                 }
-                
+
                 // Si no hay cliente seleccionado ni nuevo, usar "Público General"
                 if (!$customerId) {
                     $defaultCustomer = Customer::firstOrCreate(
@@ -2559,7 +2688,7 @@ class PosInterface extends Page
                 // Determinar método de pago y monto PRIMERO
                 $paymentMethod = 'cash';
                 $paymentAmount = $this->order->total;
-                
+
                 if ($data['split_payment'] ?? false) {
                     // Pago dividido - usar "multiple" como método
                     $paymentMethod = 'multiple';
@@ -2578,7 +2707,7 @@ class PosInterface extends Page
 
                 // Obtener la serie correcta según el tipo de documento
                 $series = $this->getNextSeries($data['document_type'] ?? 'receipt');
-                
+
                 // Crear la factura usando el método del modelo Order
                 $invoice = $this->order->generateInvoice(
                     $data['document_type'] ?? 'receipt',
@@ -2618,7 +2747,7 @@ class PosInterface extends Page
                         } else {
                             $reference = $payment['reference'] ?? null;
                         }
-                        
+
                         $this->order->registerPayment(
                             $payment['method'],
                             (float) $payment['amount'],
@@ -2633,7 +2762,7 @@ class PosInterface extends Page
                     } else {
                         $reference = $data['payment_reference'] ?? null;
                     }
-                    
+
                     $this->order->registerPayment(
                         $paymentMethod,
                         $paymentAmount,
@@ -2678,20 +2807,20 @@ class PosInterface extends Page
                 Log::info('🖨️ Disparando evento de impresión', ['invoice_id' => $invoice->id]);
                 $this->dispatch('open-print-window', ['id' => $invoice->id]);
             }
-            
+
             return true;
         } catch (\Exception $e) {
             Log::error('❌ Error procesando pago', [
                 'error' => $e->getMessage(),
                 'order_id' => $this->order?->id
             ]);
-            
+
             Notification::make()
                 ->title('❌ Error en el pago')
                 ->body('No se pudo procesar el pago: ' . $e->getMessage())
                 ->danger()
                 ->send();
-                
+
             return false;
         }
     }
@@ -2710,11 +2839,11 @@ class PosInterface extends Page
             if (!isset($payment['method']) || !isset($payment['amount'])) {
                 throw new \Exception('Todos los métodos de pago deben tener método y monto');
             }
-            
+
             if (!is_numeric($payment['amount']) || $payment['amount'] <= 0) {
                 throw new \Exception('Todos los montos deben ser números positivos');
             }
-            
+
             $totalPaid += (float) $payment['amount'];
         }
 
@@ -2727,7 +2856,7 @@ class PosInterface extends Page
     {
         if ($this->order && $this->order->invoices()->exists()) {
             $lastInvoice = $this->order->invoices()->latest()->first();
-            
+
             Log::info('🖨️ Reimprimiendo comprobante desde vista', [
                 'invoice_id' => $lastInvoice->id,
                 'invoice_type' => $lastInvoice->invoice_type,
@@ -2805,6 +2934,13 @@ class PosInterface extends Page
                 return [];
             })
             ->modalContent(function () {
+                // Bloquear si no hay caja abierta
+                if (!$this->hasOpenCashRegister) {
+                    return view('components.empty-state', [
+                        'message' => 'No hay caja abierta. Abra una caja para continuar.'
+                    ]);
+                }
+
                 // Si necesita solicitar nombre del cliente, no mostrar contenido aún
                 if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
                     return null; // El formulario se mostrará primero
@@ -2823,7 +2959,7 @@ class PosInterface extends Page
 
                 // Obtener datos de la orden con productos
                 $order = $this->order->load(['orderDetails.product', 'table', 'customer']);
-                
+
                 return view('filament.modals.comanda-content', [
                     'order' => $order,
                     'customerNameForComanda' => $this->customerNameForComanda,
@@ -2845,7 +2981,7 @@ class PosInterface extends Page
                 if ($this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))) {
                     // Cerrar el modal para mostrar el contenido
                     $this->dispatch('refreshModalContent');
-                    
+
                     // ✅ REDIRIGIR AL MAPA DE MESAS SI TIENE MESA (PARA TODOS LOS ROLES)
                     if ($this->selectedTableId) {
                         $redirectUrl = TableMap::getUrl();
@@ -2938,6 +3074,13 @@ class PosInterface extends Page
             ->modalDescription('Resumen de la orden antes del pago')
             ->modalWidth('md')
             ->modalContent(function () {
+                // Bloquear si no hay caja abierta
+                if (!$this->hasOpenCashRegister) {
+                    return view('components.empty-state', [
+                        'message' => 'No hay caja abierta. Abra una caja para continuar.'
+                    ]);
+                }
+
                 // Crear la orden si no existe
                 if (!$this->order && !empty($this->cartItems)) {
                     $this->order = $this->createOrderFromCart();
@@ -2972,13 +3115,13 @@ class PosInterface extends Page
                         // Cambiar estado de mesa a "PRE-CUENTA"
                         if ($this->order && $this->order->table) {
                             $this->order->table->update(['status' => TableModel::STATUS_PREBILL]);
-                            
+
                             Log::info('🔵 Mesa cambiada a PRE-CUENTA', [
                                 'table_id' => $this->order->table->id,
                                 'order_id' => $this->order->id,
                                 'status' => 'prebill'
                             ]);
-                            
+
                             Notification::make()
                                 ->title('Mesa en PRE-CUENTA')
                                 ->body('La mesa ahora está marcada como PRE-CUENTA')
@@ -2986,7 +3129,7 @@ class PosInterface extends Page
                                 ->duration(3000)
                                 ->send();
                         }
-                        
+
                         $url = route('print.prebill', ['order' => $this->order->id]);
                         $this->js("window.open('$url', 'prebill_print', 'width=800,height=600,scrollbars=yes,resizable=yes')");
                     }),
