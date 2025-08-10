@@ -31,3 +31,4 @@ yarn-error.log
 .windsurf/rules/tailwind.md
 .env.example
 limpiar.sh
+count()
