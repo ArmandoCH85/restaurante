@@ -86,7 +86,7 @@ class PaymentController extends Controller
                     // Restar el monto según el método de pago
                     if ($payment->payment_method === Payment::METHOD_CASH) {
                         $cashRegister->cash_sales -= $payment->amount;
-                    } elseif ($payment->payment_method === Payment::METHOD_CARD) {
+                    } elseif (in_array($payment->payment_method, [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD], true)) {
                         $cashRegister->card_sales -= $payment->amount;
                     } else {
                         $cashRegister->other_sales -= $payment->amount;

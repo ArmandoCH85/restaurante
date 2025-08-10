@@ -180,7 +180,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('info')
                                     ->icon('heroicon-o-calendar-days'),
                             ]),
-                        
+
                         // Segunda fila: Personal y fechas
                         Grid::make(['default' => 1, 'md' => 2, 'lg' => 4])
                             ->schema([
@@ -217,7 +217,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('gray')
                                     ->icon('heroicon-o-clock'),
                             ]),
-                        
+
                         // Observaciones mejoradas
                         TextEntry::make('observations')
                             ->label('📝 Observaciones')
@@ -225,12 +225,12 @@ class ViewCashRegister extends ViewRecord
                                 if (!$record->observations) {
                                     return $record->is_active ? 'Sin observaciones' : 'Sin observaciones';
                                 }
-                                
+
                                 // Si contiene información de denominaciones, formatearla mejor
                                 if (str_contains($record->observations, 'Desglose de denominaciones')) {
                                     return $this->formatObservations($record->observations);
                                 }
-                                
+
                                 return $record->observations;
                             })
                             ->formatStateUsing(fn ($state) => $state)
@@ -250,53 +250,56 @@ class ViewCashRegister extends ViewRecord
                         // Métricas principales en cards
                         Grid::make(['default' => 1, 'sm' => 2, 'lg' => 4])
                             ->schema([
-                                TextEntry::make('cash_sales')
+                                TextEntry::make('cash_sales_live')
                                     ->label('💵 Efectivo')
-                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
-                                        if ($isSupervisor) {
-                                            return 'S/ ' . number_format($state ?? 0, 2);
-                                        } else {
-                                            return 'Restringido';
-                                        }
+                                    ->state(function ($record) use ($isSupervisor) {
+                                        if (!$isSupervisor) return 'Restringido';
+                                        $sum = $record->payments()->where('payment_method', Payment::METHOD_CASH)->sum('amount');
+                                        return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
                                     ->color($isSupervisor ? 'success' : 'gray')
                                     ->icon('heroicon-o-banknotes')
                                     ->weight(FontWeight::Bold),
-                                TextEntry::make('card_sales')
+                                TextEntry::make('card_sales_live')
                                     ->label('💳 Tarjetas')
-                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
-                                        if ($isSupervisor) {
-                                            return 'S/ ' . number_format($state ?? 0, 2);
-                                        } else {
-                                            return 'Restringido';
-                                        }
+                                    ->state(function ($record) use ($isSupervisor) {
+                                        if (!$isSupervisor) return 'Restringido';
+                                        $sum = $record->payments()
+                                            ->whereIn('payment_method', [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])
+                                            ->sum('amount');
+                                        return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
                                     ->color($isSupervisor ? 'info' : 'gray')
                                     ->icon('heroicon-o-credit-card')
                                     ->weight(FontWeight::Bold),
-                                TextEntry::make('other_sales')
+                                TextEntry::make('other_sales_live')
                                     ->label('🔄 Otros')
-                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
-                                        if ($isSupervisor) {
-                                            return 'S/ ' . number_format($state ?? 0, 2);
-                                        } else {
-                                            return 'Restringido';
-                                        }
+                                    ->state(function ($record) use ($isSupervisor) {
+                                        if (!$isSupervisor) return 'Restringido';
+                                        $sum = $record->payments()
+                                            ->whereNotIn('payment_method', [
+                                                Payment::METHOD_CASH,
+                                                Payment::METHOD_CARD,
+                                                Payment::METHOD_CREDIT_CARD,
+                                                Payment::METHOD_DEBIT_CARD,
+                                            ])
+                                            ->sum('amount');
+                                        return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
                                     ->color($isSupervisor ? 'warning' : 'gray')
                                     ->icon('heroicon-o-device-phone-mobile')
                                     ->weight(FontWeight::Bold),
-                                TextEntry::make('total_sales')
+                                TextEntry::make('total_sales_live')
                                     ->label('📊 Total')
-                                    ->formatStateUsing(function ($state, $record) use ($isSupervisor) {
-                                        if ($isSupervisor) {
-                                            return 'S/ ' . number_format($state ?? 0, 2);
-                                        } else {
-                                            return 'Restringido';
-                                        }
+                                    ->state(function ($record) use ($isSupervisor) {
+                                        if (!$isSupervisor) return 'Restringido';
+                                        $cash = $record->payments()->where('payment_method', Payment::METHOD_CASH)->sum('amount');
+                                        $card = $record->payments()->whereIn('payment_method', [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])->sum('amount');
+                                        $other = $record->payments()->whereNotIn('payment_method', [Payment::METHOD_CASH, Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])->sum('amount');
+                                        return 'S/ ' . number_format($cash + $card + $other, 2);
                                     })
                                     ->badge()
                                     ->size('lg')
@@ -304,7 +307,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-calculator')
                                     ->weight(FontWeight::Bold),
                             ]),
-                        
+
                         // Mensaje para usuarios no supervisores
                         TextEntry::make('sales_info')
                             ->label('🔒 Acceso Restringido')
@@ -353,7 +356,7 @@ class ViewCashRegister extends ViewRecord
                                                 ->visible($isSupervisor),
                                         ]),
                                 ]),
-                            
+
                             // Estado de aprobación
                             Section::make('Estado de Revisión')
                                 ->icon('heroicon-o-clipboard-document-check')
@@ -391,7 +394,7 @@ class ViewCashRegister extends ViewRecord
                                 ])
                                 ->grow(false),
                         ])->from('md'),
-                        
+
                         // Notas de aprobación/rechazo
                         TextEntry::make('approval_notes')
                             ->label(fn ($record) => $record->is_approved ? '📝 Notas de Aprobación' : '❌ Motivo del Rechazo')
@@ -549,7 +552,7 @@ class ViewCashRegister extends ViewRecord
                                                 $datetime = $payment->payment_datetime->format('d/m/Y H:i');
                                                 $amount = 'S/ ' . number_format($payment->amount, 2);
                                                 $voucher = $payment->reference_number;
-                                                
+
                                                 $voucherList[] = "🎫 {$voucher} → {$amount} ({$datetime})";
                                             }
 
@@ -561,7 +564,7 @@ class ViewCashRegister extends ViewRecord
                                         ->color('gray')
                                         ->icon('heroicon-o-ticket'),
                                 ]),
-                            
+
                             // Resumen
                             Section::make('Resumen')
                                 ->icon('heroicon-o-chart-pie')
@@ -619,28 +622,28 @@ class ViewCashRegister extends ViewRecord
          // Si contiene desglose de denominaciones, formatearlo mejor
          if (str_contains($observations, 'Desglose de denominaciones')) {
              $formatted = [];
-             
+
              // Separar por secciones principales
              if (preg_match('/Cierre de caja - Desglose de denominaciones:\s*(.+?)Total contado:\s*(.+?)$/s', $observations, $matches)) {
                  $formatted[] = "💰 DESGLOSE DE DENOMINACIONES";
                  $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-                 
+
                  $content = $matches[1];
                  $total = trim($matches[2]);
-                 
+
                  // Procesar billetes
                  if (preg_match('/Billetes:\s*(.+?)(?=Monedas:|$)/s', $content, $billetes)) {
                      $formatted[] = "";
                      $formatted[] = "💵 BILLETES:";
                      $billetesData = trim($billetes[1]);
                      $items = preg_split('/\s*\|\s*/', $billetesData);
-                     
+
                      foreach ($items as $item) {
                          if (preg_match('/S\/(\d+):\s*(\d+)/', $item, $match)) {
                              $denomination = $match[1];
                              $quantity = $match[2];
                              $subtotal = $denomination * $quantity;
-                             
+
                              if ($quantity > 0) {
                                  $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ {$subtotal}.00";
                              } else {
@@ -649,20 +652,20 @@ class ViewCashRegister extends ViewRecord
                          }
                      }
                  }
-                 
+
                  // Procesar monedas
                  if (preg_match('/Monedas:\s*(.+?)$/s', $content, $monedas)) {
                      $formatted[] = "";
                      $formatted[] = "🪙 MONEDAS:";
                      $monedasData = trim($monedas[1]);
                      $items = preg_split('/\s*\|\s*/', $monedasData);
-                     
+
                      foreach ($items as $item) {
                          if (preg_match('/S\/(\d+(?:\.\d+)?):\s*(\d+)/', $item, $match)) {
                              $denomination = $match[1];
                              $quantity = $match[2];
                              $subtotal = $denomination * $quantity;
-                             
+
                              if ($quantity > 0) {
                                  $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ " . number_format($subtotal, 2);
                              } else {
@@ -671,7 +674,7 @@ class ViewCashRegister extends ViewRecord
                          }
                      }
                  }
-                 
+
                  $formatted[] = "";
                  $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
                  $formatted[] = "💰 TOTAL CONTADO: {$total}";
@@ -679,10 +682,10 @@ class ViewCashRegister extends ViewRecord
                  // Formato de respaldo si no coincide el patrón esperado
                  $formatted[] = $observations;
              }
-             
+
              return implode("\n", $formatted);
          }
-         
+
          return $observations;
      }
 }

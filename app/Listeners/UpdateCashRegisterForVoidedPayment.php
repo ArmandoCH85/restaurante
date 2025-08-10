@@ -25,7 +25,7 @@ class UpdateCashRegisterForVoidedPayment
     public function handle(PaymentVoided $event): void
     {
         $payment = $event->payment;
-        
+
         // Si el pago no está asociado a una caja, no hay nada que hacer
         if (!$payment->cash_register_id) {
             Log::info('Pago anulado sin caja asociada', [
@@ -36,10 +36,10 @@ class UpdateCashRegisterForVoidedPayment
             ]);
             return;
         }
-        
+
         // Obtener la caja asociada
         $cashRegister = CashRegister::find($payment->cash_register_id);
-        
+
         // Si la caja no existe, registrar y salir
         if (!$cashRegister) {
             Log::warning('Intento de actualizar una caja inexistente para un pago anulado', [
@@ -48,24 +48,24 @@ class UpdateCashRegisterForVoidedPayment
             ]);
             return;
         }
-        
+
         // Actualizar los totales según el método de pago (restar el monto)
         if ($payment->payment_method === Payment::METHOD_CASH) {
             $cashRegister->cash_sales -= $payment->amount;
-        } elseif ($payment->payment_method === Payment::METHOD_CARD) {
+        } elseif (in_array($payment->payment_method, [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD], true)) {
             $cashRegister->card_sales -= $payment->amount;
         } else {
             $cashRegister->other_sales -= $payment->amount;
         }
-        
+
         // Asegurar que los valores no sean negativos
         $cashRegister->cash_sales = max(0, $cashRegister->cash_sales);
         $cashRegister->card_sales = max(0, $cashRegister->card_sales);
         $cashRegister->other_sales = max(0, $cashRegister->other_sales);
-        
+
         $cashRegister->total_sales = $cashRegister->cash_sales + $cashRegister->card_sales + $cashRegister->other_sales;
         $cashRegister->save();
-        
+
         Log::info('Totales de caja actualizados por anulación de pago', [
             'cash_register_id' => $cashRegister->id,
             'payment_id' => $payment->id,

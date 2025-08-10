@@ -356,10 +356,10 @@ class CashRegister extends Model
     private function updateSalesByPaymentMethod(string $paymentMethod, float $amount): void
     {
         // Usar match para un código más limpio y mantenible
-        match($paymentMethod) {
-            Payment::METHOD_CASH => $this->cash_sales += $amount,
-            Payment::METHOD_CARD => $this->card_sales += $amount,
-            default => $this->other_sales += $amount
+        match(true) {
+            $paymentMethod === Payment::METHOD_CASH => $this->cash_sales += $amount,
+            in_array($paymentMethod, [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD], true) => $this->card_sales += $amount,
+            default => $this->other_sales += $amount,
         };
     }
 
@@ -384,7 +384,7 @@ class CashRegister extends Model
     {
         $methodName = match($paymentMethod) {
             Payment::METHOD_CASH => 'efectivo',
-            Payment::METHOD_CARD => 'tarjeta',
+            Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD => 'tarjeta',
             Payment::METHOD_DIGITAL_WALLET => 'billetera digital',
             Payment::METHOD_BANK_TRANSFER => 'transferencia bancaria',
             default => $paymentMethod
