@@ -2944,53 +2944,12 @@ class PosInterface extends Page
             ->modalIconColor('warning')
             ->modalAlignment('center')
             ->slideOver(false)
-            ->form(function () {
-                // ✅ Si es venta directa (sin mesa), solicitar nombre del cliente
-                if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
-                    return [
-                        Forms\Components\Section::make('Información del Cliente')
-                            ->description('Complete los datos del cliente para la comanda')
-                            ->icon('heroicon-m-user-circle')
-                            ->schema([
-                                Forms\Components\TextInput::make('customerNameForComanda')
-                                    ->label('👤 Nombre del Cliente')
-                                    ->placeholder('Ej: Juan Pérez, Mesa Delivery, Cliente Mostrador...')
-                                    ->required()
-                                    ->maxLength(100)
-                                    ->helperText('💡 Este nombre aparecerá en la comanda para identificar la orden en cocina')
-                                    ->default($this->customerNameForComanda)
-                                    ->prefixIcon('heroicon-m-user')
-                                    ->suffixIcon('heroicon-m-pencil')
-                                    ->autocomplete('name')
-                                    ->columnSpanFull()
-                                    ->extraInputAttributes([
-                                        'class' => 'text-lg font-medium'
-                                    ])
-                                    ->datalist([
-                                        'Mesa Delivery',
-                                        'Para Llevar',
-                                        'Cliente Mostrador',
-                                        'Pedido Telefónico',
-                                        'Servicio a Domicilio'
-                                    ])
-                            ])
-                            ->collapsible(false)
-                            ->compact()
-                    ];
-                }
-                return [];
-            })
             ->modalContent(function () {
                 // Bloquear si no hay caja abierta
                 if (!$this->hasOpenCashRegister) {
                     return view('components.empty-state', [
                         'message' => 'No hay caja abierta. Abra una caja para continuar.'
                     ]);
-                }
-
-                // Si necesita solicitar nombre del cliente, no mostrar contenido aún
-                if ($this->selectedTableId === null && empty($this->customerNameForComanda)) {
-                    return null; // El formulario se mostrará primero
                 }
 
                 // Crear la orden si no existe
@@ -3014,11 +2973,6 @@ class PosInterface extends Page
                 ]);
             })
             ->action(function (array $data) {
-                // ✅ Guardar el nombre del cliente si es venta directa
-                if ($this->selectedTableId === null && isset($data['customerNameForComanda'])) {
-                    $this->customerNameForComanda = $data['customerNameForComanda'];
-                }
-
                 // ✅ Crear la orden si no existe (ahora CON el nombre del cliente guardado)
                 if (!$this->order && !empty($this->cartItems)) {
                     $this->order = $this->createOrderFromCart();
@@ -3075,7 +3029,14 @@ class PosInterface extends Page
                             ->duration(3000)
                             ->send();
                     })
-                    ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
+                    ->visible(fn() => $this->order)
+                    ->disabled(function () {
+                        // Si es venta directa, requerir nombre antes de habilitar impresión
+                        if ($this->selectedTableId === null) {
+                            return empty($this->customerNameForComanda);
+                        }
+                        return false;
+                    }),
 
                 Action::make('downloadComanda')
                     ->label('📥 Descargar')
@@ -3101,7 +3062,13 @@ class PosInterface extends Page
                             ->duration(3000)
                             ->send();
                     })
-                    ->visible(fn() => $this->order && ($this->selectedTableId !== null || !empty($this->customerNameForComanda))),
+                    ->visible(fn() => $this->order)
+                    ->disabled(function () {
+                        if ($this->selectedTableId === null) {
+                            return empty($this->customerNameForComanda);
+                        }
+                        return false;
+                    }),
             ])
             ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems));
     }

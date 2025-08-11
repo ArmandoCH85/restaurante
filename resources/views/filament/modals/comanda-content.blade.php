@@ -13,21 +13,39 @@
             </div>
         </div>
 
-        @if($isDirectSale && !empty($customerNameForComanda))
-            {{-- CLIENTE DESTACADO PARA VENTA DIRECTA --}}
-            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-                    <div class="bg-blue-100 p-3 rounded-full flex-shrink-0">
-                        <svg class="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
-                        </svg>
-                    </div>
-                    <div class="text-center sm:text-left">
-                        <p class="text-sm font-semibold text-blue-700 mb-1">Cliente:</p>
-                        <p class="text-xl sm:text-2xl font-bold text-blue-900">{{ $customerNameForComanda }}</p>
+        @if($isDirectSale)
+            @if(empty($customerNameForComanda))
+                {{-- INPUT INLINE PARA NOMBRE DEL CLIENTE (VENTA DIRECTA) --}}
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <label class="block text-sm font-semibold text-blue-700 mb-2">👤 Nombre del Cliente</label>
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="text"
+                            wire:model.live.debounce.300ms="customerNameForComanda"
+                            placeholder="Ej: Juan Pérez, Cliente Mostrador, Para Llevar..."
+                            class="w-full rounded-lg border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 px-4 py-2 text-blue-900 placeholder-blue-300"
+                            autofocus
+                            maxlength="100"
+                        />
+                        <span class="text-xs text-blue-600 font-medium hidden sm:block">Requerido para imprimir</span>
                     </div>
                 </div>
-            </div>
+            @else
+                {{-- CLIENTE DESTACADO PARA VENTA DIRECTA --}}
+                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4 sm:p-6 shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                        <div class="bg-blue-100 p-3 rounded-full flex-shrink-0">
+                            <svg class="h-6 w-6 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <div class="text-center sm:text-left">
+                            <p class="text-sm font-semibold text-blue-700 mb-1">Cliente:</p>
+                            <p class="text-xl sm:text-2xl font-bold text-blue-900">{{ $customerNameForComanda }}</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @elseif($order->table)
             <div class="bg-gradient-to-r from-orange-100 to-yellow-100 border-2 border-orange-300 rounded-xl p-4 shadow-sm">
                 <p class="text-xl sm:text-2xl font-bold text-orange-800">Mesa #{{ $order->table->number }}</p>
@@ -55,7 +73,7 @@
             </h3>
             <p class="text-sm text-gray-600 mt-2">Lista detallada para el área de cocina</p>
         </div>
-        
+
         @forelse($order->orderDetails as $detail)
             <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-xl p-4 sm:p-6 hover:from-orange-100 hover:to-yellow-100 transition-all duration-300 shadow-sm hover:shadow-md">
                 <div class="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
