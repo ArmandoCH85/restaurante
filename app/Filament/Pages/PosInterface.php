@@ -1043,9 +1043,9 @@ class PosInterface extends Page
                             }
                         }
 
-                        // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
+                        // Si es pollo pero no tiene tipo de presa especificado, sin valor por defecto
                         if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
-                            $chickenCutType = 'PECHO';
+                            $chickenCutType = null;
                         }
                     }
 
@@ -1148,9 +1148,9 @@ class PosInterface extends Page
                             }
                         }
 
-                        // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
+                        // Si es pollo pero no tiene tipo de presa especificado, sin valor por defecto
                         if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
-                            $chickenCutType = 'PECHO';
+                            $chickenCutType = null;
                         }
                     }
 
@@ -1319,7 +1319,7 @@ class PosInterface extends Page
                 'is_grill_item' => $isGrillItem,
                 'cooking_point' => $isGrillItem ? 'MEDIO' : null, // Por defecto MEDIO para parrillas
                 'is_chicken_cut' => $isChickenCut,
-                'chicken_cut_type' => $isChickenCut ? 'PECHO' : null, // Por defecto PECHO para pollos
+                'chicken_cut_type' => $isChickenCut ? null : null, // Sin selección por defecto para pollos
             ];
         }
         $this->calculateTotals();
@@ -2099,9 +2099,9 @@ class PosInterface extends Page
                     }
                 }
 
-                // Si es pollo pero no tiene tipo de presa especificado, por defecto PECHO
+                // Si es pollo pero no tiene tipo de presa especificado, sin valor por defecto
                 if ($this->isChickenCutCategory($detail->product) && !$chickenCutType) {
-                    $chickenCutType = 'PECHO';
+                    $chickenCutType = null;
                 }
             }
 
