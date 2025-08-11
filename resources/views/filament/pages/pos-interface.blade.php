@@ -1968,6 +1968,32 @@
         });
     </script>
 
+    <script>
+    // Solicitar PIN para rol waiter cuando se intenta eliminar o limpiar
+    window.addEventListener('pos-pin-required', (event) => {
+        try {
+            const detail = event?.detail ?? {};
+            const action = detail.action ?? null;
+            const index = detail.index ?? null;
+            const pin = prompt('Ingrese PIN de autorización:');
+            if (pin === null || pin === '') return; // cancelado
+            const root = document.querySelector('[wire\\:id]');
+            const id = root ? root.getAttribute('wire:id') : null;
+            if (id && window.Livewire) {
+                const component = window.Livewire.find(id);
+                if (component) {
+                    component.call('verifyPinAndExecute', action, index, pin);
+                    return;
+                }
+            }
+            if (window.$wire && typeof window.$wire.verifyPinAndExecute === 'function') {
+                window.$wire.verifyPinAndExecute(action, index, pin);
+            }
+        } catch (e) {
+            console.error('Error solicitando PIN:', e);
+        }
+    });
+    </script>
     <div class="pos-interface">
         {{-- BOTÓN TOGGLE FIJO PARA CATEGORÍAS --}}
         <button

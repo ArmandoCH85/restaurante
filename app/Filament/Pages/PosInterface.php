@@ -1199,7 +1199,7 @@ class PosInterface extends Page
         // Calcular totales basados en el carrito (si lo hubiera)
         $this->calculateTotals();
         $this->loadInitialData();
-        
+
         // Cargar información de la mesa si hay selectedTableId
         $this->selectedTable = $this->selectedTableId ? TableModel::find($this->selectedTableId) : null;
     }
@@ -1350,8 +1350,13 @@ class PosInterface extends Page
         $this->calculateTotals();
     }
 
-    public function removeItem(int $index): void
+    public function removeItem(int $index, bool $pinOk = false): void
     {
+        // Si es mesero y no se ha verificado PIN, solicitarlo
+        if (Auth::user()?->hasRole('waiter') && !$pinOk) {
+            $this->dispatch('pos-pin-required', action: 'removeItem', index: $index);
+            return;
+        }
         // Verificar si se puede modificar el carrito
         if (!$this->canClearCart) {
             Notification::make()
@@ -1391,13 +1396,52 @@ class PosInterface extends Page
         $this->total = $this->subtotal + $this->tax; // Total (igual al precio original)
     }
 
-    public function clearCart(): void
+    public function clearCart(bool $pinOk = false): void
     {
+        // Si es mesero y no se ha verificado PIN, solicitarlo
+        if (Auth::user()?->hasRole('waiter') && !$pinOk) {
+            $this->dispatch('pos-pin-required', action: 'clearCart');
+            return;
+        }
         $this->cartItems = [];
         $this->calculateTotals();
         $this->isCartDisabled = false;
         $this->numberOfGuests = 1;
         Notification::make()->title('Carrito limpiado')->success()->send();
+    }
+
+    /**
+     * Verifica el PIN (123456) para rol waiter y ejecuta la acción.
+     */
+    public function verifyPinAndExecute(string $action, ?int $index, string $pin): void
+    {
+        $user = Auth::user();
+
+        // Para roles distintos a waiter, ejecutar normal como fallback
+        if (!$user?->hasRole('waiter')) {
+            if ($action === 'removeItem' && $index !== null) {
+                $this->removeItem((int) $index);
+            } elseif ($action === 'clearCart') {
+                $this->clearCart();
+            }
+            return;
+        }
+
+        if ($pin !== '123456') {
+            Notification::make()
+                ->title('PIN incorrecto')
+                ->body('No se autorizó la operación.')
+                ->danger()
+                ->duration(3000)
+                ->send();
+            return;
+        }
+
+        if ($action === 'removeItem' && $index !== null) {
+            $this->removeItem((int) $index, true);
+        } elseif ($action === 'clearCart') {
+            $this->clearCart(true);
+        }
     }
 
     public function processOrder(): void
