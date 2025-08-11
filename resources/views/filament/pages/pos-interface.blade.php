@@ -2158,7 +2158,7 @@
                             @if($selectedTable)
                                 <div style="display: flex; align-items: center; gap: 4px;">
                                     <x-heroicon-s-home style="width: 14px; height: 14px; color: #059669;" />
-                                    <span style="font-size: 12px; font-weight: 600; color: #059669;">
+                                    <span style="font-size: 12px; font-weight: 600; color: #000000;">
                                         Mesa {{ $selectedTable->number }}
                                     </span>
                                 </div>
