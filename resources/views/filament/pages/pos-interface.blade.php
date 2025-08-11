@@ -1955,15 +1955,15 @@
             }
         }
 
-        // INICIALIZAR CATEGORÍAS COLAPSADAS AL CARGAR
+        // INICIALIZAR CATEGORÍAS VISIBLES AL CARGAR (COMENTADO PARA MOSTRAR POR DEFECTO)
         document.addEventListener('DOMContentLoaded', function() {
             const categoriesSection = document.getElementById('pos-categories');
             const mainContainer = document.querySelector('.pos-main-container');
 
             if (categoriesSection && mainContainer) {
-                // Inicializar ambos elementos colapsados
-                categoriesSection.classList.add('collapsed');
-                mainContainer.classList.add('categories-collapsed');
+                // Comentado para mostrar categorías por defecto
+                // categoriesSection.classList.add('collapsed');
+                // mainContainer.classList.add('categories-collapsed');
             }
         });
     </script>
@@ -2147,13 +2147,23 @@
                 {{-- HEADER DEL CARRITO --}}
                 <div class="pos-cart-header">
                     {{-- TÍTULO Y CONTROLES EN LA MISMA LÍNEA --}}
-                    <div class="pos-cart-title" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div class="pos-cart-title" style="display: flex; justify-content: space-around; align-items: center; padding: 0 8px;">
                         <span style="background: var(--pos-success); color: white; padding: 4px 12px; border-radius: 16px; font-size: 14px; font-weight: 600;">
                             {{ count($cartItems) }} items
                         </span>
 
-                        {{-- CONTROLES MOVIDOS AL LADO DERECHO DEL "0 items" --}}
-                        <div style="display: flex; align-items: center; gap: 8px;">
+                        {{-- CONTROLES CENTRADOS --}}
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            {{-- INFORMACIÓN DE LA MESA --}}
+                            @if($selectedTable)
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <x-heroicon-s-home style="width: 14px; height: 14px; color: #059669;" />
+                                    <span style="font-size: 12px; font-weight: 600; color: #059669;">
+                                        Mesa {{ $selectedTable->number }}
+                                    </span>
+                                </div>
+                            @endif
+
                             <div>
                                 <label style="display: block; font-size: 10px; font-weight: 600; color: #374151; margin-bottom: 2px;">
                                     Comensales <span style="color: #ef4444;">*</span>

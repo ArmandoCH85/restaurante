@@ -1199,6 +1199,9 @@ class PosInterface extends Page
         // Calcular totales basados en el carrito (si lo hubiera)
         $this->calculateTotals();
         $this->loadInitialData();
+        
+        // Cargar información de la mesa si hay selectedTableId
+        $this->selectedTable = $this->selectedTableId ? TableModel::find($this->selectedTableId) : null;
     }
 
     /**
