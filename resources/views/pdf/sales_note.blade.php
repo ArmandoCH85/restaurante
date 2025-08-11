@@ -75,7 +75,6 @@
         <div class="header">
             <h1>NOTA DE VENTA</h1>
             <p><strong>{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</strong></p>
-            <p>RUC: {{ $company['ruc'] ?? \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
             <p>{{ $company['direccion'] ?? \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</p>
             @if(($company['telefono'] ?? \App\Models\CompanyConfig::getTelefono()))
                 <p>Tel: {{ $company['telefono'] ?? \App\Models\CompanyConfig::getTelefono() }}</p>
@@ -86,39 +85,25 @@
         <table class="info-table">
             <tr>
                 <td><strong>Fecha:</strong></td>
-                <td>{{ \Carbon\Carbon::parse($invoice->issue_date)->format('d/m/Y') }}</td>
-            </tr>
-            <tr>
-                <td><strong>Hora:</strong></td>
-                <td>{{ \Carbon\Carbon::parse($invoice->issue_date)->format('H:i:s') }}</td>
+                <td>{{ now()->format('d/m/Y - H:i:s') }}</td>
             </tr>
             <tr>
                 <td><strong>Cliente:</strong></td>
-                <td>{{ $invoice->client_name ?? ($customer ? $customer->name : 'Cliente General') }}</td>
+                <td>
+                    @if($invoice->order && $invoice->order->table_id)
+                        Mesa {{ $invoice->order->table->name ?? $invoice->order->table_id }} - Público General
+                    @else
+                        {{ $invoice->order->customer->name ?? ($invoice->client_name ?? 'Cliente General') }}
+                    @endif
+                </td>
             </tr>
-            @if($invoice->client_document)
+            @if($invoice->order && $invoice->order->table_id && $invoice->order->employee)
             <tr>
-                <td><strong>Documento:</strong></td>
-                <td>{{ $invoice->client_document }}</td>
-            </tr>
-            @endif
-            @if($invoice->client_address)
-            <tr>
-                <td><strong>Dirección:</strong></td>
-                <td>{{ $invoice->client_address }}</td>
-            </tr>
-            @endif
-            @if($invoice->employee)
-            <tr>
-                <td><strong>Atendido por:</strong></td>
-                <td>{{ $invoice->employee->name }}</td>
-            </tr>
-            @elseif($invoice->order && $invoice->order->employee)
-            <tr>
-                <td><strong>Atendido por:</strong></td>
+                <td><strong>Mesero:</strong></td>
                 <td>{{ $invoice->order->employee->name }}</td>
             </tr>
-            @elseif(auth()->user())
+            @endif
+            @if(auth()->user())
             <tr>
                 <td><strong>Atendido por:</strong></td>
                 <td>{{ auth()->user()->name }}</td>
