@@ -6,7 +6,9 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 use App\Models\User;
 use Filament\Http\Responses\Auth\Contracts\LoginResponse as LoginResponseContract;
+use Filament\Http\Responses\Auth\Contracts\LogoutResponse as LogoutResponseContract;
 use App\Http\Responses\LoginResponse;
+use App\Http\Responses\LogoutResponse;
 use Livewire\Livewire;
 
 
@@ -20,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(
             LoginResponseContract::class,
             LoginResponse::class
+        );
+
+        $this->app->singleton(
+            LogoutResponseContract::class,
+            LogoutResponse::class
         );
     }
 

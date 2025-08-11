@@ -57,6 +57,13 @@ Thank you for considering contributing to the Laravel framework! The contributio
 
 In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
+
+### Panel de Meseros (Waiter)
+
+- Login dedicado: `/waiter`
+- Acceso restringido a usuarios con rol `waiter` (Filament Shield / Spatie Permission).
+- Tras login, redirige a `/tables` (mapa de mesas existente).
+
 ## Security Vulnerabilities
 
 If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.

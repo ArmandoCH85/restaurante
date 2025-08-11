@@ -3,12 +3,14 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -51,6 +53,25 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Restringir acceso a paneles de Filament por rol, según documentación.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        // Acceso al panel de meseros sólo para rol 'waiter'
+        if ($panel->getId() === 'waiter') {
+            return $this->hasRole('waiter');
+        }
+
+        // Acceso al panel admin por defecto: cualquier usuario autenticado
+        // Si se desea más restricción, ajustar aquí (e.g., roles específicos)
+        if ($panel->getId() === 'admin') {
+            return auth()->check();
+        }
+
+        return false;
     }
 
     /**

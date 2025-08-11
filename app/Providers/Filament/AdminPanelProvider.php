@@ -117,7 +117,10 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => '<a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>'
+                fn (): string => '<div class="flex flex-col items-center gap-2 mt-4">'
+                    . '<a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>'
+                    . '<a href="' . url('/waiter/login') . '" class="text-primary-600 hover:underline">Ir al login de mesero</a>'
+                    . '</div>'
             )
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_NAV_START,
@@ -148,7 +151,7 @@ class AdminPanelProvider extends PanelProvider
                     }
 
                     /* 🎭 HEADER CON LOGO - ESTILO TAILADMIN */
-              
+
 
                     /* OCULTAR LOGO DE MODO OSCURO */
                     header.fi-sidebar-header .fi-logo.hidden.dark\\:flex {

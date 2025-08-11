@@ -65,7 +65,7 @@
                     <a href="{{ route('tables.map') }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                         Mis Pedidos
                     </a>
-                    <form method="POST" action="{{ route('filament.admin.auth.logout') }}" class="inline">
+                    <form method="POST" action="{{ auth()->user()?->hasRole('waiter') ? route('filament.waiter.auth.logout') : route('filament.admin.auth.logout') }}" class="inline">
                         @csrf
                         <button type="submit" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
                             Cerrar Sesión
