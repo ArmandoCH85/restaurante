@@ -155,8 +155,9 @@
             border-radius: var(--pos-border-radius);
             background: white;
             color: #64748b;
-            font-weight: 500;
-            font-size: 11px;
+            font-weight: 700; /* Más negrito para pantallas POS */
+            font-size: 13px;  /* Un poco más grande para mejor legibilidad */
+            text-transform: uppercase; /* Mostrar categorías en MAYÚSCULAS */
             transition: var(--pos-transition);
             cursor: pointer;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -360,8 +361,9 @@
         }
 
         .pos-product-name {
-            font-size: 11px;
-            font-weight: 600;
+            font-size: 12px;           /* Un poco más grande */
+            font-weight: 700;          /* Más negrito */
+            text-transform: uppercase; /* MAYÚSCULAS para mejor lectura en POS */
             color: #1f2937;
             margin-bottom: 3px;
             line-height: 1.2;
@@ -1578,7 +1580,7 @@
 
             .pos-category-btn {
                 padding: 8px 4px;
-                font-size: 12px;
+                font-size: 13px; /* Ligeramente mayor en tablets */
             }
 
             .pos-quick-actions-grid {
@@ -1641,7 +1643,7 @@
             .pos-category-btn {
                 min-width: 80px;
                 padding: 8px 12px;
-                font-size: 11px;
+                font-size: 12px; /* Un poco mayor en móviles */
                 white-space: nowrap;
             }
 
@@ -1698,7 +1700,7 @@
             }
 
             .pos-product-name {
-                font-size: 10px;
+                font-size: 11px; /* Un poco mayor en móviles */
                 line-height: 1.2;
             }
 
