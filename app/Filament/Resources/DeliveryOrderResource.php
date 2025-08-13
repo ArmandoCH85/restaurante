@@ -30,6 +30,18 @@ class DeliveryOrderResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getNavigationUrl(): string
+    {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        // Para repartidores, mantener su vista por defecto
+        if ($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0)) {
+            return static::getUrl('index');
+        }
+
+        // Para el resto, abrir directamente la vista simple
+        return static::getUrl('simple');
+    }
+
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         // OPTIMIZACIÓN: Agregar eager loading para evitar N+1 queries
@@ -326,9 +338,9 @@ class DeliveryOrderResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['from'], fn ($query, $date) => 
+                            ->when($data['from'], fn ($query, $date) =>
                                 $query->whereDate('created_at', '>=', $date))
-                            ->when($data['until'], fn ($query, $date) => 
+                            ->when($data['until'], fn ($query, $date) =>
                                 $query->whereDate('created_at', '<=', $date));
                     })
                     ->indicateUsing(function (array $data): array {
@@ -406,7 +418,7 @@ class DeliveryOrderResource extends Resource
                         ->form(function (DeliveryOrder $record) {
                             // Cargar relaciones necesarias
                             $record->load(['order.customer', 'order.orderDetails.product', 'deliveryPerson']);
-                            
+
                             $orderDetails = [];
                             $totalItems = 0;
                             $subtotal = 0;
@@ -445,7 +457,7 @@ class DeliveryOrderResource extends Resource
                                             ->content($record->order->customer->email ?? 'Sin email'),
                                     ])
                                     ->columns(3),
-                                
+
                                 Forms\Components\Section::make('Información de Entrega')
                                     ->schema([
                                         Forms\Components\Placeholder::make('delivery_address')
@@ -456,12 +468,12 @@ class DeliveryOrderResource extends Resource
                                             ->content($record->delivery_references ?? 'Sin referencias'),
                                         Forms\Components\Placeholder::make('delivery_person_name')
                                             ->label('Repartidor')
-                                            ->content($record->deliveryPerson ? 
-                                                ($record->deliveryPerson->first_name . ' ' . $record->deliveryPerson->last_name) : 
+                                            ->content($record->deliveryPerson ?
+                                                ($record->deliveryPerson->first_name . ' ' . $record->deliveryPerson->last_name) :
                                                 'Sin asignar'),
                                     ])
                                     ->columns(2),
-                            
+
                             // Sección de Productos del Pedido - Siguiendo estándares de la industria
                             Forms\Components\Section::make('🛍️ Productos del Pedido')
                                 ->description('Detalle de los productos incluidos en este pedido')
@@ -509,12 +521,12 @@ class DeliveryOrderResource extends Resource
                                         ->itemLabel(fn (array $state): ?string => $state['product_name'] ?? 'Producto')
                                         ->cloneable(false)
                                         ->columnSpanFull(),
-                                        
+
                                     // Campos ocultos para datos de resumen
                                     Forms\Components\Hidden::make('items_count'),
                                     Forms\Components\Hidden::make('subtotal_amount'),
                                     Forms\Components\Hidden::make('total_amount'),
-                                        
+
                                     // Resumen del pedido
                                     Forms\Components\Grid::make(3)
                                         ->schema([
@@ -531,7 +543,7 @@ class DeliveryOrderResource extends Resource
                                         ])
                                         ->columnSpanFull(),
                                 ]),
-                            
+
                                 Forms\Components\Section::make('Información del Pedido')
                                     ->schema([
                                         Forms\Components\Placeholder::make('order_total')
@@ -655,7 +667,7 @@ class DeliveryOrderResource extends Resource
                                 $previousStatus = $record->status;
                                 $record->markAsInTransit();
                                 event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
-                                
+
                                 \Filament\Notifications\Notification::make()
                                     ->title('🚚 ¡Estado actualizado exitosamente!')
                                     ->body("El pedido #{$record->order_id} ahora está En Tránsito. El repartidor puede comenzar la entrega.")
@@ -698,7 +710,7 @@ class DeliveryOrderResource extends Resource
                                 $previousStatus = $record->status;
                                 $record->markAsDelivered();
                                 event(new \App\Events\DeliveryStatusChanged($record, $previousStatus));
-                                
+
                                 \Filament\Notifications\Notification::make()
                                     ->title('✅ ¡Pedido entregado exitosamente!')
                                     ->body("🎉 El pedido #{$record->order_id} ha sido completado. ¡Excelente trabajo!")
@@ -757,7 +769,7 @@ class DeliveryOrderResource extends Resource
                                         ->label('Teléfono')
                                         ->disabled(),
                                 ]),
-                            
+
                             Forms\Components\Section::make('Detalles de Entrega')
                                 ->schema([
                                     Forms\Components\Textarea::make('delivery_address')
@@ -1000,7 +1012,7 @@ class DeliveryOrderResource extends Resource
                         ->action(function ($records, array $data) {
                             $format = $data['format'] ?? 'xlsx';
                             $includeDetails = $data['include_details'] ?? false;
-                            
+
                             // Simular exportación
                             \Filament\Notifications\Notification::make()
                                 ->title('📄 Exportación completada')
@@ -1048,6 +1060,7 @@ class DeliveryOrderResource extends Resource
         // Para otros usuarios, usar la vista personalizada con formulario lateral
         return [
             'index' => Pages\ManageDeliveryOrders::route('/'),
+            'simple' => Pages\SimpleDeliveryPage::route('/simple'),
             'create' => Pages\CreateDeliveryOrder::route('/create'),
             'edit' => Pages\EditDeliveryOrder::route('/{record}/edit'),
         ];

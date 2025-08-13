@@ -24,20 +24,30 @@ use Illuminate\Support\Facades\DB;
 class ManageDeliveryOrders extends Page implements HasForms, HasTable
 {
     use InteractsWithForms, InteractsWithTable;
-    
+
     protected static string $resource = DeliveryOrderResource::class;
-    
+
     protected static string $view = 'filament.resources.delivery-order-resource.pages.manage-delivery-orders';
-    
+
     protected static ?string $title = 'Gestión de Delivery';
-    
+
     protected static ?string $navigationIcon = 'heroicon-o-truck';
-    
+
+    public function mount(): void
+    {
+        $step = request()->query('step');
+        if ($step === 'cliente') {
+            // Redirigir a la vista simple ya creada
+            $this->redirect(DeliveryOrderResource::getUrl('simple'), navigate: true);
+            return;
+        }
+    }
+
     public function getMaxContentWidth(): ?string
     {
         return 'full'; // Margen izquierdo reducido, contenido más pegado al sidebar
     }
-    
+
     protected function getHeaderWidgets(): array
     {
         return [
@@ -45,7 +55,7 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
             // La funcionalidad principal de delivery funciona sin el widget
         ];
     }
-    
+
     // Propiedades del formulario - INICIALIZADAS CORRECTAMENTE
     public ?array $newDeliveryData = [
         'existing_customer' => null,
@@ -61,20 +71,20 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
         'selected_customer_id' => null,
         'customer_status_message' => '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente',
     ];
-    
+
     // Estado de búsqueda de cliente
     public $customerFound = false;
     public $searchQuery = '';
     public $selectedCustomer = null;
-    
-    protected $listeners = ['refresh-form' => '$refresh'];
-    
 
-    
+    protected $listeners = ['refresh-form' => '$refresh'];
+
+
+
     public function updatedNewDeliveryDataExisting_customer($value)
     {
         \Log::info('updatedNewDeliveryDataExisting_customer called with value: ' . $value);
-        
+
         if ($value) {
             $customer = Customer::find($value);
             if ($customer) {
@@ -98,8 +108,8 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
             $this->newDeliveryData['customer_status_message'] = '📝 No se ha seleccionado cliente - Complete los datos para crear nuevo cliente';
         }
     }
-    
-    
+
+
     protected function getHeaderActions(): array
     {
         return [
@@ -133,13 +143,13 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                 ])
                 ->action(function (array $data) {
                     $format = $data['format'] ?? 'xlsx';
-                    
+
                     \Filament\Notifications\Notification::make()
                         ->title('📄 Exportación iniciada')
                         ->body("Generando archivo en formato {$format}...")
                         ->info()
                         ->send();
-                        
+
                     // Simular proceso de exportación
                     \Filament\Notifications\Notification::make()
                         ->title('✅ Exportación completada')
@@ -156,20 +166,20 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                 }),
         ];
     }
-    
+
     protected function getForms(): array
     {
         return [
             'newDeliveryForm',
         ];
     }
-    
+
     public function table(Table $table): Table
     {
         return DeliveryOrderResource::table($table)
             ->query(DeliveryOrderResource::getEloquentQuery());
     }
-    
+
     public function newDeliveryForm(Form $form): Form
     {
         return $form
@@ -216,7 +226,7 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                                                     $set('customer_found_flag', true);
                                                     $set('selected_customer_id', $customer->id);
                                                     $set('customer_status_message', "✅ Cliente encontrado: {$customer->name}");
-                                                    
+
                                                     \Filament\Notifications\Notification::make()
                                                         ->title('Cliente encontrado')
                                                         ->body("Datos de {$customer->name} cargados automáticamente")
@@ -234,23 +244,23 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                                                 $set('customer_status_message', '📝 Complete los datos para crear nuevo cliente');
                                             }
                                         }),
-                                        
+
                                     // CAMPOS OCULTOS PARA ESTADO
                                     Forms\Components\Hidden::make('customer_found_flag')
                                         ->default(false)
                                         ->dehydrated(),
-                                        
+
                                     Forms\Components\Hidden::make('selected_customer_id')
                                         ->dehydrated(),
 
                                     // INDICADOR DE ESTADO
                                     Forms\Components\Placeholder::make('customer_status_message')
                                         ->label('')
-                                        ->content(fn (Forms\Get $get): string => 
+                                        ->content(fn (Forms\Get $get): string =>
                                             $get('customer_status_message') ?? '📝 Complete los datos para crear nuevo cliente'
                                         ),
                                 ]),
-                                
+
                             Forms\Components\Section::make('Datos del Cliente')
                                 ->description('Información de contacto del cliente')
                                 ->icon('heroicon-o-identification')
@@ -275,14 +285,14 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                                                 }
                                             }
                                         }),
-                                    
+
                                     Forms\Components\TextInput::make('customer_name')
                                         ->label('Nombre Completo')
                                         ->required()
                                         ->placeholder('Ingrese el nombre completo del cliente')
                                         ->prefixIcon('heroicon-o-user')
                                         ->disabled(fn (Forms\Get $get): bool => (bool) $get('customer_found_flag')),
-                                    
+
                                     Forms\Components\Grid::make(2)
                                         ->schema([
                                             Forms\Components\Select::make('document_type')
@@ -294,7 +304,7 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                                                 ->default('dni')
                                                 ->native(false)
                                                 ->prefixIcon('heroicon-o-identification'),
-                                                
+
                                             Forms\Components\TextInput::make('document_number')
                                                 ->label('Número de Documento')
                                                 ->placeholder('Opcional')
@@ -329,7 +339,7 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                                         ->default('domicilio')
                                         ->required(),
                                 ]),
-                                
+
                             Forms\Components\Section::make('Dirección de Entrega')
                                 ->description('Información detallada de la dirección')
                                 ->icon('heroicon-o-map-pin')
@@ -341,7 +351,7 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                                         ->placeholder('Ingrese la dirección completa de entrega')
                                         ->helperText('Incluya referencias como número de casa, piso, departamento, etc.')
                                         ->live(),
-                                    
+
                                     Forms\Components\Textarea::make('reference')
                                         ->label('Referencias Adicionales')
                                         ->rows(2)
@@ -404,22 +414,22 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
             ])
             ->statePath('newDeliveryData');
     }
-    
+
     public function createDeliveryOrder(): void
     {
         try {
             // Validar el formulario
             $this->getForm('newDeliveryForm')->validate();
-            
+
             // Obtener los datos validados
             $data = $this->getForm('newDeliveryForm')->getState();
-            
+
             DB::transaction(function () use ($data) {
                 // Determinar si se seleccionó un cliente existente o crear uno nuevo
                 if (isset($data['customer_found_flag']) && $data['customer_found_flag'] && isset($data['selected_customer_id'])) {
                     // Cliente existente seleccionado - usar ese cliente
                     $customer = Customer::find($data['selected_customer_id']);
-                    
+
                     // Actualizar solo la dirección (puede haber cambiado para este delivery específico)
                     if ($customer && $customer->address !== $data['address']) {
                         $customer->update([
@@ -500,7 +510,7 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                 ->send();
         }
     }
-    
+
     public function resetForm(): void
     {
         $this->getForm('newDeliveryForm')->fill([
