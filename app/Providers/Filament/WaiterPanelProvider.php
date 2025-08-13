@@ -24,7 +24,7 @@ class WaiterPanelProvider extends PanelProvider
         return $panel
             ->id('waiter')
             ->path('waiter')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\CodeLogin::class)
             ->colors([
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,
@@ -51,6 +51,10 @@ class WaiterPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
                 fn (): string => '<link rel="stylesheet" href="' . asset('css/login-daisyui-compiled.css') . '">'
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn (): string => '<div class="flex flex-col items-center gap-2 mt-4 text-sm text-gray-500"><span>Acceso por código PIN.</span></div>'
             )
             // Redirigir a la vista operativa existente del mapa de mesas tras iniciar sesión
             ->homeUrl('/tables');

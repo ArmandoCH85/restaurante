@@ -35,7 +35,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
+            ->login(\App\Filament\Pages\Auth\CodeLogin::class)
             ->sidebarCollapsibleOnDesktop()
             ->sidebarWidth('16rem') // Ancho optimizado - balance perfecto
             ->collapsedSidebarWidth('4rem') // Ancho colapsado elegante
@@ -117,8 +117,8 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => '<div class="flex flex-col items-center gap-2 mt-4">'
-                    . '<a href="#" class="forgot-password-link">¿Olvidaste tu contraseña?</a>'
+                fn (): string => '<div class="flex flex-col items-center gap-2 mt-4 text-sm text-gray-500">'
+                    . '<span>Acceso por código PIN.</span>'
                     . '<a href="' . url('/waiter/login') . '" class="text-primary-600 hover:underline">Ir al login de mesero</a>'
                     . '</div>'
             )
