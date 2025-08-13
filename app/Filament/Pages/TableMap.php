@@ -135,7 +135,7 @@ class TableMap extends Page
         $this->availableCount = $this->tables->where('status', 'available')->count();
         $this->occupiedCount = $this->tables->where('status', 'occupied')->count();
         $this->reservedCount = $this->tables->where('status', 'reserved')->count();
-        
+
         // Agregar estadísticas para nuevos estados POS
         $this->preBillCount = $this->tables->whereIn('status', ['pending_payment', 'prebill'])->count();
         $this->maintenanceCount = $this->tables->where('status', 'maintenance')->count();
@@ -517,7 +517,7 @@ class TableMap extends Page
             ->color('success')
             ->icon('heroicon-o-truck')
             ->size('lg')
-            ->url('/admin/ventas/delivery')
+            ->url('/admin/ventas/delivery/simple')
             ->openUrlInNewTab(false);
     }
 
