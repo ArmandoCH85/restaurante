@@ -12,7 +12,7 @@
                 <label class="block text-xs font-medium text-gray-700 mb-1">Nombre del cliente</label>
                 <input
                     type="text"
-                    wire:model.live.debounce.300ms="customerNameForComanda"
+                    wire:model.live.trim="customerNameForComanda"
                     placeholder="Ej: Juan Pérez o Mostrador"
                     class="w-full rounded-md border border-gray-300 focus:border-indigo-500 focus:ring-indigo-200 px-3 py-2 text-gray-900 placeholder-gray-400"
                     autofocus

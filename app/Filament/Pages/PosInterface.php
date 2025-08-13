@@ -3013,6 +3013,19 @@ class PosInterface extends Page
                         'class' => 'font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
                     ])
                     ->action(function () {
+                        // Asegurar nombre de cliente en venta directa antes de guardar/imprimir
+                        if ($this->selectedTableId === null) {
+                            $this->customerNameForComanda = trim((string) $this->customerNameForComanda);
+                            if ($this->customerNameForComanda === '') {
+                                Notification::make()
+                                    ->title('Nombre requerido')
+                                    ->body('Ingrese el nombre del cliente para la comanda de venta directa.')
+                                    ->warning()
+                                    ->duration(3000)
+                                    ->send();
+                                return;
+                            }
+                        }
                         // 1) Guardar la orden antes de imprimir
                         $this->processOrder();
 
@@ -3039,10 +3052,13 @@ class PosInterface extends Page
                             ->duration(3000)
                             ->send();
 
-                        // 4) Cerrar modal y redirigir al mapa de mesas
-                        $this->dispatch('close-modal', id: 'printComanda');
-                        $redirectUrl = TableMap::getUrl();
-                        $this->js("setTimeout(function(){ window.location.href = '{$redirectUrl}'; }, 600);");
+                        // 4) Cerrar modal; redirigir solo si NO es venta directa
+                        //    Usar el ID estándar del modal de acciones de Filament para esta página
+                        $this->dispatch('close-modal', id: "{$this->getId()}-action");
+                        if ($this->selectedTableId) {
+                            $redirectUrl = TableMap::getUrl();
+                            $this->js("setTimeout(function(){ window.location.href = '{$redirectUrl}'; }, 600);");
+                        }
                     })
                     // Mostrar si ya hay orden o al menos items en carrito (primer uso)
                     ->visible(fn() => (bool) $this->order || !empty($this->cartItems))
