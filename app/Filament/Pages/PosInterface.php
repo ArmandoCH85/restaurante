@@ -2295,7 +2295,17 @@ class PosInterface extends Page
                                     ->live()
                                     ->default($this->total)
                                     ->step(0.01)
-                                    ->minValue(0.01)
+                                    // Validación UI: si es efectivo, exigir al menos el total
+                                    ->minValue(fn(Get $get) => $get('payment_method') === 'cash' ? $this->total : 0.01)
+                                    ->rule(fn(Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                        if ($get('payment_method') === 'cash') {
+                                            $val = (float) $value;
+                                            $total = (float) $this->total;
+                                            if ($val + 1e-6 < $total) {
+                                                $fail('El monto recibido debe ser mayor o igual al total a pagar.');
+                                            }
+                                        }
+                                    })
                                     ->columnSpan(1),
 
                                 Forms\Components\Placeholder::make('change_display')
@@ -2750,6 +2760,15 @@ class PosInterface extends Page
                     // Pago simple
                     $paymentMethod = $data['payment_method'] ?? 'cash';
                     $paymentAmount = $data['payment_amount'] ?? $this->order->total;
+                }
+
+                // Seguridad: si es efectivo y el monto es menor al total, bloquear
+                if (($data['split_payment'] ?? false) === false) {
+                    $methodTmp = $data['payment_method'] ?? 'cash';
+                    $amountTmp = (float) ($data['payment_amount'] ?? $this->order->total);
+                    if ($methodTmp === 'cash' && $amountTmp + 1e-6 < (float) $this->order->total) {
+                        throw new \Exception('El monto recibido debe ser mayor o igual al total a pagar.');
+                    }
                 }
 
                 // Actualizar orden con método de pago PERO SIN marcar como facturada aún
