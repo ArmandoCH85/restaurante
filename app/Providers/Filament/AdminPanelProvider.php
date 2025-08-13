@@ -69,6 +69,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\Dashboard::class, // ✅ Dashboard personalizado por roles
                 \App\Filament\Pages\ReservationCalendar::class,
                 \App\Filament\Pages\ReportesPage::class,
+                \App\Filament\Pages\ReportViewerPage::class,
             ])
             // COMENTADO: Auto-descubrimiento de widgets deshabilitado para control granular
             // ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
