@@ -8,20 +8,16 @@
     {{-- Destino: Cliente o Mesa --}}
     @if($isDirectSale)
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-3">
-            @if(empty($customerNameForComanda))
-                <label class="block text-xs font-medium text-gray-700 mb-1">Nombre del cliente</label>
-                <input
-                    type="text"
-                    wire:model.live.trim="customerNameForComanda"
-                    placeholder="Ej: Juan Pérez o Mostrador"
-                    class="w-full rounded-md border border-gray-300 focus:border-indigo-500 focus:ring-indigo-200 px-3 py-2 text-gray-900 placeholder-gray-400"
-                    autofocus
-                    maxlength="100"
-                />
-                <p class="mt-1 text-[11px] text-gray-500">Requerido para imprimir en venta directa.</p>
-            @else
-                <div class="text-sm text-gray-700"><span class="font-semibold">Cliente:</span> {{ $customerNameForComanda }}</div>
-            @endif
+            <label class="block text-xs font-medium text-gray-700 mb-1">Nombre del cliente</label>
+            <input
+                type="text"
+                wire:model.debounce.400ms.trim="customerNameForComanda"
+                placeholder="Ej: Juan Pérez o Mostrador"
+                class="w-full rounded-md border border-gray-300 focus:border-indigo-500 focus:ring-indigo-200 px-3 py-2 text-gray-900 placeholder-gray-400"
+                autofocus
+                maxlength="100"
+            />
+            <p class="mt-1 text-[11px] text-gray-500">Requerido para imprimir en venta directa.</p>
         </div>
     @elseif($order->table)
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700">

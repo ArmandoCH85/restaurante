@@ -12,7 +12,7 @@
     {{-- PRODUCTOS --}}
     <div class="space-y-3">
         <h3 class="font-semibold text-gray-900 border-b border-gray-100 pb-2">Productos</h3>
-        
+
         @forelse($order->orderDetails as $detail)
             <div class="flex justify-between items-center py-2 border-b border-gray-50 hover:bg-gray-50 rounded px-2">
                 <div class="flex-1">
@@ -34,10 +34,7 @@
         @endforelse
     </div>
 
-    {{-- DEBUG TEMPORAL --}}
-    <div class="bg-red-100 p-2 text-xs">
-        DEBUG: subtotal={{ $subtotal ?? 'NULL' }}, tax={{ $tax ?? 'NULL' }}, total={{ $total ?? 'NULL' }}
-    </div>
+
 
     {{-- TOTALES --}}
     <div class="border-t border-gray-200 pt-4 space-y-2">
@@ -45,12 +42,12 @@
             <span class="text-gray-600">Subtotal:</span>
             <span class="font-medium">S/ {{ number_format($subtotal, 2) }}</span>
         </div>
-        
+
         <div class="flex justify-between text-sm">
             <span class="text-gray-600">IGV (18%):</span>
             <span class="font-medium">S/ {{ number_format($tax, 2) }}</span>
         </div>
-        
+
         <div class="flex justify-between border-t border-gray-200 pt-2 text-lg font-bold">
             <span class="text-gray-900">Total:</span>
             <span class="text-green-600">S/ {{ number_format($total, 2) }}</span>

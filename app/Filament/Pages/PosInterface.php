@@ -3010,6 +3010,48 @@ class PosInterface extends Page
             ->modalSubmitAction(false)
             ->modalCancelActionLabel('Cancelar')
             ->extraModalFooterActions([
+                Action::make('saveComandaName')
+                    ->label('Guardar')
+                    ->color('success')
+                    ->size('md')
+                    ->tooltip('Guardar nombre del cliente y la orden')
+                    ->extraAttributes([
+                        'class' => 'font-semibold bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
+                    ])
+                    ->action(function () {
+                        // Validar nombre en venta directa
+                        if ($this->selectedTableId === null) {
+                            $this->customerNameForComanda = trim((string) $this->customerNameForComanda);
+                            if ($this->customerNameForComanda === '') {
+                                Notification::make()
+                                    ->title('Nombre requerido')
+                                    ->body('Ingrese el nombre del cliente para la comanda de venta directa.')
+                                    ->warning()
+                                    ->duration(3000)
+                                    ->send();
+                                return;
+                            }
+                        }
+
+                        // Guardar/crear la orden sin cerrar el modal
+                        $this->processOrder();
+                        if (!$this->order) {
+                            Notification::make()
+                                ->title('No se pudo guardar la orden')
+                                ->body('Revise requisitos: caja abierta, comensales y productos.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        Notification::make()
+                            ->title('Datos guardados')
+                            ->body('Nombre del cliente y orden guardados correctamente.')
+                            ->success()
+                            ->duration(2000)
+                            ->send();
+                    })
+                    ->visible(fn() => (bool) $this->order || !empty($this->cartItems)),
                 Action::make('printComanda')
                     ->label('Imprimir')
                     ->color('primary')
