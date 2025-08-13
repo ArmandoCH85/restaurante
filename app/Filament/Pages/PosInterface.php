@@ -3031,6 +3031,8 @@ class PosInterface extends Page
                                     ->send();
                                 return;
                             }
+                            // Persistir temporalmente para impresión de Nota de Venta
+                            session(['direct_sale_customer_name' => $this->customerNameForComanda]);
                         }
 
                         // Guardar/crear la orden sin cerrar el modal
@@ -3042,6 +3044,11 @@ class PosInterface extends Page
                                 ->danger()
                                 ->send();
                             return;
+                        }
+
+                        // Persistir nombre en sesión para impresiones de Nota de Venta (solo venta directa)
+                        if ($this->selectedTableId === null) {
+                            session(['direct_sale_customer_name' => $this->customerNameForComanda]);
                         }
 
                         Notification::make()

@@ -15,7 +15,7 @@
             line-height: 1.4;
             width: 70mm; /* Ancho aproximado para papel de 80mm */
         }
-        
+
         /* FORZAR COLOR NEGRO EN TODOS LOS NAVEGADORES */
         * {
             color: #000 !important;
@@ -93,10 +93,16 @@
                     @if($invoice->order && $invoice->order->table_id)
                         Mesa {{ $invoice->order->table->name ?? $invoice->order->table_id }} - Público General
                     @else
-                        {{ $invoice->order->customer->name ?? ($invoice->client_name ?? 'Cliente General') }}
+                        {{ $invoice->order->customer->name ?? ($invoice->client_name ?? 'Público General') }}
                     @endif
                 </td>
             </tr>
+            @if(($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery' && !empty($direct_sale_customer_name))
+            <tr>
+                <td><strong>Contacto:</strong></td>
+                <td>{{ $direct_sale_customer_name }}</td>
+            </tr>
+            @endif
             @if($invoice->order && $invoice->order->table_id && $invoice->order->employee)
             <tr>
                 <td><strong>Mesero:</strong></td>

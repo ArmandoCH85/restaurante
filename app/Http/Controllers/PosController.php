@@ -1005,7 +1005,7 @@ class PosController extends Controller
                 'generate_prebill' => true
             ]);
 
-            return view($view, [
+            $response = view($view, [
                 'invoice' => $invoice,
                 'date' => now()->format('d/m/Y H:i:s'),
                 'qr_code' => $invoice->qr_code,
@@ -1019,8 +1019,16 @@ class PosController extends Controller
                     'sales_note' => 'Nota de Venta',
                     default => 'Comprobante',
                 },
-                'prebill_url' => $preBillUrl // URL para generar automáticamente la pre-cuenta
+                'prebill_url' => $preBillUrl, // URL para generar automáticamente la pre-cuenta
+                'direct_sale_customer_name' => ($validated['invoice_type'] === 'sales_note' && !$order->table_id)
+                    ? (session('direct_sale_customer_name') ?? null)
+                    : null,
             ]);
+            // Limpiar nombre de venta directa tras imprimir
+            if ($validated['invoice_type'] === 'sales_note') {
+                session()->forget('direct_sale_customer_name');
+            }
+            return $response;
         } else {
             // Generar serie y número según tipo
             $series = $this->getNextSeries($validated['invoice_type']);
@@ -1105,7 +1113,7 @@ class PosController extends Controller
                 'generate_prebill' => true
             ]);
 
-            return view($view, [
+            $response = view($view, [
                 'invoice' => $invoice,
                 'date' => now()->format('d/m/Y H:i:s'),
                 'qr_code' => $qrCode,
@@ -1118,8 +1126,16 @@ class PosController extends Controller
                     'sales_note' => 'Nota de Venta',
                     default => 'Comprobante',
                 },
-                'prebill_url' => $preBillUrl // URL para generar automáticamente la pre-cuenta
+                'prebill_url' => $preBillUrl, // URL para generar automáticamente la pre-cuenta
+                'direct_sale_customer_name' => ($validated['invoice_type'] === 'sales_note' && !$order->table_id)
+                    ? (session('direct_sale_customer_name') ?? null)
+                    : null,
             ]);
+            // Limpiar nombre de venta directa tras imprimir
+            if ($validated['invoice_type'] === 'sales_note') {
+                session()->forget('direct_sale_customer_name');
+            }
+            return $response;
         }
     }
 

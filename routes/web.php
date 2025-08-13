@@ -315,9 +315,17 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
     ];
 
     // Datos para el PDF/HTML
+    $invoice->load(['customer', 'details.product', 'order.table']);
+    // Pasar contacto solo para Nota de Venta en venta directa (sin mesa, no delivery)
+    $directSaleName = null;
+    if ($invoice->invoice_type === 'sales_note' && ($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery') {
+        $directSaleName = session('direct_sale_customer_name');
+    }
+
     $data = [
-        'invoice' => $invoice->load(['customer', 'details.product', 'order.table']),
+        'invoice' => $invoice,
         'company' => $company,
+        'direct_sale_customer_name' => $directSaleName,
     ];
 
     // Determinar la vista según el tipo de documento
@@ -388,6 +396,11 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
 
         Log::info('✅ HTML DE IMPRESIÓN GENERADO CORRECTAMENTE', ['invoice_id' => $invoice->id]);
 
+        // Limpiar nombre de venta directa para no reutilizarlo
+        if ($invoice->invoice_type === 'sales_note') {
+            session()->forget('direct_sale_customer_name');
+        }
+
         return response($html, 200, [
             'Content-Type' => 'text/html; charset=utf-8',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
@@ -402,7 +415,7 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
             'file' => $e->getFile(),
             'line' => $e->getLine()
         ]);
-        
+
         return response('Error al generar comprobante: ' . $e->getMessage(), 500);
     }
 })->middleware(['web'])->name('print.invoice');
@@ -427,15 +440,15 @@ Route::middleware(['web', 'auth'])->group(function () {
         try {
             // Crear una instancia de la página y configurar propiedades públicas
             $page = new \App\Filament\Pages\ReportViewerPage;
-            
+
             // Configurar propiedades directamente
             $page->category = $category;
             $page->reportType = $reportType;
-            
+
             // Manejar parámetros de filtro desde la URL
             $dateRange = request('dateRange', 'today');
             $page->dateRange = $dateRange;
-            
+
             // Si es filtro personalizado, tomar fechas y horas de la URL
             if ($dateRange === 'custom') {
                 $page->startDate = request('startDate', now()->format('Y-m-d'));
@@ -447,10 +460,10 @@ Route::middleware(['web', 'auth'])->group(function () {
                 // Configurar fechas según el filtro predeterminado
                 $page->setDateRange($dateRange);
             }
-            
+
             // Cargar datos del reporte
             $page->loadReportData();
-            
+
             // Renderizar usando la vista Blade directamente
             return view('filament.pages.report-viewer-page', [
                 'page' => $page,
@@ -465,22 +478,22 @@ Route::middleware(['web', 'auth'])->group(function () {
             ], 500);
         }
     })->name('filament.admin.pages.report-viewer');
-    
+
     // Rutas para modal de detalle y impresión de órdenes
     Route::get('/admin/orders/{order}/detail', function($orderId) {
         try {
             $order = \App\Models\Order::with(['customer', 'user', 'table', 'orderDetails.product'])->findOrFail($orderId);
-            
+
             return view('filament.modals.order-detail', compact('order'));
         } catch (\Exception $e) {
             return response('<div class="text-center p-4 text-red-600">Error: ' . $e->getMessage() . '</div>', 404);
         }
     })->name('admin.orders.detail');
-    
+
     Route::get('/admin/orders/{order}/print', function($orderId) {
         try {
             $order = \App\Models\Order::with(['customer', 'user', 'table', 'orderDetails.product'])->findOrFail($orderId);
-            
+
             return view('filament.modals.order-print', compact('order'));
         } catch (\Exception $e) {
             return response('Error al cargar la orden: ' . $e->getMessage(), 500);

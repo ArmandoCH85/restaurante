@@ -275,6 +275,22 @@
             <span class="label">Fecha:</span>
             <span>{{ $invoice->issue_date->format('d/m/Y') }}</span>
         </div>
+        <div class="info-row">
+            <span class="label">Cliente:</span>
+            <span>
+                @if($invoice->order && $invoice->order->table_id)
+                    Mesa {{ $invoice->order->table->name ?? $invoice->order->table_id }} - Público General
+                @else
+                    {{ $invoice->order->customer->name ?? 'Público General' }}
+                @endif
+            </span>
+        </div>
+        @if(($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery' && !empty($direct_sale_customer_name))
+        <div class="info-row">
+            <span class="label">Contacto:</span>
+            <span>{{ $direct_sale_customer_name }}</span>
+        </div>
+        @endif
 
         @if($invoice->order->service_type === 'delivery')
             @php
@@ -317,7 +333,7 @@
                 <span>{{ $invoice->customer->phone }}</span>
             </div>
             @endif
-        @elseif($invoice->order->service_type === 'dine_in' && $invoice->order->table)
+    @elseif($invoice->order->service_type === 'dine_in' && $invoice->order->table)
             <!-- INFORMACIÓN DE MESA (EN LOCAL) -->
             <div class="info-row">
                 <span class="label">Mesa:</span>
