@@ -1352,8 +1352,9 @@ class PosInterface extends Page
 
     public function removeItem(int $index, bool $pinOk = false): void
     {
-        // Si es mesero y no se ha verificado PIN, solicitarlo
-        if (Auth::user()?->hasRole('waiter') && !$pinOk) {
+    // Para waiter: pedir PIN cuando existe una orden (guardada o reabierta)
+    // En carrito nuevo (sin orden aún), no solicitar PIN
+    if (Auth::user()?->hasRole('waiter') && $this->order && !$pinOk) {
             $this->dispatch('pos-pin-required', action: 'removeItem', index: $index);
             return;
         }
@@ -1398,8 +1399,9 @@ class PosInterface extends Page
 
     public function clearCart(bool $pinOk = false): void
     {
-        // Si es mesero y no se ha verificado PIN, solicitarlo
-        if (Auth::user()?->hasRole('waiter') && !$pinOk) {
+    // Para waiter: pedir PIN cuando existe una orden (guardada o reabierta)
+    // En carrito nuevo (sin orden aún), no solicitar PIN
+    if (Auth::user()?->hasRole('waiter') && $this->order && !$pinOk) {
             $this->dispatch('pos-pin-required', action: 'clearCart');
             return;
         }
