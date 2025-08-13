@@ -1017,32 +1017,23 @@
             }
         }
 
-        /* HEADER DEL MODAL */
+        /* HEADER DEL MODAL - minimal y neutro */
         .fi-modal[data-modal-id*="printComanda"] .fi-modal-header {
-            background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
-            color: white;
-            padding: 20px 24px;
+            background: #ffffff;
+            color: #111827;
+            padding: 12px 16px;
             border-radius: 12px 12px 0 0;
-            border-bottom: none;
+            border-bottom: 1px solid var(--pos-gray-200);
         }
 
         .fi-modal[data-modal-id*="printComanda"] .fi-modal-heading {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 16px;
+            font-weight: 600;
             margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
             line-height: 1.2;
         }
 
-        .fi-modal[data-modal-id*="printComanda"] .fi-modal-description {
-            font-size: 14px;
-            opacity: 0.9;
-            margin: 6px 0 0 0;
-            font-weight: 500;
-            line-height: 1.3;
-        }
+    .fi-modal[data-modal-id*="printComanda"] .fi-modal-description { display: none; }
 
         /* BOTÓN CERRAR */
         .fi-modal[data-modal-id*="printComanda"] .fi-modal-close-btn {
@@ -1060,7 +1051,7 @@
 
         /* CUERPO DEL MODAL */
         .fi-modal[data-modal-id*="printComanda"] .fi-modal-body {
-            padding: 24px;
+            padding: 16px;
             background: white;
         }
 

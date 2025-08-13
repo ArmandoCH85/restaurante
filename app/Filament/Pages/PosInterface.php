@@ -2937,11 +2937,10 @@ class PosInterface extends Page
             ->color('warning')
             ->size('lg')
             ->modal()
-            ->modalHeading('👨‍🍳 Comanda para Cocina')
-            ->modalDescription('Generar orden detallada para el área de preparación')
-            ->modalWidth('4xl')
-            ->modalIcon('heroicon-o-document-text')
-            ->modalIconColor('warning')
+            ->modalHeading('Comanda')
+            ->modalDescription('')
+            ->modalWidth('md')
+            // Sin icono para un look más profesional y limpio
             ->modalAlignment('center')
             ->slideOver(false)
             ->modalContent(function () {
@@ -3002,19 +3001,40 @@ class PosInterface extends Page
                     }
                 }
             })
-            ->modalSubmitActionLabel('✅ Confirmar y Procesar')
-            ->modalCancelActionLabel('❌ Cancelar')
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Cancelar')
             ->extraModalFooterActions([
                 Action::make('printComanda')
-                    ->label('🖨️ Imprimir')
-                    ->icon('heroicon-m-printer')
+                    ->label('Imprimir')
                     ->color('primary')
-                    ->size('xl')
+                    ->size('lg')
                     ->tooltip('Imprimir comanda para cocina')
                     ->extraAttributes([
                         'class' => 'font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
                     ])
                     ->action(function () {
+                        // Asegurar que exista la orden en el primer uso
+                        if (!$this->order && !empty($this->cartItems)) {
+                            $this->order = $this->createOrderFromCart();
+                        }
+
+                        // Validar caja abierta si aplica
+                        if (!$this->hasOpenCashRegister) {
+                            Notification::make()
+                                ->title('No hay caja abierta')
+                                ->body('Abra una caja para continuar')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
+
+                        if (!$this->order) {
+                            Notification::make()
+                                ->title('No hay orden para imprimir')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
                         $url = route('orders.comanda.pdf', [
                             'order' => $this->order,
                             'customerName' => $this->customerNameForComanda
@@ -3029,41 +3049,12 @@ class PosInterface extends Page
                             ->duration(3000)
                             ->send();
                     })
-                    ->visible(fn() => $this->order)
+                    // Mostrar si ya hay orden o al menos items en carrito (primer uso)
+                    ->visible(fn() => (bool) $this->order || !empty($this->cartItems))
                     ->disabled(function () {
-                        // Si es venta directa, requerir nombre antes de habilitar impresión
-                        if ($this->selectedTableId === null) {
-                            return empty($this->customerNameForComanda);
-                        }
-                        return false;
-                    }),
-
-                Action::make('downloadComanda')
-                    ->label('📥 Descargar')
-                    ->icon('heroicon-m-arrow-down-tray')
-                    ->color('success')
-                    ->size('xl')
-                    ->tooltip('Descargar PDF de la comanda')
-                    ->extraAttributes([
-                        'class' => 'font-semibold bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
-                    ])
-                    ->action(function () {
-                        $url = route('orders.comanda.pdf', [
-                            'order' => $this->order,
-                            'customerName' => $this->customerNameForComanda
-                        ]);
-                        $this->js("window.open('$url', '_blank')");
-
-                        // Mostrar notificación de éxito
-                        Notification::make()
-                            ->title('Descarga iniciada')
-                            ->body('El PDF de la comanda se está descargando')
-                            ->success()
-                            ->duration(3000)
-                            ->send();
-                    })
-                    ->visible(fn() => $this->order)
-                    ->disabled(function () {
+                        // Reglas de deshabilitado: sin caja abierta, sin orden ni items, o venta directa sin nombre
+                        if (!$this->hasOpenCashRegister) return true;
+                        if (!$this->order && empty($this->cartItems)) return true;
                         if ($this->selectedTableId === null) {
                             return empty($this->customerNameForComanda);
                         }
