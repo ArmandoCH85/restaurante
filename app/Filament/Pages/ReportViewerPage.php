@@ -378,9 +378,9 @@ class ReportViewerPage extends Page implements HasForms
     // FINANCE REPORTS
     protected function getCashRegisterMovements($startDateTime, $endDateTime)
     {
-        return \App\Models\CashRegister::whereBetween('opened_at', [$startDateTime, $endDateTime])
-            ->with(['user'])
-            ->orderBy('opened_at', 'desc')
+        return \App\Models\CashRegister::whereBetween('opening_datetime', [$startDateTime, $endDateTime])
+            ->with(['openedBy'])
+            ->orderBy('opening_datetime', 'desc')
             ->get();
     }
     
@@ -400,10 +400,10 @@ class ReportViewerPage extends Page implements HasForms
     
     protected function getDailyClosing($startDateTime, $endDateTime)
     {
-        return \App\Models\CashRegister::whereBetween('closed_at', [$startDateTime, $endDateTime])
-            ->whereNotNull('closed_at')
-            ->with(['user'])
-            ->orderBy('closed_at', 'desc')
+        return \App\Models\CashRegister::whereBetween('closing_datetime', [$startDateTime, $endDateTime])
+            ->whereNotNull('closing_datetime')
+            ->with(['closedBy'])
+            ->orderBy('closing_datetime', 'desc')
             ->get();
     }
     

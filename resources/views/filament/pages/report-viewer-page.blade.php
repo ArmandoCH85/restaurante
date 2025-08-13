@@ -35,7 +35,7 @@
                 <div class="flex items-center justify-between">
                     <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ $page->getTitle() }}</h1>
                     <a href="{{ route('filament.admin.pages.reportes') }}" 
-                       class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                       class="inline-flex items-center px-4 py-2 border border-green-600 rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700">
                         ← Volver a Reportes
                     </a>
                 </div>
@@ -265,7 +265,7 @@
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                                                 @elseif($page->reportType === 'cash_register')
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Apertura</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario Apertura</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto Inicial</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                                 @elseif($page->reportType === 'profits')
@@ -274,12 +274,12 @@
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Órdenes</th>
                                                 @elseif($page->reportType === 'daily_closing')
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Cierre</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario Cierre</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto Final</th>
                                                 @elseif($page->reportType === 'user_activity')
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Últmio Login</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Login</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Órdenes Creadas</th>
                                                 @elseif($page->reportType === 'system_logs')
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
@@ -351,7 +351,7 @@
                                                                 </button>
                                                             </div>
                                                         </td>
-                                                    @elseif($page->reportType === 'sales_by_waiter')
+                                                    @elseif($page->reportType === 'sales_by_waiter' || $page->reportType === 'sales_by_user')
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->name }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->total_orders }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold">S/ {{ number_format($item->total_sales, 2) }}</td>
@@ -378,6 +378,47 @@
                                                         </td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->total_orders) }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_sales, 2) }}</td>
+                                                    @elseif($page->reportType === 'all_purchases')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->purchase_date->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->supplier?->name ?? 'Sin proveedor' }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->user?->name ?? 'Sin usuario' }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total, 2) }}</td>
+                                                    @elseif($page->reportType === 'purchases_by_supplier')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->supplier_name }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->total_purchases) }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_amount, 2) }}</td>
+                                                    @elseif($page->reportType === 'purchases_by_category')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->category_name }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->total_quantity) }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_amount, 2) }}</td>
+                                                    @elseif($page->reportType === 'cash_register')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->opening_datetime->format('d/m/Y H:i') }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->openedBy?->name ?? 'Sin usuario' }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold">S/ {{ number_format($item->opening_amount, 2) }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                                {{ $item->closing_datetime ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                                                                {{ $item->closing_datetime ? 'Cerrada' : 'Abierta' }}
+                                                            </span>
+                                                        </td>
+                                                    @elseif($page->reportType === 'profits')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ \Carbon\Carbon::parse($item->date)->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_sales, 2) }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->total_orders) }}</td>
+                                                    @elseif($page->reportType === 'daily_closing')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->closing_datetime->format('d/m/Y H:i') }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->closedBy?->name ?? 'Sin usuario' }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->actual_amount ?? 0, 2) }}</td>
+                                                    @elseif($page->reportType === 'user_activity')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->name }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->email }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->last_login_at ? $item->last_login_at->format('d/m/Y H:i') : 'Nunca' }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->orders_created) }}</td>
+                                                    @elseif($page->reportType === 'system_logs')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->date }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->event }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->user }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->description }}</td>
                                                     @endif
                                                 </tr>
                                             @endforeach
