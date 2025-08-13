@@ -33,6 +33,7 @@ class ReportesPage extends Page implements HasForms
     protected static string $view = 'filament.pages.reportes-page';
 
     protected ?string $heading = 'Reportes';
+    protected ?string $maxContentWidth = 'full';
 
     // Propiedades del formulario
     public ?string $reportType = 'sales';
@@ -40,6 +41,9 @@ class ReportesPage extends Page implements HasForms
     public ?string $startDate = null;
     public ?string $endDate = null;
     public ?string $format = 'pdf';
+    public ?string $selectedCategory = null;
+    public ?string $selectedReport = null;
+    public ?string $timeFilter = null;
 
     public function mount(): void
     {
@@ -115,6 +119,12 @@ class ReportesPage extends Page implements HasForms
                     ->default(now()->endOfDay())
                     ->visible(fn ($get) => $get('dateRange') === 'custom'),
 
+                \Filament\Forms\Components\TimePicker::make('timeFilter')
+                    ->label('Filtro de Hora (Opcional)')
+                    ->displayFormat('H:i')
+                    ->format('H:i')
+                    ->nullable(),
+
                 Select::make('format')
                     ->label('Formato')
                     ->options([
@@ -126,14 +136,6 @@ class ReportesPage extends Page implements HasForms
             ]);
     }
 
-    protected function getHeaderWidgets(): array
-    {
-        return [
-            \App\Filament\Widgets\SalesOverviewWidget::class,
-            \App\Filament\Widgets\ProfitChartWidget::class,
-            \App\Filament\Widgets\SalesByUserWidget::class,
-        ];
-    }
 
     public function exportReport(): void
     {
@@ -864,6 +866,72 @@ class ReportesPage extends Page implements HasForms
                 'filename' => $filename
             ]);
         }
+    }
+
+    public function selectCategory(string $category): void
+    {
+        $this->selectedCategory = $category;
+        $this->selectedReport = null;
+    }
+
+    public function selectReport(string $report): void
+    {
+        $this->selectedReport = $report;
+        $this->reportType = $report;
+    }
+
+    public function openReport(string $report): void
+    {
+        $this->selectedReport = $report;
+        $this->reportType = $report;
+        
+        // Redirigir a la nueva URL del reporte
+        $url = route('filament.admin.pages.report-viewer', [
+            'category' => $this->selectedCategory,
+            'reportType' => $report
+        ]);
+        
+        $this->redirect($url);
+    }
+
+    public function getCategoryTitle(): string
+    {
+        return match ($this->selectedCategory) {
+            'sales' => 'Reportes de Ventas',
+            'purchases' => 'Reportes de Compras',
+            'finance' => 'Reportes de Finanzas',
+            'operations' => 'Reportes de Operaciones',
+            default => 'Reportes'
+        };
+    }
+
+    public function getReportsForCategory(): array
+    {
+        return match ($this->selectedCategory) {
+            'sales' => [
+                'all_sales' => 'Reporte para Todas las ventas',
+                'delivery_sales' => 'Reporte de Ventas por delivery',
+                'products_by_channel' => 'Productos vendidos por canal de venta',
+                'sales_by_waiter' => 'Reporte de Ventas por mesero',
+                'payment_methods' => 'Reporte de Formas de pago'
+            ],
+            'purchases' => [
+                'all_purchases' => 'Todas las compras',
+                'purchases_by_supplier' => 'Compras por proveedor',
+                'purchases_by_category' => 'Compras por categoría'
+            ],
+            'finance' => [
+                'cash_register' => 'Movimientos de Caja',
+                'profits' => 'Reporte de Ganancias',
+                'daily_closing' => 'Cierres diarios'
+            ],
+            'operations' => [
+                'sales_by_user' => 'Ventas por Usuario',
+                'user_activity' => 'Actividad de usuarios',
+                'system_logs' => 'Logs del sistema'
+            ],
+            default => []
+        };
     }
 
     public static function canAccess(): bool

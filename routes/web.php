@@ -421,6 +421,73 @@ Route::get('/test-image-url', function() {
     return 'Producto no encontrado';
 });
 
+// Rutas para visualización individual de reportes
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/admin/reportes/{category}/{reportType}', function($category, $reportType) {
+        try {
+            // Crear una instancia de la página y configurar propiedades públicas
+            $page = new \App\Filament\Pages\ReportViewerPage;
+            
+            // Configurar propiedades directamente
+            $page->category = $category;
+            $page->reportType = $reportType;
+            
+            // Manejar parámetros de filtro desde la URL
+            $dateRange = request('dateRange', 'today');
+            $page->dateRange = $dateRange;
+            
+            // Si es filtro personalizado, tomar fechas y horas de la URL
+            if ($dateRange === 'custom') {
+                $page->startDate = request('startDate', now()->format('Y-m-d'));
+                $page->endDate = request('endDate', now()->format('Y-m-d'));
+                $page->startTime = request('startTime');
+                $page->endTime = request('endTime');
+                $page->invoiceType = request('invoiceType');
+            } else {
+                // Configurar fechas según el filtro predeterminado
+                $page->setDateRange($dateRange);
+            }
+            
+            // Cargar datos del reporte
+            $page->loadReportData();
+            
+            // Renderizar usando la vista Blade directamente
+            return view('filament.pages.report-viewer-page', [
+                'page' => $page,
+                'reportType' => $reportType,
+                'category' => $category
+            ]);
+        } catch (\Exception $e) {
+            // En caso de error, mostrar mensaje amigable
+            return response()->view('errors.generic', [
+                'message' => 'Error al cargar el reporte: ' . $e->getMessage(),
+                'backUrl' => route('filament.admin.pages.reportes')
+            ], 500);
+        }
+    })->name('filament.admin.pages.report-viewer');
+    
+    // Rutas para modal de detalle y impresión de órdenes
+    Route::get('/admin/orders/{order}/detail', function($orderId) {
+        try {
+            $order = \App\Models\Order::with(['customer', 'user', 'table', 'orderDetails.product'])->findOrFail($orderId);
+            
+            return view('filament.modals.order-detail', compact('order'));
+        } catch (\Exception $e) {
+            return response('<div class="text-center p-4 text-red-600">Error: ' . $e->getMessage() . '</div>', 404);
+        }
+    })->name('admin.orders.detail');
+    
+    Route::get('/admin/orders/{order}/print', function($orderId) {
+        try {
+            $order = \App\Models\Order::with(['customer', 'user', 'table', 'orderDetails.product'])->findOrFail($orderId);
+            
+            return view('filament.modals.order-print', compact('order'));
+        } catch (\Exception $e) {
+            return response('Error al cargar la orden: ' . $e->getMessage(), 500);
+        }
+    })->name('admin.orders.print');
+});
+
 
 
 
