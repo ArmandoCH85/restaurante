@@ -902,6 +902,10 @@ class PosInterface extends Page
                 // Configurar cliente para delivery
                 $this->selectedCustomerId = $deliveryData['customer_id'] ?? null;
                 $this->customerName = $deliveryData['customer_name'] ?? '';
+                // Prefijar nombre para comanda cuando viene de Delivery
+                if (empty($this->customerNameForComanda)) {
+                    $this->customerNameForComanda = $this->customerName;
+                }
 
                 // Configurar datos adicionales de delivery
                 if (isset($deliveryData['customer_phone'])) {
