@@ -2560,9 +2560,11 @@
                                 </button>
                             @endif
                         @elseif(!$order || ($order && !$order->invoices()->exists()))
+                            {{-- Oculto por requerimiento: siempre se imprime (no eliminar funcionalidad) --}}
                             <button
                                 wire:click="processOrder"
                                 class="pos-action-btn primary"
+                                style="display:none;"
                                 {{ (!count($cartItems) || !$this->hasOpenCashRegister) ? 'disabled' : '' }}
                             >
                                 <x-heroicon-m-check-circle style="width: 20px; height: 20px;" />

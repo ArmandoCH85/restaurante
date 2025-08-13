@@ -3013,25 +3013,15 @@ class PosInterface extends Page
                         'class' => 'font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
                     ])
                     ->action(function () {
-                        // Asegurar que exista la orden en el primer uso
-                        if (!$this->order && !empty($this->cartItems)) {
-                            $this->order = $this->createOrderFromCart();
-                        }
+                        // 1) Guardar la orden antes de imprimir
+                        $this->processOrder();
 
-                        // Validar caja abierta si aplica
-                        if (!$this->hasOpenCashRegister) {
-                            Notification::make()
-                                ->title('No hay caja abierta')
-                                ->body('Abra una caja para continuar')
-                                ->warning()
-                                ->send();
-                            return;
-                        }
-
+                        // 2) Verificar que la orden exista tras el guardado
                         if (!$this->order) {
                             Notification::make()
-                                ->title('No hay orden para imprimir')
-                                ->warning()
+                                ->title('No se pudo guardar la orden')
+                                ->body('Revise requisitos: caja abierta, comensales y productos.')
+                                ->danger()
                                 ->send();
                             return;
                         }
@@ -3041,13 +3031,18 @@ class PosInterface extends Page
                         ]);
                         $this->js("window.open('$url', 'comanda_print', 'width=900,height=700,scrollbars=yes,resizable=yes,toolbar=no,menubar=no,status=no')");
 
-                        // Mostrar notificación de éxito
+                        // 3) Notificación de éxito y abrir ventana de impresión
                         Notification::make()
                             ->title('Comanda enviada a impresión')
                             ->body('La comanda se ha abierto en una nueva ventana para imprimir')
                             ->success()
                             ->duration(3000)
                             ->send();
+
+                        // 4) Cerrar modal y redirigir al mapa de mesas
+                        $this->dispatch('close-modal', id: 'printComanda');
+                        $redirectUrl = TableMap::getUrl();
+                        $this->js("setTimeout(function(){ window.location.href = '{$redirectUrl}'; }, 600);");
                     })
                     // Mostrar si ya hay orden o al menos items en carrito (primer uso)
                     ->visible(fn() => (bool) $this->order || !empty($this->cartItems))
