@@ -807,22 +807,24 @@ class Order extends Model
             // 5. Crear la factura
             $invoice = Invoice::create([
                 'order_id' => $this->id,
-            'invoice_type' => $invoiceType,
-            'series' => $series,
-            'number' => $formattedNumber,
+                'invoice_type' => $invoiceType,
+                'series' => $series,
+                'number' => $formattedNumber,
                 'issue_date' => now(),
                 'customer_id' => $customer->id,
                 'client_name' => $customer->name,
                 'client_document' => $customer->document_number,
                 'client_address' => $customer->address,
-            'taxable_amount' => round($correctSubtotal, 2),
-            'tax' => round($correctIgv, 2),
-            'total' => $this->total,
+                'taxable_amount' => round($correctSubtotal, 2),
+                'tax' => round($correctIgv, 2),
+                'total' => $this->total,
                 'payment_method' => $this->payment_method ?? 'cash',
                 'payment_amount' => $this->payment_amount ?? $this->total,
+                'change_amount' => ($this->payment_method === 'cash' && $this->payment_amount > $this->total) ? 
+                    $this->payment_amount - $this->total : 0,
                 'status' => 'issued',
                 'sunat_status' => 'PENDIENTE',
-        ]);
+            ]);
 
             // 6. Agregar detalles de la factura
         foreach ($this->orderDetails as $detail) {

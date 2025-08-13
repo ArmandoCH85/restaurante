@@ -931,6 +931,9 @@ class PosController extends Controller
             $invoice->taxable_amount = $subtotalAfterDiscount;
             $invoice->tax = $taxAmount;
             $invoice->total = $total;
+            $invoice->payment_method = $validated['payment_method'];
+            $invoice->payment_amount = $validated['payment_method'] === 'cash' ? $validated['payment_amount'] : $total;
+            $invoice->change_amount = $validated['payment_method'] === 'cash' ? ($validated['payment_amount'] - $total) : 0;
             $invoice->tax_authority_status = 'pending';
 
             // Establecer estado SUNAT según el tipo de comprobante
@@ -1044,6 +1047,9 @@ class PosController extends Controller
             $invoice->taxable_amount = $subtotalAfterDiscount;
             $invoice->tax = $taxAmount;
             $invoice->total = $total;
+            $invoice->payment_method = $validated['payment_method'];
+            $invoice->payment_amount = $validated['payment_method'] === 'cash' ? $validated['payment_amount'] : $total;
+            $invoice->change_amount = $validated['payment_method'] === 'cash' ? ($validated['payment_amount'] - $total) : 0;
             $invoice->tax_authority_status = 'pending';
 
             // Establecer estado SUNAT según el tipo de comprobante
@@ -1118,7 +1124,6 @@ class PosController extends Controller
                 'date' => now()->format('d/m/Y H:i:s'),
                 'qr_code' => $qrCode,
                 'split_payment' => false,
-                'change_amount' => $validated['payment_method'] === 'cash' ? $validated['payment_amount'] - $total : 0,
                 'document_number' => $invoice->series . '-' . $invoice->number,
                 'document_type' => match ($validated['invoice_type']) {
                     'invoice' => 'Factura Electrónica',

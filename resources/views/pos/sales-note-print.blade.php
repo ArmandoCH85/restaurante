@@ -426,14 +426,14 @@
                 @endswitch
             </span>
         </div>
-        @if($invoice->payment_method === 'cash' && isset($change_amount) && $change_amount > 0)
+        @if($invoice->payment_method === 'cash' && $invoice->change_amount > 0)
         <div class="info-row">
             <span class="label">Recibido:</span>
             <span>S/ {{ number_format($invoice->payment_amount, 2) }}</span>
         </div>
         <div class="info-row">
             <span class="label">Vuelto:</span>
-            <span>S/ {{ number_format($change_amount, 2) }}</span>
+            <span>S/ {{ number_format($invoice->change_amount, 2) }}</span>
         </div>
         @endif
     </div>

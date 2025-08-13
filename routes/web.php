@@ -325,7 +325,7 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
     $data = [
         'invoice' => $invoice,
         'company' => $company,
-        'direct_sale_customer_name' => $directSaleName,
+        'direct_sale_customer_name' => $directSaleName
     ];
 
     // Determinar la vista según el tipo de documento

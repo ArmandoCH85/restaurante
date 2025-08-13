@@ -152,13 +152,22 @@
                 <span class="col-label">TOTAL:</span>
                 <span class="col-value">S/ {{ number_format($invoice->total, 2) }}</span>
             </div>
+            @if($invoice->payment_method === 'cash' && $invoice->change_amount > 0)
+            <div class="row" style="display: flex; justify-content: space-between;">
+                <span class="col-label">RECIBIDO:</span>
+                <span class="col-value">S/ {{ number_format($invoice->payment_amount, 2) }}</span>
+            </div>
+            <div class="row" style="display: flex; justify-content: space-between;">
+                <span class="col-label">VUELTO:</span>
+                <span class="col-value">S/ {{ number_format($invoice->change_amount, 2) }}</span>
+            </div>
+            @endif
         </div>
         <hr>
-        <div class="payment-info">
-            <p style="text-align: center;"><strong>FORMA DE PAGO:</strong>
-                {{ ucfirst(match($invoice->payment_method) {
+        <div class="payment-info" style="text-align: center;">
+            <p><strong>FORMA DE PAGO:</strong>
+                {{ ucfirst(match($invoice->payment_method ?? 'cash') {
                     'cash' => 'Efectivo',
-                    'card' => 'Tarjeta',
                     'credit_card' => 'Tarjeta de Crédito',
                     'debit_card' => 'Tarjeta de Débito',
                     'yape' => 'Yape',
@@ -172,6 +181,7 @@
                     default => ucfirst(str_replace('_', ' ', $invoice->payment_method ?? 'Efectivo'))
                 }) }}
             </p>
+
         </div>
         <hr>
         <div class="footer">
