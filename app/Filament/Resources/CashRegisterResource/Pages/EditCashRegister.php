@@ -24,28 +24,39 @@ class EditCashRegister extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Calcular el monto total contado a partir de las denominaciones
-        $totalCounted = 0;
-
+        // Calcular el total de efectivo contado (billetes y monedas)
+        $totalCashCounted = 0;
+        
         // Billetes
-        $totalCounted += ($data['bill_10'] ?? 0) * 10;
-        $totalCounted += ($data['bill_20'] ?? 0) * 20;
-        $totalCounted += ($data['bill_50'] ?? 0) * 50;
-        $totalCounted += ($data['bill_100'] ?? 0) * 100;
-        $totalCounted += ($data['bill_200'] ?? 0) * 200;
+        $totalCashCounted += ($data['bill_10'] ?? 0) * 10;
+        $totalCashCounted += ($data['bill_20'] ?? 0) * 20;
+        $totalCashCounted += ($data['bill_50'] ?? 0) * 50;
+        $totalCashCounted += ($data['bill_100'] ?? 0) * 100;
+        $totalCashCounted += ($data['bill_200'] ?? 0) * 200;
 
         // Monedas
-        $totalCounted += ($data['coin_010'] ?? 0) * 0.1;
-        $totalCounted += ($data['coin_020'] ?? 0) * 0.2;
-        $totalCounted += ($data['coin_050'] ?? 0) * 0.5;
-        $totalCounted += ($data['coin_1'] ?? 0) * 1;
-        $totalCounted += ($data['coin_2'] ?? 0) * 2;
-        $totalCounted += ($data['coin_5'] ?? 0) * 5;
+        $totalCashCounted += ($data['coin_010'] ?? 0) * 0.1;
+        $totalCashCounted += ($data['coin_020'] ?? 0) * 0.2;
+        $totalCashCounted += ($data['coin_050'] ?? 0) * 0.5;
+        $totalCashCounted += ($data['coin_1'] ?? 0) * 1;
+        $totalCashCounted += ($data['coin_2'] ?? 0) * 2;
+        $totalCashCounted += ($data['coin_5'] ?? 0) * 5;
 
-        // Calcular el monto esperado (monto inicial + ventas en efectivo)
-        $expectedAmount = $this->record->calculateExpectedCash();
+        // Calcular total de otros métodos de pago
+        $otherPaymentsCounted = ($data['manual_yape'] ?? 0) +
+                               ($data['manual_plin'] ?? 0) +
+                               ($data['manual_card'] ?? 0) +
+                               ($data['manual_didi'] ?? 0) +
+                               ($data['manual_pedidos_ya'] ?? 0) +
+                               ($data['manual_otros'] ?? 0);
 
-        // Calcular la diferencia
+        // Total contado = efectivo + otros métodos
+        $totalCounted = $totalCashCounted + $otherPaymentsCounted;
+
+        // NUEVO CÁLCULO: Monto esperado = monto inicial + TODAS las ventas del día
+        $expectedAmount = $this->record->opening_amount + $this->record->total_sales;
+
+        // NUEVA FÓRMULA: Diferencia = total contado - esperado (positivo = sobrante, negativo = faltante)
         $difference = $totalCounted - $expectedAmount;
 
         // Añadir datos para el cierre de caja
@@ -56,22 +67,46 @@ class EditCashRegister extends EditRecord
         $data['expected_amount'] = $expectedAmount;
         $data['difference'] = $difference;
 
-        // Guardar el desglose de denominaciones en las observaciones
-        $denominationDetails = "Cierre de caja - Desglose de denominaciones:\n";
+        // Guardar el desglose completo en las observaciones
+        $denominationDetails = "=== CIERRE DE CAJA - RESUMEN COMPLETO ===\n\n";
+        
+        // Información del cierre
+        $denominationDetails .= "💰 MONTO ESPERADO: S/ " . number_format($expectedAmount, 2) . "\n";
+        $denominationDetails .= "   (Monto inicial: S/ " . number_format($this->record->opening_amount, 2);
+        $denominationDetails .= " + Ventas del día: S/ " . number_format($this->record->total_sales, 2) . ")\n\n";
+        
+        // Efectivo contado
+        $denominationDetails .= "💵 EFECTIVO CONTADO: S/ " . number_format($totalCashCounted, 2) . "\n";
         $denominationDetails .= "Billetes: ";
-        $denominationDetails .= "S/10: {$data['bill_10']} | ";
-        $denominationDetails .= "S/20: {$data['bill_20']} | ";
-        $denominationDetails .= "S/50: {$data['bill_50']} | ";
-        $denominationDetails .= "S/100: {$data['bill_100']} | ";
-        $denominationDetails .= "S/200: {$data['bill_200']}\n";
+        $denominationDetails .= "S/200×{$data['bill_200']} | S/100×{$data['bill_100']} | S/50×{$data['bill_50']} | ";
+        $denominationDetails .= "S/20×{$data['bill_20']} | S/10×{$data['bill_10']}\n";
         $denominationDetails .= "Monedas: ";
-        $denominationDetails .= "S/0.10: {$data['coin_010']} | ";
-        $denominationDetails .= "S/0.20: {$data['coin_020']} | ";
-        $denominationDetails .= "S/0.50: {$data['coin_050']} | ";
-        $denominationDetails .= "S/1: {$data['coin_1']} | ";
-        $denominationDetails .= "S/2: {$data['coin_2']} | ";
-        $denominationDetails .= "S/5: {$data['coin_5']}\n";
-        $denominationDetails .= "Total contado: S/ " . number_format($totalCounted, 2) . "\n";
+        $denominationDetails .= "S/5×{$data['coin_5']} | S/2×{$data['coin_2']} | S/1×{$data['coin_1']} | ";
+        $denominationDetails .= "S/0.50×{$data['coin_050']} | S/0.20×{$data['coin_020']} | S/0.10×{$data['coin_010']}\n\n";
+        
+        // Otros métodos de pago
+        if ($otherPaymentsCounted > 0) {
+            $denominationDetails .= "📱 OTROS MÉTODOS DE PAGO: S/ " . number_format($otherPaymentsCounted, 2) . "\n";
+            if ($data['manual_yape'] > 0) $denominationDetails .= "Yape: S/ " . number_format($data['manual_yape'], 2) . " | ";
+            if ($data['manual_plin'] > 0) $denominationDetails .= "Plin: S/ " . number_format($data['manual_plin'], 2) . " | ";
+            if ($data['manual_card'] > 0) $denominationDetails .= "Tarjeta: S/ " . number_format($data['manual_card'], 2) . " | ";
+            if ($data['manual_didi'] > 0) $denominationDetails .= "Didi: S/ " . number_format($data['manual_didi'], 2) . " | ";
+            if ($data['manual_pedidos_ya'] > 0) $denominationDetails .= "Pedidos Ya: S/ " . number_format($data['manual_pedidos_ya'], 2) . " | ";
+            if ($data['manual_otros'] > 0) $denominationDetails .= "Otros: S/ " . number_format($data['manual_otros'], 2);
+            $denominationDetails .= "\n\n";
+        }
+        
+        // Totales finales
+        $denominationDetails .= "💵 TOTAL CONTADO: S/ " . number_format($totalCounted, 2) . "\n";
+        $denominationDetails .= "⚖️ DIFERENCIA: S/ " . number_format($difference, 2);
+        if ($difference > 0) {
+            $denominationDetails .= " (SOBRANTE)\n";
+        } elseif ($difference < 0) {
+            $denominationDetails .= " (FALTANTE)\n";
+        } else {
+            $denominationDetails .= " (SIN DIFERENCIA)\n";
+        }
+        $denominationDetails .= "\n";
 
         if (!empty($data['closing_observations'])) {
             $denominationDetails .= "Observaciones: {$data['closing_observations']}\n";
@@ -159,13 +194,15 @@ class EditCashRegister extends EditRecord
 
         // Contenido del mensaje según el rol
         if ($isSupervisor) {
-            // Para supervisores, mostrar información detallada
-            if ($difference < 0) {
-                $notification->body("La caja ha sido cerrada con un faltante de S/ " . number_format(abs($difference), 2));
-            } elseif ($difference > 0) {
-                $notification->body("La caja ha sido cerrada con un sobrante de S/ " . number_format($difference, 2));
+            // Para supervisores, mostrar información detallada con nueva fórmula
+            if ($difference > 0) {
+                $notification->body("La caja ha sido cerrada con un SOBRANTE de S/ " . number_format($difference, 2) . 
+                                  " (Esperado: S/" . number_format($expectedAmount, 2) . " - Contado: S/" . number_format($this->record->actual_amount, 2) . ")");
+            } elseif ($difference < 0) {
+                $notification->body("La caja ha sido cerrada con un FALTANTE de S/ " . number_format(abs($difference), 2) . 
+                                  " (Esperado: S/" . number_format($expectedAmount, 2) . " - Contado: S/" . number_format($this->record->actual_amount, 2) . ")");
             } else {
-                $notification->body("La caja ha sido cerrada sin diferencias.");
+                $notification->body("La caja ha sido cerrada sin diferencias. Total: S/" . number_format($this->record->actual_amount, 2));
             }
 
             // Si hay diferencia significativa, añadir instrucción

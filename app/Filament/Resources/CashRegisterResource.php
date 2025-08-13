@@ -124,31 +124,64 @@ class CashRegisterResource extends Resource
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live()
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($state ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                    }),
                                                 Forms\Components\TextInput::make('bill_20')
                                                     ->label('S/20')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live()
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($state ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                    }),
                                                 Forms\Components\TextInput::make('bill_50')
                                                     ->label('S/50')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                                 Forms\Components\TextInput::make('bill_100')
                                                     ->label('S/100')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                                 Forms\Components\TextInput::make('bill_200')
                                                     ->label('S/200')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                             ]),
                                     ]),
                                 Forms\Components\Section::make('Monedas')
@@ -160,37 +193,43 @@ class CashRegisterResource extends Resource
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                                 Forms\Components\TextInput::make('coin_020')
                                                     ->label('S/0.20')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                                 Forms\Components\TextInput::make('coin_050')
                                                     ->label('S/0.50')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                                 Forms\Components\TextInput::make('coin_1')
                                                     ->label('S/1')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                                 Forms\Components\TextInput::make('coin_2')
                                                     ->label('S/2')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                                 Forms\Components\TextInput::make('coin_5')
                                                     ->label('S/5')
                                                     ->numeric()
                                                     ->default(0)
                                                     ->minValue(0)
-                                                    ->required(),
+                                                    ->required()
+                                                    ->live(),
                                             ]),
                                     ]),
                             ]),
@@ -202,8 +241,9 @@ class CashRegisterResource extends Resource
                     ])
                     ->visible(fn ($record) => $record && $record->is_active),
 
+
                 Forms\Components\Section::make('Resumen de Ventas')
-                    ->description('Resumen de ventas por método de pago')
+                    ->description('Comparativo: Montos del Sistema vs Conteo Manual')
                     ->icon('heroicon-m-chart-bar')
                     ->schema(function () {
                         $user = auth()->user();
@@ -211,26 +251,407 @@ class CashRegisterResource extends Resource
 
                         if ($isSupervisor) {
                             return [
-                                Forms\Components\TextInput::make('cash_sales')
-                                    ->label('Ventas en Efectivo')
-                                    ->disabled()
-                                    ->prefix('S/')
-                                    ->columnSpan(1),
-                                Forms\Components\TextInput::make('card_sales')
-                                    ->label('Ventas con Tarjeta')
-                                    ->disabled()
-                                    ->prefix('S/')
-                                    ->columnSpan(1),
-                                Forms\Components\TextInput::make('other_sales')
-                                    ->label('Otras Ventas')
-                                    ->disabled()
-                                    ->prefix('S/')
-                                    ->columnSpan(1),
-                                Forms\Components\TextInput::make('total_sales')
-                                    ->label('Ventas Totales')
-                                    ->disabled()
-                                    ->prefix('S/')
-                                    ->columnSpan(1),
+                                // Comparativo de Efectivo
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('cash_sales_display')
+                                            ->label('💻 Sistema: Efectivo')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $cashSales = $record->getSystemCashSales();
+                                                return 'S/ ' . number_format($cashSales, 2);
+                                            })
+                                            ->helperText('Ventas en efectivo registradas en el sistema'),
+                                        Forms\Components\TextInput::make('calculated_cash_display')
+                                            ->label('👥 Manual: Efectivo')
+                                            ->disabled()
+                                            ->prefix('S/')
+                                            ->default(function ($record, $get) {
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                return $efectivo;
+                                            })
+                                            ->formatStateUsing(fn ($state) => number_format(floatval($state ?? 0), 2))
+                                            ->reactive()
+                                            ->helperText('Billetes y monedas contados manualmente'),
+                                    ])
+                                    ->columnSpan('full'),
+
+                                // Separador visual
+                                Forms\Components\Placeholder::make('separator_1')
+                                    ->content('──────────────────────────────────────')
+                                    ->columnSpan('full'),
+
+                                // Comparativo de Yape
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('yape_sales_display')
+                                            ->label('💻 Sistema: Yape')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $yapeSales = $record->getSystemYapeSales();
+                                                return 'S/ ' . number_format($yapeSales, 2);
+                                            })
+                                            ->helperText('Ventas Yape registradas en el sistema'),
+                                        Forms\Components\TextInput::make('manual_yape')
+                                            ->label('👥 Manual: Yape')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->prefix('S/')
+                                            ->placeholder('0.00')
+                                            ->helperText('Yape contado manualmente')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($set, $get, $state) {
+                                                // Calcular efectivo
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                
+                                                // Actualizar efectivo display
+                                                $set('calculated_cash_display', $efectivo);
+                                                
+                                                // Calcular otros métodos
+                                                $otros = (floatval($state ?? 0)) +
+                                                        (floatval($get('manual_plin') ?? 0)) +
+                                                        (floatval($get('manual_card') ?? 0)) +
+                                                        (floatval($get('manual_didi') ?? 0)) +
+                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                        (floatval($get('manual_otros') ?? 0));
+                                                
+                                                // Actualizar total manual
+                                                $total = $efectivo + $otros;
+                                                $set('calculated_total_manual', $total);
+                                            }),
+                                    ])
+                                    ->columnSpan('full'),
+
+                                // Comparativo de Plin
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('plin_sales_display')
+                                            ->label('💻 Sistema: Plin')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $plinSales = $record->getSystemPlinSales();
+                                                return 'S/ ' . number_format($plinSales, 2);
+                                            })
+                                            ->helperText('Ventas Plin registradas en el sistema'),
+                                        Forms\Components\TextInput::make('manual_plin')
+                                            ->label('👥 Manual: Plin')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->prefix('S/')
+                                            ->placeholder('0.00')
+                                            ->helperText('Plin contado manualmente')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($set, $get, $state) {
+                                                // Calcular efectivo
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                
+                                                // Actualizar efectivo display
+                                                $set('calculated_cash_display', $efectivo);
+                                                
+                                                // Calcular otros métodos
+                                                $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                        (floatval($state ?? 0)) +
+                                                        (floatval($get('manual_card') ?? 0)) +
+                                                        (floatval($get('manual_didi') ?? 0)) +
+                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                        (floatval($get('manual_otros') ?? 0));
+                                                
+                                                // Actualizar total manual
+                                                $total = $efectivo + $otros;
+                                                $set('calculated_total_manual', $total);
+                                            }),
+                                    ])
+                                    ->columnSpan('full'),
+
+                                // Comparativo de Tarjetas
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('card_sales_display')
+                                            ->label('💻 Sistema: Tarjetas')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $cardSales = $record->getSystemCardSales();
+                                                return 'S/ ' . number_format($cardSales, 2);
+                                            })
+                                            ->helperText('Ventas con tarjeta registradas en el sistema'),
+                                        Forms\Components\TextInput::make('manual_card')
+                                            ->label('👥 Manual: Tarjetas')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->prefix('S/')
+                                            ->placeholder('0.00')
+                                            ->helperText('Tarjetas contadas manualmente')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($set, $get, $state) {
+                                                // Calcular efectivo
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                
+                                                // Actualizar efectivo display
+                                                $set('calculated_cash_display', $efectivo);
+                                                
+                                                // Calcular otros métodos
+                                                $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                        (floatval($get('manual_plin') ?? 0)) +
+                                                        (floatval($state ?? 0)) +
+                                                        (floatval($get('manual_didi') ?? 0)) +
+                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                        (floatval($get('manual_otros') ?? 0));
+                                                
+                                                // Actualizar total manual
+                                                $total = $efectivo + $otros;
+                                                $set('calculated_total_manual', $total);
+                                            }),
+                                    ])
+                                    ->columnSpan('full'),
+
+                                // Comparativo de Didi
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('didi_sales_display')
+                                            ->label('💻 Sistema: Didi')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $didiSales = $record->getSystemDidiSales();
+                                                return 'S/ ' . number_format($didiSales, 2);
+                                            })
+                                            ->helperText('Ventas Didi registradas en el sistema'),
+                                        Forms\Components\TextInput::make('manual_didi')
+                                            ->label('👥 Manual: Didi')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->prefix('S/')
+                                            ->placeholder('0.00')
+                                            ->helperText('Didi contado manualmente')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($set, $get, $state) {
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                $set('calculated_cash_display', $efectivo);
+                                                $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                        (floatval($get('manual_plin') ?? 0)) +
+                                                        (floatval($get('manual_card') ?? 0)) +
+                                                        (floatval($state ?? 0)) +
+                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                        (floatval($get('manual_otros') ?? 0));
+                                                $total = $efectivo + $otros;
+                                                $set('calculated_total_manual', $total);
+                                            }),
+                                    ])
+                                    ->columnSpan('full'),
+
+                                // Comparativo de PedidosYa
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('pedidos_ya_sales_display')
+                                            ->label('💻 Sistema: PedidosYa')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $pedidosYaSales = $record->getSystemPedidosYaSales();
+                                                return 'S/ ' . number_format($pedidosYaSales, 2);
+                                            })
+                                            ->helperText('Ventas PedidosYa registradas en el sistema'),
+                                        Forms\Components\TextInput::make('manual_pedidos_ya')
+                                            ->label('👥 Manual: PedidosYa')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->prefix('S/')
+                                            ->placeholder('0.00')
+                                            ->helperText('PedidosYa contado manualmente')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($set, $get, $state) {
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                $set('calculated_cash_display', $efectivo);
+                                                $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                        (floatval($get('manual_plin') ?? 0)) +
+                                                        (floatval($get('manual_card') ?? 0)) +
+                                                        (floatval($get('manual_didi') ?? 0)) +
+                                                        (floatval($state ?? 0)) +
+                                                        (floatval($get('manual_otros') ?? 0));
+                                                $total = $efectivo + $otros;
+                                                $set('calculated_total_manual', $total);
+                                            }),
+                                    ])
+                                    ->columnSpan('full'),
+
+                                // Comparativo de Otros
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('others_sales_display')
+                                            ->label('💻 Sistema: Otros')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $othersSales = $record->getSystemBankTransferSales() + 
+                                                             $record->getSystemOtherDigitalWalletSales();
+                                                return 'S/ ' . number_format($othersSales, 2);
+                                            })
+                                            ->helperText('Otros métodos registrados en el sistema'),
+                                        Forms\Components\TextInput::make('manual_otros')
+                                            ->label('👥 Manual: Otros')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->step(0.01)
+                                            ->prefix('S/')
+                                            ->placeholder('0.00')
+                                            ->helperText('Otros métodos contados manualmente')
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(function ($set, $get, $state) {
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                $set('calculated_cash_display', $efectivo);
+                                                $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                        (floatval($get('manual_plin') ?? 0)) +
+                                                        (floatval($get('manual_card') ?? 0)) +
+                                                        (floatval($get('manual_didi') ?? 0)) +
+                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                        (floatval($state ?? 0));
+                                                $total = $efectivo + $otros;
+                                                $set('calculated_total_manual', $total);
+                                            }),
+                                    ])
+                                    ->columnSpan('full'),
+
+                                // Separador visual
+                                Forms\Components\Placeholder::make('separator_2')
+                                    ->content('──────────────────────────────────────')
+                                    ->columnSpan('full'),
+
+                                // Totales comparativos
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('total_sistema_display')
+                                            ->label('💻 TOTAL SISTEMA')
+                                            ->content(function ($record) {
+                                                if (!$record) return 'S/ 0.00';
+                                                $totalSistema = $record->getSystemCashSales() +
+                                                              $record->getSystemYapeSales() +
+                                                              $record->getSystemPlinSales() +
+                                                              $record->getSystemCardSales() +
+                                                              $record->getSystemDidiSales() +
+                                                              $record->getSystemPedidosYaSales() +
+                                                              $record->getSystemBankTransferSales() +
+                                                              $record->getSystemOtherDigitalWalletSales();
+                                                return 'S/ ' . number_format($totalSistema, 2);
+                                            })
+                                            ->helperText('Total de todas las ventas registradas en el sistema')
+                                            ->extraAttributes(['class' => 'font-bold text-lg text-blue-600']),
+                                        Forms\Components\TextInput::make('calculated_total_manual')
+                                            ->label('👥 TOTAL MANUAL')
+                                            ->disabled()
+                                            ->prefix('S/')
+                                            ->default(function ($record, $get) {
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                
+                                                $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                        (floatval($get('manual_plin') ?? 0)) +
+                                                        (floatval($get('manual_card') ?? 0)) +
+                                                        (floatval($get('manual_didi') ?? 0)) +
+                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                        (floatval($get('manual_otros') ?? 0));
+                                                
+                                                $total = $efectivo + $otros;
+                                                return $total;
+                                            })
+                                            ->formatStateUsing(fn ($state) => number_format(floatval($state ?? 0), 2))
+                                            ->reactive()
+                                            ->helperText('Total de todo lo contado manualmente')
+                                            ->extraAttributes(['class' => 'font-bold text-lg text-green-600']),
+                                    ])
+                                    ->columnSpan('full'),
                             ];
                         } else {
                             return [
@@ -245,7 +666,91 @@ class CashRegisterResource extends Resource
                             ];
                         }
                     })
-                    ->columns(2)
+                    ->columns(1)
+                    ->visible(fn ($record) => $record && $record->is_active),
+
+                Forms\Components\Section::make('Resumen Final del Cierre')
+                    ->description('Cálculos automáticos del cierre de caja')
+                    ->icon('heroicon-m-calculator')
+                    ->schema([
+                        Forms\Components\Grid::make(3)
+                            ->schema([
+                                Forms\Components\Placeholder::make('monto_esperado')
+                                    ->label('💰 Monto Esperado')
+                                    ->content(function ($record) {
+                                        if (!$record) return 'S/ 0.00';
+                                        $esperado = $record->opening_amount + $record->total_sales;
+                                        return 'S/ ' . number_format($esperado, 2);
+                                    })
+                                    ->helperText('Monto inicial + Total ventas del día'),
+                                    
+                                Forms\Components\Placeholder::make('total_contado')
+                                    ->label('💵 Total Contado')
+                                    ->content(function ($record, $get) {
+                                        // Calcular total de efectivo (billetes y monedas)
+                                        $efectivo = floatval($get('bill_200') ?? 0) * 200 +
+                                                   floatval($get('bill_100') ?? 0) * 100 +
+                                                   floatval($get('bill_50') ?? 0) * 50 +
+                                                   floatval($get('bill_20') ?? 0) * 20 +
+                                                   floatval($get('bill_10') ?? 0) * 10 +
+                                                   floatval($get('coin_5') ?? 0) * 5 +
+                                                   floatval($get('coin_2') ?? 0) * 2 +
+                                                   floatval($get('coin_1') ?? 0) * 1 +
+                                                   floatval($get('coin_050') ?? 0) * 0.5 +
+                                                   floatval($get('coin_020') ?? 0) * 0.2 +
+                                                   floatval($get('coin_010') ?? 0) * 0.1;
+                                        
+                                        // Sumar otros métodos de pago
+                                        $otros = floatval($get('manual_yape') ?? 0) +
+                                                floatval($get('manual_plin') ?? 0) +
+                                                floatval($get('manual_card') ?? 0) +
+                                                floatval($get('manual_didi') ?? 0) +
+                                                floatval($get('manual_pedidos_ya') ?? 0) +
+                                                floatval($get('manual_otros') ?? 0);
+                                                
+                                        $total = $efectivo + $otros;
+                                        return 'S/ ' . number_format($total, 2);
+                                    })
+                                    ->helperText('Efectivo contado + Otros métodos'),
+                                    
+                                Forms\Components\Placeholder::make('diferencia')
+                                    ->label('⚖️ Diferencia')
+                                    ->content(function ($record, $get) {
+                                        if (!$record) return 'S/ 0.00';
+                                        
+                                        $esperado = $record->opening_amount + $record->total_sales;
+                                        
+                                        // Calcular total contado
+                                        $efectivo = floatval($get('bill_200') ?? 0) * 200 +
+                                                   floatval($get('bill_100') ?? 0) * 100 +
+                                                   floatval($get('bill_50') ?? 0) * 50 +
+                                                   floatval($get('bill_20') ?? 0) * 20 +
+                                                   floatval($get('bill_10') ?? 0) * 10 +
+                                                   floatval($get('coin_5') ?? 0) * 5 +
+                                                   floatval($get('coin_2') ?? 0) * 2 +
+                                                   floatval($get('coin_1') ?? 0) * 1 +
+                                                   floatval($get('coin_050') ?? 0) * 0.5 +
+                                                   floatval($get('coin_020') ?? 0) * 0.2 +
+                                                   floatval($get('coin_010') ?? 0) * 0.1;
+                                        
+                                        $otros = floatval($get('manual_yape') ?? 0) +
+                                                floatval($get('manual_plin') ?? 0) +
+                                                floatval($get('manual_card') ?? 0) +
+                                                floatval($get('manual_didi') ?? 0) +
+                                                floatval($get('manual_pedidos_ya') ?? 0) +
+                                                floatval($get('manual_otros') ?? 0);
+                                                
+                                        $totalContado = $efectivo + $otros;
+                                        $diferencia = $totalContado - $esperado;
+                                        
+                                        $color = $diferencia == 0 ? 'success' : ($diferencia > 0 ? 'warning' : 'danger');
+                                        $icon = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⚠️ Sobrante:' : '❌ Faltante:');
+                                        
+                                        return $icon . ' S/ ' . number_format($diferencia, 2);
+                                    })
+                                    ->helperText('Total contado - Esperado'),
+                            ]),
+                    ])
                     ->visible(fn ($record) => $record && $record->is_active),
             ]);
     }

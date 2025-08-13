@@ -44,6 +44,25 @@ class CashRegister extends Model
         'card_sales',
         'other_sales',
         'total_sales',
+        // Campos de conteo manual
+        'manual_yape',
+        'manual_plin',
+        'manual_card',
+        'manual_didi',
+        'manual_pedidos_ya',
+        'manual_otros',
+        // Campos de billetes y monedas
+        'bill_200',
+        'bill_100',
+        'bill_50',
+        'bill_20',
+        'bill_10',
+        'coin_5',
+        'coin_2',
+        'coin_1',
+        'coin_050',
+        'coin_020',
+        'coin_010',
     ];
 
     /**
@@ -65,6 +84,25 @@ class CashRegister extends Model
         'approval_datetime' => 'datetime',
         'is_active' => 'boolean',
         'is_approved' => 'boolean',
+        // Campos de conteo manual
+        'manual_yape' => 'decimal:2',
+        'manual_plin' => 'decimal:2',
+        'manual_card' => 'decimal:2',
+        'manual_didi' => 'decimal:2',
+        'manual_pedidos_ya' => 'decimal:2',
+        'manual_otros' => 'decimal:2',
+        // Campos de billetes y monedas
+        'bill_200' => 'integer',
+        'bill_100' => 'integer',
+        'bill_50' => 'integer',
+        'bill_20' => 'integer',
+        'bill_10' => 'integer',
+        'coin_5' => 'integer',
+        'coin_2' => 'integer',
+        'coin_1' => 'integer',
+        'coin_050' => 'integer',
+        'coin_020' => 'integer',
+        'coin_010' => 'integer',
     ];
 
     // Constantes para estados de caja
@@ -403,13 +441,70 @@ class CashRegister extends Model
     }
 
     /**
-     * Calcula el monto esperado en efectivo al cierre.
+     * Calcula el monto esperado total al cierre.
+     * NUEVO CÁLCULO: Monto inicial + TODAS las ventas del día
      *
      * @return float
      */
     public function calculateExpectedCash(): float
     {
-        return $this->opening_amount + $this->cash_sales;
+        return $this->opening_amount + $this->total_sales;
+    }
+
+    /**
+     * Calcula el total de efectivo contado (billetes y monedas).
+     *
+     * @return float
+     */
+    public function calculateCountedCash(): float
+    {
+        return ($this->bill_200 ?? 0) * 200 +
+               ($this->bill_100 ?? 0) * 100 +
+               ($this->bill_50 ?? 0) * 50 +
+               ($this->bill_20 ?? 0) * 20 +
+               ($this->bill_10 ?? 0) * 10 +
+               ($this->coin_5 ?? 0) * 5 +
+               ($this->coin_2 ?? 0) * 2 +
+               ($this->coin_1 ?? 0) * 1 +
+               ($this->coin_050 ?? 0) * 0.5 +
+               ($this->coin_020 ?? 0) * 0.2 +
+               ($this->coin_010 ?? 0) * 0.1;
+    }
+
+    /**
+     * Calcula el total de otros métodos de pago ingresados manualmente.
+     *
+     * @return float
+     */
+    public function calculateOtherPayments(): float
+    {
+        return ($this->manual_yape ?? 0) +
+               ($this->manual_plin ?? 0) +
+               ($this->manual_card ?? 0) +
+               ($this->manual_didi ?? 0) +
+               ($this->manual_pedidos_ya ?? 0) +
+               ($this->manual_otros ?? 0);
+    }
+
+    /**
+     * Calcula el total contado (efectivo + otros métodos).
+     *
+     * @return float
+     */
+    public function calculateTotalCounted(): float
+    {
+        return $this->calculateCountedCash() + $this->calculateOtherPayments();
+    }
+
+    /**
+     * Calcula la diferencia final del cierre.
+     * NUEVA FÓRMULA: Total contado - Monto esperado (positivo = sobrante, negativo = faltante)
+     *
+     * @return float
+     */
+    public function calculateFinalDifference(): float
+    {
+        return $this->calculateTotalCounted() - $this->calculateExpectedCash();
     }
 
     /**
@@ -552,5 +647,109 @@ class CashRegister extends Model
         }
 
         return 'warning';
+    }
+
+    /**
+     * Obtiene las ventas en efectivo del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemCashSales(): float
+    {
+        return $this->payments()
+            ->where('payment_method', Payment::METHOD_CASH)
+            ->sum('amount');
+    }
+
+    /**
+     * Obtiene las ventas con Yape del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemYapeSales(): float
+    {
+        return $this->payments()
+            ->where('payment_method', 'yape')
+            ->sum('amount');
+    }
+
+    /**
+     * Obtiene las ventas con Plin del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemPlinSales(): float
+    {
+        return $this->payments()
+            ->where('payment_method', 'plin')
+            ->sum('amount');
+    }
+
+    /**
+     * Obtiene las ventas con tarjeta del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemCardSales(): float
+    {
+        return $this->payments()
+            ->whereIn('payment_method', [
+                Payment::METHOD_CARD,
+                Payment::METHOD_CREDIT_CARD,
+                Payment::METHOD_DEBIT_CARD
+            ])
+            ->sum('amount');
+    }
+
+    /**
+     * Obtiene las ventas con transferencia bancaria del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemBankTransferSales(): float
+    {
+        return $this->payments()
+            ->where('payment_method', Payment::METHOD_BANK_TRANSFER)
+            ->sum('amount');
+    }
+
+    /**
+     * Obtiene las ventas con billetera digital (excluyendo Yape y Plin) del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemOtherDigitalWalletSales(): float
+    {
+        return $this->payments()
+            ->where('payment_method', Payment::METHOD_DIGITAL_WALLET)
+            ->where(function($query) {
+                $query->where('reference_number', 'NOT LIKE', '%Tipo: yape%')
+                      ->where('reference_number', 'NOT LIKE', '%Tipo: plin%');
+            })
+            ->sum('amount');
+    }
+
+    /**
+     * Obtiene las ventas con Didi del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemDidiSales(): float
+    {
+        return $this->payments()
+            ->where('payment_method', 'didi')
+            ->sum('amount');
+    }
+
+    /**
+     * Obtiene las ventas con PedidosYa del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemPedidosYaSales(): float
+    {
+        return $this->payments()
+            ->where('payment_method', 'pedidos_ya')
+            ->sum('amount');
     }
 }

@@ -201,17 +201,102 @@
         /* Estilos para impresión */
         @media print {
             @page {
-                size: A4;
-                margin: 1cm;
+                size: 80mm auto;
+                margin: 2mm;
             }
 
             body {
-                font-size: 12pt;
+                font-size: 8pt;
+                line-height: 1.2;
                 color: #000 !important;
                 background-color: #fff !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                width: 76mm;
             }
+
+            .container {
+                max-width: 76mm;
+                width: 76mm;
+                margin: 0;
+                padding: 2mm;
+            }
+
+            /* Ocultar elementos innecesarios en papel térmico */
+            .print-thermal-hidden {
+                display: none !important;
+            }
+
+            /* Layout en una sola columna para papel térmico */
+            .grid-cols-2, .grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+
+            .gap-8 {
+                gap: 2mm !important;
+            }
+
+            /* Reducir espaciados para papel térmico */
+            .mb-8 { margin-bottom: 3mm !important; }
+            .mb-6 { margin-bottom: 2mm !important; }
+            .mb-4 { margin-bottom: 1.5mm !important; }
+            .p-6 { padding: 2mm !important; }
+            .p-5 { padding: 1.5mm !important; }
+            .p-3 { padding: 1mm !important; }
+
+            /* Texto más pequeño y compacto */
+            .text-3xl { font-size: 10pt !important; font-weight: bold; }
+            .text-2xl { font-size: 9pt !important; font-weight: bold; }
+            .text-xl { font-size: 8pt !important; font-weight: bold; }
+            .text-lg { font-size: 7pt !important; font-weight: bold; }
+            .text-sm { font-size: 6pt !important; }
+            .text-xs { font-size: 5pt !important; }
+
+            /* Ocultar íconos SVG en papel térmico */
+            svg {
+                display: none !important;
+            }
+
+            /* Simplificar tablas para papel térmico */
+            table {
+                font-size: 6pt !important;
+            }
+
+            th, td {
+                padding: 0.5mm !important;
+                border: 0.5pt solid #000 !important;
+            }
+
+            /* Eliminar sombras y bordes redondeados */
+            .rounded-xl, .rounded-lg, .rounded-full {
+                border-radius: 0 !important;
+            }
+
+            /* Firmas más compactas */
+            .mt-16 { margin-top: 8mm !important; }
+            .mt-12 { margin-top: 6mm !important; }
+
+            /* Optimizaciones específicas para sección de órdenes en papel térmico */
+            .bg-indigo-50 {
+                background-color: #fff !important;
+                border: 0.5pt solid #000 !important;
+            }
+            
+            .text-indigo-800, .text-indigo-900 {
+                color: #000 !important;
+            }
+
+            /* Optimizar visualización de productos en papel térmico */
+            .text-gray-600, .text-gray-500 {
+                color: #333 !important;
+            }
+
+            /* Compactar lista de productos en papel térmico */
+            .mb-1 {
+                margin-bottom: 0.25mm !important;
+                line-height: 1.1 !important;
+            }
+        }
 
             .print-hidden {
                 display: none !important;
@@ -263,27 +348,27 @@
         <div class="bg-white rounded-xl shadow p-6 print:shadow-none print:p-0">
             <!-- Encabezado -->
             <div class="text-center mb-8 border-b pb-6">
-                <div class="flex justify-center items-center mb-4">
+                <div class="print-thermal-hidden flex justify-center items-center mb-4">
                     <div class="bg-indigo-100 p-3 rounded-full">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
                         </svg>
                     </div>
                 </div>
-                <h1 class="text-3xl font-bold mb-2">INFORME DE CIERRE DE CAJA</h1>
-                <h2 class="text-xl font-semibold text-indigo-800 mb-3">#{{ $cashRegister->id }}</h2>
+                <h1 class="text-3xl font-bold mb-2">CIERRE DE CAJA</h1>
+                <h2 class="text-xl font-semibold mb-3">#{{ $cashRegister->id }}</h2>
                 <p class="font-medium">{{ config('app.name') }}</p>
-                <p class="text-sm mt-2">Documento generado el: {{ $printDate }}</p>
+                <p class="text-sm mt-2">{{ $printDate }}</p>
             </div>
 
             <!-- Información General -->
             <div class="grid grid-cols-2 gap-8 mb-8">
                 <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
-                    <h3 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h3 class="text-lg font-semibold mb-4 border-b pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="print-thermal-hidden h-5 w-5 mr-2 text-indigo-700 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Información de Apertura
+                        APERTURA
                     </h3>
                     <table class="w-full">
                         <tr class="border-b border-gray-100">
@@ -314,11 +399,11 @@
                 </div>
 
                 <div class="bg-gray-50 rounded-lg p-5 border border-gray-200">
-                    <h3 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <h3 class="text-lg font-semibold mb-4 border-b pb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="print-thermal-hidden h-5 w-5 mr-2 text-indigo-700 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                         </svg>
-                        Información de Cierre
+                        CIERRE
                     </h3>
                     <table class="w-full">
                         <tr class="border-b border-gray-100">
@@ -481,6 +566,77 @@
             @endif
             @endif
 
+            <!-- Órdenes del Día -->
+            @php
+                $orders = $cashRegister->orders()->with(['orderDetails.product'])->orderBy('created_at', 'desc')->get();
+            @endphp
+            @if($orders->count() > 0)
+            <div class="mb-8">
+                <h3 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Órdenes del Día
+                </h3>
+                
+                <!-- Resumen de órdenes -->
+                <div class="bg-indigo-50 rounded-lg p-4 mb-4 border border-indigo-200">
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <p class="text-sm font-medium text-indigo-800">Total Órdenes</p>
+                            <p class="text-xl font-bold text-indigo-900">{{ $orders->count() }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-indigo-800">Monto Total</p>
+                            <p class="text-xl font-bold text-indigo-900">S/ {{ number_format($orders->sum('total'), 2) }}</p>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-indigo-800">Promedio</p>
+                            <p class="text-xl font-bold text-indigo-900">S/ {{ number_format($orders->avg('total'), 2) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista detallada de órdenes -->
+                <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border-b border-gray-200 p-3 text-left font-semibold">Orden #</th>
+                                <th class="border-b border-gray-200 p-3 text-left font-semibold">Productos</th>
+                                <th class="border-b border-gray-200 p-3 text-right font-semibold">Total</th>
+                                <th class="border-b border-gray-200 p-3 text-center font-semibold">Fecha</th>
+                                <th class="border-b border-gray-200 p-3 text-center font-semibold">Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($orders as $order)
+                            <tr class="hover:bg-gray-50">
+                                <td class="border-b border-gray-200 p-3 font-mono text-sm">#{{ $order->id }}</td>
+                                <td class="border-b border-gray-200 p-3 text-left text-sm">
+                                    @if($order->orderDetails->count() > 0)
+                                        @foreach($order->orderDetails as $detail)
+                                            <div class="mb-1">
+                                                <span class="font-medium">{{ $detail->product->name ?? 'Producto eliminado' }}</span>
+                                                <span class="text-gray-600">({{ $detail->quantity }}x)</span>
+                                                <span class="text-gray-500">S/ {{ number_format($detail->price, 2) }}</span>
+                                            </div>
+                                        @endforeach
+                                    @else
+                                        <span class="text-gray-500 italic">Sin productos</span>
+                                    @endif
+                                </td>
+                                <td class="border-b border-gray-200 p-3 text-right font-semibold">S/ {{ number_format($order->total, 2) }}</td>
+                                <td class="border-b border-gray-200 p-3 text-center text-sm">{{ $order->created_at->format('d/m/Y') }}</td>
+                                <td class="border-b border-gray-200 p-3 text-center text-sm">{{ $order->created_at->format('H:i') }}</td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            @endif
+
             <!-- Aprobación -->
             @if(!$cashRegister->is_active)
             <div class="mb-8">
@@ -526,22 +682,22 @@
                 <div class="grid grid-cols-3 gap-8">
                     <div class="text-center">
                         <div class="border-t-2 border-gray-300 pt-4 mt-4">
-                            <p class="font-semibold">Cajero</p>
-                            <p class="mt-1">{{ $cashRegister->openedBy->name ?? 'N/A' }}</p>
+                            <p class="font-semibold text-xs">CAJERO</p>
+                            <p class="mt-1 text-xs">{{ $cashRegister->openedBy->name ?? 'N/A' }}</p>
                         </div>
                     </div>
 
                     <div class="text-center">
                         <div class="border-t-2 border-gray-300 pt-4 mt-4">
-                            <p class="font-semibold">Supervisor</p>
-                            <p class="mt-1">{{ $cashRegister->approvedBy->name ?? '____________________' }}</p>
+                            <p class="font-semibold text-xs">SUPERVISOR</p>
+                            <p class="mt-1 text-xs">{{ $cashRegister->approvedBy->name ?? '____________' }}</p>
                         </div>
                     </div>
 
-                    <div class="text-center">
+                    <div class="text-center print-thermal-hidden">
                         <div class="border-t-2 border-gray-300 pt-4 mt-4">
-                            <p class="font-semibold">Gerente</p>
-                            <p class="mt-1">____________________</p>
+                            <p class="font-semibold text-xs">GERENTE</p>
+                            <p class="mt-1 text-xs">____________</p>
                         </div>
                     </div>
                 </div>
