@@ -260,14 +260,14 @@ class AdminPanelProvider extends PanelProvider
                     .fi-sidebar-item-button {
                         color: var(--tailadmin-text-muted) !important;
                         padding: 0.75rem 0.875rem !important;
-                        font-size: 0.8125rem !important;
+                        font-size: 0.875rem !important; /* texto ligeramente mayor para acompañar el ícono */
                         font-weight: 500 !important;
                         transition: all 0.3s ease !important;
                         border-radius: 0.5rem !important;
                         width: 100% !important;
                         display: flex !important;
                         align-items: center !important;
-                        gap: 0.625rem !important;
+                        gap: 0.75rem !important; /* más espacio con ícono grande */
                     }
 
                     /* HOVER STATE */
@@ -313,8 +313,8 @@ class AdminPanelProvider extends PanelProvider
 
                     /* 🎨 ICONS CON COLORES CORPORATIVOS */
                     .fi-sidebar-item-icon {
-                        width: 1.25rem !important;
-                        height: 1.25rem !important;
+                        width: 2rem !important;      /* íconos aún más grandes */
+                        height: 2rem !important;     /* íconos aún más grandes */
                         flex-shrink: 0 !important;
                         color: var(--corporate-neutral) !important;
                         transition: color 0.3s ease !important;
@@ -381,9 +381,9 @@ class AdminPanelProvider extends PanelProvider
                     /* 🏷️ LABELS OPTIMIZADOS */
                     .fi-sidebar-item-label {
                         color: inherit !important;
-                        font-size: 0.8125rem !important;
+                        font-size: 0.875rem !important; /* acompaña el tamaño del ícono */
                         font-weight: inherit !important;
-                        line-height: 1.2 !important;
+                        line-height: 1.25 !important;
                         overflow: hidden !important;
                         text-overflow: ellipsis !important;
                         white-space: nowrap !important;
@@ -396,6 +396,38 @@ class AdminPanelProvider extends PanelProvider
                         --tailadmin-text: #1F2937;
                         --tailadmin-text-muted: #6B7280;
                         --tailadmin-border: #E5E7EB;
+                    }
+
+                    /* =============================
+                       TOOLTIP (Tippy) DEL SIDEBAR
+                       Más grande y visual
+                       ============================= */
+                    .fi .tippy-box {
+                        background-color: #374151 !important; /* gris oscuro elegante */
+                        color: #FFFFFF !important;
+                        border-radius: 0.5rem !important;
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.18), 0 6px 10px rgba(0,0,0,0.12) !important;
+                        font-size: 0.95rem !important; /* texto más grande */
+                        font-weight: 600 !important;
+                        z-index: 10050 !important;
+                    }
+
+                    .fi .tippy-box .tippy-content {
+                        padding: 0.5rem 0.75rem !important; /* más padding */
+                    }
+
+                    /* Flecha del tooltip acorde al fondo */
+                    .fi .tippy-box[data-placement^="right"] > .tippy-arrow::before,
+                    .fi .tippy-box[data-placement^="left"] > .tippy-arrow::before,
+                    .fi .tippy-box[data-placement^="top"] > .tippy-arrow::before,
+                    .fi .tippy-box[data-placement^="bottom"] > .tippy-arrow::before {
+                        color: #374151 !important;
+                    }
+
+                    /* Tamaño de flecha ligeramente mayor */
+                    .fi .tippy-box .tippy-arrow {
+                        width: 12px !important;
+                        height: 12px !important;
                     }
                 </style>
 
