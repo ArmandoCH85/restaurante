@@ -216,7 +216,8 @@
                             type="number"
                             x-model="receivedAmount"
                             min="0"
-                            step="0.10"
+                            step="0.01"
+                            @input="receivedAmount = parseFloat($event.target.value).toFixed(2)"
                             class="w-full border rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-amber-500">
                     </div>
                 </div>

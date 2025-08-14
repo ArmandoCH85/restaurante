@@ -362,5 +362,26 @@
             ¡GRACIAS POR SU PREFERENCIA!
         </div>
     </div>
+    
+    <script>
+        window.addEventListener('load', function() {
+            // Imprimir automáticamente al cargar
+            setTimeout(function() {
+                window.print();
+                
+                // Cerrar ventana después de imprimir
+                window.addEventListener('afterprint', function() {
+                    setTimeout(function() {
+                        window.close();
+                    }, 500);
+                });
+                
+                // Cierre alternativo por si no funciona afterprint
+                setTimeout(function() {
+                    window.close();
+                }, 3000);
+            }, 500);
+        });
+    </script>
 </body>
 </html>
