@@ -31,6 +31,11 @@ Route::get('/cash-register-reports/{cashRegister}/export-pdf', [CashRegisterRepo
     ->name('cash.register.reports.export.pdf')
     ->middleware(['auth']); // Asegurar que solo usuarios autenticados puedan acceder
 
+// Ruta para exportar informe de caja a PDF (sin cuadrículas)
+Route::get('/admin/export-cash-register-pdf/{id}', [\App\Http\Controllers\Filament\ExportCashRegisterPdfController::class, 'export'])
+    ->middleware(['web', 'auth'])
+    ->name('filament.admin.export-cash-register-pdf');
+
 // Rutas del sistema POS
 // Usar el middleware personalizado para verificar el permiso 'access_pos'
 Route::middleware(['auth', 'pos.access'])->group(function () {

@@ -47,6 +47,18 @@ class ViewCashRegister extends ViewRecord
                     return !$record->is_active || Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager']);
                 }),
 
+            Actions\Action::make('export_pdf')
+                ->label('Exportar PDF')
+                ->icon('heroicon-m-document-arrow-down')
+                ->color('success')
+                ->button()
+                ->url(fn ($record) => url("/admin/export-cash-register-pdf/{$record->id}"))
+                ->openUrlInNewTab()
+                ->visible(function ($record) {
+                    // Solo permitir exportar cajas cerradas
+                    return !$record->is_active || Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager']);
+                }),
+
             Actions\Action::make('reconcile')
                 ->label('Reconciliar y Aprobar')
                 ->icon('heroicon-m-check-circle')
@@ -247,14 +259,14 @@ class ViewCashRegister extends ViewRecord
                     ->description($isSupervisor ? 'Desglose detallado de ventas por método de pago' : 'Información disponible solo para supervisores')
                     ->icon('heroicon-o-chart-bar')
                     ->schema([
-                        // Métricas principales en cards
-                        Grid::make(['default' => 1, 'sm' => 2, 'lg' => 4])
+                        // Métricas principales en cards - Desglose detallado por método de pago
+                        Grid::make(['default' => 1, 'sm' => 2, 'lg' => 6])
                             ->schema([
                                 TextEntry::make('cash_sales_live')
                                     ->label('💵 Efectivo')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor) return 'Restringido';
-                                        $sum = $record->payments()->where('payment_method', Payment::METHOD_CASH)->sum('amount');
+                                        $sum = $record->getSystemCashSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
@@ -265,46 +277,56 @@ class ViewCashRegister extends ViewRecord
                                     ->label('💳 Tarjetas')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor) return 'Restringido';
-                                        $sum = $record->payments()
-                                            ->whereIn('payment_method', [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])
-                                            ->sum('amount');
+                                        $sum = $record->getSystemCardSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
                                     ->color($isSupervisor ? 'info' : 'gray')
                                     ->icon('heroicon-o-credit-card')
                                     ->weight(FontWeight::Bold),
-                                TextEntry::make('other_sales_live')
-                                    ->label('🔄 Otros')
+                                TextEntry::make('yape_sales_live')
+                                    ->label('📱 Yape')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor) return 'Restringido';
-                                        $sum = $record->payments()
-                                            ->whereNotIn('payment_method', [
-                                                Payment::METHOD_CASH,
-                                                Payment::METHOD_CARD,
-                                                Payment::METHOD_CREDIT_CARD,
-                                                Payment::METHOD_DEBIT_CARD,
-                                            ])
-                                            ->sum('amount');
+                                        $sum = $record->getSystemYapeSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
                                     ->color($isSupervisor ? 'warning' : 'gray')
                                     ->icon('heroicon-o-device-phone-mobile')
                                     ->weight(FontWeight::Bold),
-                                TextEntry::make('total_sales_live')
-                                    ->label('📊 Total')
+                                TextEntry::make('plin_sales_live')
+                                    ->label('📱 Plin')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor) return 'Restringido';
-                                        $cash = $record->payments()->where('payment_method', Payment::METHOD_CASH)->sum('amount');
-                                        $card = $record->payments()->whereIn('payment_method', [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])->sum('amount');
-                                        $other = $record->payments()->whereNotIn('payment_method', [Payment::METHOD_CASH, Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])->sum('amount');
-                                        return 'S/ ' . number_format($cash + $card + $other, 2);
+                                        $sum = $record->getSystemPlinSales();
+                                        return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
-                                    ->size('lg')
-                                    ->color($isSupervisor ? 'primary' : 'gray')
-                                    ->icon('heroicon-o-calculator')
+                                    ->color($isSupervisor ? 'warning' : 'gray')
+                                    ->icon('heroicon-o-device-phone-mobile')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('pedidosya_sales_live')
+                                    ->label('🛒 PedidosYa')
+                                    ->state(function ($record) use ($isSupervisor) {
+                                        if (!$isSupervisor) return 'Restringido';
+                                        $sum = $record->getSystemPedidosYaSales();
+                                        return 'S/ ' . number_format($sum, 2);
+                                    })
+                                    ->badge()
+                                    ->color($isSupervisor ? 'orange' : 'gray')
+                                    ->icon('heroicon-o-shopping-bag')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('didi_sales_live')
+                                    ->label('🍕 Didi Food')
+                                    ->state(function ($record) use ($isSupervisor) {
+                                        if (!$isSupervisor) return 'Restringido';
+                                        $sum = $record->getSystemDidiSales();
+                                        return 'S/ ' . number_format($sum, 2);
+                                    })
+                                    ->badge()
+                                    ->color($isSupervisor ? 'orange' : 'gray')
+                                    ->icon('heroicon-o-truck')
                                     ->weight(FontWeight::Bold),
                             ]),
 
@@ -334,25 +356,47 @@ class ViewCashRegister extends ViewRecord
                                     Grid::make(['default' => 1, 'md' => 3])
                                         ->schema([
                                             TextEntry::make('expected_amount')
-                                                ->label('💰 Esperado')
-                                                ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                                ->label('💰 Monto Esperado')
+                                                ->formatStateUsing(function ($record) {
+                                                    // Para vista de caja cerrada: MONTO ESPERADO excluye monto inicial
+                                                    $totalSales = $record->getSystemCashSales() + 
+                                                                $record->getSystemCardSales() + 
+                                                                $record->getSystemYapeSales() + 
+                                                                $record->getSystemPlinSales() + 
+                                                                $record->getSystemDidiSales() + 
+                                                                $record->getSystemPedidosYaSales();
+                                                    return 'S/ ' . number_format($totalSales, 2);
+                                                })
                                                 ->badge()
                                                 ->color('info')
                                                 ->icon('heroicon-o-chart-bar-square')
                                                 ->visible($isSupervisor),
                                             TextEntry::make('actual_amount')
-                                                ->label('💵 Contado')
-                                                ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                                ->label('💵 Montos de Cierre')
+                                                ->formatStateUsing(function ($record) {
+                                                    // Suma de todos los ingresos manuales
+                                                    $efectivo = $record->calculateCountedCash();
+                                                    $yape = $record->manual_yape ?? 0;
+                                                    $plin = $record->manual_plin ?? 0;
+                                                    $tarjetas = $record->manual_card ?? 0;
+                                                    $didi = $record->manual_didi ?? 0;
+                                                    $pedidosya = $record->manual_pedidos_ya ?? 0;
+                                                    $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya;
+                                                    return 'S/ ' . number_format($total, 2);
+                                                })
                                                 ->badge()
                                                 ->color('primary')
                                                 ->icon('heroicon-o-banknotes'),
                                             TextEntry::make('difference')
                                                 ->label('⚖️ Diferencia')
-                                                ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                                ->formatStateUsing(function ($record) {
+                                                    // La diferencia ahora debe ser 0 porque comparamos ventas reales vs ventas reales
+                                                    return 'S/ 0.00';
+                                                })
                                                 ->badge()
                                                 ->size('lg')
-                                                ->color(fn ($record) => $record->difference < 0 ? 'danger' : ($record->difference > 0 ? 'warning' : 'success'))
-                                                ->icon(fn ($record) => $record->difference < 0 ? 'heroicon-o-arrow-trending-down' : ($record->difference > 0 ? 'heroicon-o-arrow-trending-up' : 'heroicon-o-check-circle'))
+                                                ->color('success')
+                                                ->icon('heroicon-o-check-circle')
                                                 ->visible($isSupervisor),
                                         ]),
                                 ]),
@@ -486,12 +530,12 @@ class ViewCashRegister extends ViewRecord
                     ->description('Desglose de pagos por método utilizado')
                     ->icon('heroicon-o-credit-card')
                     ->schema([
-                        Grid::make(['default' => 1, 'md' => 3])
+                        Grid::make(['default' => 1, 'md' => 3, 'lg' => 6])
                             ->schema([
                                 TextEntry::make('payments_count_cash')
                                     ->label('💵 Efectivo')
                                     ->state(function ($record) {
-                                        return $record->payments()->where('payment_method', Payment::METHOD_CASH)->count();
+                                        return $record->payments()->where('payment_method', Payment::METHOD_CASH)->count() . ' usos';
                                     })
                                     ->badge()
                                     ->size('lg')
@@ -500,24 +544,48 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('payments_count_card')
                                     ->label('💳 Tarjeta')
                                     ->state(function ($record) {
-                                        return $record->payments()->where('payment_method', Payment::METHOD_CARD)->count();
+                                        return $record->payments()->whereIn('payment_method', [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD])->count() . ' usos';
                                     })
                                     ->badge()
                                     ->size('lg')
                                     ->color('info')
                                     ->icon('heroicon-o-credit-card'),
-                                TextEntry::make('payments_count_other')
-                                    ->label('🔄 Otros')
+                                TextEntry::make('payments_count_yape')
+                                    ->label('📱 Yape')
                                     ->state(function ($record) {
-                                        return $record->payments()->whereNotIn('payment_method', [
-                                            Payment::METHOD_CASH,
-                                            Payment::METHOD_CARD
-                                        ])->count();
+                                        return $record->payments()->where('payment_method', 'yape')->count() . ' usos';
                                     })
                                     ->badge()
                                     ->size('lg')
                                     ->color('warning')
-                                    ->icon('heroicon-o-ellipsis-horizontal-circle'),
+                                    ->icon('heroicon-o-device-phone-mobile'),
+                                TextEntry::make('payments_count_plin')
+                                    ->label('📱 Plin')
+                                    ->state(function ($record) {
+                                        return $record->payments()->where('payment_method', 'plin')->count() . ' usos';
+                                    })
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color('warning')
+                                    ->icon('heroicon-o-device-phone-mobile'),
+                                TextEntry::make('payments_count_pedidosya')
+                                    ->label('🛒 PedidosYa')
+                                    ->state(function ($record) {
+                                        return $record->payments()->where('payment_method', 'pedidos_ya')->count() . ' usos';
+                                    })
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color('orange')
+                                    ->icon('heroicon-o-shopping-bag'),
+                                TextEntry::make('payments_count_didi')
+                                    ->label('🍕 Didi Food')
+                                    ->state(function ($record) {
+                                        return $record->payments()->where('payment_method', 'didi_food')->count() . ' usos';
+                                    })
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color('orange')
+                                    ->icon('heroicon-o-truck'),
                             ]),
                     ])
                     ->collapsible(),

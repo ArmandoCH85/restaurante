@@ -730,14 +730,14 @@ class CashRegister extends Model
     }
 
     /**
-     * Obtiene las ventas con Didi del sistema para esta caja.
+     * Obtiene las ventas con Didi Food del sistema para esta caja.
      *
      * @return float
      */
     public function getSystemDidiSales(): float
     {
         return $this->payments()
-            ->where('payment_method', 'didi')
+            ->where('payment_method', 'didi_food')
             ->sum('amount');
     }
 

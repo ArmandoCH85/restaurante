@@ -144,8 +144,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -174,8 +173,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -204,8 +202,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -234,8 +231,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -264,8 +260,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -300,8 +295,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -330,8 +324,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -360,8 +353,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -390,8 +382,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -420,8 +411,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -450,8 +440,7 @@ class CashRegisterResource extends Resource
                                                                 (floatval($get('manual_plin') ?? 0)) +
                                                                 (floatval($get('manual_card') ?? 0)) +
                                                                 (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                                (floatval($get('manual_otros') ?? 0));
+                                                                (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -710,21 +699,21 @@ class CashRegisterResource extends Resource
                                 Forms\Components\Grid::make(2)
                                     ->schema([
                                         Forms\Components\Placeholder::make('didi_sales_display')
-                                            ->label('💻 Sistema: Didi')
+                                            ->label('💻 Sistema: Didi Food')
                                             ->content(function ($record) {
                                                 if (!$record) return 'S/ 0.00';
                                                 $didiSales = $record->getSystemDidiSales();
                                                 return 'S/ ' . number_format($didiSales, 2);
                                             })
-                                            ->helperText('Ventas Didi registradas en el sistema'),
+                                            ->helperText('Ventas Didi Food registradas en el sistema'),
                                         Forms\Components\TextInput::make('manual_didi')
-                                            ->label('👥 Manual: Didi')
+                                            ->label('👥 Manual: Didi Food')
                                             ->inputMode('decimal')
                                             ->default(0)
                                             ->rules(['required', 'numeric', 'min:0'])
                                             ->prefix('S/')
                                             ->placeholder('0.00')
-                                            ->helperText('Didi contado manualmente')
+                                            ->helperText('Didi Food contado manualmente')
                                             ->required()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
@@ -796,51 +785,6 @@ class CashRegisterResource extends Resource
                                     ])
                                     ->columnSpan('full'),
 
-                                // Comparativo de Otros
-                                Forms\Components\Grid::make(2)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('others_sales_display')
-                                            ->label('💻 Sistema: Otros')
-                                            ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
-                                                $othersSales = $record->getSystemBankTransferSales() + 
-                                                             $record->getSystemOtherDigitalWalletSales();
-                                                return 'S/ ' . number_format($othersSales, 2);
-                                            })
-                                            ->helperText('Otros métodos registrados en el sistema'),
-                                        Forms\Components\TextInput::make('manual_otros')
-                                            ->label('👥 Manual: Otros')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('Otros métodos contados manualmente')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                $set('calculated_cash_display', $efectivo);
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                        (floatval($get('manual_plin') ?? 0)) +
-                                                        (floatval($get('manual_card') ?? 0)) +
-                                                        (floatval($get('manual_didi') ?? 0)) +
-                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                        (floatval($state ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                    ])
-                                    ->columnSpan('full'),
 
                                 // Separador visual
                                 Forms\Components\Placeholder::make('separator_2')
@@ -866,12 +810,9 @@ class CashRegisterResource extends Resource
                                             })
                                             ->helperText('Total de todas las ventas registradas en el sistema')
                                             ->extraAttributes(['class' => 'font-bold text-lg text-blue-600']),
-                                        Forms\Components\TextInput::make('calculated_total_manual')
+                                        Forms\Components\Placeholder::make('calculated_total_manual')
                                             ->label('👥 TOTAL MANUAL')
-                                            ->disabled()
-                                            ->prefix('S/')
-                                            ->lazy()
-                                            ->default(function ($get) {
+                                            ->content(function ($get) {
                                                 // 👥 Manual: Efectivo (billetes y monedas)
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                            (floatval($get('bill_100') ?? 0)) * 100 +
@@ -891,11 +832,10 @@ class CashRegisterResource extends Resource
                                                 $tarjetas = floatval($get('manual_card') ?? 0);
                                                 $didi = floatval($get('manual_didi') ?? 0);
                                                 $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
-                                                $otros = floatval($get('manual_otros') ?? 0);
                                                 
-                                                // TOTAL MANUAL = Efectivo + Yape + Plin + Tarjetas + Didi + PedidosYa + Otros
-                                                $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya + $otros;
-                                                return number_format($total, 2);
+                                                // TOTAL MANUAL = Efectivo + Yape + Plin + Tarjetas + Didi + PedidosYa
+                                                $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya;
+                                                return 'S/ ' . number_format($total, 2);
                                             })
                                             ->helperText('Total de todo lo contado manualmente')
                                             ->extraAttributes(['class' => 'font-bold text-lg text-green-600']),
@@ -928,13 +868,20 @@ class CashRegisterResource extends Resource
                                     ->label('💰 Monto Esperado')
                                     ->content(function ($record) {
                                         if (!$record) return 'S/ 0.00';
-                                        $esperado = $record->opening_amount + $record->total_sales;
+                                        $esperado = $record->getSystemCashSales() +
+                                                   $record->getSystemYapeSales() +
+                                                   $record->getSystemPlinSales() +
+                                                   $record->getSystemCardSales() +
+                                                   $record->getSystemDidiSales() +
+                                                   $record->getSystemPedidosYaSales() +
+                                                   $record->getSystemBankTransferSales() +
+                                                   $record->getSystemOtherDigitalWalletSales();
                                         return 'S/ ' . number_format($esperado, 2);
                                     })
-                                    ->helperText('Monto inicial + Total ventas del día'),
+                                    ->helperText('Sumatoria de todos los ingresos registrados en el sistema'),
                                     
                                 Forms\Components\Placeholder::make('total_contado')
-                                    ->label('💵 Total Contado')
+                                    ->label('👥 Total Manual')
                                     ->content(function ($record, $get) {
                                         // Calcular total de efectivo (billetes y monedas)
                                         $efectivo = floatval($get('bill_200') ?? 0) * 200 +
@@ -954,20 +901,26 @@ class CashRegisterResource extends Resource
                                                 floatval($get('manual_plin') ?? 0) +
                                                 floatval($get('manual_card') ?? 0) +
                                                 floatval($get('manual_didi') ?? 0) +
-                                                floatval($get('manual_pedidos_ya') ?? 0) +
-                                                floatval($get('manual_otros') ?? 0);
+                                                floatval($get('manual_pedidos_ya') ?? 0);
                                                 
                                         $total = $efectivo + $otros;
                                         return 'S/ ' . number_format($total, 2);
                                     })
-                                    ->helperText('Efectivo contado + Otros métodos'),
+                                    ->helperText('Total de todo lo contado manualmente'),
                                     
                                 Forms\Components\Placeholder::make('diferencia')
                                     ->label('⚖️ Diferencia')
                                     ->content(function ($record, $get) {
                                         if (!$record) return 'S/ 0.00';
                                         
-                                        $esperado = $record->opening_amount + $record->total_sales;
+                                        $esperado = $record->getSystemCashSales() +
+                                                   $record->getSystemYapeSales() +
+                                                   $record->getSystemPlinSales() +
+                                                   $record->getSystemCardSales() +
+                                                   $record->getSystemDidiSales() +
+                                                   $record->getSystemPedidosYaSales() +
+                                                   $record->getSystemBankTransferSales() +
+                                                   $record->getSystemOtherDigitalWalletSales();
                                         
                                         // Calcular total contado
                                         $efectivo = floatval($get('bill_200') ?? 0) * 200 +
@@ -986,8 +939,7 @@ class CashRegisterResource extends Resource
                                                 floatval($get('manual_plin') ?? 0) +
                                                 floatval($get('manual_card') ?? 0) +
                                                 floatval($get('manual_didi') ?? 0) +
-                                                floatval($get('manual_pedidos_ya') ?? 0) +
-                                                floatval($get('manual_otros') ?? 0);
+                                                floatval($get('manual_pedidos_ya') ?? 0);
                                                 
                                         $totalContado = $efectivo + $otros;
                                         $diferencia = $totalContado - $esperado;
@@ -997,7 +949,7 @@ class CashRegisterResource extends Resource
                                         
                                         return $icon . ' S/ ' . number_format($diferencia, 2);
                                     })
-                                    ->helperText('Total contado - Esperado'),
+                                    ->helperText('Total Manual - Monto Esperado'),
                             ]),
                     ])
                     ->visible(fn ($record) => $record && $record->is_active),
