@@ -123,6 +123,11 @@ class AdminPanelProvider extends PanelProvider
                     . '<a href="' . url('/waiter/login') . '" class="text-primary-600 hover:underline">Ir al login de mesero</a>'
                     . '</div>'
             )
+            // 🔗 Accesos rápidos en el HEADER (topbar)
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_START,
+                fn (): string => view('filament.topbar.quick-links')->render()
+            )
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_NAV_START,
                 fn (): string => '<style>
