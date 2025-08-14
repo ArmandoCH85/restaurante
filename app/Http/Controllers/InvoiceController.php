@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Invoice;
 use App\Models\Customer;
+use App\Helpers\PdfHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
@@ -350,5 +351,50 @@ class InvoiceController extends Controller
 
         // Si no existe PDF de SUNAT, generar uno usando la vista de impresión
         return $this->generatePdf($invoice->id);
+    }
+
+    /**
+     * Genera y muestra el PDF/ticket directamente (usado por acciones Filament) evitando serialización Livewire.
+     */
+    public function printTicket(Invoice $invoice)
+    {
+        try {
+            $invoice->load(['customer', 'details.product', 'order.table']);
+
+            $company = [
+                'ruc' => \App\Models\CompanyConfig::getRuc(),
+                'razon_social' => \App\Models\CompanyConfig::getRazonSocial(),
+                'nombre_comercial' => \App\Models\CompanyConfig::getNombreComercial(),
+                'direccion' => \App\Models\CompanyConfig::getDireccion(),
+                'telefono' => \App\Models\CompanyConfig::getTelefono(),
+                'email' => \App\Models\CompanyConfig::getEmail(),
+            ];
+
+            $data = [
+                'invoice' => $invoice,
+                'company' => $company,
+            ];
+
+            $view = match($invoice->invoice_type) {
+                'receipt' => 'pdf.receipt',
+                'sales_note' => 'pdf.sales_note',
+                default => 'pdf.invoice'
+            };
+
+            $items = $invoice->details->count();
+            $pdf = PdfHelper::makeTicketPdf($view, $data, $items);
+            Log::info('🎫 Ticket PDF generado', [
+                'invoice_id' => $invoice->id,
+                'type' => $invoice->invoice_type,
+                'items' => $items,
+            ]);
+            return $pdf->stream($invoice->series . '-' . $invoice->number . '.pdf');
+        } catch (\Throwable $e) {
+            Log::error('Error generando ticket PDF', [
+                'invoice_id' => $invoice->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+            return response('Error al generar PDF: ' . $e->getMessage(), 500);
+        }
     }
 }

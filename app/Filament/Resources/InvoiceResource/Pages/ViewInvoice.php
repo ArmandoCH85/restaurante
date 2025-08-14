@@ -13,38 +13,19 @@ class ViewInvoice extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\EditAction::make()
+                ->label('Editar')
+                ->visible(fn () =>
+                    // Misma lógica que en la tabla: Notas de Venta siempre, Factura/Boleta mientras no aceptada/anulada
+                    ($this->record->invoice_type === 'sales_note') ||
+                    (in_array($this->record->invoice_type, ['invoice','receipt']) && !in_array($this->record->sunat_status, ['ACEPTADO']) && $this->record->tax_authority_status !== 'voided')
+                ),
             Actions\Action::make('print')
                 ->label('Imprimir')
                 ->icon('heroicon-o-printer')
                 ->color('success')
-                ->action(function () {
-                    // Obtener configuración de empresa usando los métodos estáticos
-                    $company = [
-                        'ruc' => \App\Models\CompanyConfig::getRuc(),
-                        'razon_social' => \App\Models\CompanyConfig::getRazonSocial(),
-                        'nombre_comercial' => \App\Models\CompanyConfig::getNombreComercial(),
-                        'direccion' => \App\Models\CompanyConfig::getDireccion(),
-                        'telefono' => \App\Models\CompanyConfig::getTelefono(),
-                        'email' => \App\Models\CompanyConfig::getEmail(),
-                    ];
-
-                    // Datos para el PDF
-                    $data = [
-                        'invoice' => $this->record->load(['customer', 'details.product', 'order.table']),
-                        'company' => $company,
-                    ];
-
-                    // Determinar la vista según el tipo de documento
-                    $view = match($this->record->invoice_type) {
-                        'receipt' => 'pdf.receipt',
-                        'sales_note' => 'pdf.sales_note',
-                        default => 'pdf.invoice'
-                    };
-
-                    // Generar PDF y mostrarlo en navegador para impresión
-                    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHtml(\Illuminate\Support\Facades\Blade::render($view, $data));
-                    return $pdf->stream($this->record->series . '-' . $this->record->number . '.pdf');
-                }),
+                ->url(fn() => route('filament.admin.invoices.print-ticket', $this->record))
+                ->openUrlInNewTab(),
 
             Actions\Action::make('void')
                 ->label('Anular')

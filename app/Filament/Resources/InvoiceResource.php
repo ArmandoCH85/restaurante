@@ -16,6 +16,8 @@ use Filament\Tables\Actions\Action;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Blade;
 use App\Models\CompanyConfig;
+use App\Models\Customer;
+use App\Helpers\PdfHelper;
 
 class InvoiceResource extends Resource
 {
@@ -57,21 +59,25 @@ class InvoiceResource extends Resource
                                 'receipt' => 'Boleta',
                                 'sales_note' => 'Nota de Venta',
                             ])
+                            // Tipo no editable una vez creado
                             ->disabled()
                             ->required(),
 
                         Forms\Components\TextInput::make('series')
                             ->label('Serie')
+                            // Serie fija (proveniente de numeración controlada)
                             ->disabled()
                             ->required(),
 
                         Forms\Components\TextInput::make('number')
                             ->label('Número')
+                            // Número correlativo no editable
                             ->disabled()
                             ->required(),
 
                         Forms\Components\DatePicker::make('issue_date')
                             ->label('Fecha de Emisión')
+                            // Por trazabilidad mantenemos fija la fecha original
                             ->disabled()
                             ->required(),
 
@@ -83,6 +89,7 @@ class InvoiceResource extends Resource
                                 'rejected' => 'Rechazado',
                                 'voided' => 'Anulado',
                             ])
+                            // Estado interno solo lectura; cambios mediante acciones
                             ->disabled()
                             ->required(),
                     ])->columns(2),
@@ -92,9 +99,52 @@ class InvoiceResource extends Resource
                         Forms\Components\Select::make('customer_id')
                             ->label('Cliente')
                             ->relationship('customer', 'name')
-                            ->disabled()
+                            // Permitimos cambiar el cliente SOLO si aún no ha sido aceptado por SUNAT (factura/boleta). En Notas de Venta siempre editable.
+                            ->helperText('Si necesita corregir nombre/documento solo en este comprobante use los campos inferiores. Para modificar el cliente global vaya a: Clientes.')
+                            ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && in_array($record->sunat_status, ['ACEPTADO', 'RECHAZADO']))
+                            ->getOptionLabelFromRecordUsing(fn(Customer $c) => $c->name . ' — ' . $c->document_type . ': ' . $c->document_number)
+                            ->searchable()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                if (!$state) { return; }
+                                $customer = Customer::find($state);
+                                if (!$customer) { return; }
+                                // Siempre sincronizar al seleccionar un cliente para reflejar datos actualizados
+                                $set('client_name', $customer->name);
+                                $set('client_document', $customer->document_number);
+                                $set('client_address', $customer->address);
+                            })
                             ->searchable()
                             ->preload(),
+                        Forms\Components\Fieldset::make('Datos impresos en este comprobante')
+                            ->schema([
+                                Forms\Components\TextInput::make('client_name')
+                                    ->label('Nombre para este comprobante')
+                                    ->maxLength(150)
+                                    ->default(fn(?Invoice $record) => $record?->client_name ?? $record?->customer?->name)
+                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && $record->sunat_status === 'ACEPTADO')
+                                    ->helperText('Si se deja vacío se usa el nombre del cliente.'),
+                                Forms\Components\TextInput::make('client_document')
+                                    ->label('Documento para este comprobante')
+                                    ->maxLength(20)
+                                    ->default(fn(?Invoice $record) => $record?->client_document ?? $record?->customer?->document_number)
+                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && $record->sunat_status === 'ACEPTADO')
+                                    ->helperText('Reemplaza numero a enviar/impreso; no cambia el cliente original.'),
+                                Forms\Components\TextInput::make('client_address')
+                                    ->label('Dirección para este comprobante')
+                                    ->maxLength(255)
+                                    ->default(fn(?Invoice $record) => $record?->client_address ?? $record?->customer?->address)
+                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && $record->sunat_status === 'ACEPTADO')
+                                    ->helperText('Si se deja vacío se usa la dirección del cliente.'),
+                                Forms\Components\Placeholder::make('info_documento_cliente')
+                                    ->label('Documento del cliente seleccionado')
+                                    ->content(function (callable $get) {
+                                        $cid = $get('customer_id');
+                                        if (!$cid) { return '—'; }
+                                        $c = Customer::find($cid);
+                                        return $c ? ($c->document_type . ': ' . $c->document_number) : '—';
+                                    })
+                            ])->columns(3)
                     ]),
 
                 Forms\Components\Section::make('Importes')
@@ -129,6 +179,15 @@ class InvoiceResource extends Resource
                             ->disabled()
                             ->visible(fn (Invoice $record): bool => $record->tax_authority_status === 'voided'),
                     ]),
+                Forms\Components\Section::make('Notas / Auditoría')
+                    ->schema([
+                        Forms\Components\Placeholder::make('sunat_status_info')
+                            ->label('Estado SUNAT actual')
+                            ->content(fn(?Invoice $record) => $record?->sunat_status ?? 'Sin enviar'),
+                        Forms\Components\Placeholder::make('edit_rules')
+                            ->label('Reglas de Edición')
+                            ->content('Solo se pueden modificar datos del cliente mientras el comprobante no haya sido ACEPTADO por SUNAT. Los importes se originan en el POS y no deben alterarse manualmente aquí.'),
+                    ])->columns(2)
             ]);
     }
 
@@ -290,6 +349,14 @@ class InvoiceResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('Editar')
+                    ->visible(fn (Invoice $record): bool =>
+                        // Permitir editar siempre Notas de Venta.
+                        // Para Factura/Boleta permitir solo si aún no aceptada ni anulada.
+                        ($record->invoice_type === 'sales_note') ||
+                        (in_array($record->invoice_type, ['invoice','receipt']) && !in_array($record->sunat_status, ['ACEPTADO']) && $record->tax_authority_status !== 'voided')
+                    ),
                 Action::make('send_to_sunat')
                     ->label('Enviar a SUNAT')
                     ->icon('heroicon-o-paper-airplane')
@@ -385,34 +452,8 @@ class InvoiceResource extends Resource
                     ->label('Imprimir')
                     ->icon('heroicon-o-printer')
                     ->color('success')
-                    ->action(function (Invoice $record) {
-                        // Obtener configuración de empresa usando los métodos estáticos
-                        $company = [
-                            'ruc' => CompanyConfig::getRuc(),
-                            'razon_social' => CompanyConfig::getRazonSocial(),
-                            'nombre_comercial' => CompanyConfig::getNombreComercial(),
-                            'direccion' => CompanyConfig::getDireccion(),
-                            'telefono' => CompanyConfig::getTelefono(),
-                            'email' => CompanyConfig::getEmail(),
-                        ];
-
-                        // Datos para el PDF
-                        $data = [
-                            'invoice' => $record->load(['customer', 'details.product', 'order.table']),
-                            'company' => $company,
-                        ];
-
-                        // Determinar la vista según el tipo de documento
-                        $view = match($record->invoice_type) {
-                            'receipt' => 'pdf.receipt',
-                            'sales_note' => 'pdf.sales_note',
-                            default => 'pdf.invoice'
-                        };
-
-                        // Generar PDF y mostrarlo en navegador para impresión
-                        $pdf = Pdf::loadHtml(Blade::render($view, $data));
-                        return $pdf->stream($record->series . '-' . $record->number . '.pdf');
-                    }),
+                    ->url(fn(Invoice $record) => route('filament.admin.invoices.print-ticket', $record))
+                    ->openUrlInNewTab(),
                 Action::make('download_xml')
                     ->label('Descargar XML')
                     ->icon('heroicon-o-document-text')
@@ -486,6 +527,7 @@ class InvoiceResource extends Resource
         return [
             'index' => Pages\ListInvoices::route('/'),
             'view' => Pages\ViewInvoice::route('/{record}'),
+            'edit' => Pages\EditInvoice::route('/{record}/edit'),
         ];
     }
 

@@ -68,6 +68,10 @@ Route::middleware(['auth', 'role:cashier|admin|super_admin'])->group(function ()
     Route::get('/thermal-preview/invoice/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'thermalPreview'])->name('thermal.preview.invoice');
 });
 
+// Ruta para imprimir ticket (abre PDF directamente) evitando respuesta JSON Livewire
+Route::middleware(['auth','role:cashier|admin|super_admin'])->get('/admin/invoices/{invoice}/print-ticket', [\App\Http\Controllers\InvoiceController::class, 'printTicket'])
+    ->name('filament.admin.invoices.print-ticket');
+
 // Ruta de impresión de comprobantes - DESHABILITADA - ahora se usa la ruta de Filament
 // Route::get('/invoices/print/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'printInvoice'])->name('invoices.print');
 Route::get('/thermal-preview/command/{order}', [\App\Http\Controllers\PosController::class, 'thermalPreviewCommand'])->name('thermal.preview.command');
