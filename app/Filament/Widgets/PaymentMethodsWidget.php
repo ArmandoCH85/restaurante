@@ -6,10 +6,12 @@ use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use App\Models\Payment;
 use Carbon\Carbon;
+use App\Filament\Widgets\Concerns\DateRangeFilterTrait;
 
 class PaymentMethodsWidget extends ChartWidget
 {
     use InteractsWithPageFilters;
+    use DateRangeFilterTrait;
 
     protected static ?string $heading = '💳 Distribución de Métodos de Pago';
 
@@ -28,7 +30,7 @@ class PaymentMethodsWidget extends ChartWidget
 
     // 🔄 REACTIVIDAD A FILTROS DEL DASHBOARD
     protected static bool $isLazy = false;
-    
+
     protected $listeners = [
         'filtersFormUpdated' => '$refresh',
         'updateCharts' => '$refresh',
@@ -119,30 +121,8 @@ class PaymentMethodsWidget extends ChartWidget
             ->join('orders', 'payments.order_id', '=', 'orders.id')
             ->where('orders.billed', true);
 
-        // 🗓️ APLICAR FILTRO TEMPORAL DEL DASHBOARD
-        $filters = $this->filters ?? [];
-        $dateRange = $filters['date_range'] ?? 'today';
-        $startDate = $filters['start_date'] ?? null;
-        $endDate = $filters['end_date'] ?? null;
-
-        if ($dateRange === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('payments.created_at', [
-                Carbon::parse($startDate)->startOfDay(),
-                Carbon::parse($endDate)->endOfDay()
-            ]);
-        } else {
-            match ($dateRange) {
-                'today' => $query->whereDate('payments.created_at', Carbon::today()),
-                'yesterday' => $query->whereDate('payments.created_at', Carbon::yesterday()),
-                'last_7_days' => $query->where('payments.created_at', '>=', Carbon::today()->subDays(7)),
-                'last_30_days' => $query->where('payments.created_at', '>=', Carbon::today()->subDays(30)),
-                'this_month' => $query->whereMonth('payments.created_at', Carbon::now()->month)
-                                     ->whereYear('payments.created_at', Carbon::now()->year),
-                'last_month' => $query->whereMonth('payments.created_at', Carbon::now()->subMonth()->month)
-                                     ->whereYear('payments.created_at', Carbon::now()->subMonth()->year),
-                default => $query->whereDate('payments.created_at', Carbon::today()),
-            };
-        }
+        [$start, $end] = $this->resolveDateRange($this->filters ?? []);
+        $query->whereBetween('payments.created_at', [$start, $end]);
 
         $payments = $query->get();
 

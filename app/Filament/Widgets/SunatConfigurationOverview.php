@@ -8,7 +8,7 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class SunatConfigurationOverview extends BaseWidget
 {
-    protected static ?string $pollingInterval = '2s'; // Actualizar cada 2 segundos
+    protected static ?string $pollingInterval = '60s'; // Intervalo ajustado para reducir carga
 
     protected function getStats(): array
     {

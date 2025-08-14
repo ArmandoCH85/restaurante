@@ -6,10 +6,12 @@ use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use App\Models\Order;
 use Carbon\Carbon;
+use App\Filament\Widgets\Concerns\DateRangeFilterTrait;
 
 class SalesChartWidget extends ChartWidget
 {
     use InteractsWithPageFilters;
+    use DateRangeFilterTrait;
 
     protected static ?string $heading = '📈 Tendencia de Ventas por Tipo';
 
@@ -22,7 +24,7 @@ class SalesChartWidget extends ChartWidget
 
     // 🔄 REACTIVIDAD A FILTROS DEL DASHBOARD
     protected static bool $isLazy = false;
-    
+
     protected $listeners = [
         'filtersFormUpdated' => '$refresh',
         'updateCharts' => '$refresh',
@@ -79,7 +81,7 @@ class SalesChartWidget extends ChartWidget
         $deliveryData = [];
         $directaData = [];
 
-        $dates = $this->getDateRange();
+    $dates = $this->expandDailyDates();
 
         foreach ($dates as $date) {
             $labels[] = $date['label'];
@@ -120,73 +122,16 @@ class SalesChartWidget extends ChartWidget
         ];
     }
 
-    // 📅 GENERAR RANGO DE FECHAS SEGÚN FILTRO DEL DASHBOARD
-    private function getDateRange(): array
+    private function expandDailyDates(): array
     {
+        [$start, $end] = $this->resolveDateRange($this->filters ?? []);
         $dates = [];
-        $filters = $this->filters ?? [];
-        $dateRange = $filters['date_range'] ?? 'today';
-
-        switch ($dateRange) {
-            case 'today':
-                $dates[] = [
-                    'date' => Carbon::today(),
-                    'label' => 'Hoy',
-                ];
-                break;
-
-            case 'yesterday':
-                $dates[] = [
-                    'date' => Carbon::yesterday(),
-                    'label' => 'Ayer',
-                ];
-                break;
-
-            case 'last_7_days':
-                for ($i = 6; $i >= 0; $i--) {
-                    $date = Carbon::today()->subDays($i);
-                    $dates[] = [
-                        'date' => $date,
-                        'label' => $date->format('d/m'),
-                    ];
-                }
-                break;
-
-            case 'last_30_days':
-                for ($i = 29; $i >= 0; $i--) {
-                    $date = Carbon::today()->subDays($i);
-                    $dates[] = [
-                        'date' => $date,
-                        'label' => $date->format('d/m'),
-                    ];
-                }
-                break;
-
-            case 'this_month':
-                $start = Carbon::now()->startOfMonth();
-                $end = Carbon::now();
-
-                for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-                    $dates[] = [
-                        'date' => $date->copy(),
-                        'label' => $date->format('d'),
-                    ];
-                }
-                break;
-
-            case 'last_month':
-                $start = Carbon::now()->subMonth()->startOfMonth();
-                $end = Carbon::now()->subMonth()->endOfMonth();
-
-                for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
-                    $dates[] = [
-                        'date' => $date->copy(),
-                        'label' => $date->format('d'),
-                    ];
-                }
-                break;
+        for ($date = $start->copy(); $date->lte($end); $date->addDay()) {
+            $dates[] = [
+                'date' => $date->copy(),
+                'label' => $start->equalTo($end) ? ($date->isToday() ? 'Hoy' : $date->format('d/m')) : ($start->diffInDays($end) <= 7 ? $date->format('d/m') : $date->format('d')),
+            ];
         }
-
         return $dates;
     }
 

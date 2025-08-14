@@ -6,8 +6,10 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
+use App\Filament\Widgets\Concerns\DateRangeFilterTrait;
 use App\Models\OrderDetail;
 use App\Models\Product;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -15,6 +17,7 @@ use Carbon\Carbon;
 class TopProductsWidget extends BaseWidget
 {
     use InteractsWithPageFilters;
+    use DateRangeFilterTrait;
 
     protected static ?string $heading = '🏆 Productos Más Vendidos';
 
@@ -25,7 +28,7 @@ class TopProductsWidget extends BaseWidget
 
     // 🔄 REACTIVIDAD A FILTROS DEL DASHBOARD
     protected static bool $isLazy = false;
-    
+
     protected $listeners = [
         'filtersFormUpdated' => '$refresh',
         'updateCharts' => '$refresh',
@@ -112,109 +115,82 @@ class TopProductsWidget extends BaseWidget
     // 📊 QUERY PARA OBTENER PRODUCTOS MÁS VENDIDOS
     protected function getTableQuery(): Builder
     {
-        $dateRange = $this->getDateRange();
+        // Resolver rango desde filtros unificados
+        [$start, $end] = $this->resolveDateRange($this->filters ?? []);
 
-        // Subconsulta para obtener el total de ventas del período para calcular porcentajes
-        $totalSalesSubquery = OrderDetail::query()
-            ->whereHas('order', function($query) use ($dateRange) {
-                $query->where('billed', true)
-                      ->whereBetween('created_at', $dateRange);
-            })
-            ->sum('subtotal');
+        /**
+         * Ajustes aplicados:
+         * - Simplifica columna temporal (order_datetime si existe, sin COALESCE porque es NOT NULL; fallback created_at).
+         * - Permite configurar el tipo de porcentaje (revenue|units) con env TOP_PRODUCTS_PERCENTAGE_BY (default revenue).
+         * - Usa whereIn para estados válidos en lugar de != cancelled (mejor uso de índice y semántica explícita).
+         * - Simplifica expresión de ventana (SUM(col) OVER()) evitando SUM(SUM()).
+         * - Añade MIN(order_details.id) como id para evitar posibles avisos de modelo sin PK al hidratar.
+         */
+
+        $timeColumn = Schema::hasColumn('orders', 'order_datetime') ? 'orders.order_datetime' : 'orders.created_at';
+        $percentageMode = env('TOP_PRODUCTS_PERCENTAGE_BY', 'revenue'); // 'revenue' o 'units'
+
+        $statusFilter = ['completed']; // Ajustar si se desea incluir otros estados facturados
+
+        $sumValueExpr = $percentageMode === 'units'
+            ? 'SUM(order_details.quantity)'
+            : 'SUM(order_details.subtotal)';
+        // Calcular total del período (denominador) y usarlo siempre (evita problemas con ONLY_FULL_GROUP_BY y ventanas)
+        $periodTotal = (float) OrderDetail::query()
+            ->join('orders', 'orders.id', '=', 'order_details.order_id')
+            ->where('orders.billed', true)
+            ->whereIn('orders.status', $statusFilter)
+            ->whereBetween($timeColumn, [$start, $end])
+            ->select(DB::raw($sumValueExpr . ' as agg'))
+            ->value('agg');
+
+        $denominator = $periodTotal > 0 ? $periodTotal : 1;
+
+        $percentageSelect = $percentageMode === 'units'
+            ? DB::raw('(SUM(order_details.quantity) / ' . $denominator . ' * 100) as percentage')
+            : DB::raw('(SUM(order_details.subtotal) / ' . $denominator . ' * 100) as percentage');
 
         return OrderDetail::query()
+            ->join('orders', 'orders.id', '=', 'order_details.order_id')
             ->select([
-                'product_id',
-                DB::raw('SUM(quantity) as total_quantity'),
-                DB::raw('SUM(subtotal) as total_revenue'),
-                DB::raw('AVG(unit_price) as avg_price'),
-                DB::raw('(SUM(subtotal) / ' . ($totalSalesSubquery ?: 1) . ' * 100) as percentage')
+                DB::raw('MIN(order_details.id) as id'),
+                'order_details.product_id',
+                DB::raw('SUM(order_details.quantity) as total_quantity'),
+                DB::raw('SUM(order_details.subtotal) as total_revenue'),
+                DB::raw('AVG(order_details.unit_price) as avg_price'),
+                $percentageSelect,
             ])
+            ->where('orders.billed', true)
+            ->whereIn('orders.status', $statusFilter)
+            ->whereBetween($timeColumn, [$start, $end])
+            ->groupBy('order_details.product_id')
+            ->orderByDesc('total_quantity')
             ->with(['product.category'])
-            ->whereHas('order', function($query) use ($dateRange) {
-                $query->where('billed', true)
-                      ->whereBetween('created_at', $dateRange);
-            })
-            ->whereHas('product', function($query) {
-                $query->where('active', true);
-            })
-            ->groupBy('product_id')
-            ->orderByDesc('total_quantity');
+            ->whereHas('product', function ($q) {
+                $q->where('active', true);
+            });
     }
 
     // 📅 OBTENER RANGO DE FECHAS SEGÚN FILTRO DEL DASHBOARD
-    private function getDateRange(): array
-    {
-        $filters = $this->filters ?? [];
-        $dateRange = $filters['date_range'] ?? 'today';
-        $startDate = $filters['start_date'] ?? null;
-        $endDate = $filters['end_date'] ?? null;
-
-        if ($dateRange === 'custom' && $startDate && $endDate) {
-            return [
-                Carbon::parse($startDate)->startOfDay(),
-                Carbon::parse($endDate)->endOfDay()
-            ];
-        }
-
-        switch ($dateRange) {
-            case 'today':
-                return [
-                    Carbon::today()->startOfDay(),
-                    Carbon::today()->endOfDay()
-                ];
-
-            case 'yesterday':
-                return [
-                    Carbon::yesterday()->startOfDay(),
-                    Carbon::yesterday()->endOfDay()
-                ];
-
-            case 'last_7_days':
-                return [
-                    Carbon::today()->subDays(6)->startOfDay(),
-                    Carbon::today()->endOfDay()
-                ];
-
-            case 'this_week':
-                return [
-                    Carbon::now()->startOfWeek(),
-                    Carbon::now()->endOfWeek()
-                ];
-
-            case 'last_30_days':
-                return [
-                    Carbon::today()->subDays(29)->startOfDay(),
-                    Carbon::today()->endOfDay()
-                ];
-
-            case 'this_month':
-                return [
-                    Carbon::now()->startOfMonth(),
-                    Carbon::now()->endOfMonth()
-                ];
-
-            case 'last_month':
-                return [
-                    Carbon::now()->subMonth()->startOfMonth(),
-                    Carbon::now()->subMonth()->endOfMonth()
-                ];
-
-            default:
-                return [
-                    Carbon::today()->startOfDay(),
-                    Carbon::today()->endOfDay()
-                ];
-        }
-    }
+    // Eliminado getDateRange: se usa resolveDateRange del trait
 
     // 📋 DESCRIPCIÓN DEL WIDGET
     public function getTableDescription(): ?string
     {
-        $periodLabel = $this->getFilters()[$this->filter] ?? 'Hoy';
-        $dateRange = $this->getDateRange();
+        [$start, $end] = $this->resolveDateRange($this->filters ?? []);
+        $labelMap = [
+            'today' => 'Hoy',
+            'yesterday' => 'Ayer',
+            'last_7_days' => 'Últimos 7 días',
+            'last_30_days' => 'Últimos 30 días',
+            'this_month' => 'Este mes',
+            'last_month' => 'Mes pasado',
+            'custom' => 'Personalizado',
+        ];
+        $code = $this->filters['date_range'] ?? 'today';
+        $periodLabel = $labelMap[$code] ?? 'Hoy';
 
-        return "Ranking de productos más vendidos - {$periodLabel} | " .
-               "Período: " . $dateRange[0]->format('d/m/Y') . " - " . $dateRange[1]->format('d/m/Y');
+        return "Ranking de productos más vendidos • {$periodLabel} • " .
+               $this->humanRangeLabel($start, $end);
     }
 }

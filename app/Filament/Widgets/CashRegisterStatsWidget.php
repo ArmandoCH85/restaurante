@@ -48,14 +48,23 @@ class CashRegisterStatsWidget extends BaseWidget
                                         ->where('is_active', false)
                                         ->count();
 
-        // Obtener distribución de ventas por método de pago para la caja actual
-        $paymentDistribution = [
-            $openRegister->cash_sales * 0.2,
-            $openRegister->cash_sales * 0.4,
-            $openRegister->cash_sales * 0.6,
-            $openRegister->cash_sales * 0.8,
-            $openRegister->cash_sales,
-        ];
+        // Distribución real por método de pago de pagos asociados a esta caja
+        $byMethod = Payment::select('payment_method', DB::raw('SUM(amount) as total'))
+            ->where('cash_register_id', $openRegister->id)
+            ->groupBy('payment_method')
+            ->pluck('total','payment_method');
+        $cashSales = (float) ($byMethod['cash'] ?? 0);
+        $cardSales = (float) (($byMethod['card'] ?? 0) + ($byMethod['credit_card'] ?? 0) + ($byMethod['debit_card'] ?? 0));
+        $transferSales = (float) ($byMethod['bank_transfer'] ?? 0);
+        $walletSales = (float) ($byMethod['digital_wallet'] ?? 0);
+        $otherSales = (float) $openRegister->other_sales;
+        $paymentDistribution = array_values(array_filter([
+            $cashSales,
+            $cardSales,
+            $walletSales,
+            $transferSales,
+            $otherSales,
+        ], fn($v) => $v > 0));
 
         // Verificar si el usuario puede ver información sensible
         $user = auth()->user();
@@ -67,20 +76,20 @@ class CashRegisterStatsWidget extends BaseWidget
                 ->descriptionIcon('heroicon-m-calendar')
                 ->color('success'),
 
-            Stat::make('Ventas en Efectivo', $canViewSensitiveInfo
-                ? 'S/ ' . number_format($openRegister->cash_sales, 2)
-                : 'Información reservada')
+            Stat::make('Ventas Caja (Efectivo)', $canViewSensitiveInfo
+                ? 'S/ ' . number_format($cashSales, 2)
+                : 'Reservado')
                 ->description($canViewSensitiveInfo
-                    ? 'Total de ventas: S/ ' . number_format($openRegister->total_sales, 2)
-                    : 'Solo visible para supervisores')
+                    ? 'Total caja: S/ ' . number_format($openRegister->total_sales, 2)
+                    : 'Solo supervisores')
                 ->descriptionIcon('heroicon-m-currency-dollar')
                 ->color('success')
-                ->chart($canViewSensitiveInfo ? $paymentDistribution : [0, 0, 0, 0, 0]),
+                ->chart($canViewSensitiveInfo ? $paymentDistribution : []),
 
             Stat::make('Ventas de Hoy', $canViewSensitiveInfo
                 ? 'S/ ' . number_format($todaySales, 2)
-                : 'Información reservada')
-                ->description('Cajas cerradas hoy: ' . $closedRegistersToday)
+                : 'Reservado')
+                ->description('Cerradas hoy: ' . $closedRegistersToday)
                 ->descriptionIcon('heroicon-m-archive-box')
                 ->color('info'),
         ];
