@@ -26,7 +26,6 @@ use Illuminate\Support\Facades\Auth;
 use App\Helpers\PermissionHelper;
 use App\Filament\Pages\TableMap;
 
-
 class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
@@ -53,11 +52,11 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('4rem')
             ->colors([
                 'primary' => Color::Indigo, // Profesional / principal
-                'info'    => Color::Cyan,   // Info/accent secundario
+                'info' => Color::Cyan, // Info/accent secundario
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
-                'danger'  => Color::Rose,
-                'gray'    => Color::Gray,
+                'danger' => Color::Rose,
+                'gray' => Color::Gray,
             ])
             ->font('Manrope') // Fuente profesional moderna
             ->darkMode()
@@ -94,48 +93,17 @@ class AdminPanelProvider extends PanelProvider
             ])
             // Eliminar grupos personalizados para que funcione con los recursos automáticos
             // Usar navegación automática de Filament
-            ->middleware([
-                EncryptCookies::class,
-                AddQueuedCookiesToResponse::class,
-                StartSession::class,
-                AuthenticateSession::class,
-                ShareErrorsFromSession::class,
-                VerifyCsrfToken::class,
-                SubstituteBindings::class,
-                DisableBladeIconComponents::class,
-                DispatchServingFilamentEvent::class,
-            ])
-            ->authMiddleware([
-                Authenticate::class,
-            ])
+            ->middleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, AuthenticateSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class, SubstituteBindings::class, DisableBladeIconComponents::class, DispatchServingFilamentEvent::class])
+            ->authMiddleware([Authenticate::class])
             // Render Hooks para personalización del login POS
-            ->renderHook(
-                PanelsRenderHook::HEAD_END,
-                fn (): string => '<link rel="preconnect" href="https://fonts.googleapis.com">'
-                    . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-                    . '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">'
-                    . '<link rel="stylesheet" href="' . asset('css/login-daisyui-compiled.css') . '">'
-                    . '<style id="admin-panel-typography-scale">.fi-body{font-size:17.5px;line-height:1.55;font-weight:400;font-family:"Manrope",Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}</style>'
-            )
-            ->renderHook(
-                PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
-                fn (): string => view('filament.auth.login-header')->render()
-            )
-            ->renderHook(
-                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
-                fn (): string => '<div class="flex flex-col items-center gap-2 mt-4 text-sm text-gray-500">'
-                    . '<span>Acceso por código PIN.</span>'
-                    . '<a href="' . url('/waiter/login') . '" class="text-primary-600 hover:underline">Ir al login de mesero</a>'
-                    . '</div>'
-            )
+            ->renderHook(PanelsRenderHook::HEAD_END, fn(): string => '<link rel="preconnect" href="https://fonts.googleapis.com">' . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' . '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">' . '<link rel="stylesheet" href="' . asset('css/login-daisyui-compiled.css') . '">' . '<style id="admin-panel-typography-scale">.fi-body{font-size:17.5px;line-height:1.55;font-weight:400;font-family:"Manrope",Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}</style>')
+            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE, fn(): string => view('filament.auth.login-header')->render())
+            ->renderHook(PanelsRenderHook::AUTH_LOGIN_FORM_AFTER, fn(): string => '<div class="flex flex-col items-center gap-2 mt-4 text-sm text-gray-500">' . '<span>Acceso por código PIN.</span>' . '<a href="' . url('/waiter/login') . '" class="text-primary-600 hover:underline">Ir al login de mesero</a>' . '</div>')
             // 🔗 Accesos rápidos en el HEADER (topbar)
-            ->renderHook(
-                PanelsRenderHook::TOPBAR_START,
-                fn (): string => view('filament.topbar.quick-links')->render()
-            )
+            ->renderHook(PanelsRenderHook::TOPBAR_START, fn(): string => view('filament.topbar.quick-links')->render())
             ->renderHook(
                 PanelsRenderHook::SIDEBAR_NAV_START,
-                fn (): string => '<style>
+                fn(): string => '<style>
                     /* 🎨 TAILADMIN DESIGN SYSTEM - FONDO BLANCO */
                     :root {
                         --tailadmin-sidebar-bg: #FFFFFF;
@@ -247,39 +215,7 @@ class AdminPanelProvider extends PanelProvider
                     }
 
                     /* 📁 NAVIGATION GROUPS - TAILADMIN STYLE */
-                    .fi-sidebar-group-label {
-                        background: transparent !important;
-                        color: var(--tailadmin-text-muted) !important;
-                        font-size: 0.75rem !important;
-                        font-weight: 500 !important;
-                        text-transform: uppercase !important;
-                        letter-spacing: 0.1em !important;
-                        padding: 0.75rem 1.5rem 0.5rem 1.5rem !important;
-                        margin-bottom: 0.5rem !important;
-                        border: none !important;
-                        border-left: 3px solid var(--tailadmin-accent) !important;
-                        border-radius: 0 !important;
-                    }
 
-                    /* 🎯 NAVIGATION ITEMS - OPTIMIZADO PARA 16REM */
-                    .fi-sidebar-item {
-                        margin: 0.125rem 1.25rem !important;
-                        border-radius: 0.5rem !important;
-                        transition: all 0.3s ease !important;
-                    }
-
-                    .fi-sidebar-item-button {
-                        color: var(--tailadmin-text-muted) !important;
-                        padding: 0.75rem 0.875rem !important;
-                        font-size: 0.875rem !important; /* texto ligeramente mayor para acompañar el ícono */
-                        font-weight: 500 !important;
-                        transition: all 0.3s ease !important;
-                        border-radius: 0.5rem !important;
-                        width: 100% !important;
-                        display: flex !important;
-                        align-items: center !important;
-                        gap: 0.75rem !important; /* más espacio con ícono grande */
-                    }
 
                     /* HOVER STATE */
                     .fi-sidebar-item:hover {
@@ -467,7 +403,9 @@ class AdminPanelProvider extends PanelProvider
 
                                 // Trigger evento para notificar el cambio
                                 window.dispatchEvent(new CustomEvent("sidebar-collapsed", {
-                                    detail: { collapsed: true }
+                                    detail: {
+                                        collapsed: true
+                                    }
                                 }));
                             }
 
@@ -479,19 +417,19 @@ class AdminPanelProvider extends PanelProvider
                     /* 🎨 FUNCIÓN PARA APLICAR COLORES CORPORATIVOS */
                     function applyIconColors() {
                         const colorMap = {
-                            "dashboard": "#2563EB",      // Azul corporativo
-                            "pos-interface": "#059669",   // Verde corporativo
-                            "mapa-mesas": "#059669",      // Verde corporativo
+                            "dashboard": "#2563EB", // Azul corporativo
+                            "pos-interface": "#059669", // Verde corporativo
+                            "mapa-mesas": "#059669", // Verde corporativo
                             "operaciones-caja": "#059669", // Verde corporativo
-                            "reportes": "#D97706",        // Naranja corporativo
-                            "products": "#DC2626",        // Rojo corporativo
+                            "reportes": "#D97706", // Naranja corporativo
+                            "products": "#DC2626", // Rojo corporativo
                             "product-categories": "#DC2626", // Rojo corporativo
-                            "ingredients": "#DC2626",     // Rojo corporativo
-                            "users": "#0891B2",          // Cian corporativo
-                            "shield/roles": "#0891B2",   // Cian corporativo
-                            "configuracion": "#0891B2",  // Cian corporativo
+                            "ingredients": "#DC2626", // Rojo corporativo
+                            "users": "#0891B2", // Cian corporativo
+                            "shield/roles": "#0891B2", // Cian corporativo
+                            "configuracion": "#0891B2", // Cian corporativo
                             "document-series": "#7C3AED", // Púrpura corporativo
-                            "customers": "#7C3AED"       // Púrpura corporativo
+                            "customers": "#7C3AED" // Púrpura corporativo
                         };
 
                         // Aplicar colores a los iconos del sidebar
@@ -514,13 +452,10 @@ class AdminPanelProvider extends PanelProvider
                     /* 🔄 REAPLICA COLORES CUANDO CAMBIA LA NAVEGACIÓN */
                     document.addEventListener("livewire:navigated", applyIconColors);
                     document.addEventListener("turbo:load", applyIconColors);
-                </script>'
+                </script>',
             )
 
-            ->plugins([
-                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
-                \TomatoPHP\FilamentUsers\FilamentUsersPlugin::make()
-            ]);
+            ->plugins([\BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(), \TomatoPHP\FilamentUsers\FilamentUsersPlugin::make()]);
     }
 }
 //comentario
