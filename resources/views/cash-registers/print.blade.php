@@ -50,11 +50,11 @@
         th, td {
             color: #000;
             padding: 8px;
-            border: 1px solid #ccc;
+            border: none;
         }
 
         th {
-            background-color: #f0f0f0;
+            background-color: transparent;
             font-weight: 600;
             text-align: left;
         }
@@ -214,6 +214,11 @@
                 print-color-adjust: exact !important;
                 width: 76mm;
             }
+            
+            /* Eliminar todos los bordes de tablas */
+            .border, .border-b, .border-t, .border-t-2, .border-gray-100, .border-gray-200, .border-gray-300 {
+                border: none !important;
+            }
 
             .container {
                 max-width: 76mm;
@@ -264,7 +269,7 @@
 
             th, td {
                 padding: 0.5mm !important;
-                border: 0.5pt solid #000 !important;
+                border: none !important;
             }
 
             /* Eliminar sombras y bordes redondeados */
@@ -279,7 +284,7 @@
             /* Optimizaciones específicas para sección de órdenes en papel térmico */
             .bg-indigo-50 {
                 background-color: #fff !important;
-                border: 0.5pt solid #000 !important;
+                border: none !important;
             }
             
             .text-indigo-800, .text-indigo-900 {
@@ -296,6 +301,11 @@
                 margin-bottom: 0.25mm !important;
                 line-height: 1.1 !important;
             }
+            
+            /* Eliminar fondos de color */
+            .bg-gray-100, .bg-gray-50, .bg-white, .bg-blue-50, .bg-indigo-50 {
+                background-color: transparent !important;
+            }
         }
 
             .print-hidden {
@@ -307,11 +317,11 @@
             }
 
             .border, .border-t, .border-b {
-                border-color: #000 !important;
+                border: none !important;
             }
 
             th, td {
-                border-color: #000 !important;
+                border: none !important;
                 color: #000 !important;
             }
 
@@ -321,7 +331,7 @@
 
             .bg-green-100, .bg-red-100, .bg-amber-100 {
                 background-color: #fff !important;
-                border: 1px solid #000 !important;
+                border: none !important;
             }
 
             /* Asegurar que todo el contenido sea visible */
@@ -445,51 +455,115 @@
 
             <!-- Resumen de Ventas -->
             <div class="mb-8">
-                <h3 class="text-lg font-semibold mb-4 border-b pb-2 flex items-center">
+                <h3 class="text-lg font-semibold mb-4 pb-2 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-indigo-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                     </svg>
                     Resumen de Ventas
                 </h3>
-                <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
-                    <table class="w-full border-collapse">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
                         <thead>
-                            <tr class="bg-gray-100">
-                                <th class="border-b border-gray-200 p-3 text-left font-semibold">Método de Pago</th>
-                                <th class="border-b border-gray-200 p-3 text-right font-semibold">Total</th>
+                            <tr>
+                                <th class="p-3 text-left font-semibold" style="border: none; background: none;">Método de Pago</th>
+                                <th class="p-3 text-right font-semibold" style="border: none; background: none;">Total Sistema</th>
+                                <th class="p-3 text-right font-semibold" style="border: none; background: none;">Total Manual</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border-b border-gray-200 p-3 flex items-center">
+                            @php
+                                // Calcular totales del sistema
+                                $systemCashSales = $cashRegister->getSystemCashSales();
+                                $systemCardSales = $cashRegister->getSystemCardSales();
+                                $systemYapeSales = $cashRegister->getSystemYapeSales();
+                                $systemPlinSales = $cashRegister->getSystemPlinSales();
+                                
+                                // Incluir Didi y PedidosYa en Otros
+                                $systemDidiSales = $cashRegister->getSystemDidiSales();
+                                $systemPedidosYaSales = $cashRegister->getSystemPedidosYaSales();
+                                $systemOtherSales = $cashRegister->getSystemBankTransferSales() + 
+                                                   $cashRegister->getSystemOtherDigitalWalletSales() +
+                                                   $systemDidiSales + $systemPedidosYaSales;
+                                
+                                // Totales manuales
+                                $manualCash = $cashRegister->calculated_cash_display ?? 0;
+                                $manualCard = $cashRegister->manual_card ?? 0;
+                                $manualYape = $cashRegister->manual_yape ?? 0;
+                                $manualPlin = $cashRegister->manual_plin ?? 0;
+                                $manualDidi = $cashRegister->manual_didi ?? 0;
+                                $manualPedidosYa = $cashRegister->manual_pedidos_ya ?? 0;
+                                $manualOtros = $cashRegister->manual_otros ?? 0 + $manualDidi + $manualPedidosYa;
+                                
+                                // Total general
+                                $totalSystemSales = $systemCashSales + $systemCardSales + $systemYapeSales + $systemPlinSales + $systemOtherSales;
+                                $totalManualSales = $manualCash + $manualCard + $manualYape + $manualPlin + $manualOtros;
+                            @endphp
+                            
+                            <!-- Efectivo -->
+                            <tr>
+                                <td class="p-3 flex items-center" style="border: none;">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2z" />
                                     </svg>
                                     Efectivo
                                 </td>
-                                <td class="border-b border-gray-200 p-3 text-right font-semibold">S/ {{ number_format($cashRegister->cash_sales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($systemCashSales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($manualCash, 2) }}</td>
                             </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border-b border-gray-200 p-3 flex items-center">
+                            
+                            <!-- Tarjeta -->
+                            <tr>
+                                <td class="p-3 flex items-center" style="border: none;">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                                     </svg>
                                     Tarjeta
                                 </td>
-                                <td class="border-b border-gray-200 p-3 text-right font-semibold">S/ {{ number_format($cashRegister->card_sales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($systemCardSales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($manualCard, 2) }}</td>
                             </tr>
-                            <tr class="hover:bg-gray-50">
-                                <td class="border-b border-gray-200 p-3 flex items-center">
+                            
+                            <!-- Yape -->
+                            <tr>
+                                <td class="p-3 flex items-center" style="border: none;">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    Yape
+                                </td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($systemYapeSales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($manualYape, 2) }}</td>
+                            </tr>
+                            
+                            <!-- Plin -->
+                            <tr>
+                                <td class="p-3 flex items-center" style="border: none;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                    </svg>
+                                    Plin
+                                </td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($systemPlinSales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($manualPlin, 2) }}</td>
+                            </tr>
+                            
+                            <!-- Otros (incluyendo Didi y PedidosYa) -->
+                            <tr>
+                                <td class="p-3 flex items-center" style="border: none;">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
                                     </svg>
                                     Otros
                                 </td>
-                                <td class="border-b border-gray-200 p-3 text-right font-semibold">S/ {{ number_format($cashRegister->other_sales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($systemOtherSales, 2) }}</td>
+                                <td class="p-3 text-right font-semibold" style="border: none;">S/ {{ number_format($manualOtros, 2) }}</td>
                             </tr>
-                            <tr class="bg-gray-50">
-                                <td class="p-3 font-bold">TOTAL</td>
-                                <td class="p-3 text-right font-bold">S/ {{ number_format($cashRegister->total_sales, 2) }}</td>
+                            
+                            <!-- TOTAL -->
+                            <tr>
+                                <td class="p-3 font-bold" style="border: none;">TOTAL</td>
+                                <td class="p-3 text-right font-bold" style="border: none;">S/ {{ number_format($totalSystemSales, 2) }}</td>
+                                <td class="p-3 text-right font-bold" style="border: none;">S/ {{ number_format($totalManualSales, 2) }}</td>
                             </tr>
                         </tbody>
                     </table>
