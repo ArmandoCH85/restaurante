@@ -52,13 +52,14 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('images/logoWayna.svg'))
             ->brandLogoHeight('4rem')
             ->colors([
-                'primary' => Color::Blue,
-                'gray' => Color::Slate,
+                'primary' => Color::Indigo, // Profesional / principal
+                'info'    => Color::Cyan,   // Info/accent secundario
                 'success' => Color::Emerald,
                 'warning' => Color::Amber,
-                'danger' => Color::Red,
+                'danger'  => Color::Rose,
+                'gray'    => Color::Gray,
             ])
-            ->font('Inter')
+            ->font('Manrope') // Fuente profesional moderna
             ->darkMode()
             ->globalSearch(false)
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
@@ -110,7 +111,11 @@ class AdminPanelProvider extends PanelProvider
             // Render Hooks para personalización del login POS
             ->renderHook(
                 PanelsRenderHook::HEAD_END,
-                fn (): string => '<link rel="stylesheet" href="' . asset('css/login-daisyui-compiled.css') . '">'
+                fn (): string => '<link rel="preconnect" href="https://fonts.googleapis.com">'
+                    . '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+                    . '<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">'
+                    . '<link rel="stylesheet" href="' . asset('css/login-daisyui-compiled.css') . '">'
+                    . '<style id="admin-panel-typography-scale">.fi-body{font-size:17.5px;line-height:1.55;font-weight:400;font-family:"Manrope",Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}</style>'
             )
             ->renderHook(
                 PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
