@@ -121,11 +121,10 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\TextInput::make('bill_10')
                                                     ->label('S/10')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                                    (floatval($get('bill_100') ?? 0)) * 100 +
@@ -139,14 +138,23 @@ class CashRegisterResource extends Resource
                                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
                                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
                                                     }),
                                                 Forms\Components\TextInput::make('bill_20')
                                                     ->label('S/20')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                                    (floatval($get('bill_100') ?? 0)) * 100 +
@@ -160,28 +168,107 @@ class CashRegisterResource extends Resource
                                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
                                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
                                                     }),
                                                 Forms\Components\TextInput::make('bill_50')
                                                     ->label('S/50')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($state ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                                 Forms\Components\TextInput::make('bill_100')
                                                     ->label('S/100')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($state ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                                 Forms\Components\TextInput::make('bill_200')
                                                     ->label('S/200')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($state ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                             ]),
                                     ]),
                                 Forms\Components\Section::make('Monedas')
@@ -190,46 +277,184 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\TextInput::make('coin_010')
                                                     ->label('S/0.10')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($state ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                                 Forms\Components\TextInput::make('coin_020')
                                                     ->label('S/0.20')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($state ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                                 Forms\Components\TextInput::make('coin_050')
                                                     ->label('S/0.50')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($state ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                                 Forms\Components\TextInput::make('coin_1')
                                                     ->label('S/1')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($state ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                                 Forms\Components\TextInput::make('coin_2')
                                                     ->label('S/2')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
+                                                                   (floatval($state ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                                 Forms\Components\TextInput::make('coin_5')
                                                     ->label('S/5')
-                                                    ->numeric()
+                                                    ->inputMode('decimal')
                                                     ->default(0)
-                                                    ->minValue(0)
+                                                    ->rules(['required', 'numeric', 'min:0'])
                                                     ->required()
-                                                    ->live(),
+                                                    ->afterStateUpdated(function ($set, $get, $state) {
+                                                        $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
+                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
+                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
+                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
+                                                                   (floatval($state ?? 0)) * 5 +
+                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
+                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
+                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                        $set('calculated_cash_display', $efectivo);
+                                                        
+                                                        // También actualizar el total manual
+                                                        $otros = (floatval($get('manual_yape') ?? 0)) +
+                                                                (floatval($get('manual_plin') ?? 0)) +
+                                                                (floatval($get('manual_card') ?? 0)) +
+                                                                (floatval($get('manual_didi') ?? 0)) +
+                                                                (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                                (floatval($get('manual_otros') ?? 0));
+                                                        $total = $efectivo + $otros;
+                                                        $set('calculated_total_manual', $total);
+                                                    }),
                                             ]),
                                     ]),
                             ]),
@@ -238,6 +463,41 @@ class CashRegisterResource extends Resource
                             ->label('Observaciones de Cierre')
                             ->placeholder('Observaciones sobre el cierre de caja')
                             ->columnSpan('full'),
+                            
+                        Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('calcular_totales')
+                                ->label('🔄 Calcular Totales')
+                                ->color('primary')
+                                ->button()
+                                ->action(function ($set, $get) {
+                                    // Calcular efectivo
+                                    $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                               (floatval($get('bill_100') ?? 0)) * 100 +
+                                               (floatval($get('bill_50') ?? 0)) * 50 +
+                                               (floatval($get('bill_20') ?? 0)) * 20 +
+                                               (floatval($get('bill_10') ?? 0)) * 10 +
+                                               (floatval($get('coin_5') ?? 0)) * 5 +
+                                               (floatval($get('coin_2') ?? 0)) * 2 +
+                                               (floatval($get('coin_1') ?? 0)) * 1 +
+                                               (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                               (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                               (floatval($get('coin_010') ?? 0)) * 0.1;
+                                    
+                                    $set('calculated_cash_display', $efectivo);
+                                    
+                                    // Calcular otros métodos
+                                    $otros = (floatval($get('manual_yape') ?? 0)) +
+                                            (floatval($get('manual_plin') ?? 0)) +
+                                            (floatval($get('manual_card') ?? 0)) +
+                                            (floatval($get('manual_didi') ?? 0)) +
+                                            (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                            (floatval($get('manual_otros') ?? 0));
+                                    
+                                    // Calcular total manual
+                                    $total = $efectivo + $otros;
+                                    $set('calculated_total_manual', $total);
+                                }),
+                        ])->columnSpan('full'),
                     ])
                     ->visible(fn ($record) => $record && $record->is_active),
 
@@ -266,7 +526,8 @@ class CashRegisterResource extends Resource
                                             ->label('👥 Manual: Efectivo')
                                             ->disabled()
                                             ->prefix('S/')
-                                            ->default(function ($record, $get) {
+                                            ->lazy()
+                                            ->default(function ($get) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                            (floatval($get('bill_100') ?? 0)) * 100 +
                                                            (floatval($get('bill_50') ?? 0)) * 50 +
@@ -278,10 +539,8 @@ class CashRegisterResource extends Resource
                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                return $efectivo;
+                                                return number_format($efectivo, 2);
                                             })
-                                            ->formatStateUsing(fn ($state) => number_format(floatval($state ?? 0), 2))
-                                            ->reactive()
                                             ->helperText('Billetes y monedas contados manualmente'),
                                     ])
                                     ->columnSpan('full'),
@@ -304,15 +563,13 @@ class CashRegisterResource extends Resource
                                             ->helperText('Ventas Yape registradas en el sistema'),
                                         Forms\Components\TextInput::make('manual_yape')
                                             ->label('👥 Manual: Yape')
-                                            ->numeric()
+                                            ->inputMode('decimal')
                                             ->default(0)
-                                            ->minValue(0)
-                                            ->step(0.01)
+                                            ->rules(['required', 'numeric', 'min:0'])
                                             ->prefix('S/')
                                             ->placeholder('0.00')
                                             ->helperText('Yape contado manualmente')
                                             ->required()
-                                            ->live()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 // Calcular efectivo
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
@@ -358,15 +615,13 @@ class CashRegisterResource extends Resource
                                             ->helperText('Ventas Plin registradas en el sistema'),
                                         Forms\Components\TextInput::make('manual_plin')
                                             ->label('👥 Manual: Plin')
-                                            ->numeric()
+                                            ->inputMode('decimal')
                                             ->default(0)
-                                            ->minValue(0)
-                                            ->step(0.01)
+                                            ->rules(['required', 'numeric', 'min:0'])
                                             ->prefix('S/')
                                             ->placeholder('0.00')
                                             ->helperText('Plin contado manualmente')
                                             ->required()
-                                            ->live()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 // Calcular efectivo
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
@@ -412,15 +667,13 @@ class CashRegisterResource extends Resource
                                             ->helperText('Ventas con tarjeta registradas en el sistema'),
                                         Forms\Components\TextInput::make('manual_card')
                                             ->label('👥 Manual: Tarjetas')
-                                            ->numeric()
+                                            ->inputMode('decimal')
                                             ->default(0)
-                                            ->minValue(0)
-                                            ->step(0.01)
+                                            ->rules(['required', 'numeric', 'min:0'])
                                             ->prefix('S/')
                                             ->placeholder('0.00')
                                             ->helperText('Tarjetas contadas manualmente')
                                             ->required()
-                                            ->live()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 // Calcular efectivo
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
@@ -466,15 +719,13 @@ class CashRegisterResource extends Resource
                                             ->helperText('Ventas Didi registradas en el sistema'),
                                         Forms\Components\TextInput::make('manual_didi')
                                             ->label('👥 Manual: Didi')
-                                            ->numeric()
+                                            ->inputMode('decimal')
                                             ->default(0)
-                                            ->minValue(0)
-                                            ->step(0.01)
+                                            ->rules(['required', 'numeric', 'min:0'])
                                             ->prefix('S/')
                                             ->placeholder('0.00')
                                             ->helperText('Didi contado manualmente')
                                             ->required()
-                                            ->live()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                            (floatval($get('bill_100') ?? 0)) * 100 +
@@ -513,15 +764,13 @@ class CashRegisterResource extends Resource
                                             ->helperText('Ventas PedidosYa registradas en el sistema'),
                                         Forms\Components\TextInput::make('manual_pedidos_ya')
                                             ->label('👥 Manual: PedidosYa')
-                                            ->numeric()
+                                            ->inputMode('decimal')
                                             ->default(0)
-                                            ->minValue(0)
-                                            ->step(0.01)
+                                            ->rules(['required', 'numeric', 'min:0'])
                                             ->prefix('S/')
                                             ->placeholder('0.00')
                                             ->helperText('PedidosYa contado manualmente')
                                             ->required()
-                                            ->live()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                            (floatval($get('bill_100') ?? 0)) * 100 +
@@ -561,15 +810,13 @@ class CashRegisterResource extends Resource
                                             ->helperText('Otros métodos registrados en el sistema'),
                                         Forms\Components\TextInput::make('manual_otros')
                                             ->label('👥 Manual: Otros')
-                                            ->numeric()
+                                            ->inputMode('decimal')
                                             ->default(0)
-                                            ->minValue(0)
-                                            ->step(0.01)
+                                            ->rules(['required', 'numeric', 'min:0'])
                                             ->prefix('S/')
                                             ->placeholder('0.00')
                                             ->helperText('Otros métodos contados manualmente')
                                             ->required()
-                                            ->live()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                            (floatval($get('bill_100') ?? 0)) * 100 +
@@ -623,7 +870,9 @@ class CashRegisterResource extends Resource
                                             ->label('👥 TOTAL MANUAL')
                                             ->disabled()
                                             ->prefix('S/')
-                                            ->default(function ($record, $get) {
+                                            ->lazy()
+                                            ->default(function ($get) {
+                                                // 👥 Manual: Efectivo (billetes y monedas)
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
                                                            (floatval($get('bill_100') ?? 0)) * 100 +
                                                            (floatval($get('bill_50') ?? 0)) * 50 +
@@ -636,18 +885,18 @@ class CashRegisterResource extends Resource
                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                 
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                        (floatval($get('manual_plin') ?? 0)) +
-                                                        (floatval($get('manual_card') ?? 0)) +
-                                                        (floatval($get('manual_didi') ?? 0)) +
-                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                        (floatval($get('manual_otros') ?? 0));
+                                                // Métodos de pago digitales manuales
+                                                $yape = floatval($get('manual_yape') ?? 0);
+                                                $plin = floatval($get('manual_plin') ?? 0);
+                                                $tarjetas = floatval($get('manual_card') ?? 0);
+                                                $didi = floatval($get('manual_didi') ?? 0);
+                                                $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
+                                                $otros = floatval($get('manual_otros') ?? 0);
                                                 
-                                                $total = $efectivo + $otros;
-                                                return $total;
+                                                // TOTAL MANUAL = Efectivo + Yape + Plin + Tarjetas + Didi + PedidosYa + Otros
+                                                $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya + $otros;
+                                                return number_format($total, 2);
                                             })
-                                            ->formatStateUsing(fn ($state) => number_format(floatval($state ?? 0), 2))
-                                            ->reactive()
                                             ->helperText('Total de todo lo contado manualmente')
                                             ->extraAttributes(['class' => 'font-bold text-lg text-green-600']),
                                     ])
