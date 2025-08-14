@@ -18,8 +18,8 @@
             body {
                 margin: 0;
                 padding: 3mm;
-                font-size: 11px;
-                line-height: 1.2;
+                font-size: 17px;
+                line-height: 1.3;
             }
         }
 
@@ -32,39 +32,39 @@
 
             body {
                 padding: 2mm;
-                font-size: 10px;
+                font-size: 16px;
             }
 
             .company h1 {
-                font-size: 13px;
+                font-size: 19px;
             }
 
             .company p {
-                font-size: 9px;
+                font-size: 15px;
             }
 
             .document-title h2 {
-                font-size: 12px;
+                font-size: 18px;
             }
 
             .document-number {
-                font-size: 13px;
+                font-size: 19px;
             }
 
             th, td {
                 padding: 2px 1px;
-                font-size: 8px;
+                font-size: 14px;
             }
 
             .info-row, .total-row {
-                font-size: 9px;
+                font-size: 15px;
             }
         }
 
         body {
             font-family: 'Arial', sans-serif;
-            font-size: 12px;
-            line-height: 1.4;
+            font-size: 18px;
+            line-height: 1.5;
             color: #333;
             max-width: 80mm;
             margin: 0 auto;
@@ -77,15 +77,15 @@
         }
 
         .company h1 {
-            font-size: 14px;
+            font-size: 20px;
             font-weight: bold;
             margin: 3px 0;
             line-height: 1.1;
         }
-
+        
         .company p {
             margin: 1px 0;
-            font-size: 10px;
+            font-size: 16px;
             line-height: 1.1;
         }
 
@@ -98,13 +98,14 @@
         }
 
         .document-title h2 {
-            font-size: 14px;
+            font-size: 20px;
             margin: 0;
             padding: 0;
+            text-transform: uppercase;
         }
 
         .document-number {
-            font-size: 16px;
+            font-size: 22px;
             font-weight: bold;
             margin-top: 5px;
         }
@@ -119,6 +120,7 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
+            font-size: 17px;
         }
 
         .label {
@@ -134,6 +136,7 @@
         th, td {
             text-align: left;
             padding: 3px 2px;
+            font-size: 17px;
         }
 
         th {
@@ -159,11 +162,12 @@
             display: flex;
             justify-content: space-between;
             margin: 5px 0;
+            font-size: 17px;
         }
 
         .grand-total {
             font-weight: bold;
-            font-size: 14px;
+            font-size: 20px;
             margin-top: 5px;
             border-top: 1px solid #000;
             padding-top: 5px;
@@ -172,7 +176,7 @@
         .footer {
             margin-top: 20px;
             text-align: center;
-            font-size: 11px;
+            font-size: 17px;
             border-top: 1px dashed #000;
             padding-top: 10px;
         }
@@ -373,13 +377,13 @@
     <!-- DETALLES DEL PEDIDO (PRIMERO) -->
     <div style="border-top: 1px dashed #000; margin: 8px 0; padding-top: 5px;">
         @foreach($invoice->details as $detail)
-            <div style="margin-bottom: 4px; font-size: 11px;">
+            <div style="margin-bottom: 4px; font-size: 13px;">
                 <div style="display: flex; justify-content: space-between;">
                     <span style="font-weight: bold;">{{ $detail->quantity }} x {{ $detail->description }}</span>
                     <span>{{ number_format($detail->subtotal, 2) }}</span>
                 </div>
                 @if($detail->unit_price != $detail->subtotal / $detail->quantity)
-                    <div style="font-size: 9px; color: #666; margin-left: 10px;">
+                    <div style="font-size: 11px; color: #666; margin-left: 10px;">
                         @ S/ {{ number_format($detail->unit_price, 2) }} c/u
                     </div>
                 @endif
@@ -459,7 +463,7 @@
 
     <div class="footer">
         Gracias por su preferencia
-        <div style="margin-top: 4px; font-size: 8px; font-style: italic;">
+        <div style="margin-top: 4px; font-size: 14px; font-style: italic;">
             * Precios incluyen IGV
         </div>
     </div>

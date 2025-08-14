@@ -11,9 +11,9 @@
         }
         body {
             font-family: 'Arial', sans-serif;
-            font-size: 8px;
+            font-size: 14px;
             color: #000 !important;
-            line-height: 1.0;
+            line-height: 1.4;
             width: 70mm;
             max-width: 70mm;
             margin: 0;
@@ -44,19 +44,19 @@
         
         .header h1 {
             margin: 0 0 3px 0;
-            font-size: 11px;
+            font-size: 18px;
             font-weight: bold;
             text-transform: uppercase;
         }
         
         .header p {
             margin: 1px 0;
-            font-size: 8px;
+            font-size: 14px;
         }
         
         .footer p {
             margin: 1px 0;
-            font-size: 7px;
+            font-size: 13px;
         }
         
         hr {
@@ -73,47 +73,48 @@
         }
         
         .info-table td {
-            padding: 0.5px 0;
-            font-size: 8px;
+            padding: 1px 0;
+            font-size: 14px;
             vertical-align: top;
         }
         
         .info-table td:first-child {
             width: 30%;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 13px;
         }
         
         .info-table td:last-child {
-            font-size: 7px;
+            font-size: 13px;
             word-break: break-word;
         }
         
         .items-table th {
-            padding: 1px 0;
-            font-size: 7px;
+            padding: 2px 0;
+            font-size: 13px;
             font-weight: bold;
             border-bottom: 1px solid #000;
         }
         
         .items-table td {
-            padding: 1px 0;
-            font-size: 8px;
+            padding: 2px 0;
+            font-size: 12px;
             vertical-align: top;
             word-wrap: break-word;
+            text-align: center;
         }
         
         .col-qty { 
-            width: 15%; 
+            width: 10%; 
             text-align: center;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 14px;
         }
         
         .col-desc { 
-            width: 60%; 
+            width: 65%; 
             word-break: break-word;
-            font-size: 7px;
+            font-size: 14px;
             padding-right: 2px;
         }
         
@@ -121,7 +122,7 @@
             width: 25%; 
             text-align: right;
             font-weight: bold;
-            font-size: 7px;
+            font-size: 14px;
         }
         
         .totals {
@@ -135,19 +136,19 @@
         }
         
         .totals .row .col-label {
-            font-size: 8px;
+            font-size: 14px;
             font-weight: bold;
         }
         
         .totals .row .col-value {
-            font-size: 8px;
+            font-size: 14px;
             font-weight: bold;
             text-align: right;
         }
         
         .totals .total-final .col-label, 
         .totals .total-final .col-value {
-            font-size: 10px;
+            font-size: 16px;
             font-weight: bold;
             border-top: 1px solid #000;
             padding-top: 2px;
@@ -155,7 +156,7 @@
         
         .payment-info {
             text-align: center;
-            font-size: 7px;
+            font-size: 13px;
             margin: 3px 0;
         }
         
