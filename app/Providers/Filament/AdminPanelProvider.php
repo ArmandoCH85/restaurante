@@ -217,6 +217,17 @@ class AdminPanelProvider extends PanelProvider
                     /* 📁 NAVIGATION GROUPS - TAILADMIN STYLE */
 
 
+ .fi-sidebar-group-label {
+                        background: var(--group-bg) !important;
+                        color: #2563EB !important;
+                        font-size: 0.9rem !important;
+                        font-weight: 600 !important;
+                        text-transform: uppercase !important;
+
+                    }
+
+
+
                     /* HOVER STATE */
                     .fi-sidebar-item:hover {
                         background: var(--tailadmin-sidebar-hover) !important;
