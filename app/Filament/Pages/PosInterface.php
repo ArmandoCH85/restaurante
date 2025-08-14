@@ -1011,13 +1011,13 @@ class PosInterface extends Page
                                 $temperature = 'HELADA';
                             } elseif (strpos($detail->notes, 'AL TIEMPO') !== false) {
                                 $temperature = 'AL TIEMPO';
+                            } elseif (strpos($detail->notes, 'FRESCA') !== false) {
+                                $temperature = 'FRESCA';
                             }
                         }
 
-                        // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
-                        if ($isColdDrink && !$temperature) {
-                            $temperature = 'HELADA';
-                        }
+                        // Sin temperatura por defecto si no está especificada
+                        // $temperature mantiene su valor (null si no se encontró en las notas)
 
                         // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                         if ($isGrillItem && $detail->notes) {
@@ -1116,13 +1116,13 @@ class PosInterface extends Page
                                 $temperature = 'HELADA';
                             } elseif (strpos($detail->notes, 'AL TIEMPO') !== false) {
                                 $temperature = 'AL TIEMPO';
+                            } elseif (strpos($detail->notes, 'FRESCA') !== false) {
+                                $temperature = 'FRESCA';
                             }
                         }
 
-                        // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
-                        if ($isColdDrink && !$temperature) {
-                            $temperature = 'HELADA';
-                        }
+                        // Sin temperatura por defecto si no está especificada
+                        // $temperature mantiene su valor (null si no se encontró en las notas)
 
                         // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                         if ($isGrillItem && $detail->notes) {
@@ -1318,7 +1318,7 @@ class PosInterface extends Page
                 'quantity' => 1,
                 'unit_price' => $product->sale_price,
                 'notes' => '',
-                'temperature' => $isColdDrink ? 'HELADA' : null, // Por defecto HELADA para bebidas
+                'temperature' => null, // Sin temperatura por defecto
                 'is_cold_drink' => $isColdDrink,
                 'is_grill_item' => $isGrillItem,
                 'cooking_point' => $isGrillItem ? 'MEDIO' : null, // Por defecto MEDIO para parrillas
@@ -1498,7 +1498,7 @@ class PosInterface extends Page
                     foreach ($this->cartItems as $item) {
                         $notes = $item['notes'] ?? '';
 
-                        // Agregar información de bebida helada/al tiempo si corresponde
+                        // Agregar información de temperatura solo si se seleccionó una opción
                         if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
                             $temperatureNote = $item['temperature'];
                             $notes = trim($notes . ' ' . $temperatureNote);
@@ -1607,7 +1607,7 @@ class PosInterface extends Page
                     foreach ($this->cartItems as $item) {
                         $notes = $item['notes'] ?? '';
 
-                        // Agregar información de bebida helada/al tiempo si corresponde
+                        // Agregar información de temperatura solo si se seleccionó una opción
                         if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
                             $temperatureNote = $item['temperature'];
                             $notes = trim($notes . ' ' . $temperatureNote);
@@ -1736,9 +1736,8 @@ class PosInterface extends Page
             foreach ($items as $item) {
                 $notes = $item['notes'] ?? '';
 
-                // Agregar información de bebida helada/al tiempo si corresponde
+                // Agregar información de temperatura solo si se seleccionó una opción
                 if (($item['is_cold_drink'] ?? false) === true && !empty($item['temperature'])) {
-                    // Asegurarse de que la temperatura esté en mayúsculas y destacada
                     $temperatureNote = $item['temperature'];
                     $notes = trim($notes . ' ' . $temperatureNote);
                 }
@@ -2072,10 +2071,8 @@ class PosInterface extends Page
                     }
                 }
 
-                // Si es bebida pero no tiene temperatura especificada, por defecto HELADA
-                if ($isColdDrink && !$temperature) {
-                    $temperature = 'HELADA';
-                }
+                // Sin temperatura por defecto si no está especificada
+                // $temperature mantiene su valor (null si no se encontró en las notas)
 
                 // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                 if ($isGrillItem && $detail->notes) {

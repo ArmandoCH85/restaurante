@@ -357,7 +357,7 @@
                 </div>
                 <h1 class="text-3xl font-bold mb-2">CIERRE DE CAJA</h1>
                 <h2 class="text-xl font-semibold mb-3">#{{ $cashRegister->id }}</h2>
-                <p class="font-medium">{{ config('app.name') }}</p>
+                <p class="font-medium">{{ \App\Models\CompanyConfig::getNombreComercial() ?: 'RESTAURANTE' }}</p>
                 <p class="text-sm mt-2">{{ $printDate }}</p>
             </div>
 
