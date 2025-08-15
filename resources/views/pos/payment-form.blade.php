@@ -186,7 +186,7 @@
 
                         <div class="mb-3">
                             <label for="amount" class="form-label">Monto</label>
-                            <input type="number" step="0.01" min="0.01" max="{{ $remainingBalance }}" class="form-control" id="amount" name="amount" value="{{ $remainingBalance }}" required>
+                            <input type="number" step="0.01" min="0.01" max="{{ $remainingBalance }}" class="form-control" id="amount" name="amount" value="{{ old('amount', is_numeric($remainingBalance) ? number_format($remainingBalance, 2, '.', '') : '0.00') }}" required>
                         </div>
 
                         <div class="mb-3">

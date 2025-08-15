@@ -729,7 +729,7 @@ class Order extends Model
      */
     public function isFullyPaid(): bool
     {
-        return $this->getRemainingBalance() <= 0;
+        return abs($this->getRemainingBalance()) < 0.01;
     }
 
     /**
