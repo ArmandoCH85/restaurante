@@ -2139,521 +2139,135 @@ class PosInterface extends Page
             ->modal()
             ->modalWidth('5xl')
             ->modalAlignment('center')
-            ->extraModalWindowAttributes(['style' => 'max-height: 80vh; overflow-y: auto; max-width: 1100px; width: 1100px;'])
-            ->visible(fn() => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
-
-            // 🚀 HOOK ANTES DE MOSTRAR MODAL - LIMPIAR Y CREAR ORDEN SI NO EXISTE
+            ->modalHeading('💳 Procesar Pago de Orden')
+            ->modalDescription('Revisa totales, métodos y datos del cliente antes de confirmar.')
+            ->modalSubmitActionLabel('💳 Pagar e Imprimir')
+            ->extraModalWindowAttributes(['style' => 'max-height:80vh;overflow-y:auto;max-width:1180px;width:1180px;background:#f8fafc;border:1px solid #e2e8f0;padding:0.75rem;box-shadow:0 4px 18px -2px rgba(0,0,0,0.15);border-radius:0.9rem;'])
+            ->visible(fn() => Auth::user()->hasRole(['cashier','admin','super_admin']))
             ->before(function () {
-                // Verificar caja abierta antes de cualquier preparación
                 if (!CashRegister::hasOpenRegister()) {
                     $this->hasOpenCashRegister = false;
-                    Notification::make()
-                        ->title('Caja no abierta')
-                        ->body('Abra una caja para procesar pagos.')
-                        ->danger()
-                        ->persistent()
-                        ->send();
+                    Notification::make()->title('Caja no abierta')->body('Abra una caja para procesar pagos.')->danger()->persistent()->send();
                     throw new Halt();
                 }
-
-                // PASO 1: Limpiar órdenes abandonadas del usuario actual
                 $this->cleanUserAbandonedOrders();
-
-                // PASO 2: Crear orden si es necesario
                 if (!$this->order && !empty($this->cartItems)) {
-                    Log::info('🔄 Auto-creando orden desde carrito para pago', [
-                        'cart_items_count' => count($this->cartItems),
-                        'selected_customer_id' => $this->selectedCustomerId,
-                        'has_original_customer_data' => !empty($this->originalCustomerData),
-                        'service_type' => $this->originalCustomerData['service_type'] ?? 'dine_in'
-                    ]);
-
                     try {
-                        // Obtener cliente desde datos de delivery o selección
-                        $customer = null;
-                        if ($this->selectedCustomerId) {
-                            $customer = Customer::find($this->selectedCustomerId);
-                            Log::info('👤 Cliente encontrado para orden', [
-                                'customer_id' => $customer->id,
-                                'customer_name' => $customer->name
-                            ]);
-                        }
-
-                        // Crear orden usando método existente
+                        $customer = $this->selectedCustomerId ? Customer::find($this->selectedCustomerId) : null;
                         $this->order = $this->createOrderFromCart($customer);
-
-                        // Configurar service_type si es delivery
                         if ($this->originalCustomerData && ($this->originalCustomerData['service_type'] ?? '') === 'delivery') {
-                            $this->order->update([
-                                'service_type' => 'delivery',
-                                'table_id' => null // Delivery no usa mesa
-                            ]);
-
-                            Log::info('🚚 Orden configurada como delivery', [
-                                'order_id' => $this->order->id,
-                                'service_type' => 'delivery'
-                            ]);
+                            $this->order->update(['service_type' => 'delivery','table_id' => null]);
                         }
-
-                        Log::info('✅ Orden creada exitosamente para pago', [
-                            'order_id' => $this->order->id,
-                            'customer_id' => $this->order->customer_id,
-                            'service_type' => $this->order->service_type,
-                            'total' => $this->order->total,
-                            'items_count' => $this->order->orderDetails()->count()
-                        ]);
-
-                        Notification::make()
-                            ->title('📋 Orden Preparada')
-                            ->body("Orden #{$this->order->id} creada automáticamente para procesar pago")
-                            ->success()
-                            ->duration(3000)
-                            ->send();
-
+                        Notification::make()->title('📋 Orden Preparada')->body("Orden #{$this->order->id} lista para pago")->success()->duration(3000)->send();
                     } catch (\Exception $e) {
-                        Log::error('❌ Error auto-creando orden para pago', [
-                            'error_message' => $e->getMessage(),
-                            'error_file' => $e->getFile(),
-                            'error_line' => $e->getLine(),
-                            'cart_items' => $this->cartItems,
-                            'selected_customer_id' => $this->selectedCustomerId
-                        ]);
-
-                        Notification::make()
-                            ->title('❌ Error al Preparar Orden')
-                            ->body('No se pudo crear la orden: ' . $e->getMessage())
-                            ->danger()
-                            ->persistent()
-                            ->send();
-
+                        Log::error('❌ Error auto-creando orden para pago', ['error' => $e->getMessage()]);
+                        Notification::make()->title('❌ Error')->body('No se pudo preparar la orden: '.$e->getMessage())->danger()->persistent()->send();
                         throw $e;
-                    }
-                } else {
-                    // Log para debugging cuando ya hay orden
-                    if ($this->order) {
-                        Log::info('ℹ️ Orden ya existe, usando orden existente', [
-                            'order_id' => $this->order->id,
-                            'order_status' => $this->order->status
-                        ]);
-                    } else {
-                        Log::warning('⚠️ No hay orden ni items en carrito', [
-                            'has_order' => !empty($this->order),
-                            'cart_items_count' => count($this->cartItems)
-                        ]);
                     }
                 }
             })
-
             ->form(function () {
+                $card = 'bg-white/95 backdrop-blur-sm rounded-lg border border-gray-200 shadow-sm ring-1 ring-white/40';
+                $innerPad = 'p-4';
                 return [
-                    // RESUMEN COMPACTO DEL TOTAL
-                    Forms\Components\Placeholder::make('payment_summary')
-                        ->label('Total a Pagar')
-                        ->content(function () {
-                            return new \Illuminate\Support\HtmlString(
-                                '<div class="text-center p-3 bg-green-50 border border-green-200 rounded">' .
-                                '<span class="text-xl font-bold text-green-700">S/ ' . number_format($this->total, 2) . '</span>' .
-                                '<div class="text-xs text-green-600">(IGV incluido)</div>' .
-                                '</div>'
-                            );
-                        }),
-
-                    // TOGGLE PARA PAGO DIVIDIDO
-                    Forms\Components\Toggle::make('split_payment')
-                        ->label('💰 Dividir Pago')
-                        ->helperText('Activar para pagar con múltiples métodos')
-                        ->live()
-                        ->default(false),
-
-                    // PAGO SIMPLE (CUANDO NO ESTÁ DIVIDIDO)
-                    Forms\Components\Section::make('Método de Pago')
-                        ->compact()
-                        ->visible(fn(Get $get) => !$get('split_payment'))
+                    Forms\Components\Grid::make(12)
+                        ->extraAttributes(['class' => 'fi-pos-billing-grid gap-4'])
                         ->schema([
-                            Forms\Components\Grid::make(3)->schema([
-                                Forms\Components\Select::make('payment_method')
-                                    ->label('Método')
-                                    ->options([
-                                        'cash' => '💵 Efectivo',
-                                        'card' => '💳 Tarjeta',
-                                        'yape' => '📱 Yape',
-                                        'plin' => '💙 Plin',
-                                        'pedidos_ya' => '🛵 Pedidos Ya',
-                                        'didi_food' => '🚗 Didi Food',
-                                    ])
-                                    ->default('cash')
-                                    ->live()
-                                    ->columnSpan(1),
-
-                                Forms\Components\TextInput::make('payment_amount')
-                                    ->label('Monto Recibido')
-                                    ->numeric()
-                                    ->prefix('S/')
-                                    ->live()
-                                    ->default($this->total)
-                                    ->step(0.01)
-                                    ->inputMode('decimal')
-                                    ->extraInputAttributes(['step' => '0.01', 'pattern' => '[0-9]*\.?[0-9]{0,2}'])
-                                    ->rule('regex:/^\d+(\.\d{1,2})?$/')
-                                    // Validación UI: si es efectivo, exigir al menos el total
-                                    ->minValue(fn(Get $get) => $get('payment_method') === 'cash' ? $this->total : 0.01)
-                                    ->rule(fn(Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
-                                        if ($get('payment_method') === 'cash') {
-                                            $val = (float) $value;
-                                            $total = (float) $this->total;
-                                            if ($val + 1e-6 < $total) {
-                                                $fail('El monto recibido debe ser mayor o igual al total a pagar.');
-                                            }
-                                        }
-                                    })
-                                    ->columnSpan(1),
-
-                                Forms\Components\Placeholder::make('change_display')
-                                    ->label('Vuelto')
-                                    ->content(function (Get $get) {
-                                        $amount = (float) ($get('payment_amount') ?? 0);
-                                        $change = $amount - $this->total;
-
-                                        if ($change > 0) {
-                                            return new \Illuminate\Support\HtmlString(
-                                                "<div class='p-1 bg-green-50 border border-green-200 rounded text-center'>" .
-                                                "<span class='text-green-700 font-bold text-sm'>S/ " . number_format($change, 2) . "</span>" .
-                                                "</div>"
-                                            );
-                                        } elseif ($change < 0) {
-                                            return new \Illuminate\Support\HtmlString(
-                                                "<div class='p-1 bg-red-50 border border-red-200 rounded text-center'>" .
-                                                "<span class='text-red-700 font-bold text-sm'>Falta: S/ " . number_format(abs($change), 2) . "</span>" .
-                                                "</div>"
-                                            );
-                                        } else {
-                                            return new \Illuminate\Support\HtmlString(
-                                                "<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'>" .
-                                                "<span class='text-blue-700 font-bold text-sm'>Exacto ✓</span>" .
-                                                "</div>"
-                                            );
-                                        }
-                                    })
-                                    ->live()
-                                    ->visible(fn(Get $get) => $get('payment_method') === 'cash')
-                                    ->columnSpan(1),
-                            ]),
-
-                            // Campo de voucher para pagos con tarjeta
-                            Forms\Components\TextInput::make('voucher_code')
-                                ->label('🎫 Código de Voucher')
-                                ->placeholder('Ingrese el código del voucher de la transacción')
-                                ->helperText('Código único generado por el terminal POS')
-                                ->visible(fn(Get $get) => $get('payment_method') === 'card')
-                                ->required(fn(Get $get) => $get('payment_method') === 'card')
-                                ->maxLength(50)
-                                ->live(),
-
-                            // Botones de denominaciones compactos
-                            Forms\Components\Actions::make([
-                                Forms\Components\Actions\Action::make('exact')
-                                    ->label('Exacto')
-                                    ->color('success')
-                                    ->size('xs')
-                                    ->action(function (Forms\Set $set) {
-                                        $set('payment_amount', $this->total);
-                                    }),
-                                Forms\Components\Actions\Action::make('10')
-                                    ->label('10')
-                                    ->color('gray')
-                                    ->size('xs')
-                                    ->action(function (Forms\Set $set) {
-                                        $set('payment_amount', 10);
-                                    }),
-                                Forms\Components\Actions\Action::make('20')
-                                    ->label('20')
-                                    ->color('gray')
-                                    ->size('xs')
-                                    ->action(function (Forms\Set $set) {
-                                        $set('payment_amount', 20);
-                                    }),
-                                Forms\Components\Actions\Action::make('50')
-                                    ->label('50')
-                                    ->color('gray')
-                                    ->size('xs')
-                                    ->action(function (Forms\Set $set) {
-                                        $set('payment_amount', 50);
-                                    }),
-                                Forms\Components\Actions\Action::make('100')
-                                    ->label('100')
-                                    ->color('gray')
-                                    ->size('xs')
-                                    ->action(function (Forms\Set $set) {
-                                        $set('payment_amount', 100);
-                                    }),
-                            ])
-                                ->visible(fn(Get $get) => $get('payment_method') === 'cash')
-                                ->extraAttributes(['class' => 'flex flex-wrap gap-1 justify-center']),
-                        ]),
-
-                    // PAGO DIVIDIDO (CUANDO ESTÁ ACTIVADO)
-                    Forms\Components\Section::make('Métodos de Pago Múltiples')
-                        ->compact()
-                        ->visible(fn(Get $get) => $get('split_payment'))
-                        ->schema([
-                            Forms\Components\Repeater::make('payment_methods')
-                                ->schema([
-                                    Forms\Components\Grid::make(3)->schema([
-                                        Forms\Components\Select::make('method')
-                                            ->label('Método')
-                                            ->options([
-                                                'cash' => '💵 Efectivo',
-                                                'card' => '💳 Tarjeta',
-                                                'yape' => '📱 Yape',
-                                                'plin' => '💙 Plin',
-                                                'pedidos_ya' => '🛵 Pedidos Ya',
-                                                'didi_food' => '🚗 Didi Food',
-                                            ])
-                                            ->required()
-                                            ->live()
-                                            ->columnSpan(1),
-
-                                        Forms\Components\TextInput::make('amount')
-                                            ->label('Monto')
-                                            ->numeric()
-                                            ->prefix('S/')
-                                            ->step(0.01)
-                                            ->inputMode('decimal')
-                                            ->extraInputAttributes(['step' => '0.01', 'pattern' => '[0-9]*\.?[0-9]{0,2}'])
-                                            ->rule('regex:/^\d+(\.\d{1,2})?$/')
-                                            ->minValue(0.01)
-                                            ->required()
-                                            ->live()
-                                            ->columnSpan(1),
-
-                                        Forms\Components\Placeholder::make('remaining')
-                                            ->label('Estado')
-                                            ->content(function (Get $get) {
-                                                $payments = $get('../../payment_methods') ?? [];
-                                                $totalPaid = 0;
-
-                                                foreach ($payments as $payment) {
-                                                    if (isset($payment['amount']) && is_numeric($payment['amount'])) {
-                                                        $totalPaid += (float) $payment['amount'];
-                                                    }
-                                                }
-
-                                                $remaining = $this->total - $totalPaid;
-
-                                                if ($remaining > 0) {
-                                                    return new \Illuminate\Support\HtmlString(
-                                                        "<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'>" .
-                                                        "<span class='text-orange-700 font-bold text-xs'>Falta: S/ " . number_format($remaining, 2) . "</span>" .
-                                                        "</div>"
-                                                    );
-                                                } elseif ($remaining < 0) {
-                                                    return new \Illuminate\Support\HtmlString(
-                                                        "<div class='p-1 bg-red-50 border border-red-200 rounded text-center'>" .
-                                                        "<span class='text-red-700 font-bold text-xs'>Exceso: S/ " . number_format(abs($remaining), 2) . "</span>" .
-                                                        "</div>"
-                                                    );
-                                                } else {
-                                                    return new \Illuminate\Support\HtmlString(
-                                                        "<div class='p-1 bg-green-50 border border-green-200 rounded text-center'>" .
-                                                        "<span class='text-green-700 font-bold text-xs'>Completo ✓</span>" .
-                                                        "</div>"
-                                                    );
-                                                }
-                                            })
-                                            ->live()
-                                            ->columnSpan(1),
+                            Forms\Components\Group::make([
+                                Forms\Components\Placeholder::make('payment_summary')
+                                    ->label('Total a Pagar')
+                                    ->content(function () { return new \Illuminate\Support\HtmlString('<div class="text-center sticky top-0 z-10 p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/55 border border-emerald-200 shadow-sm ring-1 ring-emerald-100/60"><div class="text-[11px] font-semibold tracking-widest text-emerald-600/70 mb-1 uppercase">Total a Pagar</div><div class="text-3xl font-extrabold leading-none tracking-tight text-emerald-600 drop-shadow">S/ ' . number_format($this->total, 2) . '</div><div class="mt-1 text-[10px] font-semibold text-emerald-500/80 uppercase">IGV incluido</div></div>'); }),
+                                Forms\Components\Toggle::make('split_payment')->label('💰 Dividir Pago')->helperText('Activa si usarás varios métodos.')->live()->default(false)->inline(false)->extraAttributes(['class' => 'mt-2']),
+                                Forms\Components\ToggleButtons::make('document_type')
+                                    ->label('📄 Comprobante')
+                                    ->options(['sales_note' => '📝 Nota','receipt' => '🧾 Boleta','invoice' => '📋 Factura'])
+                                    ->colors(['sales_note' => 'info','receipt' => 'warning','invoice' => 'success'])
+                                    ->extraAttributes(['class' => 'w-full'])
+                                    ->default('sales_note')
+                                    ->live()->inline()->columnSpanFull(),
+                            ])->columnSpan(['md' => 4,'lg' => 3])->extraAttributes(['class' => 'space-y-4']),
+                            Forms\Components\Group::make([
+                                Forms\Components\Section::make('Método de Pago')
+                                    ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-3 relative'])
+                                    ->visible(fn(Get $get) => !$get('split_payment'))
+                                    ->schema([
+                                        Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
+                                            Forms\Components\Select::make('payment_method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->default('cash')->live()->columnSpan(1),
+                                            Forms\Components\TextInput::make('payment_amount')->label('Monto Recibido')->numeric()->prefix('S/')->live()->default($this->total)->step(0.01)->minValue(fn(Get $get) => $get('payment_method')==='cash' ? $this->total : 0.01)->rule(fn(Get $get) => function(string $a,$v,\Closure $fail) use($get){ if($get('payment_method')==='cash'){ $val=(float)$v; if($val + 1e-6 < $this->total){ $fail('El monto recibido debe ser mayor o igual al total.'); } } })->columnSpan(1),
+                                            Forms\Components\Placeholder::make('change_display')->label('Vuelto')->content(function (Get $get){ $amount=(float)($get('payment_amount')??0); $change=$amount-$this->total; if($change>0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-xs'>S/ ".number_format($change,2)."</span></div>");} elseif($change<0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-xs'>Falta: S/ ".number_format(abs($change),2)."</span></div>");} return new \Illuminate\Support\HtmlString("<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'><span class='text-blue-700 font-bold text-xs'>Exacto ✓</span></div>"); })->live()->visible(fn(Get $get)=>$get('payment_method')==='cash')->columnSpan(1),
+                                        ]),
+                                        Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del terminal POS')->helperText('Visible solo para tarjeta')->visible(fn(Get $get)=>$get('payment_method')==='card')->required(fn(Get $get)=>$get('payment_method')==='card')->maxLength(50)->live(),
+                                        Forms\Components\Actions::make([
+                                            Forms\Components\Actions\Action::make('exact')->label('Exacto')->color('success')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',$this->total)),
+                                            Forms\Components\Actions\Action::make('10')->label('10')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',10)),
+                                            Forms\Components\Actions\Action::make('20')->label('20')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',20)),
+                                            Forms\Components\Actions\Action::make('50')->label('50')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',50)),
+                                            Forms\Components\Actions\Action::make('100')->label('100')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',100)),
+                                        ])->visible(fn(Get $get)=>$get('payment_method')==='cash')->extraAttributes(['class'=>'flex flex-wrap gap-1 justify-center']),
                                     ]),
-
-                                    // Campo de voucher para pagos con tarjeta en pago dividido
-                                    Forms\Components\TextInput::make('voucher_code')
-                                        ->label('🎫 Código de Voucher')
-                                        ->placeholder('Ingrese el código del voucher de la transacción')
-                                        ->helperText('Código único generado por el terminal POS')
-                                        ->visible(fn(Get $get) => $get('method') === 'card')
-                                        ->required(fn(Get $get) => $get('method') === 'card')
-                                        ->maxLength(50)
-                                        ->live(),
-                                ])
-                                ->defaultItems(1)
-                                ->addActionLabel('+ Agregar Método de Pago')
-                                ->deleteAction(
-                                    fn (Forms\Components\Actions\Action $action) => $action
-                                        ->requiresConfirmation()
-                                        ->modalHeading('Eliminar Método de Pago')
-                                        ->modalDescription('¿Estás seguro de que deseas eliminar este método de pago?')
-                                        ->modalSubmitActionLabel('Eliminar')
-                                        ->modalCancelActionLabel('Cancelar')
-                                )
-                                ->itemLabel(fn (array $state): ?string =>
-                                    ($state['method'] ?? 'Método') . ': S/ ' . number_format($state['amount'] ?? 0, 2)
-                                )
-                                ->collapsible()
-                                ->cloneAction(
-                                    fn (Forms\Components\Actions\Action $action) => $action
-                                        ->label('Agregar')
-                                        ->tooltip('Agregar método de pago similar')
-                                )
-                                ->cloneable(),
-
-                            // Resumen del pago dividido
-                            Forms\Components\Placeholder::make('split_summary')
-                                ->label('Resumen de Pago')
-                                ->content(function (Get $get) {
-                                    $payments = $get('payment_methods') ?? [];
-                                    $totalPaid = 0;
-
-                                    foreach ($payments as $payment) {
-                                        if (isset($payment['amount']) && is_numeric($payment['amount'])) {
-                                            $totalPaid += (float) $payment['amount'];
-                                        }
-                                    }
-
-                                    $remaining = $this->total - $totalPaid;
-                                    $status = $remaining == 0 ? 'success' : ($remaining > 0 ? 'warning' : 'danger');
-                                    $statusText = $remaining == 0 ? 'Pago Completo' : ($remaining > 0 ? 'Pago Incompleto' : 'Pago Excedido');
-
-                                    return new \Illuminate\Support\HtmlString(
-                                        '<div class="p-2 bg-gray-50 border border-gray-200 rounded">' .
-                                        '<div class="flex justify-between text-sm">' .
-                                        '<span>Total a Pagar:</span><span class="font-bold">S/ ' . number_format($this->total, 2) . '</span>' .
-                                        '</div>' .
-                                        '<div class="flex justify-between text-sm">' .
-                                        '<span>Total Pagado:</span><span class="font-bold">S/ ' . number_format($totalPaid, 2) . '</span>' .
-                                        '</div>' .
-                                        '<div class="flex justify-between text-sm border-t pt-1 mt-1">' .
-                                        '<span>Estado:</span><span class="font-bold text-' . ($status === 'success' ? 'green' : ($status === 'warning' ? 'orange' : 'red')) . '-700">' . $statusText . '</span>' .
-                                        '</div>' .
-                                        '</div>'
-                                    );
-                                })
-                                ->live(),
-                        ]),
-
-                    // TIPO DE COMPROBANTE COMPACTO
-                    Forms\Components\ToggleButtons::make('document_type')
-                        ->label('📄 Comprobante')
-                        ->options([
-                            'sales_note' => '📝 Nota',
-                            'receipt' => '🧾 Boleta',
-                            'invoice' => '📋 Factura',
-                        ])
-                        ->colors([
-                            'sales_note' => 'info',
-                            'receipt' => 'warning',
-                            'invoice' => 'success',
-                        ])
-                        ->default('sales_note')
-                        ->live()
-                        ->inline(),
-
-                    // CLIENTE COMPACTO (SOLO PARA BOLETA/FACTURA)
-                    Forms\Components\Section::make('👤 Cliente')
-                        ->compact()
-                        ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
-                        ->schema([
-                            Forms\Components\Select::make('customer_id')
-                                ->label('Cliente Existente')
-                                ->searchable()
-                                ->options(function (): array {
-                                    return Customer::limit(20)->pluck('name', 'id')->toArray();
-                                })
-                                ->getSearchResultsUsing(function (string $search): array {
-                                    return Customer::where('name', 'like', "%{$search}%")
-                                        ->orWhere('document_number', 'like', "%{$search}%")
-                                        ->limit(20)
-                                        ->pluck('name', 'id')
-                                        ->toArray();
-                                })
-                                ->live()
-                                ->afterStateUpdated(function (Set $set, $state) {
-                                    // Limpiar campos de cliente nuevo cuando se selecciona uno existente
-                                    if ($state) {
-                                        $set('new_customer_name', '');
-                                        $set('new_customer_phone', '');
-                                        $set('new_customer_address', '');
-                                        $set('new_customer_document', '');
-                                    }
-                                }),
-
-                            // Campos para cliente nuevo
-                            Forms\Components\Fieldset::make('Registrar Cliente Nuevo')
-                                ->schema([
-                                    Forms\Components\Grid::make(2)->schema([
-                                        Forms\Components\TextInput::make('new_customer_name')
-                                            ->label('Nombre Completo')
-                                            ->placeholder('Nombre del cliente')
-                                            ->live()
-                                            ->afterStateUpdated(function (Set $set, $state) {
-                                                // Limpiar cliente existente cuando se escribe nombre nuevo
-                                                if ($state) {
-                                                    $set('customer_id', null);
-                                                }
-                                            })
-                                            ->columnSpan(1),
-
-                                        Forms\Components\TextInput::make('new_customer_document')
-                                            ->label('DNI/RUC (Opcional)')
-                                            ->placeholder('Número de documento')
-                                            ->helperText('Campo opcional - DNI (8 dígitos) o RUC (11 dígitos)')
-                                            ->columnSpan(1),
+                                Forms\Components\Section::make('Métodos de Pago Múltiples')
+                                    ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-4'])
+                                    ->visible(fn(Get $get) => $get('split_payment'))
+                                    ->schema([
+                                        Forms\Components\Repeater::make('payment_methods')
+                                            ->schema([
+                                                Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
+                                                    Forms\Components\Select::make('method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->required()->live()->columnSpan(1),
+                                                    Forms\Components\TextInput::make('amount')->label('Monto')->numeric()->prefix('S/')->step(0.01)->minValue(0.01)->required()->live()->columnSpan(1),
+                                                    Forms\Components\Placeholder::make('remaining')->label('Estado')->content(function (Get $get){ $payments=$get('../../payment_methods')??[]; $totalPaid=0; foreach($payments as $p){ if(isset($p['amount']) && is_numeric($p['amount'])) $totalPaid+=(float)$p['amount']; } $remaining=$this->total - $totalPaid; if($remaining>0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'><span class='text-orange-700 font-bold text-[11px]'>Falta: S/ ".number_format($remaining,2)."</span></div>");} elseif($remaining<0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-[11px]'>Exceso: S/ ".number_format(abs($remaining),2)."</span></div>");} return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-[11px]'>Completo ✓</span></div>"); })->live()->columnSpan(1),
+                                                ]),
+                                                Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del voucher')->helperText('Solo para tarjeta')->visible(fn(Get $get)=>$get('method')==='card')->required(fn(Get $get)=>$get('method')==='card')->maxLength(50)->live(),
+                                            ])->defaultItems(1)->addActionLabel('+ Agregar Método de Pago')
+                                            ->deleteAction(fn(Forms\Components\Actions\Action $a)=>$a->requiresConfirmation()->modalHeading('Eliminar Método')->modalDescription('¿Eliminar este método?')->modalSubmitActionLabel('Eliminar')->modalCancelActionLabel('Cancelar'))
+                                            ->itemLabel(fn(array $state): ?string => ($state['method'] ?? 'Método').': S/ '.number_format($state['amount'] ?? 0,2))
+                                            ->collapsible()->cloneAction(fn(Forms\Components\Actions\Action $a)=>$a->label('Agregar')->tooltip('Duplicar método'))
+                                            ->cloneable(),
+                                        Forms\Components\Placeholder::make('split_summary')->label('Resumen de Pago')->content(function (Get $get){ $payments=$get('payment_methods')??[]; $totalPaid=0; foreach($payments as $p){ if(isset($p['amount']) && is_numeric($p['amount'])) $totalPaid+=(float)$p['amount']; } $remaining=$this->total - $totalPaid; $status=$remaining==0?'success':($remaining>0?'warning':'danger'); $statusText=$remaining==0?'Pago Completo':($remaining>0?'Pago Incompleto':'Pago Excedido'); return new \Illuminate\Support\HtmlString('<div class="p-2 bg-gray-50 border border-gray-200 rounded text-[11px] space-y-1"><div class="flex justify-between"><span>Total:</span><span class="font-semibold">S/ '.number_format($this->total,2).'</span></div><div class="flex justify-between"><span>Pagado:</span><span class="font-semibold">S/ '.number_format($totalPaid,2).'</span></div><div class="flex justify-between border-t pt-1"><span>Estado:</span><span class="font-semibold text-'+($status==='success'?'green':($status==='warning'?'orange':'red'))+'-700">'+$statusText+'</span></div></div>'); })->live(),
                                     ]),
-
-                                    Forms\Components\Grid::make(2)->schema([
-                                        Forms\Components\TextInput::make('new_customer_phone')
-                                            ->label('Teléfono')
-                                            ->placeholder('Número de teléfono')
-                                            ->tel()
-                                            ->columnSpan(1),
-
-                                        Forms\Components\TextInput::make('new_customer_address')
-                                            ->label('Dirección')
-                                            ->placeholder('Dirección completa')
-                                            ->columnSpan(1),
+                                Forms\Components\Section::make('👤 Cliente')
+                                    ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-4'])
+                                    ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt','invoice']))
+                                    ->schema([
+                                        Forms\Components\Select::make('customer_id')->label('Cliente Existente')->searchable()->options(fn():array => Customer::limit(20)->pluck('name','id')->toArray())->getSearchResultsUsing(fn(string $search):array => Customer::where('name','like',"%{$search}%")->orWhere('document_number','like',"%{$search}%")->limit(20)->pluck('name','id')->toArray())->live()->afterStateUpdated(function (Set $set,$state){ if($state){ $set('new_customer_name',''); $set('new_customer_phone',''); $set('new_customer_address',''); $set('new_customer_document',''); } }),
+                                        Forms\Components\Fieldset::make('Registrar Cliente Nuevo')->schema([
+                                            Forms\Components\Grid::make(2)->schema([
+                                                Forms\Components\TextInput::make('new_customer_name')->label('Nombre Completo')->placeholder('Nombre del cliente')->live()->afterStateUpdated(function (Set $set,$state){ if($state){ $set('customer_id',null); } })->columnSpan(1),
+                                                Forms\Components\TextInput::make('new_customer_document')->label('DNI/RUC (Opcional)')->placeholder('Número de documento')->helperText('DNI (8) o RUC (11)')->columnSpan(1),
+                                            ]),
+                                            Forms\Components\Grid::make(2)->schema([
+                                                Forms\Components\TextInput::make('new_customer_phone')->label('Teléfono')->placeholder('Número de teléfono')->tel()->columnSpan(1),
+                                                Forms\Components\TextInput::make('new_customer_address')->label('Dirección')->placeholder('Dirección completa')->columnSpan(1),
+                                            ]),
+                                        ])->columns(1),
                                     ]),
-                                ])
-                                ->columns(1),
+                            ])->columnSpan(['md' => 8,'lg' => 9])->extraAttributes(['class' => 'space-y-4']),
                         ]),
                 ];
             })
             ->fillForm(function () {
-                // ✅ SI HAY DATOS ORIGINALES DEL CLIENTE DE DELIVERY, USARLOS
                 if ($this->originalCustomerData) {
-                    \Illuminate\Support\Facades\Log::info('🔍 USANDO DATOS ORIGINALES DEL CLIENTE:', $this->originalCustomerData);
                     return [
                         'split_payment' => false,
                         'payment_method' => 'cash',
                         'payment_amount' => $this->total,
-                        'payment_methods' => [
-                            ['method' => 'cash', 'amount' => $this->total]
-                        ],
+                        'payment_methods' => [ ['method' => 'cash','amount' => $this->total] ],
                         'document_type' => 'receipt',
                         'customer_id' => $this->originalCustomerData['customer_id'],
                         'new_customer_name' => '',
                     ];
                 }
-
-                // ✅ SIN DATOS ORIGINALES: USAR VALORES POR DEFECTO
                 return [
                     'split_payment' => false,
                     'payment_method' => 'cash',
                     'payment_amount' => $this->total,
-                    'payment_methods' => [
-                        ['method' => 'cash', 'amount' => $this->total]
-                    ],
+                    'payment_methods' => [ ['method' => 'cash','amount' => $this->total] ],
                     'document_type' => 'sales_note',
                     'customer_id' => null,
                     'new_customer_name' => '',
                 ];
             })
-            ->action(function (array $data) {
-                return $this->handlePayment($data);
-            })
-            ->modalHeading('💳 Procesar Pago de Orden')
-            ->modalSubmitActionLabel('💳 Pagar e Imprimir')
-            ->extraAttributes([
-                'class' => 'fi-modal-window-xl',
-                'style' => 'padding: 1rem;'
-            ]);
+            ->action(fn(array $data) => $this->handlePayment($data))
+            ->extraAttributes(['style' => 'padding:0.25rem;']);
     }
 
     protected function handlePayment(array $data)
@@ -2961,15 +2575,15 @@ class PosInterface extends Page
     {
         return Action::make('printComanda')
             ->label('Comanda')
-            ->icon('heroicon-o-document-text')
+            ->icon('heroicon-o-printer')
             ->color('warning')
             ->size('lg')
             ->modal()
-            ->modalHeading('Comanda')
-            ->modalDescription('')
-            ->modalWidth('md')
-            // Sin icono para un look más profesional y limpio
+            ->modalHeading('👨‍🍳 Comanda')
+            ->modalDescription('Resumen para cocina / barra')
+            ->modalWidth('xl')
             ->modalAlignment('center')
+            ->extraModalWindowAttributes(['style' => 'max-height:80vh;overflow-y:auto;max-width:1000px;width:1000px;background:#ffffff;border:1px solid #e5e7eb;padding:0.75rem;border-radius:0.75rem;'])
             ->slideOver(false)
             ->modalContent(function () {
                 // Bloquear si no hay caja abierta
@@ -3030,16 +2644,14 @@ class PosInterface extends Page
                 }
             })
             ->modalSubmitAction(false)
-            ->modalCancelActionLabel('Cancelar')
+            ->modalCancelActionLabel('Cerrar')
             ->extraModalFooterActions([
                 Action::make('saveComandaName')
                     ->label('Guardar')
                     ->color('success')
-                    ->size('md')
+                    ->size('sm')
                     ->tooltip('Guardar nombre del cliente y la orden')
-                    ->extraAttributes([
-                        'class' => 'font-semibold bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
-                    ])
+                    ->extraAttributes(['class' => 'font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow transition-all duration-200 border-0'])
                     ->action(function () {
                         // Validar nombre en venta directa
                         if ($this->selectedTableId === null) {
@@ -3082,13 +2694,11 @@ class PosInterface extends Page
                     })
                     ->visible(fn() => (bool) $this->order || !empty($this->cartItems)),
                 Action::make('printComanda')
-                    ->label('Imprimir')
+                    ->label('🖨️ Imprimir')
                     ->color('primary')
-                    ->size('lg')
+                    ->size('md')
                     ->tooltip('Imprimir comanda para cocina')
-                    ->extraAttributes([
-                        'class' => 'font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0'
-                    ])
+                    ->extraAttributes(['class' => 'font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-lg transition-all duration-200 border-0'])
                     ->action(function () {
                         // Asegurar nombre de cliente en venta directa antes de guardar/imprimir
                         if ($this->selectedTableId === null) {
@@ -3164,8 +2774,10 @@ class PosInterface extends Page
             ->size('lg')
             ->modal()
             ->modalHeading('📄 Pre-Cuenta')
-            ->modalDescription('Resumen de la orden antes del pago')
-            ->modalWidth('md')
+            ->modalDescription('Vista previa antes de facturar')
+            ->modalWidth('xl')
+            ->modalAlignment('center')
+            ->extraModalWindowAttributes(['style' => 'max-height:80vh;overflow-y:auto;max-width:1000px;width:1000px;background:#ffffff;border:1px solid #e5e7eb;padding:0.75rem;border-radius:0.75rem;'])
             ->modalContent(function () {
                 // Bloquear si no hay caja abierta
                 if (!$this->hasOpenCashRegister) {
@@ -3199,40 +2811,28 @@ class PosInterface extends Page
                 ]);
             })
             ->modalSubmitAction(false)
-            ->modalCancelAction(false)
+            ->modalCancelActionLabel('Cerrar')
             ->extraModalFooterActions([
                 Action::make('printPreBill')
-                    ->label('🖨️ Imprimir')
+                    ->label('🖨️ Imprimir Pre-Cuenta')
                     ->color('primary')
+                    ->size('md')
+                    ->extraAttributes(['class' => 'font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-sm'])
                     ->action(function () {
-                        // Cambiar estado de mesa a "PRE-CUENTA"
                         if ($this->order && $this->order->table) {
                             $this->order->table->update(['status' => TableModel::STATUS_PREBILL]);
-
-                            Log::info('🔵 Mesa cambiada a PRE-CUENTA', [
-                                'table_id' => $this->order->table->id,
-                                'order_id' => $this->order->id,
-                                'status' => 'prebill'
-                            ]);
-
-                            Notification::make()
-                                ->title('Mesa en PRE-CUENTA')
-                                ->body('La mesa ahora está marcada como PRE-CUENTA')
-                                ->success()
-                                ->duration(3000)
-                                ->send();
+                            Log::info('🔵 Mesa cambiada a PRE-CUENTA', ['table_id' => $this->order->table->id,'order_id' => $this->order->id,'status' => 'prebill']);
+                            Notification::make()->title('Mesa en PRE-CUENTA')->body('La mesa ahora está marcada como PRE-CUENTA')->success()->duration(3000)->send();
                         }
-
                         $url = route('print.prebill', ['order' => $this->order->id]);
                         $this->js("window.open('$url', 'prebill_print', 'width=800,height=600,scrollbars=yes,resizable=yes')");
                     }),
                 Action::make('downloadPreBill')
                     ->label('📥 Descargar')
                     ->color('success')
-                    ->action(function () {
-                        $url = route('print.prebill', ['order' => $this->order->id]);
-                        $this->js("window.open('$url', '_blank')");
-                    }),
+                    ->size('sm')
+                    ->extraAttributes(['class' => 'font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'])
+                    ->action(function () { $url = route('print.prebill', ['order' => $this->order->id]); $this->js("window.open('$url', '_blank')"); }),
             ])
             ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems))
             ->disabled(fn (): bool => !$this->order && empty($this->cartItems));
