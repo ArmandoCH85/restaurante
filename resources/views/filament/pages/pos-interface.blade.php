@@ -10,8 +10,8 @@
 
         /* VARIABLES GLOBALES RESPONSIVAS */
         :root {
-            --pos-cart-width: clamp(280px, 25vw, 350px);
-            --pos-sidebar-width: clamp(140px, 20vw, 200px);
+            --pos-cart-width: clamp(360px, 35vw, 450px);
+            --pos-sidebar-width: clamp(160px, 20vw, 200px);
             --pos-border-radius: 6px;
             /* Sistema de sombras profesional */
             --pos-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -36,8 +36,8 @@
             --pos-border-focus: #6366f1;   /* Focus indigo */
 
             /* Variables responsivas adicionales */
-            --pos-product-min-width: 100px;
-            --pos-product-max-width: 150px;
+            --pos-product-min-width: 130px;
+            --pos-product-max-width: 180px;
             --pos-gap: clamp(4px, 0.5vw, 8px);
 
             /* Transiciones profesionales */
@@ -68,24 +68,80 @@
             box-sizing: border-box;
         }
 
-        /* SIDEBAR CATEGORÍAS RESPONSIVO */
+        /* SIDEBAR CATEGORÍAS - DISEÑO GESTALT APLICADO */
         .pos-categories {
             grid-area: sidebar;
-            background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
-            border: 1px solid var(--pos-border-subtle);
-            border-radius: var(--pos-border-radius);
+            /* Principio de Figura-Fondo: fondo elegante que no compite */
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+            border: 2px solid transparent;
+            border-radius: 14px;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            box-shadow: var(--pos-shadow);
+            /* Principio de Cierre: forma completa y definida */
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.08),
+                0 2px 6px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            /* Principio de Simetría: estructura equilibrada */
+            position: relative;
+        }
+
+        /* Efecto de profundidad - Principio de Figura-Fondo */
+        .pos-categories::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--pos-primary) 0%, var(--pos-secondary) 100%);
+            border-radius: 14px 14px 0 0;
         }
 
         .pos-categories-header {
-            padding: 12px 8px 8px;
+            /* Principio de Proximidad: agrupado con el contenido */
+            padding: 16px 12px 12px;
+            /* Principio de Similitud: coherencia con el buscador */
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border: 1px solid var(--pos-border-subtle);
-            border-radius: var(--pos-border-radius);
-            background: white;
-            margin: 6px;
+            border-radius: 10px;
+            margin: 8px 8px 6px 8px;
+            /* Principio de Cierre: contenedor definido */
+            box-shadow: 
+                0 2px 6px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            /* Principio de Simetría: centrado perfecto */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Título con mejor tipografía - Principio de Similitud */
+        .pos-categories-header h3 {
+            font-size: clamp(12px, 2vw, 14px);
+            font-weight: 700;
+            color: #374151;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin: 0;
+            /* Principio de Figura-Fondo: texto destacado */
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        /* Decoración sutil del título */
+        .pos-categories-header h3::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--pos-primary) 0%, var(--pos-secondary) 100%);
+            border-radius: 1px;
         }
 
         /* BOTÓN TOGGLE FIJO DE CATEGORÍAS */
@@ -142,39 +198,208 @@
         .pos-categories-content {
             flex: 1;
             overflow-y: auto;
-            padding: 8px 6px;
+            /* Principio de Proximidad: padding coherente */
+            padding: 6px 8px 12px;
+            /* Principio de Continuidad: scroll suave */
+            scroll-behavior: smooth;
         }
 
-        /* BOTONES DE CATEGORÍA OPTIMIZADOS PARA 1024x637 AL 100% ZOOM */
+        /* BOTONES DE CATEGORÍA - DISEÑO GESTALT APLICADO */
         .pos-category-btn {
             width: 100%;
-            padding: 6px 8px;
-            margin-bottom: 3px;
-            text-align: left;
-            border: 1px solid var(--pos-border-subtle);
-            border-radius: var(--pos-border-radius);
-            background: white;
-            color: #64748b;
-            font-weight: 700; /* Más negrito para pantallas POS */
-            font-size: 16px;  /* Aumentado para mejor legibilidad en pantallas POS */
-            text-transform: uppercase; /* Mostrar categorías en MAYÚSCULAS */
-            transition: var(--pos-transition);
+            /* Principio de Proximidad: espaciado consistente */
+            padding: 10px 12px;
+            margin-bottom: 4px;
+            text-align: center;
+            /* Principio de Similitud: coherencia con otros botones */
+            border: 2px solid var(--pos-border-subtle);
+            border-radius: 10px;
+            /* Principio de Figura-Fondo: fondo que destaca contenido */
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            color: #475569;
+            font-weight: 600;
+            font-size: clamp(11px, 1.8vw, 13px);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            /* Principio de Continuidad: transiciones suaves */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            /* Principio de Cierre: sombra que define límites */
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Efecto de brillo sutil - Principio de Figura-Fondo */
+        .pos-category-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            transition: left 0.5s ease;
         }
 
         .pos-category-btn:hover {
-            background: #f3f4f6;
-            border-color: var(--pos-border-focus);
-            transform: translateY(-1px);
-            box-shadow: var(--pos-shadow);
+            /* Principio de Figura-Fondo: feedback visual claro */
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-color: var(--pos-primary);
+            transform: translateY(-2px);
+            box-shadow: 
+                0 4px 12px rgba(99, 102, 241, 0.15),
+                0 2px 6px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            color: var(--pos-primary);
+        }
+
+        .pos-category-btn:hover::before {
+            left: 100%;
         }
 
         .pos-category-btn.active {
-            background: #64748b;
+            /* Principio de Figura-Fondo: estado activo destacado */
+            background: linear-gradient(135deg, var(--pos-primary) 0%, var(--pos-secondary) 100%);
             color: white;
-            border: 2px solid var(--pos-border-focus);
-            box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+            border: 2px solid var(--pos-primary);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 6px 16px rgba(99, 102, 241, 0.3),
+                0 3px 8px rgba(99, 102, 241, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            /* Principio de Similitud: tipografía consistente pero destacada */
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .pos-category-btn.active::before {
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+        }
+
+        .pos-category-btn:active {
+            transform: translateY(0);
+            transition: transform 0.1s ease;
+        }
+
+        /* SUBCATEGORÍAS - DISEÑO JERÁRQUICO CON PRINCIPIOS GESTALT */
+        .pos-subcategory-btn {
+            /* Principio de Similitud: base similar pero diferenciada */
+            width: 100%;
+            /* Principio de Jerarquía: más pequeño que categoría principal */
+            padding: 6px 8px;
+            margin-bottom: 2px;
+            text-align: center;
+            /* Principio de Figura-Fondo: color diferenciado para jerarquía */
+            border: 1px solid rgba(156, 163, 175, 0.3);
+            border-radius: 6px;
+            /* Principio de Similitud: pero con variación jerárquica */
+            background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+            color: #6b7280;
+            font-weight: 500;
+            font-size: clamp(9px, 1.4vw, 11px);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+            /* Principio de Continuidad: transiciones más sutiles */
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            /* Principio de Proximidad: sombra más sutil */
+            box-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            position: relative;
+            overflow: hidden;
+            /* Principio de Jerarquía: menos prominente */
+            opacity: 0.9;
+        }
+
+        /* Efecto de brillo para subcategorías - más sutil */
+        .pos-subcategory-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+            transition: left 0.4s ease;
+        }
+
+        .pos-subcategory-btn:hover {
+            /* Principio de Figura-Fondo: feedback más sutil que categorías principales */
+            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 2px 6px rgba(99, 102, 241, 0.1),
+                0 1px 3px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            color: #4b5563;
+            opacity: 1;
+        }
+
+        .pos-subcategory-btn:hover::before {
+            left: 100%;
+        }
+
+        .pos-subcategory-btn.active {
+            /* Principio de Figura-Fondo: activo pero secundario */
+            background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+            color: #4338ca;
+            border: 1px solid #6366f1;
+            transform: translateY(-1px);
+            box-shadow: 
+                0 3px 8px rgba(99, 102, 241, 0.2),
+                0 2px 4px rgba(99, 102, 241, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            /* Principio de Jerarquía: menos peso visual que principal */
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            opacity: 1;
+        }
+
+        .pos-subcategory-btn.active::before {
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+        }
+
+        .pos-subcategory-btn:active {
+            transform: translateY(0);
+            transition: transform 0.1s ease;
+        }
+
+        /* Contenedor de subcategorías - Principio de Proximidad */
+        .pos-subcategories-container {
+            /* Principio de Proximidad: agrupado visualmente */
+            border-top: 1px solid var(--pos-border-subtle);
+            margin-top: 6px;
+            padding-top: 8px;
+            position: relative;
+        }
+
+        .pos-subcategories-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--pos-primary) 50%, transparent 100%);
+        }
+
+        /* Título de subcategorías - Principio de Jerarquía */
+        .pos-subcategories-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            text-align: center;
+            /* Principio de Figura-Fondo: menos prominente */
+            opacity: 0.8;
         }
 
 
@@ -194,13 +419,21 @@
             min-width: 0; /* Permite que el grid se contraiga */
         }
 
+        /* BARRA DE BÚSQUEDA - DISEÑO GESTALT APLICADO */
         .pos-search-bar {
-            padding: 10px;
-            background: white;
-            border: 1px solid var(--pos-border-subtle);
-            border-radius: var(--pos-border-radius);
-            margin: 6px;
+            padding: 12px;
+            /* Principio de Figura-Fondo: fondo sutil que no compite */
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            margin: 8px;
             position: relative;
+            /* Principio de Cierre: forma completa y cerrada */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+            /* Principio de Simetría: balance visual */
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .pos-search-container {
@@ -208,28 +441,65 @@
             display: flex;
             align-items: center;
             width: 100%;
+            /* Principio de Proximidad: elementos relacionados agrupados */
+            gap: 0;
+            /* Principio de Continuidad: flujo visual dirigido */
+            background: white;
+            border-radius: 10px;
+            border: 2px solid var(--pos-border-subtle);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            /* Principio de Cierre: contenedor completo */
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Estado focus del contenedor - Principio de Figura-Fondo */
+        .pos-search-container:focus-within {
+            border-color: var(--pos-primary);
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            box-shadow: 
+                inset 0 1px 3px rgba(0, 0, 0, 0.05),
+                0 0 0 3px rgba(99, 102, 241, 0.1),
+                0 4px 12px rgba(99, 102, 241, 0.15);
+            transform: translateY(-1px);
         }
 
         .pos-search-icon {
+            /* Principio de Proximidad: cerca del input */
             position: absolute;
-            left: clamp(8px, 1.5vw, 12px);
+            left: 12px;
             top: 50%;
             transform: translateY(-50%);
-            width: clamp(14px, 2vw, 18px);
-            height: clamp(14px, 2vw, 18px);
+            width: clamp(16px, 2.2vw, 20px);
+            height: clamp(16px, 2.2vw, 20px);
+            /* Principio de Similitud: color coherente con el sistema */
             color: var(--pos-gray-400);
             pointer-events: none;
             z-index: 2;
+            transition: all 0.3s ease;
+        }
+
+        /* Icono activo - Principio de Figura-Fondo */
+        .pos-search-container:focus-within .pos-search-icon {
+            color: var(--pos-primary);
+            transform: translateY(-50%) scale(1.1);
         }
 
         .pos-search-input {
             width: 100%;
-            padding: clamp(6px, 1.5vw, 12px) clamp(35px, 4vw, 45px) clamp(6px, 1.5vw, 12px) clamp(35px, 4vw, 45px);
-            border: 1px solid var(--pos-gray-200);
-            border-radius: var(--pos-border-radius);
-            font-size: clamp(12px, 2vw, 16px);
-            transition: var(--pos-transition);
-            background: white;
+            /* Principio de Proximidad: padding que respeta el icono */
+            padding: clamp(12px, 2vw, 16px) clamp(45px, 5vw, 55px) clamp(12px, 2vw, 16px) clamp(45px, 5vw, 55px);
+            border: none;
+            border-radius: 0;
+            font-size: clamp(13px, 2.2vw, 16px);
+            font-weight: 500;
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: transparent;
+            /* Principio de Similitud: tipografía coherente */
+            font-family: inherit;
+            letter-spacing: 0.3px;
+            color: #1f2937;
             /* Mejorar en móviles */
             -webkit-appearance: none;
             appearance: none;
@@ -238,42 +508,70 @@
 
         .pos-search-input:focus {
             outline: none;
-            border-color: var(--pos-primary);
-            background: white;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            /* Principio de Figura-Fondo: sin competir con el contenedor */
+            background: transparent;
+            color: #111827;
+        }
+
+        .pos-search-input::placeholder {
+            /* Principio de Similitud: color coherente pero sutil */
+            color: var(--pos-gray-400);
+            font-weight: 400;
+            font-style: italic;
+            transition: all 0.3s ease;
+        }
+
+        .pos-search-container:focus-within .pos-search-input::placeholder {
+            color: var(--pos-gray-300);
+            transform: translateX(2px);
         }
 
         .pos-search-clear {
+            /* Principio de Proximidad: cerca del input, alineado visualmente */
             position: absolute;
-            right: clamp(8px, 1.5vw, 12px);
+            right: 12px;
             top: 50%;
             transform: translateY(-50%);
-            width: clamp(20px, 2.5vw, 24px);
-            height: clamp(20px, 2.5vw, 24px);
-            border: none;
-            background: var(--pos-gray-300);
-            color: var(--pos-gray-600);
+            width: clamp(22px, 2.8vw, 26px);
+            height: clamp(22px, 2.8vw, 26px);
+            border: 1px solid var(--pos-gray-300);
+            /* Principio de Similitud: forma consistente con el diseño */
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            color: var(--pos-gray-500);
             border-radius: 50%;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(12px, 1.8vw, 16px);
-            font-weight: bold;
-            transition: var(--pos-transition);
-            z-index: 2;
+            font-size: clamp(13px, 2vw, 16px);
+            font-weight: 600;
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 3;
             opacity: 0;
             visibility: hidden;
+            /* Principio de Cierre: forma completa */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .pos-search-clear.show {
             opacity: 1;
             visibility: visible;
+            /* Principio de Figura-Fondo: aparece suavemente */
+            transform: translateY(-50%) scale(1);
         }
 
         .pos-search-clear:hover {
-            background: var(--pos-gray-400);
+            /* Principio de Figura-Fondo: feedback visual claro */
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
             color: white;
+            border-color: #dc2626;
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+        }
+
+        .pos-search-clear:active {
+            transform: translateY(-50%) scale(0.95);
         }
 
         .pos-search-loading {
@@ -300,95 +598,323 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* GRID DE PRODUCTOS - DISEÑO GESTALT APLICADO */
         .pos-products-grid {
             flex: 1;
             overflow-y: auto;
-            padding: 10px;
-            border: 1px solid var(--pos-border-subtle);
-            border-radius: var(--pos-border-radius);
-            margin: 6px;
-            background: white;
+            /* Principio de Proximidad: padding coherente con otros componentes */
+            padding: 12px;
+            /* Principio de Similitud: coherencia con categorías y buscador */
+            border: 2px solid var(--pos-border-subtle);
+            border-radius: 12px;
+            margin: 8px;
+            /* Principio de Figura-Fondo: fondo elegante que realza productos */
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+            /* Principio de Cierre: contenedor bien definido */
+            box-shadow: 
+                0 4px 12px rgba(0, 0, 0, 0.06),
+                0 2px 6px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            /* Principio de Continuidad: scroll suave */
+            scroll-behavior: smooth;
+            position: relative;
+            overflow-x: hidden;
         }
 
-        /* GRID DE PRODUCTOS RESPONSIVO */
+        /* Efecto de profundidad superior - Principio de Figura-Fondo */
+        .pos-products-grid::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                var(--pos-success) 0%, 
+                var(--pos-primary) 50%, 
+                var(--pos-secondary) 100%);
+            border-radius: 12px 12px 0 0;
+            z-index: 1;
+        }
+
+        /* Efecto sutil de textura - Principio de Figura-Fondo */
+        .pos-products-grid::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* GRID DE PRODUCTOS RESPONSIVO - DISEÑO GESTALT */
         .pos-products-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(var(--pos-product-min-width), 1fr));
-            gap: var(--pos-gap);
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            /* Principio de Proximidad: espaciado equilibrado */
+            gap: clamp(8px, 1vw, 12px);
             flex: 1;
             overflow-y: auto;
-            padding: var(--pos-gap);
-            padding-bottom: calc(var(--pos-gap) * 2);
+            /* Principio de Simetría: padding balanceado */
+            padding: clamp(8px, 1.5vw, 16px);
+            padding-bottom: clamp(16px, 2vw, 24px);
+            /* Principio de Continuidad: transición suave en cambios */
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 2;
         }
 
-        /* CARDS DE PRODUCTOS RESPONSIVAS */
+        /* Efecto de entrada suave para productos - Principio de Continuidad */
+        .pos-products-container .pos-product-card {
+            animation: fadeInProduct 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .pos-products-container .pos-product-card:nth-child(1) { animation-delay: 0.05s; }
+        .pos-products-container .pos-product-card:nth-child(2) { animation-delay: 0.1s; }
+        .pos-products-container .pos-product-card:nth-child(3) { animation-delay: 0.15s; }
+        .pos-products-container .pos-product-card:nth-child(4) { animation-delay: 0.2s; }
+        .pos-products-container .pos-product-card:nth-child(5) { animation-delay: 0.25s; }
+        .pos-products-container .pos-product-card:nth-child(6) { animation-delay: 0.3s; }
+
+        @keyframes fadeInProduct {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* CARDS DE PRODUCTOS - DISEÑO SIMPLE Y FUNCIONAL */
         .pos-product-card {
-            background: white;
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
             border: 1px solid var(--pos-border-subtle);
-            border-radius: var(--pos-border-radius);
-            padding: clamp(4px, 1vw, 8px);
+            border-radius: 12px;
+            padding: 0;
             text-align: center;
             cursor: pointer;
-            transition: var(--pos-transition-fast);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
-            min-height: clamp(70px, 10vw, 100px);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            /* Mejorar experiencia táctil */
+            /* Proporción optimizada para texto */
+            aspect-ratio: 1 / 1.5;
+            min-height: 140px;
+            max-height: 200px;
+            display: grid;
+            /* Grid optimizado: imagen pequeña, más espacio para contenido */
+            grid-template-rows: 0.7fr 1.2fr 0.5fr;
+            align-content: stretch;
+            /* Experiencia táctil mejorada */
             touch-action: manipulation;
             user-select: none;
+            /* Sombra sutil inicial */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+            /* Borde sutil */
+            border: 2px solid transparent;
+            background-clip: padding-box;
         }
 
         .pos-product-card:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--pos-shadow-hover);
-            border-color: var(--pos-border-focus);
-            background: var(--pos-surface);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12), 0 6px 12px rgba(0, 0, 0, 0.08);
+            border: 2px solid var(--pos-primary);
+            background: linear-gradient(145deg, #ffffff 0%, #f0f9ff 100%);
         }
 
         .pos-product-card:active {
-            transform: translateY(0);
+            transform: translateY(-2px) scale(1.01);
+            transition: all 0.1s ease;
         }
 
+        /* Efecto de selección con proporción áurea */
+        .pos-product-card:focus-within {
+            outline: none;
+            border: 2px solid var(--pos-success);
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        /* Sección de imagen - Reducida para dar más espacio al texto */
         .pos-product-image {
-            width: 32px;
-            height: 32px;
-            border-radius: 4px;
-            margin: 0 auto 4px;
-            background: var(--pos-gray-100);
+            grid-row: 1;
+            position: relative;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            flex-shrink: 0;
+            border-radius: 12px 12px 0 0;
+            margin: 0;
+            /* Altura reducida significativamente */
+            max-height: 60px;
+            min-height: 50px;
+        }
+
+        .pos-product-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(99, 102, 241, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pos-product-card:hover .pos-product-image::before {
+            opacity: 1;
+        }
+
+        .pos-product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .pos-product-card:hover .pos-product-image img {
+            transform: scale(1.1);
+        }
+
+        /* Placeholder para productos sin imagen */
+        .pos-product-image .product-placeholder {
+            font-size: clamp(24px, 4vw, 32px);
+            font-weight: 800;
+            color: var(--pos-primary);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, var(--pos-primary), var(--pos-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Sección de contenido - MÁS ESPACIO para nombre + categoría */
+        .pos-product-content {
+            grid-row: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 8px;
+            gap: 6px;
+            position: relative;
+            /* Más espacio disponible */
+            min-height: 80px;
         }
 
         .pos-product-name {
-            font-size: 12px;           /* Un poco más grande */
-            font-weight: 700;          /* Más negrito */
-            text-transform: uppercase; /* MAYÚSCULAS para mejor lectura en POS */
+            font-size: clamp(8px, 1.5vw, 10px);
+            font-weight: 600;
+            text-transform: uppercase;
             color: #1f2937;
-            margin-bottom: 3px;
             line-height: 1.2;
-            min-height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             text-align: center;
+            letter-spacing: 0.2px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 4px;
+            padding: 4px 6px;
+            word-break: break-word;
+            hyphens: auto;
+            margin-bottom: 3px;
+            width: 100%;
+            /* Permitir que el texto se ajuste naturalmente */
+            display: block;
+            /* Centrado perfecto */
+            margin-left: auto;
+            margin-right: auto;
+            /* Si es muy largo, permitir hasta 2 líneas */
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
         }
 
+        /* Categoría integrada con principio de similaridad */
+        .pos-product-category {
+            font-size: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--pos-primary);
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(79, 70, 229, 0.15) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+            padding: 3px 6px;
+            letter-spacing: 0.1px;
+            text-align: center;
+            /* Centrado perfecto horizontal y vertical */
+            display: block;
+            margin: 0 auto;
+            width: fit-content;
+            max-width: 95%;
+            /* Si el texto es muy largo, permitir ajuste */
+            word-break: break-word;
+            hyphens: auto;
+            line-height: 1.2;
+            /* Si necesita 2 líneas, permitirlo */
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        /* Efectos hover para contenido integrado */
+        .pos-product-card:hover .pos-product-content {
+            transform: translateY(-2px);
+        }
+
+        .pos-product-card:hover .pos-product-name {
+            color: var(--pos-primary);
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .pos-product-card:hover .pos-product-category {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(79, 70, 229, 0.2) 100%);
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* Sección de precio - Proporción áurea inferior */
         .pos-product-price {
-            font-size: 12px;
-            font-weight: 700;
+            grid-row: 3;
+            font-size: clamp(12px, 2.5vw, 16px);
+            font-weight: 800;
             color: var(--pos-success);
-            margin-top: auto;
-            padding-top: 2px;
+            padding: 4px 12px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border-radius: 0 0 12px 12px;
+            /* Efecto de precio destacado */
+            text-shadow: 0 1px 3px rgba(16, 185, 129, 0.2);
+            letter-spacing: 0.3px;
+        }
+
+        .pos-product-price::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, var(--pos-success) 50%, transparent 100%);
+            opacity: 0.3;
+        }
+
+        /* Efecto de brillo en el precio al hover */
+        .pos-product-card:hover .pos-product-price {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            transform: scale(1.05);
+            text-shadow: 0 2px 6px rgba(16, 185, 129, 0.4);
         }
 
 
@@ -408,27 +934,281 @@
     min-height: 300px; /* Altura mínima para móviles */
 }
 
-.pos-cart-header {
-    padding: 12px 10px 8px;
-    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-    border: 1px solid var(--pos-border-subtle);
-    border-radius: var(--pos-border-radius);
-    margin: 6px;
-}
+        /* HEADER DEL CARRITO - DISEÑO GESTALT APLICADO */
+        .pos-cart-header {
+            /* Principio de Proximidad: padding coherente con otros componentes */
+            padding: 16px 12px 12px;
+            /* Principio de Similitud: coherencia con categorías y buscador */
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%);
+            border: 2px solid var(--pos-border-subtle);
+            border-radius: 12px;
+            margin: 8px;
+            /* Principio de Cierre: contenedor bien definido */
+            box-shadow: 
+                0 4px 12px rgba(59, 130, 246, 0.08),
+                0 2px 6px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            /* Principio de Simetría: estructura equilibrada */
+            position: relative;
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s ease;
+        }
 
-.pos-cart-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
-}
+        /* Efecto de profundidad superior - Principio de Figura-Fondo */
+        .pos-cart-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                var(--pos-warning) 0%, 
+                var(--pos-success) 50%, 
+                var(--pos-primary) 100%);
+            border-radius: 12px 12px 0 0;
+            z-index: 1;
+        }
 
-.pos-cart-actions {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 6px;
-    align-items: end;
-}
+        /* Efecto sutil de textura - Principio de Figura-Fondo */
+        .pos-cart-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+            border-radius: 12px;
+        }
+
+        /* Hover state para interactividad sutil */
+        .pos-cart-header:hover {
+            /* Principio de Figura-Fondo: feedback visual sutil */
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #bfdbfe 100%);
+            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 6px 16px rgba(59, 130, 246, 0.12),
+                0 3px 8px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        /* TÍTULO DEL CARRITO - DISEÑO GESTALT */
+        .pos-cart-title {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            /* Principio de Proximidad: espaciado equilibrado */
+            gap: 12px;
+            padding: 8px 12px;
+            /* Principio de Figura-Fondo: fondo sutil que organiza contenido */
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            /* Principio de Cierre: contenedor definido */
+            border: 1px solid rgba(226, 232, 240, 0.6);
+            position: relative;
+            z-index: 2;
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s ease;
+        }
+
+        .pos-cart-title:hover {
+            /* Principio de Figura-Fondo: feedback sutil */
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* SECCIÓN IZQUIERDA DEL TÍTULO - Principio de Proximidad */
+        .pos-cart-title-left {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* INFORMACIÓN DE MESA/VENTA - Principio de Jerarquía */
+        .pos-cart-mesa-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            /* Principio de Figura-Fondo: destacado como elemento principal */
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 8px;
+            /* Principio de Cierre: sombra que define límites */
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            /* Principio de Continuidad: transición elegante */
+            transition: all 0.3s ease;
+        }
+
+        .pos-cart-mesa-info.venta-directa {
+            /* Principio de Similitud: variación para venta directa */
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+        }
+
+        .pos-cart-mesa-info:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+        }
+
+        .pos-cart-mesa-info.venta-directa:hover {
+            box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        /* ICONOS EN MESA INFO - Principio de Similitud */
+        .pos-cart-mesa-info svg {
+            width: 18px;
+            height: 18px;
+            color: white;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+            transition: transform 0.3s ease;
+        }
+
+        .pos-cart-mesa-info:hover svg {
+            transform: rotate(5deg) scale(1.1);
+        }
+
+        /* TEXTO DE MESA - Principio de Jerarquía */
+        .pos-cart-mesa-text {
+            font-size: 16px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* CONTADOR DE PRODUCTOS - Principio de Proximidad */
+        .pos-cart-counter-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* CONTADOR DE ITEMS - Principio de Figura-Fondo */
+        .pos-cart-items-counter {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            /* Principio de Cierre: sombra definida */
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s ease;
+        }
+
+        .pos-cart-items-counter:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 6px rgba(245, 158, 11, 0.4);
+        }
+
+        /* INPUT DE COMENSALES - Principio de Similitud */
+        .pos-cart-guests-input {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--pos-gray-200);
+            /* Principio de Cierre: sombra sutil */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s ease;
+        }
+
+        .pos-cart-guests-input:hover {
+            border-color: var(--pos-primary);
+            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.15);
+        }
+
+        .pos-cart-guests-input svg {
+            width: 14px;
+            height: 14px;
+            color: #6b7280;
+        }
+
+        .pos-cart-guests-input input {
+            width: 40px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: #374151;
+            outline: none;
+        }
+
+        .pos-cart-guests-label {
+            font-size: 10px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        /* SECCIÓN DERECHA - BOTÓN LIMPIAR */
+        .pos-cart-title-right {
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* BOTÓN LIMPIAR CARRITO - Principio de Figura-Fondo */
+        .pos-cart-clear-btn {
+            width: 44px;
+            height: 44px;
+            border: 2px solid #ef4444;
+            border-radius: 8px;
+            /* Principio de Similitud: gradiente coherente */
+            background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            /* Principio de Continuidad: transición elegante */
+            transition: all 0.3s ease;
+            /* Principio de Cierre: sombra definida */
+            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
+        }
+
+        .pos-cart-clear-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, #fecaca 0%, #fee2e2 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
+        }
+
+        .pos-cart-clear-btn:active {
+            transform: translateY(0) scale(0.95);
+        }
+
+        .pos-cart-clear-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .pos-cart-clear-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .pos-cart-clear-btn:hover:not(:disabled) svg {
+            transform: rotate(15deg) scale(1.1);
+        }
 
 /* ACCIONES RÁPIDAS - OPTIMIZACIÓN PARA MÓVILES */
 .pos-quick-actions {
@@ -509,7 +1289,7 @@
 }
 
 .pos-cart-item-name {
-    font-size: var(--cart-item-font-size);
+    font-size: 13px;
     font-weight: 600;
     color: #1f2937;
     flex: unset;
@@ -617,16 +1397,13 @@
 
 /* TOTALES DEL CARRITO - DISEÑO MÓVIL OPTIMIZADO */
 .pos-cart-totals {
-    padding: clamp(12px, 2vw, 16px);
+    padding: 8px 10px;
     background: white;
     border: 1px solid var(--pos-border-subtle);
     border-radius: var(--pos-border-radius);
-    margin: 6px;
+    margin: 4px;
     flex-shrink: 0;
     box-shadow: var(--pos-shadow-sm);
-    position: sticky;
-    bottom: 0;
-    z-index: 20;
 }
 
 .pos-totals-header {
@@ -657,9 +1434,9 @@
 
 .pos-totals-container {
     background: var(--pos-gray-50);
-    padding: clamp(12px, 2vw, 16px);
+    padding: 4px 6px;
     border-radius: var(--pos-border-radius);
-    margin-bottom: clamp(8px, 1.5vw, 12px);
+    margin-bottom: 2px;
 }
 
 .pos-total-row {
@@ -673,15 +1450,13 @@
 }
 
 .pos-total-row.final {
-    padding-top: clamp(8px, 1.5vw, 12px);
-    border-top: 2px solid var(--pos-primary);
+    padding: 4px 6px;
+    border-top: 1px solid var(--pos-primary);
     font-weight: 700;
-    font-size: clamp(16px, 2.8vw, 18px);
+    font-size: 13px;
     color: var(--pos-success);
     background: rgba(16, 185, 129, 0.05);
-    margin: clamp(8px, 1.5vw, 12px) -12px -12px -12px;
-    padding-left: clamp(12px, 2vw, 16px);
-    padding-right: clamp(12px, 2vw, 16px);
+    margin: 2px -6px -4px -6px;
     border-radius: 0 0 var(--pos-border-radius) var(--pos-border-radius);
 }
 
@@ -901,16 +1676,69 @@
 
 
 
-/* BOTONES DE ACCIONES RÁPIDAS - DISEÑO ULTRA COMPACTO */
+/* ACCIONES RÁPIDAS - DISEÑO GESTALT APLICADO */
 .pos-quick-actions {
-    margin-top: 4px;
-    padding: 4px;
-    background: white;
-    border-radius: var(--pos-border-radius);
-    border: 1px solid var(--pos-gray-200);
+    margin-top: 8px;
+    /* Principio de Proximidad: padding coherente con otros componentes */
+    padding: 12px;
+    /* Principio de Similitud: coherencia con header y otros elementos */
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
+    border-radius: 12px;
+    border: 2px solid var(--pos-border-subtle);
     position: relative;
     z-index: 10;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+    /* Principio de Cierre: contenedor bien definido */
+    box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.06),
+        0 2px 6px rgba(0, 0, 0, 0.04),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    /* Principio de Continuidad: transición suave */
+    transition: all 0.3s ease;
+}
+
+/* Efecto de profundidad superior - Principio de Figura-Fondo */
+.pos-quick-actions::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, 
+        var(--pos-danger) 0%, 
+        var(--pos-warning) 25%,
+        var(--pos-success) 50%,
+        var(--pos-primary) 75%,
+        var(--pos-secondary) 100%);
+    border-radius: 12px 12px 0 0;
+    z-index: 1;
+}
+
+/* Efecto sutil de textura - Principio de Figura-Fondo */
+.pos-quick-actions::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        radial-gradient(circle at 10% 10%, rgba(239, 68, 68, 0.02) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(99, 102, 241, 0.02) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 1;
+    border-radius: 12px;
+}
+
+.pos-quick-actions:hover {
+    /* Principio de Figura-Fondo: feedback sutil */
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+    border-color: rgba(99, 102, 241, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 
+        0 6px 16px rgba(0, 0, 0, 0.08),
+        0 3px 8px rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
 .pos-quick-actions-title {
@@ -924,51 +1752,112 @@
     opacity: 0.8;
 }
 
-/* GRID DE ACCIONES RÁPIDAS - ESPACIADO MÍNIMO */
+/* GRID DE ACCIONES RÁPIDAS - DISEÑO GESTALT */
 .pos-quick-actions-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1px; /* Espacio mínimo entre botones */
-}
-
-/* ESTILO BASE DE LOS BOTONES - VERSIÓN ULTRA COMPACTA */
-.pos-quick-action-btn {
-    padding: 3px 2px 2px;
-    border: 1px solid var(--pos-gray-200);
-    border-radius: 4px;
-    background: white;
-    color: #374151;
-    font-size: 7.5px;
-    font-weight: 500;
-    text-align: center;
-    cursor: pointer;
-    transition: var(--pos-transition-fast);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px; /* Espacio mínimo entre icono y texto */
+    grid-template-columns: repeat(8, 1fr);
+    /* Principio de Proximidad: espaciado equilibrado */
+    gap: clamp(2px, 0.3vw, 4px);
     position: relative;
-    min-height: 26px;
-    height: auto;
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
-    width: 100%;
-    overflow: hidden;
-    touch-action: manipulation;
-    user-select: none;
-    border-radius: 4px;
+    z-index: 2;
+    /* Principio de Continuidad: transición suave */
+    transition: all 0.3s ease;
 }
 
-/* ESTADOS INTERACTIVOS - MÁS SUTILES PARA DISEÑO COMPACTO */
+/* Efecto de entrada escalonada para botones - Principio de Continuidad */
+.pos-quick-actions-grid .pos-quick-action-btn {
+    animation: fadeInAction 0.4s ease-out forwards;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(1) { animation-delay: 0.05s; }
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(2) { animation-delay: 0.1s; }
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(3) { animation-delay: 0.15s; }
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(4) { animation-delay: 0.2s; }
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(5) { animation-delay: 0.25s; }
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(6) { animation-delay: 0.3s; }
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(7) { animation-delay: 0.35s; }
+.pos-quick-actions-grid .pos-quick-action-btn:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes fadeInAction {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* BOTONES DE ACCIONES RÁPIDAS - DISEÑO GESTALT */
+.pos-quick-action-btn {
+    /* Principio de Proximidad: padding equilibrado */
+    padding: 6px 4px !important;
+    /* Principio de Similitud: coherencia con otros botones del sistema */
+    border-radius: 8px !important;
+    font-size: clamp(7px, 1.2vw, 9px) !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    cursor: pointer !important;
+    /* Principio de Continuidad: transiciones suaves */
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    position: relative !important;
+    min-height: clamp(28px, 4vw, 32px) !important;
+    height: clamp(28px, 4vw, 32px) !important;
+    /* Principio de Cierre: sombras que definen límites */
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.08) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    width: 100% !important;
+    overflow: hidden !important;
+    touch-action: manipulation !important;
+    user-select: none !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    color: white !important;
+    /* Principio de Figura-Fondo: bordes sutiles */
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    /* Efectos de texto mejorados */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    letter-spacing: 0.3px !important;
+}
+
+/* ESTADOS INTERACTIVOS - PRINCIPIOS GESTALT APLICADOS */
 .pos-quick-action-btn:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    /* Principio de Figura-Fondo: elevación sutil */
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.15) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    /* Principio de Continuidad: brillo sutil */
+    filter: brightness(1.1) !important;
 }
 
 .pos-quick-action-btn:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.03);
-    transition: transform 0.05s ease;
+    transform: translateY(0) scale(0.98) !important;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.1) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    transition: transform 0.1s ease !important;
+    filter: brightness(0.95) !important;
+}
+
+/* Efecto de pulso para botones activos - Principio de Continuidad */
+.pos-quick-action-btn:not(:disabled)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.pos-quick-action-btn:hover:not(:disabled)::before {
+    transform: translateX(100%);
 }
 
 /* JERARQUÍA VISUAL - TAMAÑOS MÍNIMOS */
@@ -1001,61 +1890,135 @@
     height: 10px;
 }
 
-/* COLORES ULTRA COMPACTOS - PALETA POS PROFESIONAL */
+/* COLORES GESTALT - PALETA POS PROFESIONAL MEJORADA */
 .pos-quick-action-btn.btn-mapa {
-    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
-    border-color: #1d4ed8;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(29, 78, 216, 0.15);
+    /* Principio de Similitud: gradiente coherente pero distintivo */
+    background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 50%, #60a5fa 100%) !important;
+    border: 1px solid rgba(29, 78, 216, 0.8) !important;
+    color: #ffffff !important;
+    /* Principio de Cierre: sombra que define el botón */
+    box-shadow: 
+        0 2px 6px rgba(29, 78, 216, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-mapa:hover:not(:disabled) {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(29, 78, 216, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 .pos-quick-action-btn.btn-comanda {
-    background: linear-gradient(135deg, #056f57 0%, #0d9488 100%);
-    border-color: #056f57;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(5, 111, 87, 0.15);
+    background: linear-gradient(135deg, #056f57 0%, #0d9488 50%, #14b8a6 100%) !important;
+    border: 1px solid rgba(5, 111, 87, 0.8) !important;
+    color: #ffffff !important;
+    box-shadow: 
+        0 2px 6px rgba(5, 111, 87, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-comanda:hover:not(:disabled) {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(5, 111, 87, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 .pos-quick-action-btn.btn-precuenta {
-    background: linear-gradient(135deg, #b45309 0%, #ea580c 100%);
-    border-color: #b45309;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(180, 83, 9, 0.15);
+    background: linear-gradient(135deg, #b45309 0%, #ea580c 50%, #f97316 100%) !important;
+    border: 1px solid rgba(180, 83, 9, 0.8) !important;
+    color: #ffffff !important;
+    box-shadow: 
+        0 2px 6px rgba(180, 83, 9, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-precuenta:hover:not(:disabled) {
+    background: linear-gradient(135deg, #92400e 0%, #c2410c 50%, #ea580c 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(180, 83, 9, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 .pos-quick-action-btn.btn-reabrir {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-    border-color: #4f46e5;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(79, 70, 229, 0.15);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #8b5cf6 100%) !important;
+    border: 1px solid rgba(79, 70, 229, 0.8) !important;
+    color: #ffffff !important;
+    box-shadow: 
+        0 2px 6px rgba(79, 70, 229, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-reabrir:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #7c3aed 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(79, 70, 229, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 .pos-quick-action-btn.btn-dividir {
-    background: linear-gradient(135deg, #0891b2 0%, #0d9488 100%);
-    border-color: #0891b2;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(8, 145, 178, 0.15);
+    background: linear-gradient(135deg, #0891b2 0%, #0d9488 50%, #06b6d4 100%) !important;
+    border: 1px solid rgba(8, 145, 178, 0.8) !important;
+    color: #ffffff !important;
+    box-shadow: 
+        0 2px 6px rgba(8, 145, 178, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-dividir:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0e7490 0%, #0f766e 50%, #0891b2 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(8, 145, 178, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 .pos-quick-action-btn.btn-transferir {
-    background: linear-gradient(135deg, #3730a3 0%, #5b21b6 100%);
-    border-color: #3730a3;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(55, 48, 163, 0.15);
+    background: linear-gradient(135deg, #3730a3 0%, #5b21b6 50%, #7c2d92 100%) !important;
+    border: 1px solid rgba(55, 48, 163, 0.8) !important;
+    color: #ffffff !important;
+    box-shadow: 
+        0 2px 6px rgba(55, 48, 163, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-transferir:hover:not(:disabled) {
+    background: linear-gradient(135deg, #312e81 0%, #4c1d95 50%, #581c87 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(55, 48, 163, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 .pos-quick-action-btn.btn-liberar {
-    background: linear-gradient(135deg, #444054 0%, #575366 100%);
-    border-color: #444054;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(68, 64, 84, 0.15);
+    background: linear-gradient(135deg, #444054 0%, #575366 50%, #6b7280 100%) !important;
+    border: 1px solid rgba(68, 64, 84, 0.8) !important;
+    color: #ffffff !important;
+    box-shadow: 
+        0 2px 6px rgba(68, 64, 84, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-liberar:hover:not(:disabled) {
+    background: linear-gradient(135deg, #374151 0%, #4b5563 50%, #6b7280 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(68, 64, 84, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 .pos-quick-action-btn.btn-cancelar {
-    background: linear-gradient(135deg, #991b1b 0%, #ef4444 100%);
-    border-color: #991b1b;
-    color: #ffffff;
-    box-shadow: 0 1px 2px rgba(153, 27, 27, 0.15);
+    background: linear-gradient(135deg, #991b1b 0%, #ef4444 50%, #f87171 100%) !important;
+    border: 1px solid rgba(153, 27, 27, 0.8) !important;
+    color: #ffffff !important;
+    box-shadow: 
+        0 2px 6px rgba(153, 27, 27, 0.25) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+.pos-quick-action-btn.btn-cancelar:hover:not(:disabled) {
+    background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #ef4444 100%) !important;
+    box-shadow: 
+        0 4px 12px rgba(153, 27, 27, 0.35) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
 
 /* ESTADO DISABLED - MÁS SUTIL */
@@ -1120,7 +2083,7 @@
     }
 
     .pos-quick-actions-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 1px;
     }
 
@@ -1440,7 +2403,7 @@
             transform: none;
         }
 
-        /* LOGO DEL SISTEMA - ESTADO INICIAL */
+        /* LOGO DEL SISTEMA - DISEÑO GESTALT APLICADO */
         .pos-logo-container {
             display: flex;
             flex-direction: column;
@@ -1448,48 +2411,132 @@
             justify-content: center;
             height: 100%;
             min-height: 400px;
-            padding: 40px 20px;
+            /* Principio de Proximidad: espaciado coherente */
+            padding: clamp(32px, 5vw, 48px) clamp(16px, 3vw, 24px);
             text-align: center;
+            /* Principio de Figura-Fondo: fondo sutil que realza el logo */
+            background: 
+                radial-gradient(circle at center, rgba(99, 102, 241, 0.03) 0%, transparent 70%),
+                radial-gradient(circle at 30% 70%, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
+            border-radius: 12px;
+            margin: 20px;
+            /* Principio de Cierre: contenedor definido */
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            position: relative;
+            z-index: 2;
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.4s ease;
+        }
+
+        .pos-logo-container:hover {
+            /* Principio de Figura-Fondo: feedback sutil */
+            background: 
+                radial-gradient(circle at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%),
+                radial-gradient(circle at 30% 70%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
+            border-color: rgba(99, 102, 241, 0.2);
+            transform: translateY(-2px);
         }
 
         .pos-system-logo {
-            width: 200px;
+            width: clamp(160px, 25vw, 220px);
             height: auto;
-            max-width: 80%;
-            margin-bottom: 24px;
-            opacity: 0.9;
-            transition: all 0.3s ease;
+            max-width: 85%;
+            /* Principio de Proximidad: espaciado con el texto */
+            margin-bottom: clamp(20px, 3vw, 28px);
+            opacity: 0.85;
+            /* Principio de Continuidad: transición elegante */
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Principio de Cierre: sombra sutil */
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.06));
         }
 
         .pos-system-logo:hover {
             opacity: 1;
-            transform: scale(1.02);
+            transform: scale(1.03);
+            filter: drop-shadow(0 6px 12px rgba(99, 102, 241, 0.15));
         }
 
         .pos-logo-text {
-            font-size: 16px;
+            /* Principio de Similitud: tipografía coherente */
+            font-size: clamp(14px, 2.2vw, 18px);
             font-weight: 500;
             color: #6b7280;
             margin: 0;
             opacity: 0.8;
+            letter-spacing: 0.3px;
+            line-height: 1.4;
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s ease;
         }
 
-        /* ESTADO VACÍO */
+        .pos-logo-container:hover .pos-logo-text {
+            color: #4b5563;
+            opacity: 1;
+        }
+
+        /* ESTADO VACÍO - DISEÑO GESTALT APLICADO */
         .pos-empty-state {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 40px 20px;
+            /* Principio de Proximidad: espaciado coherente */
+            padding: clamp(32px, 5vw, 48px) clamp(16px, 3vw, 24px);
             text-align: center;
+            /* Principio de Figura-Fondo: color sutil que no compite */
             color: #6b7280;
+            /* Principio de Cierre: contenedor definido */
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.8) 0%, rgba(241, 245, 249, 0.8) 100%);
+            border: 2px dashed var(--pos-border-subtle);
+            border-radius: 12px;
+            margin: 20px;
+            /* Principio de Simetría: balance visual */
+            position: relative;
+            z-index: 2;
+            /* Principio de Continuidad: transición suave */
+            transition: all 0.3s ease;
+        }
+
+        .pos-empty-state:hover {
+            /* Principio de Figura-Fondo: feedback sutil */
+            background: linear-gradient(135deg, rgba(248, 250, 252, 0.9) 0%, rgba(241, 245, 249, 0.9) 100%);
+            border-color: var(--pos-primary);
+            transform: translateY(-2px);
         }
 
         .pos-empty-icon {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 16px;
-            opacity: 0.5;
+            width: clamp(40px, 6vw, 56px);
+            height: clamp(40px, 6vw, 56px);
+            margin-bottom: clamp(12px, 2vw, 20px);
+            /* Principio de Figura-Fondo: icono sutil pero visible */
+            opacity: 0.6;
+            color: var(--pos-gray-400);
+            /* Principio de Continuidad: animación suave */
+            transition: all 0.3s ease;
+        }
+
+        .pos-empty-state:hover .pos-empty-icon {
+            opacity: 0.8;
+            color: var(--pos-primary);
+            transform: scale(1.05);
+        }
+
+        /* Títulos y texto del estado vacío - Principio de Similitud */
+        .pos-empty-state h3 {
+            /* Principio de Similitud: tipografía coherente */
+            font-size: clamp(16px, 2.5vw, 20px);
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: clamp(6px, 1vw, 10px);
+            letter-spacing: 0.3px;
+        }
+
+        .pos-empty-state p {
+            font-size: clamp(13px, 2vw, 16px);
+            font-weight: 400;
+            color: #6b7280;
+            line-height: 1.4;
+            margin: 0;
         }
 
         /* BREAKPOINTS RESPONSIVOS MEJORADOS */
@@ -1497,9 +2544,9 @@
         /* Pantallas grandes (1400px+) */
         @media (min-width: 1400px) {
             :root {
-                --pos-cart-width: 350px;
-                --pos-sidebar-width: 200px;
-                --pos-product-min-width: 140px;
+                --pos-cart-width: 480px;
+                --pos-sidebar-width: 220px;
+                --pos-product-min-width: 150px;
                 --pos-gap: 8px;
             }
         }
@@ -1507,9 +2554,9 @@
         /* Pantallas de 13 pulgadas (1200px - 1399px) - Optimización específica */
         @media (max-width: 1399px) and (min-width: 1200px) {
             :root {
-                --pos-cart-width: 280px;
-                --pos-sidebar-width: 160px;
-                --pos-product-min-width: 100px;
+                --pos-cart-width: 380px;
+                --pos-sidebar-width: 180px;
+                --pos-product-min-width: 120px;
                 --pos-gap: 6px;
             }
 
@@ -1544,9 +2591,9 @@
         /* Laptops medianos (1024px - 1199px) */
         @media (max-width: 1199px) and (min-width: 1024px) {
             :root {
-                --pos-cart-width: 260px;
-                --pos-sidebar-width: 150px;
-                --pos-product-min-width: 90px;
+                --pos-cart-width: 350px;
+                --pos-sidebar-width: 160px;
+                --pos-product-min-width: 110px;
                 --pos-gap: 5px;
             }
 
@@ -1591,9 +2638,9 @@
         /* Tablets (768px - 1023px) */
         @media (max-width: 1023px) and (min-width: 768px) {
             :root {
-                --pos-cart-width: 280px;
-                --pos-sidebar-width: 160px;
-                --pos-product-min-width: 100px;
+                --pos-cart-width: 370px;
+                --pos-sidebar-width: 170px;
+                --pos-product-min-width: 120px;
                 --pos-gap: 4px;
             }
 
@@ -2063,23 +3110,21 @@
                     @endforeach
                 </div>
 
-                {{-- SUBCATEGORÍAS --}}
+                {{-- SUBCATEGORÍAS CON DISEÑO JERÁRQUICO --}}
                 @if($selectedCategoryId && $subcategories->isNotEmpty())
-                    <div class="border-t border-gray-200 p-3">
-                        <h4 class="text-sm font-semibold text-gray-600 mb-2">SUBCATEGORÍAS</h4>
+                    <div class="pos-subcategories-container">
+                        <h4 class="pos-subcategories-title">SUBCATEGORÍAS</h4>
                         <div class="space-y-1">
                             <button
                                 wire:click="selectSubcategory(null)"
-                                class="pos-category-btn {{ $selectedSubcategoryId === null ? 'active' : '' }}"
-                            style="font-size: 14px; padding: 10px 14px;"
+                                class="pos-subcategory-btn {{ $selectedSubcategoryId === null ? 'active' : '' }}"
                             >
                                 Todos
                             </button>
                             @foreach($subcategories as $subcat)
                                 <button
                                     wire:click="selectSubcategory({{ $subcat->id }})"
-                                    class="pos-category-btn {{ $selectedSubcategoryId === $subcat->id ? 'active' : '' }}"
-                                    style="font-size: 14px; padding: 10px 14px;"
+                                    class="pos-subcategory-btn {{ $selectedSubcategoryId === $subcat->id ? 'active' : '' }}"
                                 >
                                     {{ $subcat->name }}
                                 </button>
@@ -2153,30 +3198,30 @@
                                     class="pos-product-card {{ !$canAddProducts ? 'pos-loading' : '' }}"
                                     @if(!$canAddProducts) style="pointer-events: none;" @endif
                                 >
+                                    {{-- Sección 1: Imagen (Proporción áurea superior - 61.8%) --}}
                                     <div class="pos-product-image">
                                         @if($product->image_path)
                                             <img
                                                 src="{{ $product->image }}"
                                                 alt="{{ $product->name }}"
-                                                style="width: 100%; height: 100%; object-fit: cover; border-radius: 6px;"
                                             />
                                         @else
-                                            <span style="font-weight: bold; color: #9ca3af; font-size: 18px;">
+                                            <span class="product-placeholder">
                                                 {{ strtoupper(substr($product->name, 0, 2)) }}
                                             </span>
                                         @endif
                                     </div>
 
-                                    <div class="pos-product-name">{{ $product->name }}</div>
+                                    {{-- Sección 2: Contenido integrado (Proporción áurea media - 38.2%) --}}
+                                    <div class="pos-product-content">
+                                        <div class="pos-product-name">{{ $product->name }}</div>
+                                        @if($product->category)
+                                            <div class="pos-product-category">{{ $product->category->name }}</div>
+                                        @endif
+                                    </div>
+                                    
+                                    {{-- Sección 3: Precio (Proporción áurea inferior - 23.6%) --}}
                                     <div class="pos-product-price">S/ {{ number_format($product->sale_price, 2) }}</div>
-
-                                    @if($product->category)
-                                        <div style="margin-top: 8px;">
-                                            <span style="background: #e5e7eb; color: #374151; padding: 2px 8px; border-radius: 12px; font-size: 10px;">
-                                                {{ $product->category->name }}
-                                            </span>
-                                        </div>
-                                    @endif
                                 </div>
                             @empty
                                 <div class="pos-empty-state" style="grid-column: 1 / -1;">
@@ -2212,104 +3257,102 @@
             <div class="pos-cart">
                 {{-- HEADER DEL CARRITO --}}
                 <div class="pos-cart-header">
-                    {{-- TÍTULO Y CONTROLES EN LA MISMA LÍNEA --}}
-                    <div class="pos-cart-title" style="display: flex; justify-content: space-around; align-items: center; padding: 0 8px;">
-                        <span style="background: var(--pos-success); color: white; padding: 4px 12px; border-radius: 16px; font-size: 14px; font-weight: 600;">
-                            {{ count($cartItems) }} items
-                        </span>
-
-                        {{-- CONTROLES CENTRADOS --}}
-                        <div style="display: flex; align-items: center; gap: 16px;">
-                            {{-- INFORMACIÓN DE LA MESA --}}
+                    {{-- HEADER REDISEÑADO CON PRINCIPIOS GESTALT --}}
+                    <div class="pos-cart-title">
+                        
+                        {{-- SECCIÓN IZQUIERDA: INFO PRINCIPAL --}}
+                        <div class="pos-cart-title-left">
+                            
+                            {{-- INFORMACIÓN DE LA MESA/VENTA - ELEMENTO PRINCIPAL --}}
                             @if($selectedTable)
-                                <div style="display: flex; align-items: center; gap: 4px;">
-                                    <x-heroicon-s-home style="width: 14px; height: 14px; color: #059669;" />
-                                    <span style="font-size: 12px; font-weight: 600; color: #000000;">
-                                        Mesa {{ $selectedTable->number }}
-                                    </span>
+                                <div class="pos-cart-mesa-info">
+                                    <x-heroicon-s-home />
+                                    <span class="pos-cart-mesa-text">MESA {{ $selectedTable->number }}</span>
+                                </div>
+                            @else
+                                <div class="pos-cart-mesa-info venta-directa">
+                                    <x-heroicon-s-shopping-cart />
+                                    <span class="pos-cart-mesa-text">VENTA DIRECTA</span>
                                 </div>
                             @endif
 
-                            <div>
-                                <label style="display: block; font-size: 10px; font-weight: 600; color: #374151; margin-bottom: 2px;">
-                                    Comensales <span style="color: #ef4444;">*</span>
-                                </label>
-                                <div style="position: relative;">
-                                    <x-heroicon-s-users style="position: absolute; left: 4px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; color: #9ca3af;" />
+                            {{-- CONTADOR DE ITEMS Y COMENSALES --}}
+                            <div class="pos-cart-counter-section">
+                                <span class="pos-cart-items-counter">
+                                    {{ count($cartItems) }} productos
+                                </span>
+                                
+                                {{-- COMENSALES INTEGRADO --}}
+                                <div class="pos-cart-guests-input">
+                                    <x-heroicon-s-users />
                                     <input
                                         type="number"
                                         wire:model.live="numberOfGuests"
                                         min="1"
-                                        style="width: 60px; padding: 4px 4px 4px 18px; border: 1px solid var(--pos-gray-200); border-radius: 4px; text-align: center; font-weight: 600; font-size: 12px;"
                                         placeholder="0"
                                         required
                                     >
+                                    <span class="pos-cart-guests-label">pax</span>
                                 </div>
                             </div>
+                        </div>
 
+                        {{-- SECCIÓN DERECHA: BOTÓN LIMPIAR --}}
+                        <div class="pos-cart-title-right">
                             <button
                                 wire:click="clearCart"
-                                style="width: 32px; height: 32px; border: 1px solid #fca5a5; border-radius: 6px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease; margin-top: 16px;"
+                                class="pos-cart-clear-btn"
                                 title="Limpiar carrito"
                                 {{ !$canClearCart ? 'disabled' : '' }}
-                                onmouseover="this.style.background='#fee2e2'"
-                                onmouseout="this.style.background='#fef2f2'"
                             >
-                                <x-heroicon-s-trash style="width: 16px; height: 16px;" />
+                                <x-heroicon-s-trash />
                             </button>
                         </div>
                     </div>
 
                     {{-- ACCIONES RÁPIDAS REORGANIZADAS --}}
                     <div class="pos-quick-actions">
-    <div class="pos-quick-actions-title">Acciones Rápidas</div>
     <div class="pos-quick-actions-grid">
         <!-- Mapa -->
         <button wire:click="mountAction('backToTableMap')" class="pos-quick-action-btn btn-mapa primary" title="Ir al mapa de mesas">
-            <x-heroicon-o-map-pin class="pos-quick-action-icon" />
-            <span class="btn-label">Mapa</span>
+            Mapa
         </button>
 
         <!-- Comanda -->
         <button wire:click="mountAction('printComanda')" class="pos-quick-action-btn btn-comanda primary" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Imprimir comanda para cocina">
-            <x-heroicon-o-rectangle-stack class="pos-quick-action-icon" />
-            <span class="btn-label">Comanda</span>
+            Comanda
         </button>
 
         <!-- Pre-Cuenta -->
         <button wire:click="mountAction('printPreBillNew')" class="pos-quick-action-btn btn-precuenta secondary" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Imprimir pre-cuenta para cliente">
-            <x-heroicon-o-receipt-refund class="pos-quick-action-icon" />
-            <span class="btn-label">Pre-Cuenta</span>
+            Pre-Cuenta
         </button>
 
         <!-- Reabrir -->
         <button wire:click="mountAction('reopen_order_for_editing')" class="pos-quick-action-btn btn-reabrir secondary" {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists()) ? 'disabled' : '' }} title="Reabrir orden para edición">
-            <x-heroicon-o-lock-open class="pos-quick-action-icon" />
-            <span class="btn-label">Reabrir</span>
+            Reabrir
         </button>
 
         <!-- Dividir -->
         <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }} title="Dividir cuenta entre mesas">
-            <x-heroicon-o-scissors class="pos-quick-action-icon" />
-            <span class="btn-label">Dividir</span>
+            Dividir
         </button>
 
         <!-- Transferir -->
         @if(!auth()->user()->hasRole(['waiter', 'cashier']))
             <button wire:click="mountAction('transferOrder')" class="pos-quick-action-btn btn-transferir tertiary" {{ !($this->order && $this->order->table_id && $this->order->status === 'open') ? 'disabled' : '' }} title="Transferir orden a otra mesa">
-                <x-heroicon-o-arrow-path class="pos-quick-action-icon" />
-                <span class="btn-label">Transferir</span>
+                Transferir
             </button>
         @endif
 
         <!-- Liberar Mesa -->
         <button wire:click="mountAction('releaseTable')" class="pos-quick-action-btn btn-liberar" {{ !($this->order && $this->order->table_id) ? 'disabled' : '' }} title="Liberar Mesa">
-            <x-heroicon-o-home-modern class="pos-quick-action-icon" />
+            Liberar
         </button>
 
         <!-- Cancelar Pedido -->
         <button wire:click="mountAction('cancelOrder')" class="pos-quick-action-btn btn-cancelar" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Cancelar Pedido">
-            <x-heroicon-o-x-circle class="pos-quick-action-icon" />
+            Cancelar
         </button>
     </div>
 </div>
@@ -2486,59 +3529,59 @@
                 {{-- TOTALES Y ACCIONES --}}
                 @if(count($cartItems) > 0)
                     <div class="pos-cart-totals">
-                        {{-- HEADER CON INFORMACIÓN CONTEXTUAL --}}
-                        <div class="pos-totals-header">
-                            <div class="pos-totals-header-title">
-                                @if($order && $order->invoices()->exists())
-                                    {{-- Estado: Facturado --}}
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-success);">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    <span style="color: var(--pos-success);">Facturado</span>
-                                @elseif($order && !$order->invoices()->exists())
-                                    {{-- Estado: Orden Guardada --}}
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-warning);">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    <span style="color: var(--pos-warning);">Orden Pendiente</span>
-                                @elseif($selectedTableId && !$order)
-                                    {{-- Estado: Mesa Seleccionada --}}
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-primary);">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v0H8v0z"></path>
-                                    </svg>
-                                    <span style="color: var(--pos-primary);">Nueva Orden</span>
-                                @else
-                                    {{-- Estado: Venta Directa --}}
-                                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-secondary);">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                    </svg>
-                                    <span style="color: var(--pos-secondary);">Venta Directa</span>
-                                @endif
-                            </div>
-                            <div class="pos-items-count">
-                                {{ count($cartItems) }} {{ count($cartItems) === 1 ? 'producto' : 'productos' }}
-                            </div>
-                        </div>
+                                                 {{-- HEADER CON INFORMACIÓN CONTEXTUAL - OCULTO --}}
+                         <div class="pos-totals-header" style="display: none;">
+                             <div class="pos-totals-header-title">
+                                 @if($order && $order->invoices()->exists())
+                                     {{-- Estado: Facturado --}}
+                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-success);">
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                     </svg>
+                                     <span style="color: var(--pos-success);">Facturado</span>
+                                 @elseif($order && !$order->invoices()->exists())
+                                     {{-- Estado: Orden Guardada --}}
+                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-warning);">
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                     </svg>
+                                     <span style="color: var(--pos-warning);">Orden Pendiente</span>
+                                 @elseif($selectedTableId && !$order)
+                                     {{-- Estado: Mesa Seleccionada --}}
+                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-primary);">
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v0H8v0z"></path>
+                                     </svg>
+                                     <span style="color: var(--pos-primary);">Nueva Orden</span>
+                                 @else
+                                     {{-- Estado: Venta Directa --}}
+                                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--pos-secondary);">
+                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                     </svg>
+                                     <span style="color: var(--pos-secondary);">Venta Directa</span>
+                                 @endif
+                             </div>
+                             <div class="pos-items-count">
+                                 {{ count($cartItems) }} {{ count($cartItems) === 1 ? 'producto' : 'productos' }}
+                             </div>
+                         </div>
 
                         {{-- DESGLOSE DE TOTALES --}}
                         <div class="pos-totals-container">
-                            <div class="pos-total-row">
+                            <div class="pos-total-row" style="display: none;">
                                 <span>Subtotal:</span>
                                 <span class="pos-total-amount">S/ {{ number_format($subtotal, 2) }}</span>
                             </div>
-                            <div class="pos-total-row">
+                            <div class="pos-total-row" style="display: none;">
                                 <span>IGV (18%):</span>
                                 <span class="pos-total-amount">S/ {{ number_format($tax, 2) }}</span>
                             </div>
                             <div class="pos-total-row final">
                                 <span>
-                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 6px;">
+                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 4px;">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
                                     </svg>
                                     Total:
                                 </span>
-                                <span class="pos-total-amount">S/ {{ number_format($total, 2) }}</span>
+                                <span class="pos-total-amount" style="font-size: 13px; font-weight: 700;">S/ {{ number_format($total, 2) }}</span>
                             </div>
                         </div>
 
