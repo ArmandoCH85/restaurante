@@ -2194,7 +2194,7 @@ class PosInterface extends Page
                                         Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
                                             Forms\Components\Select::make('payment_method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->default('cash')->live()->columnSpan(1),
                                             Forms\Components\TextInput::make('payment_amount')->label('Monto Recibido')->numeric()->prefix('S/')->live()->default((float)$this->total)->step(0.01)->minValue(fn(Get $get) => $get('payment_method')==='cash' ? (float)$this->total : 0.01)->rule(fn(Get $get) => function(string $a,$v,\Closure $fail) use($get){ if($get('payment_method')==='cash'){ $val=(float)$v; if($val + 1e-6 < (float)$this->total){ $fail('El monto recibido debe ser mayor o igual al total.'); } } })->columnSpan(1),
-                                            Forms\Components\Placeholder::make('change_display')->label('Vuelto')->content(function (Get $get){ $amount=(float)($get('payment_amount')??0); $change=$amount-(float)$this->total; if($change>0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-xs'>S/ ".number_format($change,2)."</span></div>");} elseif($change<0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-xs'>Falta: S/ ".number_format(abs($change),2)."</span></div>");} return new \Illuminate\Support\HtmlString("<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'><span class='text-blue-700 font-bold text-xs'>Exacto ✓</span></div>"); })->live()->visible(fn(Get $get)=>$get('payment_method')==='cash')->columnSpan(1),
+                                            Forms\Components\Placeholder::make('change_display')->label('Vuelto')->content(function (Get $get){ $amount=(float)($get('payment_amount')??0); $totalAmount = is_numeric($this->total) ? (float)$this->total : 0.0; $change=$amount-$totalAmount; if($change>0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-xs'>S/ ".number_format((float)$change,2)."</span></div>");} elseif($change<0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-xs'>Falta: S/ ".number_format(abs((float)$change),2)."</span></div>");} return new \Illuminate\Support\HtmlString("<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'><span class='text-blue-700 font-bold text-xs'>Exacto ✓</span></div>"); })->live()->visible(fn(Get $get)=>$get('payment_method')==='cash')->columnSpan(1),
                                         ]),
                                         Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del terminal POS')->helperText('Visible solo para tarjeta')->visible(fn(Get $get)=>$get('payment_method')==='card')->required(fn(Get $get)=>$get('payment_method')==='card')->maxLength(50)->live(),
                                         Forms\Components\Actions::make([
@@ -2214,7 +2214,7 @@ class PosInterface extends Page
                                                 Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
                                                     Forms\Components\Select::make('method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->required()->live()->columnSpan(1),
                                                     Forms\Components\TextInput::make('amount')->label('Monto')->numeric()->prefix('S/')->step(0.01)->minValue(0.01)->required()->live()->columnSpan(1),
-                                                    Forms\Components\Placeholder::make('remaining')->label('Estado')->content(function (Get $get){ $payments=$get('../../payment_methods')??[]; $totalPaid=0; foreach($payments as $p){ if(isset($p['amount']) && is_numeric($p['amount'])) $totalPaid+=(float)$p['amount']; } $remaining=(float)$this->total - $totalPaid; if(abs($remaining) < 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-[11px]'>Completo ✓</span></div>");} elseif($remaining > 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'><span class='text-orange-700 font-bold text-[11px]'>Falta: S/ ".number_format($remaining,2)."</span></div>");} else {return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-[11px]'>Exceso: S/ ".number_format(abs($remaining),2)."</span></div>");} })->live()->columnSpan(1),
+                                                    Forms\Components\Placeholder::make('remaining')->label('Estado')->content(function (Get $get){ $payments=$get('../../payment_methods')??[]; $totalPaid=0; foreach($payments as $p){ if(isset($p['amount']) && is_numeric($p['amount'])) $totalPaid+=(float)$p['amount']; } $totalAmount = is_numeric($this->total) ? (float)$this->total : 0.0; $remaining=$totalAmount - $totalPaid; if(abs($remaining) < 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-[11px]'>Completo ✓</span></div>");} elseif($remaining > 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'><span class='text-orange-700 font-bold text-[11px]'>Falta: S/ ".number_format((float)$remaining,2)."</span></div>");} else {return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-[11px]'>Exceso: S/ ".number_format(abs((float)$remaining),2)."</span></div>");} })->live()->columnSpan(1),
                                                 ]),
                                                 Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del voucher')->helperText('Solo para tarjeta')->visible(fn(Get $get)=>$get('method')==='card')->required(fn(Get $get)=>$get('method')==='card')->maxLength(50)->live(),
                                             ])->defaultItems(1)->addActionLabel('+ Agregar Método de Pago')
@@ -2225,7 +2225,7 @@ class PosInterface extends Page
                                                 ->modalSubmitActionLabel('Eliminar')
                                                 ->modalCancelActionLabel('Cancelar')
                                             )
-                                            ->itemLabel(fn(array $state): ?string => ($state['method'] ?? 'Método').': S/ '.number_format($state['amount'] ?? 0,2))
+                                            ->itemLabel(fn(array $state): ?string => ($state['method'] ?? 'Método').': S/ '.number_format((float)($state['amount'] ?? 0),2))
                                             ->collapsible()
                                             ->cloneAction(fn(Forms\Components\Actions\Action $action) => $action
                                                 ->label('Agregar')
@@ -2247,7 +2247,7 @@ class PosInterface extends Page
                                                 return new \Illuminate\Support\HtmlString(
                                                     '<div class="p-2 bg-gray-50 border border-gray-200 rounded text-[11px] space-y-1">'
                                                     .'<div class="flex justify-between"><span>Total:</span><span class="font-semibold">S/ '.number_format((float)$this->total,2).'</span></div>'
-                                                    .'<div class="flex justify-between"><span>Pagado:</span><span class="font-semibold">S/ '.number_format($totalPaid,2).'</span></div>'
+                                                    .'<div class="flex justify-between"><span>Pagado:</span><span class="font-semibold">S/ '.number_format((float)$totalPaid,2).'</span></div>'
                                                     .'<div class="flex justify-between border-t pt-1"><span>Estado:</span><span class="font-semibold text-'.$color.'-700">'.$statusText.'</span></div>'
                                                     .'</div>'
                                                 );
@@ -2447,7 +2447,7 @@ class PosInterface extends Page
                 if ($data['split_payment'] ?? false) {
                     $paymentDetails = [];
                     foreach ($data['payment_methods'] as $payment) {
-                        $paymentDetails[] = $payment['method'] . ': S/ ' . number_format($payment['amount'], 2);
+                        $paymentDetails[] = $payment['method'] . ': S/ ' . number_format((float)$payment['amount'], 2);
                     }
                     $invoice->update([
                         'notes' => 'Pago dividido: ' . implode(', ', $paymentDetails)
@@ -2569,7 +2569,7 @@ class PosInterface extends Page
         }
 
         if (abs($totalPaid - (float)$this->total) > 0.01) {
-            throw new \Exception('El total de los pagos (S/ ' . number_format($totalPaid, 2) . ') debe ser igual al total de la orden (S/ ' . number_format((float)$this->total, 2) . ')');
+            throw new \Exception('El total de los pagos (S/ ' . number_format((float)$totalPaid, 2) . ') debe ser igual al total de la orden (S/ ' . number_format((float)$this->total, 2) . ')');
         }
     }
 
