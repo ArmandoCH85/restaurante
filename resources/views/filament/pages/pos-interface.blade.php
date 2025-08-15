@@ -1504,17 +1504,87 @@
             }
         }
 
-        /* Pantallas medianas (1024px - 1399px) */
-        @media (max-width: 1399px) and (min-width: 1024px) {
+        /* Pantallas de 13 pulgadas (1200px - 1399px) - Optimización específica */
+        @media (max-width: 1399px) and (min-width: 1200px) {
             :root {
-                --pos-cart-width: 320px;
-                --pos-sidebar-width: 180px;
-                --pos-product-min-width: 120px;
+                --pos-cart-width: 280px;
+                --pos-sidebar-width: 160px;
+                --pos-product-min-width: 100px;
                 --pos-gap: 6px;
+            }
+
+            .pos-main-container {
+                grid-template-columns: var(--pos-sidebar-width) 1fr var(--pos-cart-width);
+                height: calc(100vh - 110px);
+                min-height: 350px; /* Optimizado para 13 pulgadas */
+                padding: 6px;
+                gap: 6px;
             }
 
             .pos-quick-actions-grid {
                 grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .pos-product-card {
+                min-height: 80px;
+                padding: 6px;
+            }
+            
+            .pos-products-grid {
+                padding: 6px; /* Menos padding para más espacio */
+                margin: 3px; /* Menos margen */
+            }
+
+            .pos-products-container {
+                padding: 4px; /* Optimizado para 13 pulgadas */
+                gap: 4px;
+            }
+        }
+
+        /* Laptops medianos (1024px - 1199px) */
+        @media (max-width: 1199px) and (min-width: 1024px) {
+            :root {
+                --pos-cart-width: 260px;
+                --pos-sidebar-width: 150px;
+                --pos-product-min-width: 90px;
+                --pos-gap: 5px;
+            }
+
+            .pos-main-container {
+                grid-template-columns: var(--pos-sidebar-width) 1fr var(--pos-cart-width);
+                height: calc(100vh - 100px);
+                min-height: 320px; /* Optimizado para laptops medianos */
+                padding: 5px;
+                gap: 5px;
+            }
+
+            .pos-quick-actions-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 3px;
+            }
+            
+            .pos-product-card {
+                min-height: 75px;
+                padding: 5px;
+            }
+            
+            .pos-product-name {
+                font-size: 11px;
+                line-height: 1.2;
+            }
+            
+            .pos-product-price {
+                font-size: 10px;
+            }
+            
+            .pos-products-grid {
+                padding: 5px; /* Menos padding para laptops medianos */
+                margin: 2px; /* Menos margen */
+            }
+
+            .pos-products-container {
+                padding: 3px; /* Optimizado para laptops medianos */
+                gap: 3px;
             }
         }
 
