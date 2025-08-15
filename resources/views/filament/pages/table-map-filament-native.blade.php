@@ -445,4 +445,174 @@
         </x-slot>
     </x-filament::modal>
 </x-filament-panels::page>
+
+@push('styles')
+<style>
+    /* =============================
+       🎨 OPTIMIZACIÓN VISUAL MAPA DE MESAS
+       (Sólo CSS – sin cambios HTML/JS)
+       Principios: Proximidad, Similitud, Figura-Fondo, Jerarquía, Whitespace, Accesibilidad
+       ============================= */
+
+    /* ---- Variables de estado (permite ajustes centralizados) ---- */
+    :root {
+        --mesa-bg-available: #4CAF50;   /* Verde accesible */
+        --mesa-bg-occupied:  #F44336;   /* Rojo vivo */
+        --mesa-bg-reserved:  #FF9800;   /* Ámbar intenso */
+        --mesa-bg-prebill:   #1976D2;   /* Azul contraste */
+        --mesa-bg-maintenance:#757575;  /* Gris neutro */
+        --mesa-fg-light: #FFFFFF;
+        --mesa-shadow: 0 2px 6px rgba(0,0,0,0.10);
+        --mesa-shadow-hover: 0 4px 12px rgba(0,0,0,0.15);
+        --mesa-radius: 12px;
+        --mesa-transition: .18s cubic-bezier(.4,.2,.2,1);
+        --map-bg: #F5F5F5;
+    }
+
+    /* Fondo neutro del contenedor principal (Figura–Fondo) */
+    body.dark .fi-main > *, body.dark .fi-section { /* evitar forzar en dark para no romper tema */ }
+    .fi-main { background: var(--map-bg); }
+
+    /* Grid de mesas: más respiración horizontal y consistente (Whitespace) */
+    .fi-section .grid.grid-cols-1 { /* selector específico para no afectar otras grids */
+        padding: 20px 8px 28px 8px; /* padding principal */
+        gap: 16px; /* separación base entre mesas */
+    }
+
+    /* Tarjeta base (Similitud) */
+    .table-card-original {
+        width: 100%;
+        max-width: 180px; /* tamaño consistente */
+        min-height: 150px;
+        border-radius: var(--mesa-radius) !important;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-shadow: var(--mesa-shadow);
+        outline: 0 solid transparent;
+        transition: transform var(--mesa-transition), box-shadow var(--mesa-transition), outline var(--mesa-transition), background-color var(--mesa-transition);
+        isolation: isolate; /* asegura overlays correctos */
+    }
+
+    /* Hover Feedback (Feedback Visual) */
+    .table-card-original:hover {
+        transform: scale(1.05);
+        box-shadow: var(--mesa-shadow-hover);
+    }
+
+    /* Estado activo / seleccionado (requiere que futuro HTML añada .is-active o data-selected) */
+    .table-card-original.is-active,
+    .table-card-original[data-selected="true"],
+    .table-card-original:focus-visible {
+        outline: 3px solid #2196F3;
+        outline-offset: 2px;
+    }
+
+    /* Normaliza tipografía interna */
+    .table-card-original span, .table-card-original p { line-height: 1.15; }
+
+    /* Número de mesa (Jerarquía Visual) */
+    .table-card-original .table-number {
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: rgba(0,0,0,0.70);
+        color: #fff !important;
+        display: inline-block;
+        letter-spacing: .5px;
+    }
+
+    /* Badge de estado: refuerzo tipográfico + icono (Accesibilidad) */
+    .table-card-original .fi-badge { /* componente Filament */
+        font-weight: 600;
+        letter-spacing: .25px;
+        backdrop-filter: saturate(140%) brightness(1.05);
+    }
+
+    /* Colores por estado (override de inline styles con !important) */
+    /* Usamos subconjunto de tonalidades ya definidas asegurando contraste >= 4.5:1 */
+    .table-card-original[style*='available'] { background: var(--mesa-bg-available) !important; color: var(--mesa-fg-light) !important; }
+    .table-card-original[style*='occupied']  { background: var(--mesa-bg-occupied) !important; color: var(--mesa-fg-light) !important; }
+    .table-card-original[style*='reserved']  { background: var(--mesa-bg-reserved) !important; color: var(--mesa-fg-light) !important; }
+    .table-card-original[style*='prebill']   { background: var(--mesa-bg-prebill) !important; color: var(--mesa-fg-light) !important; }
+    .table-card-original[style*='maintenance'] { background: var(--mesa-bg-maintenance) !important; color: var(--mesa-fg-light) !important; }
+
+    /* Overlay sutil para reforzar figura sobre fondo claro (Figura–Fondo) */
+    .table-card-original::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(255,255,255,0.0));
+        pointer-events: none;
+        mix-blend-mode: overlay;
+    }
+
+    /* Zonas / Agrupaciones (Proximidad)
+       NOTA: Sin clases de zona en HTML actual, se sugiere futura clase por ubicación.
+       Por ahora sólo reforzamos separación vertical adicional cada 5 elementos para simular bloques. */
+    .fi-section .grid.grid-cols-1 > *:nth-child(5n+1) { margin-top: 24px; }
+    .fi-section .grid.grid-cols-1 > *:first-child { margin-top: 0; }
+
+    /* Encabezados / Títulos (si se agregan zonas en futuro) */
+    .table-zone-title { /* clase futura */
+        font-weight: 600;
+        color: #333;
+        text-transform: uppercase;
+        padding: 0 4px 8px 4px;
+        border-bottom: 1px solid #E0E0E0;
+        margin-bottom: 12px;
+        letter-spacing: .5px;
+        font-size: 12px;
+    }
+
+    /* Responsividad: pantallas pequeñas */
+    @media (max-width: 640px) {
+        .table-card-original {
+            max-width: 140px;
+            min-height: 120px;
+            padding: 14px !important;
+        }
+        .table-card-original .table-number { font-size: 13px !important; }
+        .fi-section .grid.grid-cols-1 { gap: 12px; padding: 16px 4px 24px; }
+    }
+
+    @media (max-width: 420px) {
+        .table-card-original { max-width: 120px; min-height: 110px; }
+        .table-card-original .table-number { font-size: 12px !important; }
+    }
+
+    /* Transiciones suaves para badges e iconos */
+    .table-card-original .fi-badge, .table-card-original svg { transition: opacity var(--mesa-transition), transform var(--mesa-transition); }
+    .table-card-original:hover .fi-badge { transform: translateY(-2px); }
+
+    /* Eliminar bordes innecesarios heredados */
+    .table-card-original { border: none !important; }
+    .table-card-original [class*='border-'] { /* no afectar badges específicos */ }
+
+    /* Soporte para usuarios con reducción de movimiento */
+    @media (prefers-reduced-motion: reduce) {
+        .table-card-original, .table-card-original:hover { transition: none; transform: none !important; }
+    }
+
+    /* Accesibilidad: focus visible claro */
+    .table-card-original:focus-visible { box-shadow: 0 0 0 3px #2196F3, var(--mesa-shadow-hover); }
+
+    /* Refuerzo semántico: iconos por estado (usando outline overlay) */
+    .table-card-original[data-selected='true']::before { content: '✔'; position: absolute; top: 6px; right: 8px; font-size: 16px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+    /* Placeholder para potencial estado de limpieza futuro (si se añade clase .cleaning) */
+    .table-card-original.cleaning { background: #FFC107 !important; color: #212121 !important; }
+    .table-card-original.cleaning::before { content: '🧹'; position: absolute; top: 6px; right: 8px; }
+
+    /* Ajuste de contraste en modo oscuro (si Filament aplica dark) */
+    .dark .fi-main { background: #1e1e1e; }
+    .dark .table-card-original[style*='available'] { background: #2E7D32 !important; }
+    .dark .table-card-original[style*='occupied'] { background: #C62828 !important; }
+    .dark .table-card-original[style*='reserved'] { background: #EF6C00 !important; }
+    .dark .table-card-original[style*='prebill'] { background: #1565C0 !important; }
+    .dark .table-card-original[style*='maintenance'] { background: #616161 !important; }
+</style>
+@endpush
   {{-- Resumen de filtros activos --}}

@@ -79,7 +79,7 @@
             flex-direction: column;
             overflow: hidden;
             /* Principio de Cierre: forma completa y definida */
-            box-shadow: 
+            box-shadow:
                 0 4px 12px rgba(0, 0, 0, 0.08),
                 0 2px 6px rgba(0, 0, 0, 0.04),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -108,7 +108,7 @@
             border-radius: 10px;
             margin: 8px 8px 6px 8px;
             /* Principio de Cierre: contenedor definido */
-            box-shadow: 
+            box-shadow:
                 0 2px 6px rgba(0, 0, 0, 0.04),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
             /* Principio de Simetría: centrado perfecto */
@@ -225,7 +225,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             /* Principio de Cierre: sombra que define límites */
-            box-shadow: 
+            box-shadow:
                 0 2px 4px rgba(0, 0, 0, 0.06),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
             position: relative;
@@ -249,7 +249,7 @@
             background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
             border-color: var(--pos-primary);
             transform: translateY(-2px);
-            box-shadow: 
+            box-shadow:
                 0 4px 12px rgba(99, 102, 241, 0.15),
                 0 2px 6px rgba(0, 0, 0, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -266,7 +266,7 @@
             color: white;
             border: 2px solid var(--pos-primary);
             transform: translateY(-1px);
-            box-shadow: 
+            box-shadow:
                 0 6px 16px rgba(99, 102, 241, 0.3),
                 0 3px 8px rgba(99, 102, 241, 0.2),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
@@ -307,7 +307,7 @@
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             /* Principio de Proximidad: sombra más sutil */
-            box-shadow: 
+            box-shadow:
                 0 1px 2px rgba(0, 0, 0, 0.04),
                 inset 0 1px 0 rgba(255, 255, 255, 0.5);
             position: relative;
@@ -333,7 +333,7 @@
             background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
             border-color: rgba(99, 102, 241, 0.4);
             transform: translateY(-1px);
-            box-shadow: 
+            box-shadow:
                 0 2px 6px rgba(99, 102, 241, 0.1),
                 0 1px 3px rgba(0, 0, 0, 0.08),
                 inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -351,7 +351,7 @@
             color: #4338ca;
             border: 1px solid #6366f1;
             transform: translateY(-1px);
-            box-shadow: 
+            box-shadow:
                 0 3px 8px rgba(99, 102, 241, 0.2),
                 0 2px 4px rgba(99, 102, 241, 0.15),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -457,7 +457,7 @@
         .pos-search-container:focus-within {
             border-color: var(--pos-primary);
             background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-            box-shadow: 
+            box-shadow:
                 inset 0 1px 3px rgba(0, 0, 0, 0.05),
                 0 0 0 3px rgba(99, 102, 241, 0.1),
                 0 4px 12px rgba(99, 102, 241, 0.15);
@@ -611,7 +611,7 @@
             /* Principio de Figura-Fondo: fondo elegante que realza productos */
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
             /* Principio de Cierre: contenedor bien definido */
-            box-shadow: 
+            box-shadow:
                 0 4px 12px rgba(0, 0, 0, 0.06),
                 0 2px 6px rgba(0, 0, 0, 0.04),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -629,9 +629,9 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, 
-                var(--pos-success) 0%, 
-                var(--pos-primary) 50%, 
+            background: linear-gradient(90deg,
+                var(--pos-success) 0%,
+                var(--pos-primary) 50%,
                 var(--pos-secondary) 100%);
             border-radius: 12px 12px 0 0;
             z-index: 1;
@@ -645,7 +645,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.02) 0%, transparent 50%),
                 radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
             pointer-events: none;
@@ -944,7 +944,7 @@
             border-radius: 8px;
             margin: 4px;
             /* Principio de Cierre: contenedor bien definido */
-            box-shadow: 
+            box-shadow:
                 0 2px 6px rgba(59, 130, 246, 0.06),
                 0 1px 3px rgba(0, 0, 0, 0.03),
                 inset 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -962,9 +962,9 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, 
-                var(--pos-warning) 0%, 
-                var(--pos-success) 50%, 
+            background: linear-gradient(90deg,
+                var(--pos-warning) 0%,
+                var(--pos-success) 50%,
                 var(--pos-primary) 100%);
             border-radius: 12px 12px 0 0;
             z-index: 1;
@@ -978,7 +978,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
                 radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
             pointer-events: none;
@@ -992,7 +992,7 @@
             background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #bfdbfe 100%);
             border-color: rgba(59, 130, 246, 0.3);
             transform: translateY(-1px);
-            box-shadow: 
+            box-shadow:
                 0 6px 16px rgba(59, 130, 246, 0.12),
                 0 3px 8px rgba(0, 0, 0, 0.06),
                 inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -1172,7 +1172,7 @@
             color: #1f2937;
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             transition: all 0.2s ease;
-            box-shadow: 
+            box-shadow:
                 0 1px 2px rgba(0, 0, 0, 0.08),
                 inset 0 1px 0 rgba(255, 255, 255, 0.6);
             /* Mejorar contraste */
@@ -1184,7 +1184,7 @@
             outline: none;
             border-color: var(--pos-success);
             background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
-            box-shadow: 
+            box-shadow:
                 0 0 0 3px rgba(16, 185, 129, 0.2),
                 0 3px 6px rgba(0, 0, 0, 0.15);
             transform: scale(1.05);
@@ -1362,7 +1362,7 @@
             border-radius: 8px;
             font-size: 14px;
             font-weight: 700;
-            box-shadow: 
+            box-shadow:
                 0 4px 8px rgba(16, 185, 129, 0.2),
                 0 1px 2px rgba(0, 0, 0, 0.1);
             position: relative;
@@ -1383,20 +1383,20 @@
 
         .pos-cart-mesa-info.venta-directa {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            box-shadow: 
+            box-shadow:
                 0 4px 8px rgba(99, 102, 241, 0.2),
                 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .pos-cart-mesa-info:hover {
             transform: translateY(-1px);
-            box-shadow: 
+            box-shadow:
                 0 6px 12px rgba(16, 185, 129, 0.25),
                 0 2px 4px rgba(0, 0, 0, 0.12);
         }
 
         .pos-cart-mesa-info.venta-directa:hover {
-            box-shadow: 
+            box-shadow:
                 0 6px 12px rgba(99, 102, 241, 0.25),
                 0 2px 4px rgba(0, 0, 0, 0.12);
         }
@@ -1429,7 +1429,7 @@
             min-width: 36px;
             height: 32px;
             text-align: center;
-            box-shadow: 
+            box-shadow:
                 0 3px 6px rgba(245, 158, 11, 0.2),
                 0 1px 2px rgba(0, 0, 0, 0.1);
             position: relative;
@@ -1450,7 +1450,7 @@
 
         .pos-cart-items-counter:hover {
             transform: translateY(-1px);
-            box-shadow: 
+            box-shadow:
                 0 4px 8px rgba(245, 158, 11, 0.25),
                 0 2px 4px rgba(0, 0, 0, 0.12);
         }
@@ -1464,7 +1464,7 @@
             padding: 6px 10px;
             border-radius: 8px;
             border: 2px solid #e2e8f0;
-            box-shadow: 
+            box-shadow:
                 0 2px 4px rgba(0, 0, 0, 0.04),
                 inset 0 1px 0 rgba(255, 255, 255, 0.8);
             height: 32px;
@@ -1473,14 +1473,14 @@
 
         .pos-cart-guests-input:hover {
             border-color: #cbd5e1;
-            box-shadow: 
+            box-shadow:
                 0 3px 6px rgba(0, 0, 0, 0.06),
                 inset 0 1px 0 rgba(255, 255, 255, 0.9);
         }
 
         .pos-cart-guests-input:focus-within {
             border-color: #6366f1;
-            box-shadow: 
+            box-shadow:
                 0 3px 6px rgba(99, 102, 241, 0.1),
                 0 0 0 3px rgba(99, 102, 241, 0.05);
         }
@@ -1633,7 +1633,7 @@
     padding: 8px 10px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
-    box-shadow: 
+    box-shadow:
         0 2px 4px rgba(0, 0, 0, 0.08),
         inset 0 1px 0 rgba(255, 255, 255, 0.7);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -1649,7 +1649,7 @@
     background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
     border-color: #94a3b8;
     transform: translateY(-1px);
-    box-shadow: 
+    box-shadow:
         0 3px 6px rgba(0, 0, 0, 0.12),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
     color: #020617;
@@ -1657,7 +1657,7 @@
 
 .pos-cart-item:focus-within .pos-cart-item-name {
     border-color: #6366f1;
-    box-shadow: 
+    box-shadow:
         0 3px 6px rgba(99, 102, 241, 0.15),
         0 0 0 2px rgba(99, 102, 241, 0.1);
 }
@@ -2081,7 +2081,7 @@
     position: relative;
     z-index: 10;
     /* Principio de Cierre: contenedor bien definido */
-    box-shadow: 
+    box-shadow:
         0 2px 8px rgba(0, 0, 0, 0.04),
         0 1px 3px rgba(0, 0, 0, 0.03),
         inset 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -2097,8 +2097,8 @@
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, 
-        var(--pos-danger) 0%, 
+    background: linear-gradient(90deg,
+        var(--pos-danger) 0%,
         var(--pos-warning) 25%,
         var(--pos-success) 50%,
         var(--pos-primary) 75%,
@@ -2115,7 +2115,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
+    background:
         radial-gradient(circle at 10% 10%, rgba(239, 68, 68, 0.02) 0%, transparent 40%),
         radial-gradient(circle at 90% 90%, rgba(99, 102, 241, 0.02) 0%, transparent 40%);
     pointer-events: none;
@@ -2128,7 +2128,7 @@
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
     border-color: rgba(99, 102, 241, 0.3);
     transform: translateY(-1px);
-    box-shadow: 
+    box-shadow:
         0 6px 16px rgba(0, 0, 0, 0.08),
         0 3px 8px rgba(0, 0, 0, 0.06),
         inset 0 1px 0 rgba(255, 255, 255, 0.8);
@@ -2199,7 +2199,7 @@
     min-height: clamp(24px, 3.5vw, 28px) !important;
     height: clamp(24px, 3.5vw, 28px) !important;
     /* Principio de Cierre: sombras que definen límites */
-    box-shadow: 
+    box-shadow:
         0 1px 3px rgba(0, 0, 0, 0.06) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
     width: 100% !important;
@@ -2220,7 +2220,7 @@
 .pos-quick-action-btn:hover:not(:disabled) {
     /* Principio de Figura-Fondo: elevación sutil */
     transform: translateY(-2px) scale(1.02) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 8px rgba(0, 0, 0, 0.15) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     /* Principio de Continuidad: brillo sutil */
@@ -2229,7 +2229,7 @@
 
 .pos-quick-action-btn:active:not(:disabled) {
     transform: translateY(0) scale(0.98) !important;
-    box-shadow: 
+    box-shadow:
         0 1px 2px rgba(0, 0, 0, 0.1) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     transition: transform 0.1s ease !important;
@@ -2290,14 +2290,14 @@
     border: 1px solid rgba(29, 78, 216, 0.8) !important;
     color: #ffffff !important;
     /* Principio de Cierre: sombra que define el botón */
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(29, 78, 216, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-mapa:hover:not(:disabled) {
     background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(29, 78, 216, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2306,14 +2306,14 @@
     background: linear-gradient(135deg, #056f57 0%, #0d9488 50%, #14b8a6 100%) !important;
     border: 1px solid rgba(5, 111, 87, 0.8) !important;
     color: #ffffff !important;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(5, 111, 87, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-comanda:hover:not(:disabled) {
     background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(5, 111, 87, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2322,14 +2322,14 @@
     background: linear-gradient(135deg, #b45309 0%, #ea580c 50%, #f97316 100%) !important;
     border: 1px solid rgba(180, 83, 9, 0.8) !important;
     color: #ffffff !important;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(180, 83, 9, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-precuenta:hover:not(:disabled) {
     background: linear-gradient(135deg, #92400e 0%, #c2410c 50%, #ea580c 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(180, 83, 9, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2338,14 +2338,14 @@
     background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #8b5cf6 100%) !important;
     border: 1px solid rgba(79, 70, 229, 0.8) !important;
     color: #ffffff !important;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(79, 70, 229, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-reabrir:hover:not(:disabled) {
     background: linear-gradient(135deg, #4338ca 0%, #6d28d9 50%, #7c3aed 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(79, 70, 229, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2354,14 +2354,14 @@
     background: linear-gradient(135deg, #0891b2 0%, #0d9488 50%, #06b6d4 100%) !important;
     border: 1px solid rgba(8, 145, 178, 0.8) !important;
     color: #ffffff !important;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(8, 145, 178, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-dividir:hover:not(:disabled) {
     background: linear-gradient(135deg, #0e7490 0%, #0f766e 50%, #0891b2 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(8, 145, 178, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2370,14 +2370,14 @@
     background: linear-gradient(135deg, #3730a3 0%, #5b21b6 50%, #7c2d92 100%) !important;
     border: 1px solid rgba(55, 48, 163, 0.8) !important;
     color: #ffffff !important;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(55, 48, 163, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-transferir:hover:not(:disabled) {
     background: linear-gradient(135deg, #312e81 0%, #4c1d95 50%, #581c87 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(55, 48, 163, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2386,14 +2386,14 @@
     background: linear-gradient(135deg, #444054 0%, #575366 50%, #6b7280 100%) !important;
     border: 1px solid rgba(68, 64, 84, 0.8) !important;
     color: #ffffff !important;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(68, 64, 84, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-liberar:hover:not(:disabled) {
     background: linear-gradient(135deg, #374151 0%, #4b5563 50%, #6b7280 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(68, 64, 84, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2402,14 +2402,14 @@
     background: linear-gradient(135deg, #991b1b 0%, #ef4444 50%, #f87171 100%) !important;
     border: 1px solid rgba(153, 27, 27, 0.8) !important;
     color: #ffffff !important;
-    box-shadow: 
+    box-shadow:
         0 2px 6px rgba(153, 27, 27, 0.25) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
 }
 
 .pos-quick-action-btn.btn-cancelar:hover:not(:disabled) {
     background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 50%, #ef4444 100%) !important;
-    box-shadow: 
+    box-shadow:
         0 4px 12px rgba(153, 27, 27, 0.35) !important,
         inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
 }
@@ -2835,7 +2835,7 @@
             padding: clamp(32px, 5vw, 48px) clamp(16px, 3vw, 24px);
             text-align: center;
             /* Principio de Figura-Fondo: fondo sutil que realza el logo */
-            background: 
+            background:
                 radial-gradient(circle at center, rgba(99, 102, 241, 0.03) 0%, transparent 70%),
                 radial-gradient(circle at 30% 70%, rgba(16, 185, 129, 0.02) 0%, transparent 50%);
             border-radius: 12px;
@@ -2850,7 +2850,7 @@
 
         .pos-logo-container:hover {
             /* Principio de Figura-Fondo: feedback sutil */
-            background: 
+            background:
                 radial-gradient(circle at center, rgba(99, 102, 241, 0.05) 0%, transparent 70%),
                 radial-gradient(circle at 30% 70%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
             border-color: rgba(99, 102, 241, 0.2);
@@ -2991,12 +2991,12 @@
             .pos-quick-actions-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
-            
+
             .pos-product-card {
                 min-height: 80px;
                 padding: 6px;
             }
-            
+
             .pos-products-grid {
                 padding: 6px; /* Menos padding para más espacio */
                 margin: 3px; /* Menos margen */
@@ -3029,21 +3029,21 @@
                 grid-template-columns: repeat(3, 1fr);
                 gap: 3px;
             }
-            
+
             .pos-product-card {
                 min-height: 75px;
                 padding: 5px;
             }
-            
+
             .pos-product-name {
                 font-size: 11px;
                 line-height: 1.2;
             }
-            
+
             .pos-product-price {
                 font-size: 10px;
             }
-            
+
             .pos-products-grid {
                 padding: 5px; /* Menos padding para laptops medianos */
                 margin: 2px; /* Menos margen */
@@ -3639,7 +3639,7 @@
                                             <div class="pos-product-category">{{ $product->category->name }}</div>
                                         @endif
                                     </div>
-                                    
+
                                     {{-- Sección 3: Precio (Proporción áurea inferior - 23.6%) --}}
                                     <div class="pos-product-price">S/ {{ number_format($product->sale_price, 2) }}</div>
                                 </div>
@@ -3679,7 +3679,7 @@
                 <div class="pos-cart-header">
                     {{-- HEADER REDISEÑADO MEJORADO --}}
                     <div class="pos-cart-title-new">
-                        
+
                         {{-- FILA 1: INFORMACIÓN PRINCIPAL DE MESA/VENTA --}}
                         <div class="pos-cart-main-info">
                             @if($selectedTable)
@@ -4109,33 +4109,33 @@
                         window.posInterfacePrintListenerAdded = true;
                         window.lastPrintedInvoiceId = null;
                         window.printStartTime = null;
-                        
+
                         $wire.on('open-print-window', (event) => {
                             if (this.printProcessing) {
                                 console.log('⚠️ Impresión en proceso, ignorando duplicado');
                                 return;
                             }
-                            
+
                             let invoiceId = Array.isArray(event) ? (event[0]?.id || event[0]) : (event?.id || event);
 
                             if (!invoiceId) {
                                 console.error('❌ Error: ID de comprobante no encontrado');
                                 return;
                             }
-                            
+
                             // Prevenir impresión duplicada del mismo comprobante
                             if (window.lastPrintedInvoiceId === invoiceId) {
                                 console.log('⚠️ Comprobante ya impreso, evitando duplicado');
                                 return;
                             }
-                            
+
                             // Prevenir impresiones muy rápidas (doble clic)
                             const now = Date.now();
                             if (window.printStartTime && (now - window.printStartTime) < 3000) {
                                 console.log('⚠️ Impresión muy rápida, ignorando');
                                 return;
                             }
-                            
+
                             this.printProcessing = true;
                             window.lastPrintedInvoiceId = invoiceId;
                             window.printStartTime = now;
@@ -4146,14 +4146,14 @@
                                 const printUrl = `/print/invoice/${invoiceId}`;
                                 console.log('🔗 Abriendo ventana de impresión:', printUrl);
                                 const printWindow = window.open(printUrl, 'invoice_print_' + invoiceId, 'width=800,height=600,scrollbars=yes,resizable=yes');
-                                
+
                                 // Verificar si la ventana se abrió correctamente
                                 if (printWindow && !printWindow.closed) {
                                     console.log('✅ Ventana de impresión abierta exitosamente');
                                 } else {
                                     console.error('❌ Error al abrir ventana de impresión');
                                 }
-                                
+
                                 // Resetear más rápidamente para futuras impresiones
                                 setTimeout(() => {
                                     this.printProcessing = false;
