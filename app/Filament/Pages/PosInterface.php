@@ -2520,10 +2520,13 @@ class PosInterface extends Page
                 ->success()
                 ->send();
 
-            // Dispatch evento para abrir ventana de impresión
-            if ($invoice) {
+            // Dispatch evento para abrir ventana de impresión (solo si no se ha impreso antes)
+            if ($invoice && !session()->has("invoice_printed_{$invoice->id}")) {
                 Log::info('🖨️ Disparando evento de impresión', ['invoice_id' => $invoice->id]);
+                session(["invoice_printed_{$invoice->id}" => true]);
                 $this->dispatch('open-print-window', ['id' => $invoice->id]);
+            } else if ($invoice && session()->has("invoice_printed_{$invoice->id}")) {
+                Log::info('⚠️ Comprobante ya impreso, evitando duplicado', ['invoice_id' => $invoice->id]);
             }
 
             return true;
@@ -2575,19 +2578,34 @@ class PosInterface extends Page
         if ($this->order && $this->order->invoices()->exists()) {
             $lastInvoice = $this->order->invoices()->latest()->first();
 
-            Log::info('🖨️ Reimprimiendo comprobante desde vista', [
-                'invoice_id' => $lastInvoice->id,
-                'invoice_type' => $lastInvoice->invoice_type,
-                'order_id' => $this->order->id
-            ]);
+            // Validar que no se imprima duplicado incluso en reimpresión
+            if (!session()->has("invoice_printed_{$lastInvoice->id}")) {
+                Log::info('🖨️ Reimprimiendo comprobante desde vista', [
+                    'invoice_id' => $lastInvoice->id,
+                    'invoice_type' => $lastInvoice->invoice_type,
+                    'order_id' => $this->order->id
+                ]);
 
-            $this->dispatch('open-print-window', ['id' => $lastInvoice->id]);
+                session(["invoice_printed_{$lastInvoice->id}" => true]);
+                $this->dispatch('open-print-window', ['id' => $lastInvoice->id]);
 
-            Notification::make()
-                ->title('🖨️ Abriendo impresión...')
-                ->body("Comprobante {$lastInvoice->series}-{$lastInvoice->number}")
-                ->success()
-                ->send();
+                Notification::make()
+                    ->title('🖨️ Abriendo impresión...')
+                    ->body("Comprobante {$lastInvoice->series}-{$lastInvoice->number}")
+                    ->success()
+                    ->send();
+            } else {
+                Log::info('⚠️ Comprobante ya impreso, evitando duplicado en reimpresión', [
+                    'invoice_id' => $lastInvoice->id,
+                    'invoice_type' => $lastInvoice->invoice_type
+                ]);
+                
+                Notification::make()
+                    ->title('⚠️ Comprobante ya impreso')
+                    ->body("El {$lastInvoice->document_type} {$lastInvoice->series}-{$lastInvoice->number} ya fue impreso")
+                    ->warning()
+                    ->send();
+            }
         } else {
             Notification::make()
                 ->title('❌ Sin comprobantes')

@@ -170,6 +170,11 @@ Route::get('/admin/print-cash-register/{id}', \App\Http\Controllers\Filament\Pri
     ->middleware(['web', 'auth'])
     ->name('filament.admin.print-cash-register');
 
+// Ruta para aprobar caja registradora
+Route::post('/admin/operaciones-caja/approve/{id}', [\App\Http\Controllers\CashRegisterApprovalController::class, 'approve'])
+    ->middleware(['web', 'auth'])
+    ->name('filament.admin.cash-register.approve');
+
 // Rutas para cotizaciones
 Route::middleware(['web', 'auth'])->group(function () {
     // Ver PDF de cotización

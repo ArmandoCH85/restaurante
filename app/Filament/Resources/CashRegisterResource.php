@@ -960,115 +960,32 @@ class CashRegisterResource extends Resource
     {
         return $table
             ->columns([
-                // ID con diseño mejorado
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
-                    ->sortable()
-                    ->searchable()
-                    ->badge()
-                    ->color('primary')
-                    ->size('sm')
-                    ->weight('bold'),
-
-                // Información temporal agrupada
-                Tables\Columns\Layout\Stack::make([
-                    Tables\Columns\TextColumn::make('opening_datetime')
-                        ->label('📅 Apertura')
-                        ->dateTime('d/m/Y H:i')
-                        ->icon('heroicon-m-play-circle')
-                        ->iconColor('success')
-                        ->weight('medium')
-                        ->size('sm'),
-
-                    Tables\Columns\TextColumn::make('closing_datetime')
-                        ->label('🔒 Cierre')
-                        ->dateTime('d/m/Y H:i')
-                        ->placeholder('En curso')
-                        ->icon(fn ($state) => $state ? 'heroicon-m-stop-circle' : 'heroicon-m-clock')
-                        ->iconColor(fn ($state) => $state ? 'danger' : 'warning')
-                        ->color(fn ($state) => $state ? 'success' : 'warning')
-                        ->size('sm'),
-                ])->space(1),
-
-                // Responsables agrupados
-                Tables\Columns\Layout\Stack::make([
-                    Tables\Columns\TextColumn::make('openedBy.name')
-                        ->label('👤 Abierto por')
-                        ->searchable()
-                        ->icon('heroicon-m-user')
-                        ->iconColor('primary')
-                        ->weight('medium')
-                        ->size('sm'),
-
-                    Tables\Columns\TextColumn::make('closedBy.name')
-                        ->label('👤 Cerrado por')
-                        ->placeholder('En curso')
-                        ->icon('heroicon-m-check-circle')
-                        ->iconColor('success')
-                        ->color(fn ($state) => $state ? 'success' : 'gray')
-                        ->size('sm'),
-                ])->space(1),
-
-                // Estado principal con diseño destacado
+                    ->prefix('#'),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
-                    ->getStateUsing(fn ($record) => $record->is_active ? 'ABIERTA' : 'CERRADA')
+                    ->getStateUsing(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
                     ->colors([
-                        'success' => 'ABIERTA',
-                        'danger' => 'CERRADA',
-                    ])
-                    ->icons([
-                        'heroicon-m-lock-open' => 'ABIERTA',
-                        'heroicon-m-lock-closed' => 'CERRADA',
-                    ])
-                    ->size('lg'),
-
-                // Montos (solo para supervisores)
+                        'success' => 'Abierta',
+                        'danger' => 'Cerrada',
+                    ]),
+                Tables\Columns\TextColumn::make('opening_datetime')
+                    ->label('Apertura')
+                    ->dateTime('d/m/Y H:i'),
+                Tables\Columns\TextColumn::make('closing_datetime')
+                    ->label('Cierre')
+                    ->dateTime('d/m/Y H:i')
+                    ->placeholder('En curso'),
+                Tables\Columns\TextColumn::make('openedBy.name')
+                    ->label('Abierto por'),
+                Tables\Columns\TextColumn::make('closedBy.name')
+                    ->label('Cerrado por')
+                    ->placeholder('En curso'),
                 Tables\Columns\TextColumn::make('opening_amount')
-                    ->label('💰 Monto Inicial')
+                    ->label('Monto Inicial')
                     ->money('PEN')
-                    ->badge()
-                    ->color('info')
-                    ->alignCenter()
                     ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
-
-                // Estado de aprobación mejorado
-                Tables\Columns\BadgeColumn::make('reconciliationStatus')
-                    ->label('Aprobación')
-                    ->getStateUsing(function ($record) {
-                        if ($record->is_active) {
-                            return 'Pendiente';
-                        }
-                        if ($record->is_approved) {
-                            return 'Aprobada';
-                        }
-                        if ($record->approval_notes && !$record->is_approved) {
-                            return 'Rechazada';
-                        }
-                        return 'Sin revisar';
-                    })
-                    ->colors([
-                        'success' => 'Aprobada',
-                        'warning' => 'Pendiente',
-                        'danger' => 'Rechazada',
-                        'gray' => 'Sin revisar',
-                    ])
-                    ->icons([
-                        'heroicon-m-check-circle' => 'Aprobada',
-                        'heroicon-m-clock' => 'Sin revisar',
-                        'heroicon-m-x-circle' => 'Rechazada',
-                        'heroicon-m-exclamation-triangle' => 'Pendiente',
-                    ])
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
-                    ->tooltip(function ($record) {
-                        if (!$record->is_active && $record->approval_notes) {
-                            return $record->is_approved
-                                ? '✅ Notas: ' . $record->approval_notes
-                                : '❌ Motivo: ' . $record->approval_notes;
-                        }
-                        return 'Estado de aprobación del cierre';
-                    })
-                    ->size('lg'),
             ])
             ->filters([
                 // Filtro de estado mejorado con iconos
@@ -1269,56 +1186,32 @@ class CashRegisterResource extends Resource
             ->filtersFormColumns(3)
             ->defaultSort('id', 'desc')
             ->actions([
-                // Ver detalles (acción principal simplificada)
                 Tables\Actions\ViewAction::make()
                     ->label('Ver')
-                    ->icon('heroicon-m-eye')
-                    ->color('primary')
-                    ->button(),
-
-                // Cerrar caja (solo cajas activas)
+                    ->icon('heroicon-m-eye'),
                 Tables\Actions\EditAction::make()
                     ->label('Cerrar')
                     ->icon('heroicon-m-lock-closed')
-                    ->color('warning')
-                    ->button()
-                    ->visible(fn (CashRegister $record) => $record->is_active),
-
-                // Imprimir (todas las cajas)
+                    ->visible(fn ($record) => $record->is_active),
                 Tables\Actions\Action::make('print')
                     ->label('Imprimir')
                     ->icon('heroicon-m-printer')
                     ->color('gray')
-                    ->button()
-                    ->url(fn (CashRegister $record) => url("/admin/print-cash-register/{$record->id}"))
+                    ->url(fn ($record) => url('/admin/print-cash-register/' . $record->id))
                     ->openUrlInNewTab(),
-
-                // Aprobar (solo supervisores y cajas cerradas)
                 Tables\Actions\Action::make('approve')
                     ->label('Aprobar')
                     ->icon('heroicon-m-check-circle')
                     ->color('success')
-                    ->button()
-                    ->action(function (CashRegister $record) {
-                        try {
-                            $record->reconcile(true, 'Aprobado desde lista');
-                            \Filament\Notifications\Notification::make()
-                                ->success()
-                                ->title('✅ Caja aprobada')
-                                ->send();
-                        } catch (\Exception $e) {
-                            \Filament\Notifications\Notification::make()
-                                ->danger()
-                                ->title('❌ Error al aprobar')
-                                ->body($e->getMessage())
-                                ->send();
-                        }
-                    })
+                    ->visible(fn ($record) => !$record->is_active && !$record->is_approved && auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
                     ->requiresConfirmation()
-                    ->visible(function (CashRegister $record) {
-                        $user = auth()->user();
-                        return !$record->is_active && !$record->is_approved &&
-                               $user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']);
+                    ->action(function ($record) {
+                        $record->update(['is_approved' => true, 'approval_notes' => 'Aprobado manualmente']);
+                        
+                        \Filament\Notifications\Notification::make()
+                            ->success()
+                            ->title('✅ Caja aprobada')
+                            ->send();
                     }),
             ])
             ->bulkActions([

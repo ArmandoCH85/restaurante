@@ -5,6 +5,7 @@ namespace App\Filament\Resources\CashRegisterResource\Pages;
 use App\Filament\Resources\CashRegisterResource;
 use App\Models\CashRegister;
 use Filament\Resources\Pages\ListRecords;
+use Illuminate\Contracts\View\View;
 
 class ListCashRegisters extends ListRecords
 {
@@ -34,5 +35,32 @@ class ListCashRegisters extends ListRecords
         return [
             ListCashRegisters\Widgets\ActiveCashRegisterStats::class,
         ];
+    }
+
+    public function getFooter(): ?View
+    {
+        return view('filament.cash-register.approve-script');
+    }
+
+    public function approveCashRegister($recordId)
+    {
+        try {
+            $record = CashRegister::findOrFail($recordId);
+            $record->reconcile(true, 'Aprobado desde lista');
+            
+            $this->dispatchBrowserEvent('notify', [
+                'type' => 'success',
+                'message' => '✅ Caja aprobada correctamente'
+            ]);
+            
+            // Refrescar la página
+            $this->redirect(request()->header('Referer'));
+            
+        } catch (\Exception $e) {
+            $this->dispatchBrowserEvent('notify', [
+                'type' => 'error',
+                'message' => '❌ Error al aprobar: ' . $e->getMessage()
+            ]);
+        }
     }
 }

@@ -2556,6 +2556,14 @@
                         @if($selectedTableId === null && !$order)
                             @if(auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
                                 <button
+                                    wire:click="processOrder"
+                                    class="pos-action-btn primary"
+                                    {{ (!count($cartItems) || !$this->hasOpenCashRegister) ? 'disabled' : '' }}
+                                >
+                                    <x-heroicon-m-check-circle style="width: 20px; height: 20px;" />
+                                    Guardar Orden
+                                </button>
+                                <button
                                     wire:click="mountAction('processBilling')"
                                     class="pos-action-btn success"
                                     {{ (!count($cartItems) || !$this->hasOpenCashRegister) ? 'disabled' : '' }}
@@ -2565,27 +2573,25 @@
                                 </button>
                             @endif
                         @elseif(!$order || ($order && !$order->invoices()->exists()))
-                            {{-- Oculto por requerimiento: siempre se imprime (no eliminar funcionalidad) --}}
                             <button
                                 wire:click="processOrder"
                                 class="pos-action-btn primary"
-                                style="display:none;"
                                 {{ (!count($cartItems) || !$this->hasOpenCashRegister) ? 'disabled' : '' }}
                             >
                                 <x-heroicon-m-check-circle style="width: 20px; height: 20px;" />
                                 Guardar Orden
                             </button>
-                        @endif
 
-                        @if($order && !$order->invoices()->exists() && auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
-                            <button
-                                wire:click="mountAction('processBilling')"
-                                class="pos-action-btn success"
-                                {{ !$this->hasOpenCashRegister ? 'disabled' : '' }}
-                            >
-                                <x-heroicon-m-credit-card style="width: 20px; height: 20px;" />
-                                Emitir Comprobante
-                            </button>
+                            @if($order && !$order->invoices()->exists() && auth()->user()->hasRole(['cashier', 'admin', 'super_admin']))
+                                <button
+                                    wire:click="mountAction('processBilling')"
+                                    class="pos-action-btn success"
+                                    {{ !$this->hasOpenCashRegister ? 'disabled' : '' }}
+                                >
+                                    <x-heroicon-m-credit-card style="width: 20px; height: 20px;" />
+                                    Emitir Comprobante
+                                </button>
+                            @endif
                         @endif
 
                         @if($order && $order->invoices()->exists())
@@ -2633,29 +2639,61 @@
                 });
 
                 if (!window.posInterfacePrintListenerAdded) {
-                    window.posInterfacePrintListenerAdded = true;
-                    $wire.on('open-print-window', (event) => {
-                        if (this.printProcessing) return;
-                        this.printProcessing = true;
+                        window.posInterfacePrintListenerAdded = true;
+                        window.lastPrintedInvoiceId = null;
+                        window.printStartTime = null;
+                        
+                        $wire.on('open-print-window', (event) => {
+                            if (this.printProcessing) {
+                                console.log('⚠️ Impresión en proceso, ignorando duplicado');
+                                return;
+                            }
+                            
+                            let invoiceId = Array.isArray(event) ? (event[0]?.id || event[0]) : (event?.id || event);
 
-                        console.log('🖨️ POS Interface - Imprimiendo comprobante...', event);
+                            if (!invoiceId) {
+                                console.error('❌ Error: ID de comprobante no encontrado');
+                                return;
+                            }
+                            
+                            // Prevenir impresión duplicada del mismo comprobante
+                            if (window.lastPrintedInvoiceId === invoiceId) {
+                                console.log('⚠️ Comprobante ya impreso, evitando duplicado');
+                                return;
+                            }
+                            
+                            // Prevenir impresiones muy rápidas (doble clic)
+                            const now = Date.now();
+                            if (window.printStartTime && (now - window.printStartTime) < 3000) {
+                                console.log('⚠️ Impresión muy rápida, ignorando');
+                                return;
+                            }
+                            
+                            this.printProcessing = true;
+                            window.lastPrintedInvoiceId = invoiceId;
+                            window.printStartTime = now;
 
-                        let invoiceId = Array.isArray(event) ? (event[0]?.id || event[0]) : (event?.id || event);
+                            console.log('🖨️ POS Interface - Imprimiendo comprobante...', event);
 
-                        if (!invoiceId) {
-                            console.error('❌ Error: ID de comprobante no encontrado');
-                            this.printProcessing = false;
-                            return;
-                        }
-
-                        setTimeout(() => {
-                            const printUrl = `/print/invoice/${invoiceId}`;
-                            console.log('🔗 Abriendo ventana de impresión:', printUrl);
-                            window.open(printUrl, 'invoice_print_' + invoiceId, 'width=800,height=600,scrollbars=yes,resizable=yes');
-                            this.printProcessing = false;
-                        }, 800);
-                    });
-                }
+                            setTimeout(() => {
+                                const printUrl = `/print/invoice/${invoiceId}`;
+                                console.log('🔗 Abriendo ventana de impresión:', printUrl);
+                                const printWindow = window.open(printUrl, 'invoice_print_' + invoiceId, 'width=800,height=600,scrollbars=yes,resizable=yes');
+                                
+                                // Verificar si la ventana se abrió correctamente
+                                if (printWindow && !printWindow.closed) {
+                                    console.log('✅ Ventana de impresión abierta exitosamente');
+                                } else {
+                                    console.error('❌ Error al abrir ventana de impresión');
+                                }
+                                
+                                // Resetear más rápidamente para futuras impresiones
+                                setTimeout(() => {
+                                    this.printProcessing = false;
+                                }, 1000);
+                            }, 500);
+                        });
+                    }
             }
         }"
         x-show="open"
