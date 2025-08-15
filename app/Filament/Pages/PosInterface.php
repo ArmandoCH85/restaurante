@@ -2218,11 +2218,40 @@ class PosInterface extends Page
                                                 ]),
                                                 Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del voucher')->helperText('Solo para tarjeta')->visible(fn(Get $get)=>$get('method')==='card')->required(fn(Get $get)=>$get('method')==='card')->maxLength(50)->live(),
                                             ])->defaultItems(1)->addActionLabel('+ Agregar Método de Pago')
-                                            ->deleteAction(fn(Forms\Components\Actions\Action $a)=>$a->requiresConfirmation()->modalHeading('Eliminar Método')->modalDescription('¿Eliminar este método?')->modalSubmitActionLabel('Eliminar')->modalCancelActionLabel('Cancelar'))
+                                            ->deleteAction(fn(Forms\Components\Actions\Action $action) => $action
+                                                ->requiresConfirmation()
+                                                ->modalHeading('Eliminar Método')
+                                                ->modalDescription('¿Eliminar este método?')
+                                                ->modalSubmitActionLabel('Eliminar')
+                                                ->modalCancelActionLabel('Cancelar')
+                                            )
                                             ->itemLabel(fn(array $state): ?string => ($state['method'] ?? 'Método').': S/ '.number_format($state['amount'] ?? 0,2))
-                                            ->collapsible()->cloneAction(fn(Forms\Components\Actions\Action $a)=>$a->label('Agregar')->tooltip('Duplicar método'))
+                                            ->collapsible()
+                                            ->cloneAction(fn(Forms\Components\Actions\Action $action) => $action
+                                                ->label('Agregar')
+                                                ->tooltip('Duplicar método')
+                                            )
                                             ->cloneable(),
-                                        Forms\Components\Placeholder::make('split_summary')->label('Resumen de Pago')->content(function (Get $get){ $payments=$get('payment_methods')??[]; $totalPaid=0; foreach($payments as $p){ if(isset($p['amount']) && is_numeric($p['amount'])) $totalPaid+=(float)$p['amount']; } $remaining=$this->total - $totalPaid; $status=$remaining==0?'success':($remaining>0?'warning':'danger'); $statusText=$remaining==0?'Pago Completo':($remaining>0?'Pago Incompleto':'Pago Excedido'); return new \Illuminate\Support\HtmlString('<div class="p-2 bg-gray-50 border border-gray-200 rounded text-[11px] space-y-1"><div class="flex justify-between"><span>Total:</span><span class="font-semibold">S/ '.number_format($this->total,2).'</span></div><div class="flex justify-between"><span>Pagado:</span><span class="font-semibold">S/ '.number_format($totalPaid,2).'</span></div><div class="flex justify-between border-t pt-1"><span>Estado:</span><span class="font-semibold text-'+($status==='success'?'green':($status==='warning'?'orange':'red'))+'-700">'+$statusText+'</span></div></div>'); })->live(),
+                                        Forms\Components\Placeholder::make('split_summary')->label('Resumen de Pago')->content(function (Get $get){
+                                                $payments = $get('payment_methods') ?? [];
+                                                $totalPaid = 0;
+                                                foreach ($payments as $p) {
+                                                    if (isset($p['amount']) && is_numeric($p['amount'])) {
+                                                        $totalPaid += (float) $p['amount'];
+                                                    }
+                                                }
+                                                $remaining = $this->total - $totalPaid;
+                                                $status = $remaining == 0 ? 'success' : ($remaining > 0 ? 'warning' : 'danger');
+                                                $statusText = $remaining == 0 ? 'Pago Completo' : ($remaining > 0 ? 'Pago Incompleto' : 'Pago Excedido');
+                                                $color = $status === 'success' ? 'green' : ($status === 'warning' ? 'orange' : 'red');
+                                                return new \Illuminate\Support\HtmlString(
+                                                    '<div class="p-2 bg-gray-50 border border-gray-200 rounded text-[11px] space-y-1">'
+                                                    .'<div class="flex justify-between"><span>Total:</span><span class="font-semibold">S/ '.number_format($this->total,2).'</span></div>'
+                                                    .'<div class="flex justify-between"><span>Pagado:</span><span class="font-semibold">S/ '.number_format($totalPaid,2).'</span></div>'
+                                                    .'<div class="flex justify-between border-t pt-1"><span>Estado:</span><span class="font-semibold text-'.$color.'-700">'.$statusText.'</span></div>'
+                                                    .'</div>'
+                                                );
+                                            })->live(),
                                     ]),
                                 Forms\Components\Section::make('👤 Cliente')
                                     ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-4'])
