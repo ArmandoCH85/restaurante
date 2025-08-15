@@ -156,7 +156,7 @@
             background: white;
             color: #64748b;
             font-weight: 700; /* Más negrito para pantallas POS */
-            font-size: 13px;  /* Un poco más grande para mejor legibilidad */
+            font-size: 16px;  /* Aumentado para mejor legibilidad en pantallas POS */
             text-transform: uppercase; /* Mostrar categorías en MAYÚSCULAS */
             transition: var(--pos-transition);
             cursor: pointer;
@@ -2049,7 +2049,7 @@
             {{-- SIDEBAR IZQUIERDO: CATEGORÍAS --}}
             <div class="pos-categories" id="pos-categories">
                 <div class="pos-categories-header">
-                    <h3 class="text-sm font-bold text-gray-800 text-center">Categorías</h3>
+                    <h3 class="text-base font-bold text-gray-800 text-center">CATEGORÍAS</h3>
                 </div>
 
                 <div class="pos-categories-content">
@@ -2066,12 +2066,12 @@
                 {{-- SUBCATEGORÍAS --}}
                 @if($selectedCategoryId && $subcategories->isNotEmpty())
                     <div class="border-t border-gray-200 p-3">
-                        <h4 class="text-xs font-semibold text-gray-600 mb-2">Subcategorías</h4>
+                        <h4 class="text-sm font-semibold text-gray-600 mb-2">SUBCATEGORÍAS</h4>
                         <div class="space-y-1">
                             <button
                                 wire:click="selectSubcategory(null)"
                                 class="pos-category-btn {{ $selectedSubcategoryId === null ? 'active' : '' }}"
-                                style="font-size: 12px; padding: 8px 12px;"
+                            style="font-size: 14px; padding: 10px 14px;"
                             >
                                 Todos
                             </button>
@@ -2079,7 +2079,7 @@
                                 <button
                                     wire:click="selectSubcategory({{ $subcat->id }})"
                                     class="pos-category-btn {{ $selectedSubcategoryId === $subcat->id ? 'active' : '' }}"
-                                    style="font-size: 12px; padding: 8px 12px;"
+                                    style="font-size: 14px; padding: 10px 14px;"
                                 >
                                     {{ $subcat->name }}
                                 </button>
