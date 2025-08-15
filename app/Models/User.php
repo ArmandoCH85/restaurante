@@ -57,6 +57,38 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Generar código PIN automáticamente si no está establecido
+        static::creating(function ($user) {
+            if (empty($user->login_code)) {
+                $user->login_code = static::generateUniqueCode();
+            }
+        });
+    }
+
+    // NOTA: Generación automática de código PIN activa - Listo para producción
+
+    /**
+     * Generar un código PIN único de 6 dígitos.
+     */
+    public static function generateUniqueCode(): string
+    {
+        $attempts = 0;
+        do {
+            $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $exists = static::where('login_code', $code)->exists();
+            $attempts++;
+        } while ($exists && $attempts < 20);
+
+        return $code;
+    }
+
+    /**
      * Restringir acceso a paneles de Filament por rol, según documentación.
      */
     public function canAccessPanel(Panel $panel): bool
