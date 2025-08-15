@@ -2292,6 +2292,9 @@ class PosInterface extends Page
                                     ->live()
                                     ->default($this->total)
                                     ->step(0.01)
+                                    ->inputMode('decimal')
+                                    ->extraInputAttributes(['step' => '0.01', 'pattern' => '[0-9]*\.?[0-9]{0,2}'])
+                                    ->rule('regex:/^\d+(\.\d{1,2})?$/')
                                     // Validación UI: si es efectivo, exigir al menos el total
                                     ->minValue(fn(Get $get) => $get('payment_method') === 'cash' ? $this->total : 0.01)
                                     ->rule(fn(Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
@@ -2415,6 +2418,9 @@ class PosInterface extends Page
                                             ->numeric()
                                             ->prefix('S/')
                                             ->step(0.01)
+                                            ->inputMode('decimal')
+                                            ->extraInputAttributes(['step' => '0.01', 'pattern' => '[0-9]*\.?[0-9]{0,2}'])
+                                            ->rule('regex:/^\d+(\.\d{1,2})?$/')
                                             ->minValue(0.01)
                                             ->required()
                                             ->live()

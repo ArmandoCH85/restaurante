@@ -81,6 +81,9 @@ class InvoiceController extends Controller
                 'order.orderDetails.product',
                 'order.table',
                 'order.deliveryOrder',
+                'order.employee', // ✅ AGREGAR: Cargar empleado/mesero de la orden
+                'order.user',     // ✅ AGREGAR: Cargar usuario de la orden como fallback
+                'employee',       // ✅ AGREGAR: Cargar empleado directo de la factura
                 'customer',
                 'details'
             ]);
@@ -232,6 +235,9 @@ class InvoiceController extends Controller
             'order.orderDetails.product',
             'order.table',
             'order.deliveryOrder',
+            'order.employee', // ✅ AGREGAR: Cargar empleado/mesero de la orden
+            'order.user',     // ✅ AGREGAR: Cargar usuario de la orden como fallback
+            'employee',       // ✅ AGREGAR: Cargar empleado directo de la factura
             'customer',
             'details'
         ])->findOrFail($invoiceId);
@@ -271,7 +277,10 @@ class InvoiceController extends Controller
             'customer',
             'details',
             'order.table',
-            'order.deliveryOrder'
+            'order.deliveryOrder',
+            'order.employee', // ✅ AGREGAR: Cargar empleado/mesero de la orden
+            'order.user',     // ✅ AGREGAR: Cargar usuario de la orden como fallback
+            'employee'        // ✅ AGREGAR: Cargar empleado directo de la factura
         ])->findOrFail($invoiceId);
 
         // Determinar la vista según el tipo de comprobante
@@ -359,7 +368,14 @@ class InvoiceController extends Controller
     public function printTicket(Invoice $invoice)
     {
         try {
-            $invoice->load(['customer', 'details.product', 'order.table']);
+            $invoice->load([
+                'customer', 
+                'details.product', 
+                'order.table',
+                'order.employee', // ✅ AGREGAR: Cargar empleado/mesero de la orden
+                'order.user',     // ✅ AGREGAR: Cargar usuario de la orden como fallback
+                'employee'        // ✅ AGREGAR: Cargar empleado directo de la factura
+            ]);
 
             $company = [
                 'ruc' => \App\Models\CompanyConfig::getRuc(),

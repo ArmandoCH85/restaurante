@@ -17,7 +17,7 @@
 
             body {
                 margin: 0;
-                padding: 3mm;
+                padding: 0 3mm 3mm 3mm;
                 font-size: 17px;
                 line-height: 1.3;
             }
@@ -31,7 +31,7 @@
             }
 
             body {
-                padding: 2mm;
+                padding: 0 2mm 2mm 2mm;
                 font-size: 16px;
             }
 

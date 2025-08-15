@@ -7,7 +7,7 @@
         /* Estilos optimizados para papel térmico - MARGEN IZQUIERDO SEGURO */
         @page {
             size: 80mm auto;
-            margin: 3mm 2mm 3mm 6mm;
+            margin: 0mm 2mm 3mm 6mm;
         }
         body {
             font-family: 'Arial', sans-serif;
@@ -17,7 +17,7 @@
             width: 70mm;
             max-width: 70mm;
             margin: 0;
-            padding: 2mm;
+            padding: 0 2mm 2mm 2mm;
             box-sizing: border-box;
         }
         
@@ -44,14 +44,15 @@
         
         .header h1 {
             margin: 0 0 3px 0;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             text-transform: uppercase;
         }
         
         .header p {
             margin: 1px 0;
-            font-size: 14px;
+            font-size: 20px;
+            font-weight: bold;
         }
         
         .footer p {
@@ -205,12 +206,45 @@
                 <td>{{ $invoice->client_address }}</td>
             </tr>
             @endif
-            @if($invoice->employee)
+            @php
+                $waiterName = null;
+                
+                // Prioridad 1: Usuario de la orden
+                if ($invoice->order && $invoice->order->employee_id) {
+                    $orderUser = \App\Models\User::find($invoice->order->employee_id);
+                    if ($orderUser) {
+                        $waiterName = $orderUser->name;
+                    }
+                }
+                
+                // Prioridad 2: Usuario directo de la factura
+                if (!$waiterName && $invoice->employee_id) {
+                    $invoiceUser = \App\Models\User::find($invoice->employee_id);
+                    if ($invoiceUser) {
+                        $waiterName = $invoiceUser->name;
+                    }
+                }
+                
+                // Prioridad 3: Empleado relacionado
+                if (!$waiterName && $invoice->employee) {
+                    $waiterName = $invoice->employee->full_name;
+                }
+                
+                // Prioridad 4: Usuario actual como fallback
+                if (!$waiterName && auth()->user()) {
+                    $waiterName = auth()->user()->name . ' (Usuario actual)';
+                }
+                
+                // Prioridad 5: Mensaje por defecto
+                if (!$waiterName) {
+                    $waiterName = 'Sin información del mesero';
+                }
+            @endphp
+            
             <tr>
                 <td><strong>Atendido por:</strong></td>
-                <td>{{ $invoice->employee->name }}</td>
+                <td>{{ $waiterName }}</td>
             </tr>
-            @endif
         </table>
         <hr>
         <table class="items-table">
@@ -224,7 +258,7 @@
             <tbody>
                 @foreach($invoice->details as $detail)
                 <tr>
-                    <td class="col-qty">{{ $detail->quantity }}</td>
+                    <td class="col-qty">{{ intval($detail->quantity) }}</td>
                     <td class="col-desc">{{ strtoupper($detail->description) }}</td>
                     <td class="col-total">{{ number_format($detail->subtotal, 2) }}</td>
                 </tr>

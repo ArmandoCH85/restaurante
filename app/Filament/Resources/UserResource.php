@@ -66,13 +66,13 @@ class UserResource extends Resource
                 ->required()
                 ->label(trans('filament-users::user.resource.email')),
             TextInput::make('login_code')
-                ->label('Código (6 dígitos)')
+                ->label('Código PIN (6 dígitos)')
                 ->required()
                 ->minLength(6)
                 ->maxLength(6)
                 ->rule('digits:6')
                 ->unique(ignoreRecord: true)
-                ->helperText('Solo números, exactamente 6 dígitos.')
+                ->helperText('Solo números, exactamente 6 dígitos. Requerido para login con PIN.')
                 ->extraAttributes(['inputmode' => 'numeric', 'pattern' => '\\d{6}'])
                 ->suffixAction(
                     Action::make('generarCodigo')
@@ -93,11 +93,12 @@ class UserResource extends Resource
             TextInput::make('password')
                 ->label(trans('filament-users::user.resource.password'))
                 ->password()
+                ->required()
                 ->maxLength(255)
-                ->dehydrateStateUsing(static function ($state, $record) use ($form) {
+                ->dehydrateStateUsing(static function ($state, $record) {
                     return !empty($state)
                         ? Hash::make($state)
-                        : $record->password;
+                        : ($record->password ?? null);
                 }),
         ];
 
@@ -133,6 +134,14 @@ class UserResource extends Resource
                     ->sortable()
                     ->searchable()
                     ->label(trans('filament-users::user.resource.email')),
+                TextColumn::make('login_code')
+                    ->label('Código PIN')
+                    ->searchable()
+                    ->sortable()
+                    ->copyable()
+                    ->copyMessage('Código copiado')
+                    ->badge()
+                    ->color('primary'),
                 IconColumn::make('email_verified_at')
                     ->boolean()
                     ->sortable()

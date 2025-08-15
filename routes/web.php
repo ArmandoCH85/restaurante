@@ -244,60 +244,8 @@ Route::get('/test-print/{invoice}', function(\App\Models\Invoice $invoice) {
     return response('✅ Ruta funcionando - Factura ID: ' . $invoice->id);
 })->name('test.print');
 
-// RUTAS SIMPLES PARA IMPRESIÓN DE PDFs (SOLUCIÓN KISS) - SIN AUTH PARA WINDOWS POPUP
+// Ruta optimizada para pre-cuentas
 Route::middleware(['web'])->group(function () {
-    // Ruta simple para imprimir comprobantes desde POS
-    Route::get('/print/invoice/{invoice}', function(\App\Models\Invoice $invoice) {
-        Log::info('🖨️ ACCESO A RUTA DE IMPRESIÓN', [
-            'invoice_id' => $invoice->id,
-            'user_id' => auth()->check() ? auth()->user()->id : null,
-            'timestamp' => now()
-        ]);
-
-        $customer = $invoice->customer ?? Customer::getGenericCustomer();
-
-        // Obtener información de la empresa desde configuración usando CompanyConfig
-        $company = (object) [
-            'name' => \App\Models\CompanyConfig::getRazonSocial() ?? 'Mi Empresa',
-            'nombre_comercial' => \App\Models\CompanyConfig::getNombreComercial() ?? 'Mi Empresa',
-            'ruc' => \App\Models\CompanyConfig::getRuc() ?? '12345678901',
-            'address' => \App\Models\CompanyConfig::getDireccion() ?? 'Dirección no configurada',
-            'phone' => \App\Models\CompanyConfig::getTelefono() ?? 'Teléfono no configurado',
-            'email' => \App\Models\CompanyConfig::getEmail() ?? 'email@empresa.com'
-        ];
-
-        // Determinar la vista según el tipo de comprobante
-        $view = match($invoice->invoice_type) {
-            'invoice' => 'pdf.invoice',
-            'receipt' => 'pdf.receipt',
-            'sales_note' => 'pdf.sales_note',
-            default => 'pdf.sales_note',
-        };
-
-        try {
-            Log::info('🖨️ GENERANDO PDF', [
-                'invoice_id' => $invoice->id,
-                'view' => $view,
-                'customer' => $customer->name ?? 'Sin cliente'
-            ]);
-
-            $pdf = Pdf::loadView($view, compact('invoice', 'customer', 'company'));
-
-            Log::info('✅ PDF GENERADO EXITOSAMENTE', ['invoice_id' => $invoice->id]);
-
-            return $pdf->stream("comprobante-{$invoice->formattedNumber}.pdf");
-        } catch (\Exception $e) {
-            Log::error('❌ ERROR GENERANDO PDF', [
-                'invoice_id' => $invoice->id,
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            return response('Error al generar el PDF: ' . $e->getMessage(), 500);
-        }
-    })->name('print.invoice');
-
-    // Ruta optimizada para pre-cuentas
     Route::get('/print/prebill/{order}', [PreBillPrintController::class, 'show'])
         ->name('print.prebill')
         ->middleware(['auth']);

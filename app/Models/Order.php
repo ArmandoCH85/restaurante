@@ -122,6 +122,24 @@ class Order extends Model
     }
 
     /**
+     * Obtiene el nombre del usuario/mesero que registró la orden.
+     */
+    public function getWaiterNameAttribute(): string
+    {
+        if ($this->user) {
+            return $this->user->name;
+        }
+        
+        // Si no hay user, intentar buscar directamente
+        if ($this->employee_id) {
+            $user = User::find($this->employee_id);
+            return $user ? $user->name : "Usuario ID {$this->employee_id} no encontrado";
+        }
+        
+        return 'Sin mesero asignado';
+    }
+
+    /**
      * Obtiene los detalles de la orden.
      */
     public function orderDetails(): HasMany
@@ -812,6 +830,7 @@ class Order extends Model
                 'number' => $formattedNumber,
                 'issue_date' => now(),
                 'customer_id' => $customer->id,
+                'employee_id' => $this->employee_id, // ✅ AGREGAR: Asignar el mesero que registró la orden
                 'client_name' => $customer->name,
                 'client_document' => $customer->document_number,
                 'client_address' => $customer->address,

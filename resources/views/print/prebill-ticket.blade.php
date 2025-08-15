@@ -12,7 +12,7 @@
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             margin: 0;
-            padding: 2mm;
+            padding: 0 2mm 2mm 2mm;
             width: 72mm;
             font-size: 11px;
             line-height: 1.2;

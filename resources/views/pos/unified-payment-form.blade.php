@@ -532,8 +532,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="amount" class="form-label">Monto</label>
-                        <input type="number" step="0.01" min="0.01" class="form-control" id="amount" name="amount" value="{{ $remainingBalance }}" required oninput="calculateChange()">
+                        <label for="amount" class="form-label">Monto Recibido</label>
+                        <input type="number" step="0.01" min="0.01" max="999999.99" class="form-control" id="amount" name="amount" value="{{ number_format($remainingBalance, 2) }}" required oninput="limitDecimals(this); calculateChange()">
                     </div>
 
                     <div id="change_container" class="p-3 mb-3 rounded-md" style="display: none; background-color: #d1e7dd;">
