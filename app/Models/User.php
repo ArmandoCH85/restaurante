@@ -75,6 +75,7 @@ class User extends Authenticatable implements FilamentUser
 
     /**
      * Generar un código PIN único de 6 dígitos.
+     * genera todo
      */
     public static function generateUniqueCode(): string
     {
