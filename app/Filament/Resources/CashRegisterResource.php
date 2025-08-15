@@ -496,7 +496,7 @@ class CashRegisterResource extends Resource
                     ->icon('heroicon-m-chart-bar')
                     ->schema(function () {
                         $user = auth()->user();
-                        $isSupervisor = $user->hasAnyRole(['admin', 'super_admin', 'manager']);
+                        $isSupervisor = $user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']);
 
                         if ($isSupervisor) {
                             return [
@@ -1030,7 +1030,7 @@ class CashRegisterResource extends Resource
                     ->badge()
                     ->color('info')
                     ->alignCenter()
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
 
                 // Estado de aprobación mejorado
                 Tables\Columns\BadgeColumn::make('reconciliationStatus')
@@ -1059,7 +1059,7 @@ class CashRegisterResource extends Resource
                         'heroicon-m-x-circle' => 'Rechazada',
                         'heroicon-m-exclamation-triangle' => 'Pendiente',
                     ])
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager']))
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
                     ->tooltip(function ($record) {
                         if (!$record->is_active && $record->approval_notes) {
                             return $record->is_approved
@@ -1091,7 +1091,7 @@ class CashRegisterResource extends Resource
                     ])
                     ->placeholder('Todos los estados')
                     ->default(null)
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
 
                 // Filtro de responsable
                 Tables\Filters\SelectFilter::make('opened_by')
@@ -1264,7 +1264,7 @@ class CashRegisterResource extends Resource
 
                         return $indicators;
                     })
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
             ])
             ->filtersFormColumns(3)
             ->defaultSort('id', 'desc')
@@ -1318,7 +1318,7 @@ class CashRegisterResource extends Resource
                     ->visible(function (CashRegister $record) {
                         $user = auth()->user();
                         return !$record->is_active && !$record->is_approved &&
-                               $user->hasAnyRole(['admin', 'super_admin', 'manager']);
+                               $user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']);
                     }),
             ])
             ->bulkActions([
@@ -1357,7 +1357,7 @@ class CashRegisterResource extends Resource
                     ->button()
                     ->visible(function () {
                         $user = auth()->user();
-                        if (!$user->hasAnyRole(['admin', 'super_admin', 'manager'])) {
+                        if (!$user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])) {
                             return false;
                         }
                         // Solo mostrar si hay cajas pendientes de reconciliar

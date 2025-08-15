@@ -157,7 +157,7 @@ class EditCashRegister extends EditRecord
 
     protected function getSavedNotification(): ?Notification
     {
-        $isSupervisor = Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager']);
+        $isSupervisor = Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']);
         $difference = $this->record->difference ?? 0;
         $expectedAmount = $this->record->expected_amount ?? 0;
 

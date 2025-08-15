@@ -28,8 +28,8 @@ class ReportViewerPage extends Page implements HasForms
     protected ?string $maxContentWidth = 'full';
 
     // URL parameters
-    public string $reportType;
-    public string $category;
+    public string $reportType = '';
+    public string $category = '';
 
     // Form properties
     public ?string $dateRange = 'today';
@@ -62,23 +62,26 @@ class ReportViewerPage extends Page implements HasForms
     }
     
 
-    public function mount(string $category, string $reportType): void
+    public function mount(string $category = '', string $reportType = ''): void
     {
         $this->category = $category;
         $this->reportType = $reportType;
         
-        // Handle dateRange from URL
-        $dateRange = request('dateRange', 'today');
-        $this->setDateRange($dateRange);
-        
-        // Initialize form
-        $this->form->fill([
-            'dateRange' => $this->dateRange,
-            'format' => 'pdf',
-        ]);
+        // Only proceed if we have valid parameters
+        if (!empty($this->category) && !empty($this->reportType)) {
+            // Handle dateRange from URL
+            $dateRange = request('dateRange', 'today');
+            $this->setDateRange($dateRange);
+            
+            // Initialize form
+            $this->form->fill([
+                'dateRange' => $this->dateRange,
+                'format' => 'pdf',
+            ]);
 
-        // Load initial data
-        $this->loadReportData();
+            // Load initial data
+            $this->loadReportData();
+        }
     }
 
     public function form(Form $form): Form
@@ -200,6 +203,13 @@ class ReportViewerPage extends Page implements HasForms
 
     public function loadReportData(): void
     {
+        // Skip if no valid report type
+        if (empty($this->reportType)) {
+            $this->reportData = collect([]);
+            $this->reportStats = [];
+            return;
+        }
+
         $startDateTime = $this->getStartDateTime();
         $endDateTime = $this->getEndDateTime();
 
@@ -497,6 +507,10 @@ class ReportViewerPage extends Page implements HasForms
 
     public function getTitle(): string
     {
+        if (empty($this->reportType)) {
+            return 'Reporte';
+        }
+        
         return match ($this->reportType) {
             // SALES REPORTS
             'all_sales' => 'Reporte de Todas las Ventas',

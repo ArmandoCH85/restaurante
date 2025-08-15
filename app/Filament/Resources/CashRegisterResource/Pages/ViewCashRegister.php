@@ -150,7 +150,7 @@ class ViewCashRegister extends ViewRecord
 
     public function infolist(Infolist $infolist): Infolist
     {
-        $isSupervisor = Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager']);
+        $isSupervisor = Auth::user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']);
 
         return $infolist
             ->schema([
