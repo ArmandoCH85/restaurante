@@ -1839,7 +1839,7 @@
                     <input
                         id="number_of_guests"
                         type="number"
-                        wire:model.live="numberOfGuests"
+                        wire:model.blur="numberOfGuests"
                         min="1"
                         max="50"
                         class="mt-1 block w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
