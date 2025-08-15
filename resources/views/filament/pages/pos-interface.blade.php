@@ -460,58 +460,68 @@
 .pos-cart-items {
     flex: 1;
     overflow-y: auto;
-    padding: 4px;
+    padding: 4px 4px 2px;
     border: 1px solid var(--pos-border-subtle);
     border-radius: var(--pos-border-radius);
     margin: 4px;
     background: white;
-    min-height: 100px;
-    /* Eliminamos la max-height fija y usamos una altura responsiva */
-    max-height: calc(100vh - 450px);
+    min-height: 90px;
+    max-height: calc(100vh - 470px);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    --cart-item-font-size: 11.5px;
+    --cart-item-font-size-sm: 10.5px;
+    --cart-item-padding: 6px;
 }
 
 .pos-cart-item {
     background: var(--pos-gray-50);
     border: 1px solid var(--pos-border-subtle);
-    border-radius: var(--pos-border-radius);
-    padding: 8px;
-    margin-bottom: 6px;
-    transition: all 0.2s ease;
+    border-radius: 6px;
+    padding: var(--cart-item-padding);
+    margin: 0;
+    transition: background .15s ease, box-shadow .15s ease;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 4px;
+    font-size: var(--cart-item-font-size);
+    line-height: 1.25;
 }
 
 .pos-cart-item:hover {
-    background: white;
-    box-shadow: var(--pos-shadow);
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,.08);
 }
 
 .pos-cart-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    gap: clamp(6px, 1vw, 8px);
+    display: contents;
 }
 
 .pos-cart-item-info {
-    flex: 1;
+    grid-column: 1 / 2;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-right: clamp(6px, 1vw, 8px);
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
 }
 
 .pos-cart-item-name {
-    font-size: clamp(12px, 2vw, 14px);
+    font-size: var(--cart-item-font-size);
     font-weight: 600;
     color: #1f2937;
-    flex: 1;
-    margin-right: 8px;
-    line-height: 1.3;
+    flex: unset;
+    margin: 0;
+    line-height: 1.25;
+    word-break: break-word;
 }
 
 .pos-cart-item-price {
-    font-size: clamp(11px, 1.8vw, 13px);
-    color: #6b7280;
+    font-size: var(--cart-item-font-size-sm);
+    color: #059669;
+    font-weight: 600;
     white-space: nowrap;
 }
 
@@ -534,22 +544,41 @@
     min-width: auto;
 }
 
+/* Overrides compactos para vista densificada del carrito */
+.pos-cart-items .pos-item-remove-btn {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    font-size: 14px;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    background: #fef2f2;
+    color: #dc2626;
+    box-shadow: none;
+    padding: 0;
+}
+.pos-cart-items .pos-item-remove-btn:hover:not(:disabled){ background:#fee2e2; }
+.pos-cart-items .pos-item-remove-btn:active:not(:disabled){ transform: scale(.9); }
+
 /* CONTROLES DE CANTIDAD - MEJORADOS PARA MÓVILES */
 .pos-quantity-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;
     background: white;
-    padding: clamp(8px, 1.5vw, 12px);
-    border-radius: var(--pos-border-radius);
+    padding: 6px 8px;
+    border-radius: 8px;
     border: 1px solid var(--pos-gray-200);
-    gap: clamp(8px, 1.5vw, 12px);
+    gap: 8px;
     margin-top: 4px;
+    --qty-btn-size: 34px;
+    --qty-font: 14px;
+    --qty-value-font: 15px;
 }
 
 .pos-quantity-btn {
-    width: clamp(40px, 5vw, 48px);
-    height: clamp(40px, 5vw, 48px);
+    width: var(--qty-btn-size);
+    height: var(--qty-btn-size);
     border: none;
     border-radius: var(--pos-border-radius);
     display: flex;
@@ -558,30 +587,30 @@
     cursor: pointer;
     transition: var(--pos-transition);
     font-weight: 600;
-    font-size: clamp(16px, 2.5vw, 20px);
+    font-size: var(--qty-font);
     position: relative;
     overflow: hidden;
 }
 
 .pos-quantity-value {
-    font-size: clamp(16px, 2.5vw, 20px);
+    font-size: var(--qty-value-font);
     font-weight: 700;
     color: var(--pos-gray-600);
-    min-width: clamp(45px, 6vw, 55px);
+    min-width: 46px;
     text-align: center;
     background: var(--pos-gray-50);
     border-radius: var(--pos-border-radius);
-    padding: clamp(8px, 1.5vw, 12px) clamp(6px, 1vw, 8px);
+    padding: 6px 6px;
     border: 1px solid var(--pos-gray-200);
     transition: var(--pos-transition);
 }
 
 .pos-quantity-total {
-    font-size: clamp(14px, 2.2vw, 16px);
+    font-size: 13px;
     font-weight: 700;
     color: var(--pos-success);
     background: rgba(16, 185, 129, 0.1);
-    padding: clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px);
+    padding: 4px 8px;
     border-radius: var(--pos-border-radius);
     border: 1px solid rgba(16, 185, 129, 0.2);
 }
@@ -726,25 +755,28 @@
     }
 
     .pos-quantity-controls {
-        padding: 10px;
-        gap: 8px;
+    padding: 6px 8px;
+    gap: 6px;
+    --qty-btn-size: 32px;
+    --qty-font: 13px;
+    --qty-value-font: 14px;
     }
 
     .pos-quantity-btn {
-        width: 42px;
-        height: 42px;
-        font-size: 18px;
+    width: var(--qty-btn-size);
+    height: var(--qty-btn-size);
+    font-size: var(--qty-font);
     }
 
     .pos-quantity-value {
-        min-width: 50px;
-        font-size: 18px;
-        padding: 10px 6px;
+    min-width: 44px;
+    font-size: var(--qty-value-font);
+    padding: 6px 4px;
     }
 
     .pos-quantity-total {
-        font-size: 14px;
-        padding: 4px 8px;
+    font-size: 12px;
+    padding: 3px 6px;
     }
 
     .pos-item-remove-btn {
@@ -1706,6 +1738,19 @@
             from {
                 transform: translateX(100%);
                 opacity: 0;
+            }
+            /* ===== Ajustes responsivos adicionales para maximizar densidad del carrito ===== */
+            @media (max-width: 1023px) {
+                .pos-cart-items { max-height: 260px; }
+            }
+            @media (max-width: 767px) {
+                .pos-cart-items { --cart-item-font-size: 10.5px; --cart-item-font-size-sm: 9.5px; --cart-item-padding:5px; max-height: 240px; }
+                .pos-cart-item { column-gap:4px; }
+                .pos-cart-items .pos-item-remove-btn { width:24px; height:24px; min-height:24px; }
+            }
+            @media (max-width: 480px) {
+                .pos-cart-items { --cart-item-font-size: 10px; --cart-item-font-size-sm: 9px; --cart-item-padding:4px; max-height: 220px; }
+                .pos-cart-items .pos-item-remove-btn { width:22px; height:22px; }
             }
             to {
                 transform: translateX(0);
