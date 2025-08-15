@@ -937,21 +937,21 @@
         /* HEADER DEL CARRITO - DISEÑO GESTALT APLICADO */
         .pos-cart-header {
             /* Principio de Proximidad: padding coherente con otros componentes */
-            padding: 16px 12px 12px;
+            padding: 6px 8px 4px;
             /* Principio de Similitud: coherencia con categorías y buscador */
             background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #dbeafe 100%);
-            border: 2px solid var(--pos-border-subtle);
-            border-radius: 12px;
-            margin: 8px;
+            border: 1px solid var(--pos-border-subtle);
+            border-radius: 8px;
+            margin: 4px;
             /* Principio de Cierre: contenedor bien definido */
             box-shadow: 
-                0 4px 12px rgba(59, 130, 246, 0.08),
-                0 2px 6px rgba(0, 0, 0, 0.04),
-                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+                0 2px 6px rgba(59, 130, 246, 0.06),
+                0 1px 3px rgba(0, 0, 0, 0.03),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
             /* Principio de Simetría: estructura equilibrada */
             position: relative;
             /* Principio de Continuidad: transición suave */
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         /* Efecto de profundidad superior - Principio de Figura-Fondo */
@@ -998,216 +998,549 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.8);
         }
 
-        /* TÍTULO DEL CARRITO - DISEÑO GESTALT */
-        .pos-cart-title {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            /* Principio de Proximidad: espaciado equilibrado */
-            gap: 12px;
-            padding: 8px 12px;
-            /* Principio de Figura-Fondo: fondo sutil que organiza contenido */
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            /* Principio de Cierre: contenedor definido */
-            border: 1px solid rgba(226, 232, 240, 0.6);
-            position: relative;
-            z-index: 2;
-            /* Principio de Continuidad: transición suave */
-            transition: all 0.3s ease;
-        }
-
-        .pos-cart-title:hover {
-            /* Principio de Figura-Fondo: feedback sutil */
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            border-color: rgba(99, 102, 241, 0.2);
-            transform: translateY(-1px);
-        }
-
-        /* SECCIÓN IZQUIERDA DEL TÍTULO - Principio de Proximidad */
-        .pos-cart-title-left {
+        /* TÍTULO DEL CARRITO MEJORADO - NUEVO DISEÑO */
+        .pos-cart-title-new {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid var(--pos-border-subtle);
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 3px;
             display: flex;
             flex-direction: column;
             gap: 6px;
-            position: relative;
-            z-index: 2;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
         }
 
-        /* INFORMACIÓN DE MESA/VENTA - Principio de Jerarquía */
+        .pos-cart-title-new:hover {
+            border-color: var(--pos-primary);
+            box-shadow: 0 3px 8px rgba(99, 102, 241, 0.1);
+        }
+
+        /* FILA 1: INFORMACIÓN PRINCIPAL */
+        .pos-cart-main-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        /* BADGE DE MESA/VENTA MEJORADO */
+        .pos-cart-mesa-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+
+        .pos-cart-mesa-badge.mesa {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: 1px solid #047857;
+        }
+
+        .pos-cart-mesa-badge.venta-directa {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border: 1px solid #4338ca;
+        }
+
+        .pos-cart-mesa-badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .pos-cart-icon {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+        }
+
+        .pos-cart-mesa-label {
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        /* BOTÓN LIMPIAR MEJORADO */
+        .pos-cart-clear-btn-new {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #ef4444;
+            border-radius: 4px;
+            background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+            color: #dc2626;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            margin-left: 4px;
+        }
+
+        .pos-cart-clear-btn-new:hover:not(:disabled) {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3);
+        }
+
+        .pos-cart-clear-btn-new:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pos-clear-icon {
+            width: 12px;
+            height: 12px;
+        }
+
+        /* FILA 2: MÉTRICAS Y CONTROLES */
+        .pos-cart-metrics {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: rgba(248, 250, 252, 0.5);
+            border-radius: 4px;
+            padding: 4px 6px;
+            border: 1px solid var(--pos-gray-200);
+        }
+
+        /* CONTADOR DE PRODUCTOS */
+        .pos-cart-product-counter {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .pos-metric-icon {
+            width: 10px;
+            height: 10px;
+            color: var(--pos-gray-500);
+            flex-shrink: 0;
+        }
+
+        .pos-metric-value {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--pos-primary);
+            min-width: 16px;
+            text-align: center;
+        }
+
+        .pos-metric-label {
+            font-size: 7px;
+            font-weight: 600;
+            color: var(--pos-gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+
+        /* SEPARADOR VISUAL */
+        .pos-cart-separator {
+            width: 1px;
+            height: 16px;
+            background: linear-gradient(to bottom, transparent, var(--pos-gray-300), transparent);
+            margin: 0 4px;
+        }
+
+        /* CONTROL DE COMENSALES */
+        .pos-cart-guests-control {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            flex: 1;
+        }
+
+        .pos-guests-input {
+            width: 40px;
+            height: 24px;
+            border: 2px solid var(--pos-primary);
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: #1f2937;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            transition: all 0.2s ease;
+            box-shadow: 
+                0 1px 2px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            /* Mejorar contraste */
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.3px;
+        }
+
+        .pos-guests-input:focus {
+            outline: none;
+            border-color: var(--pos-success);
+            background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+            box-shadow: 
+                0 0 0 3px rgba(16, 185, 129, 0.2),
+                0 3px 6px rgba(0, 0, 0, 0.15);
+            transform: scale(1.05);
+            color: #065f46;
+            font-weight: 900;
+        }
+
+        .pos-guests-input::placeholder {
+            color: var(--pos-gray-400);
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        /* RESPONSIVE PARA MÓVILES - HEADER CARRITO */
+        @media (max-width: 767px) {
+            .pos-cart-header {
+                padding: 4px 6px 3px;
+                margin: 3px;
+            }
+
+            .pos-cart-title-new {
+                padding: 4px 6px;
+                gap: 4px;
+                margin-bottom: 2px;
+            }
+
+            .pos-cart-mesa-badge {
+                padding: 3px 6px;
+                font-size: 10px;
+                gap: 3px;
+            }
+
+            .pos-cart-clear-btn-new {
+                width: 20px;
+                height: 20px;
+                margin-left: 3px;
+            }
+
+            .pos-clear-icon {
+                width: 10px;
+                height: 10px;
+            }
+
+            .pos-cart-icon {
+                width: 10px;
+                height: 10px;
+            }
+
+            .pos-cart-metrics {
+                padding: 3px 4px;
+            }
+
+            .pos-metric-value {
+                font-size: 11px;
+                min-width: 14px;
+            }
+
+            .pos-metric-label {
+                font-size: 6px;
+            }
+
+            .pos-metric-icon {
+                width: 8px;
+                height: 8px;
+            }
+
+            .pos-guests-input {
+                width: 32px;
+                height: 20px;
+                font-size: 12px;
+                font-weight: 800;
+                border-width: 1px;
+            }
+
+            .pos-cart-separator {
+                height: 14px;
+                margin: 0 3px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pos-cart-header {
+                padding: 3px 4px 2px;
+                margin: 2px;
+            }
+
+            .pos-cart-title-new {
+                padding: 3px 4px;
+                gap: 3px;
+                margin-bottom: 1px;
+            }
+
+            .pos-cart-mesa-badge {
+                padding: 2px 4px;
+                font-size: 9px;
+                gap: 2px;
+            }
+
+            .pos-cart-icon {
+                width: 8px;
+                height: 8px;
+            }
+
+            .pos-cart-clear-btn-new {
+                width: 18px;
+                height: 18px;
+                margin-left: 2px;
+            }
+
+            .pos-clear-icon {
+                width: 8px;
+                height: 8px;
+            }
+
+            .pos-cart-metrics {
+                padding: 2px 3px;
+            }
+
+            .pos-metric-icon {
+                width: 7px;
+                height: 7px;
+            }
+
+            .pos-metric-value {
+                font-size: 10px;
+                min-width: 12px;
+            }
+
+            .pos-metric-label {
+                font-size: 5px;
+            }
+
+            .pos-guests-input {
+                width: 28px;
+                height: 18px;
+                font-size: 11px;
+                font-weight: 800;
+                border-width: 1px;
+            }
+
+            .pos-cart-separator {
+                height: 12px;
+                margin: 0 2px;
+            }
+        }
+
+        /* TÍTULO DEL CARRITO ORIGINAL - MANTENER COMPATIBILIDAD */
+        .pos-cart-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 8px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            gap: 8px;
+        }
+
+        .pos-cart-title-left {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            flex: 1;
+        }
+
+        /* INFORMACIÓN DE MESA/VENTA - Solo badge de mesa */
         .pos-cart-mesa-info {
             display: flex;
             align-items: center;
             gap: 8px;
-            /* Principio de Figura-Fondo: destacado como elemento principal */
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 8px;
-            /* Principio de Cierre: sombra que define límites */
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            /* Principio de Continuidad: transición elegante */
-            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 
+                0 4px 8px rgba(16, 185, 129, 0.2),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .pos-cart-mesa-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .pos-cart-mesa-info.venta-directa {
-            /* Principio de Similitud: variación para venta directa */
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.3);
+            box-shadow: 
+                0 4px 8px rgba(99, 102, 241, 0.2),
+                0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
         .pos-cart-mesa-info:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 6px 12px rgba(16, 185, 129, 0.25),
+                0 2px 4px rgba(0, 0, 0, 0.12);
         }
 
         .pos-cart-mesa-info.venta-directa:hover {
-            box-shadow: 0 4px 8px rgba(99, 102, 241, 0.4);
+            box-shadow: 
+                0 6px 12px rgba(99, 102, 241, 0.25),
+                0 2px 4px rgba(0, 0, 0, 0.12);
         }
 
-        /* ICONOS EN MESA INFO - Principio de Similitud */
         .pos-cart-mesa-info svg {
             width: 18px;
             height: 18px;
-            color: white;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
-            transition: transform 0.3s ease;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
         }
 
-        .pos-cart-mesa-info:hover svg {
-            transform: rotate(5deg) scale(1.1);
-        }
 
-        /* TEXTO DE MESA - Principio de Jerarquía */
         .pos-cart-mesa-text {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
             letter-spacing: 0.5px;
-            text-transform: uppercase;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
-        /* CONTADOR DE PRODUCTOS - Principio de Proximidad */
-        .pos-cart-counter-section {
+        /* CONTADOR DE ITEMS - Badge al costado de comensales */
+        .pos-cart-items-counter {
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        /* CONTADOR DE ITEMS - Principio de Figura-Fondo */
-        .pos-cart-items-counter {
+            justify-content: center;
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
             color: white;
-            padding: 4px 10px;
-            border-radius: 12px;
+            padding: 6px 10px;
+            border-radius: 8px;
             font-size: 12px;
-            font-weight: 600;
-            /* Principio de Cierre: sombra definida */
-            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            /* Principio de Continuidad: transición suave */
-            transition: all 0.3s ease;
+            font-weight: 700;
+            min-width: 36px;
+            height: 32px;
+            text-align: center;
+            box-shadow: 
+                0 3px 6px rgba(245, 158, 11, 0.2),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .pos-cart-items-counter::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+            pointer-events: none;
         }
 
         .pos-cart-items-counter:hover {
-            transform: scale(1.05);
-            box-shadow: 0 3px 6px rgba(245, 158, 11, 0.4);
+            transform: translateY(-1px);
+            box-shadow: 
+                0 4px 8px rgba(245, 158, 11, 0.25),
+                0 2px 4px rgba(0, 0, 0, 0.12);
         }
 
-        /* INPUT DE COMENSALES - Principio de Similitud */
+        /* INPUT DE COMENSALES - Diseño elegante */
         .pos-cart-guests-input {
             display: flex;
             align-items: center;
-            gap: 4px;
-            background: white;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid var(--pos-gray-200);
-            /* Principio de Cierre: sombra sutil */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            /* Principio de Continuidad: transición suave */
-            transition: all 0.3s ease;
+            gap: 6px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            box-shadow: 
+                0 2px 4px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            height: 32px;
+            transition: all 0.2s ease;
         }
 
         .pos-cart-guests-input:hover {
-            border-color: var(--pos-primary);
-            box-shadow: 0 2px 6px rgba(99, 102, 241, 0.15);
+            border-color: #cbd5e1;
+            box-shadow: 
+                0 3px 6px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .pos-cart-guests-input:focus-within {
+            border-color: #6366f1;
+            box-shadow: 
+                0 3px 6px rgba(99, 102, 241, 0.1),
+                0 0 0 3px rgba(99, 102, 241, 0.05);
         }
 
         .pos-cart-guests-input svg {
             width: 14px;
             height: 14px;
             color: #6b7280;
+            flex-shrink: 0;
         }
 
         .pos-cart-guests-input input {
-            width: 40px;
+            width: 28px;
+            min-width: 28px;
             border: none;
             background: transparent;
             text-align: center;
-            font-weight: 600;
-            font-size: 12px;
-            color: #374151;
+            font-weight: 700;
+            font-size: 13px;
+            color: #111827;
             outline: none;
+            padding: 0;
         }
 
-        .pos-cart-guests-label {
-            font-size: 10px;
-            color: #6b7280;
+        .pos-cart-guests-input input::placeholder {
+            color: #9ca3af;
             font-weight: 500;
         }
 
-        /* SECCIÓN DERECHA - BOTÓN LIMPIAR */
-        .pos-cart-title-right {
-            display: flex;
-            align-items: center;
-            position: relative;
-            z-index: 2;
+        /* Ocultar etiqueta pax */
+        .pos-cart-guests-label {
+            display: none;
         }
 
-        /* BOTÓN LIMPIAR CARRITO - Principio de Figura-Fondo */
+        /* BOTÓN LIMPIAR */
         .pos-cart-clear-btn {
-            width: 44px;
-            height: 44px;
-            border: 2px solid #ef4444;
-            border-radius: 8px;
-            /* Principio de Similitud: gradiente coherente */
-            background: linear-gradient(135deg, #fee2e2 0%, #fef2f2 100%);
+            width: 32px;
+            height: 32px;
+            border: 1px solid #ef4444;
+            border-radius: 4px;
+            background: #fef2f2;
             color: #dc2626;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            /* Principio de Continuidad: transición elegante */
-            transition: all 0.3s ease;
-            /* Principio de Cierre: sombra definida */
-            box-shadow: 0 2px 4px rgba(239, 68, 68, 0.2);
         }
 
         .pos-cart-clear-btn:hover:not(:disabled) {
-            background: linear-gradient(135deg, #fecaca 0%, #fee2e2 100%);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.3);
-        }
-
-        .pos-cart-clear-btn:active {
-            transform: translateY(0) scale(0.95);
+            background: #fee2e2;
         }
 
         .pos-cart-clear-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none !important;
         }
 
         .pos-cart-clear-btn svg {
-            width: 20px;
-            height: 20px;
-            transition: transform 0.3s ease;
-        }
-
-        .pos-cart-clear-btn:hover:not(:disabled) svg {
-            transform: rotate(15deg) scale(1.1);
+            width: 16px;
+            height: 16px;
         }
 
 /* ACCIONES RÁPIDAS - OPTIMIZACIÓN PARA MÓVILES */
@@ -1245,8 +1578,8 @@
     border-radius: var(--pos-border-radius);
     margin: 4px;
     background: white;
-    min-height: 90px;
-    max-height: calc(100vh - 470px);
+    min-height: 150px;
+    max-height: calc(100vh - 380px);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1289,13 +1622,44 @@
 }
 
 .pos-cart-item-name {
-    font-size: 13px;
-    font-weight: 600;
-    color: #1f2937;
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f172a;
     flex: unset;
-    margin: 0;
-    line-height: 1.25;
+    margin: 0 0 4px 0;
+    line-height: 1.3;
     word-break: break-word;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 
+        0 2px 4px rgba(0, 0, 0, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    letter-spacing: 0.3px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: all 0.2s ease;
+    min-height: 32px;
+    display: flex;
+    align-items: center;
+}
+
+.pos-cart-item:hover .pos-cart-item-name {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+    border-color: #94a3b8;
+    transform: translateY(-1px);
+    box-shadow: 
+        0 3px 6px rgba(0, 0, 0, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    color: #020617;
+}
+
+.pos-cart-item:focus-within .pos-cart-item-name {
+    border-color: #6366f1;
+    box-shadow: 
+        0 3px 6px rgba(99, 102, 241, 0.15),
+        0 0 0 2px rgba(99, 102, 241, 0.1);
 }
 
 .pos-cart-item-price {
@@ -1508,8 +1872,8 @@
     }
 
     .pos-cart-items {
-        max-height: 280px;
-        min-height: 120px;
+        max-height: 350px;
+        min-height: 180px;
     }
 
     .pos-cart-item {
@@ -1518,11 +1882,20 @@
 
     .pos-cart-item-name {
         font-size: 13px;
+        font-weight: 800;
         min-height: 36px;
         display: -webkit-box;
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
+        padding: 6px 8px;
+        margin-bottom: 3px;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        letter-spacing: 0.2px;
+        color: #0f172a;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
     }
 
     .pos-cart-item-price {
@@ -1602,6 +1975,15 @@
         .pos-cart-item-name {
             min-height: 32px;
             font-size: 12px;
+            font-weight: 800;
+            padding: 5px 6px;
+            margin-bottom: 2px;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border: 1px solid #cbd5e1;
+            border-radius: 3px;
+            letter-spacing: 0.2px;
+            color: #0f172a;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
         }
 
         .pos-quantity-controls {
@@ -1649,11 +2031,21 @@
 /* Optimización para tablets en modo portrait */
 @media (min-width: 481px) and (max-width: 767px) and (orientation: portrait) {
     .pos-cart-items {
-        max-height: 320px;
+        max-height: 400px;
+        min-height: 200px;
     }
 
     .pos-cart-item-name {
         min-height: 38px;
+        font-weight: 800;
+        padding: 6px 8px;
+        margin-bottom: 3px;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        letter-spacing: 0.2px;
+        color: #0f172a;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
     }
 }
 
@@ -1670,7 +2062,8 @@
     }
 
     .pos-cart-items {
-        max-height: calc(100vh - 380px);
+        max-height: calc(100vh - 320px);
+        min-height: 220px;
     }
 }
 
@@ -1678,22 +2071,22 @@
 
 /* ACCIONES RÁPIDAS - DISEÑO GESTALT APLICADO */
 .pos-quick-actions {
-    margin-top: 8px;
+    margin-top: 4px;
     /* Principio de Proximidad: padding coherente con otros componentes */
-    padding: 12px;
+    padding: 8px;
     /* Principio de Similitud: coherencia con header y otros elementos */
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #f1f5f9 100%);
-    border-radius: 12px;
-    border: 2px solid var(--pos-border-subtle);
+    border-radius: 8px;
+    border: 1px solid var(--pos-border-subtle);
     position: relative;
     z-index: 10;
     /* Principio de Cierre: contenedor bien definido */
     box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.06),
-        0 2px 6px rgba(0, 0, 0, 0.04),
-        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        0 2px 8px rgba(0, 0, 0, 0.04),
+        0 1px 3px rgba(0, 0, 0, 0.03),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
     /* Principio de Continuidad: transición suave */
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 /* Efecto de profundidad superior - Principio de Figura-Fondo */
@@ -1742,13 +2135,13 @@
 }
 
 .pos-quick-actions-title {
-    font-size: 8px;
+    font-size: 7px;
     font-weight: 600;
     color: #6b7280;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.2px;
     opacity: 0.8;
 }
 
@@ -1757,11 +2150,11 @@
     display: grid;
     grid-template-columns: repeat(8, 1fr);
     /* Principio de Proximidad: espaciado equilibrado */
-    gap: clamp(2px, 0.3vw, 4px);
+    gap: clamp(1px, 0.2vw, 3px);
     position: relative;
     z-index: 2;
     /* Principio de Continuidad: transición suave */
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 
 /* Efecto de entrada escalonada para botones - Principio de Continuidad */
@@ -1790,25 +2183,25 @@
 /* BOTONES DE ACCIONES RÁPIDAS - DISEÑO GESTALT */
 .pos-quick-action-btn {
     /* Principio de Proximidad: padding equilibrado */
-    padding: 6px 4px !important;
+    padding: 4px 3px !important;
     /* Principio de Similitud: coherencia con otros botones del sistema */
-    border-radius: 8px !important;
-    font-size: clamp(7px, 1.2vw, 9px) !important;
+    border-radius: 6px !important;
+    font-size: clamp(6px, 1vw, 8px) !important;
     font-weight: 600 !important;
     text-align: center !important;
     cursor: pointer !important;
     /* Principio de Continuidad: transiciones suaves */
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     position: relative !important;
-    min-height: clamp(28px, 4vw, 32px) !important;
-    height: clamp(28px, 4vw, 32px) !important;
+    min-height: clamp(24px, 3.5vw, 28px) !important;
+    height: clamp(24px, 3.5vw, 28px) !important;
     /* Principio de Cierre: sombras que definen límites */
     box-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.08) !important,
-        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+        0 1px 3px rgba(0, 0, 0, 0.06) !important,
+        inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
     width: 100% !important;
     overflow: hidden !important;
     touch-action: manipulation !important;
@@ -1819,8 +2212,8 @@
     /* Principio de Figura-Fondo: bordes sutiles */
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     /* Efectos de texto mejorados */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
-    letter-spacing: 0.3px !important;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25) !important;
+    letter-spacing: 0.2px !important;
 }
 
 /* ESTADOS INTERACTIVOS - PRINCIPIOS GESTALT APLICADOS */
@@ -2038,48 +2431,53 @@
 
 /* ICONOS - TAMAÑO MÍNIMO */
 .pos-quick-action-icon {
-    width: 11px;
-    height: 11px;
+    width: 9px;
+    height: 9px;
     flex-shrink: 0;
     transition: var(--pos-transition-fast);
 }
 
 /* ETIQUETAS DE TEXTO - LEGIBLES EN ESPACIO MÍNIMO */
 .pos-quick-action-btn .btn-label {
-    font-size: 7.5px;
-    font-weight: 500;
-    line-height: 1.2;
+    font-size: 7px;
+    font-weight: 700;
+    line-height: 1.0;
     margin-top: 0;
     white-space: normal;
     overflow: visible;
     text-overflow: clip;
     max-width: 100%;
     color: #ffffff;
-    text-shadow: 0 0.5px 1px rgba(0, 0, 0, 0.2);
-    min-height: 14px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    min-height: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0 1px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .pos-quick-action-btn.primary .btn-label {
-    font-size: 7.8px;
-    font-weight: 550;
+    font-size: 7.5px;
+    font-weight: 800;
 }
 
 .pos-quick-action-btn.secondary .btn-label {
-    font-size: 7.5px;
+    font-size: 7px;
+    font-weight: 700;
 }
 
 .pos-quick-action-btn.tertiary .btn-label {
-    font-size: 7px;
+    font-size: 6.5px;
+    font-weight: 700;
 }
 
 /* RESPONSIVE PARA MÓVILES */
 @media (max-width: 767px) {
     .pos-quick-actions {
-        padding: 3px;
+        padding: 4px;
+        margin-top: 3px;
     }
 
     .pos-quick-actions-grid {
@@ -2088,42 +2486,51 @@
     }
 
     .pos-quick-action-btn {
-        min-height: 24px;
+        min-height: 20px;
+        height: 20px;
         padding: 2px 1px;
-        font-size: 7px;
-        gap: 1px;
+        font-size: 6px;
     }
 
     .pos-quick-action-icon {
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
     }
 
     .pos-quick-action-btn .btn-label {
-        min-height: 12px;
-        font-size: 7px;
+        min-height: 8px;
+        font-size: 6px;
+        font-weight: 700;
     }
+}
 
     @media (max-width: 480px) {
+        .pos-quick-actions {
+            padding: 3px;
+            margin-top: 2px;
+        }
+
         .pos-quick-actions-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 1px;
         }
 
         .pos-quick-action-btn {
-            min-height: 22px;
+            min-height: 18px;
+            height: 18px;
             padding: 1px;
-            font-size: 6.5px;
+            font-size: 5px;
         }
 
         .pos-quick-action-icon {
-            width: 9px;
-            height: 9px;
+            width: 7px;
+            height: 7px;
         }
 
         .pos-quick-action-btn .btn-label {
-            min-height: 11px;
-            font-size: 6px;
+            min-height: 7px;
+            font-size: 5px;
+            font-weight: 700;
             display: none; /* En pantallas muy pequeñas, ocultar texto */
         }
     }
@@ -2131,21 +2538,27 @@
 
 /* RESPONSIVE PARA TABLETS */
 @media (min-width: 768px) and (max-width: 1023px) {
+    .pos-quick-actions {
+        padding: 6px;
+        margin-top: 3px;
+    }
+
     .pos-quick-action-btn {
-        min-height: 28px;
-        padding: 4px 2px 3px;
-        font-size: 8px;
-        gap: 3px;
+        min-height: 24px;
+        height: 24px;
+        padding: 3px 2px;
+        font-size: 7px;
     }
 
     .pos-quick-action-icon {
-        width: 12px;
-        height: 12px;
+        width: 8px;
+        height: 8px;
     }
 
     .pos-quick-action-btn .btn-label {
-        min-height: 16px;
-        font-size: 8px;
+        min-height: 9px;
+        font-size: 6px;
+        font-weight: 700;
     }
 }
 
@@ -2240,11 +2653,11 @@
 
         /* TOTALES DEL CARRITO MEJORADOS - UX OPTIMIZADO */
         .pos-cart-totals {
-            padding: clamp(12px, 2vw, 16px);
+            padding: 6px 8px;
             background: white;
             border: 1px solid var(--pos-border-subtle);
             border-radius: var(--pos-border-radius);
-            margin: 6px;
+            margin: 4px;
             flex-shrink: 0;
             box-shadow: var(--pos-shadow-sm);
         }
@@ -2253,8 +2666,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: clamp(8px, 1.5vw, 12px);
-            padding-bottom: clamp(6px, 1vw, 8px);
+            margin-bottom: 4px;
+            padding-bottom: 3px;
             border-bottom: 1px solid var(--pos-gray-200);
         }
 
@@ -2277,18 +2690,18 @@
 
         .pos-totals-container {
             background: var(--pos-gray-50);
-            padding: clamp(12px, 2vw, 16px);
+            padding: 6px 8px;
             border-radius: var(--pos-border-radius);
-            margin-bottom: clamp(8px, 1.5vw, 12px);
+            margin-bottom: 4px;
         }
 
         .pos-total-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: clamp(6px, 1vw, 8px);
-            font-size: clamp(13px, 2.2vw, 15px);
-            line-height: 1.4;
+            margin-bottom: 3px;
+            font-size: 13px;
+            line-height: 1.2;
             color: var(--pos-gray-600);
         }
 
@@ -2297,15 +2710,15 @@
         }
 
         .pos-total-row.final {
-            padding-top: clamp(8px, 1.5vw, 12px);
+            padding-top: 4px;
             border-top: 2px solid var(--pos-primary);
             font-weight: 700;
-            font-size: clamp(16px, 2.8vw, 18px);
+            font-size: 15px;
             color: var(--pos-success);
             background: rgba(16, 185, 129, 0.05);
-            margin: clamp(8px, 1.5vw, 12px) -12px -12px -12px;
-            padding-left: clamp(12px, 2vw, 16px);
-            padding-right: clamp(12px, 2vw, 16px);
+            margin: 4px -8px -6px -8px;
+            padding-left: 8px;
+            padding-right: 8px;
             border-radius: 0 0 var(--pos-border-radius) var(--pos-border-radius);
         }
 
@@ -2315,7 +2728,7 @@
 
         .pos-total-row.final .pos-total-amount {
             font-weight: 800;
-            font-size: clamp(17px, 3vw, 20px);
+            font-size: 16px;
         }
 
         /* INDICADORES DE ESTADO MEJORADOS */
@@ -2330,13 +2743,15 @@
         /* RESPONSIVE PARA MÓVILES */
         @media (max-width: 767px) {
             .pos-cart-totals {
-                padding: 10px;
+                padding: 4px 6px;
             }
 
             .pos-totals-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 8px;
+                gap: 4px;
+                margin-bottom: 3px;
+                padding-bottom: 2px;
             }
 
             .pos-items-count {
@@ -2344,9 +2759,14 @@
             }
 
             .pos-total-row.final {
-                margin: 8px -10px -10px -10px;
-                padding-left: 10px;
-                padding-right: 10px;
+                margin: 3px -6px -4px -6px;
+                padding-left: 6px;
+                padding-right: 6px;
+                font-size: 14px;
+            }
+
+            .pos-total-row.final .pos-total-amount {
+                font-size: 15px;
             }
         }
 
@@ -2858,15 +3278,15 @@
             }
             /* ===== Ajustes responsivos adicionales para maximizar densidad del carrito ===== */
             @media (max-width: 1023px) {
-                .pos-cart-items { max-height: 260px; }
+                .pos-cart-items { max-height: 320px; min-height: 160px; }
             }
             @media (max-width: 767px) {
-                .pos-cart-items { --cart-item-font-size: 10.5px; --cart-item-font-size-sm: 9.5px; --cart-item-padding:5px; max-height: 240px; }
+                .pos-cart-items { --cart-item-font-size: 10.5px; --cart-item-font-size-sm: 9.5px; --cart-item-padding:5px; max-height: 300px; min-height: 140px; }
                 .pos-cart-item { column-gap:4px; }
                 .pos-cart-items .pos-item-remove-btn { width:24px; height:24px; min-height:24px; }
             }
             @media (max-width: 480px) {
-                .pos-cart-items { --cart-item-font-size: 10px; --cart-item-font-size-sm: 9px; --cart-item-padding:4px; max-height: 220px; }
+                .pos-cart-items { --cart-item-font-size: 10px; --cart-item-font-size-sm: 9px; --cart-item-padding:4px; max-height: 280px; min-height: 120px; }
                 .pos-cart-items .pos-item-remove-btn { width:22px; height:22px; }
             }
             to {
@@ -3257,56 +3677,60 @@
             <div class="pos-cart">
                 {{-- HEADER DEL CARRITO --}}
                 <div class="pos-cart-header">
-                    {{-- HEADER REDISEÑADO CON PRINCIPIOS GESTALT --}}
-                    <div class="pos-cart-title">
+                    {{-- HEADER REDISEÑADO MEJORADO --}}
+                    <div class="pos-cart-title-new">
                         
-                        {{-- SECCIÓN IZQUIERDA: INFO PRINCIPAL --}}
-                        <div class="pos-cart-title-left">
-                            
-                            {{-- INFORMACIÓN DE LA MESA/VENTA - ELEMENTO PRINCIPAL --}}
+                        {{-- FILA 1: INFORMACIÓN PRINCIPAL DE MESA/VENTA --}}
+                        <div class="pos-cart-main-info">
                             @if($selectedTable)
-                                <div class="pos-cart-mesa-info">
-                                    <x-heroicon-s-home />
-                                    <span class="pos-cart-mesa-text">MESA {{ $selectedTable->number }}</span>
+                                <div class="pos-cart-mesa-badge mesa">
+                                    <x-heroicon-s-home class="pos-cart-icon" />
+                                    <span class="pos-cart-mesa-label">MESA {{ $selectedTable->number }}</span>
                                 </div>
                             @else
-                                <div class="pos-cart-mesa-info venta-directa">
-                                    <x-heroicon-s-shopping-cart />
-                                    <span class="pos-cart-mesa-text">VENTA DIRECTA</span>
+                                <div class="pos-cart-mesa-badge venta-directa">
+                                    <x-heroicon-s-shopping-cart class="pos-cart-icon" />
+                                    <span class="pos-cart-mesa-label">VENTA DIRECTA</span>
                                 </div>
                             @endif
 
-                            {{-- CONTADOR DE ITEMS Y COMENSALES --}}
-                            <div class="pos-cart-counter-section">
-                                <span class="pos-cart-items-counter">
-                                    {{ count($cartItems) }} productos
-                                </span>
-                                
-                                {{-- COMENSALES INTEGRADO --}}
-                                <div class="pos-cart-guests-input">
-                                    <x-heroicon-s-users />
-                                    <input
-                                        type="number"
-                                        wire:model.live="numberOfGuests"
-                                        min="1"
-                                        placeholder="0"
-                                        required
-                                    >
-                                    <span class="pos-cart-guests-label">pax</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- SECCIÓN DERECHA: BOTÓN LIMPIAR --}}
-                        <div class="pos-cart-title-right">
+                            {{-- BOTÓN LIMPIAR INTEGRADO --}}
                             <button
                                 wire:click="clearCart"
-                                class="pos-cart-clear-btn"
+                                class="pos-cart-clear-btn-new"
                                 title="Limpiar carrito"
                                 {{ !$canClearCart ? 'disabled' : '' }}
                             >
-                                <x-heroicon-s-trash />
+                                <x-heroicon-s-trash class="pos-clear-icon" />
                             </button>
+                        </div>
+
+                        {{-- FILA 2: MÉTRICAS Y CONTROLES --}}
+                        <div class="pos-cart-metrics">
+                            {{-- CONTADOR DE PRODUCTOS --}}
+                            <div class="pos-cart-product-counter">
+                                <x-heroicon-s-shopping-bag class="pos-metric-icon" />
+                                <span class="pos-metric-value">{{ count($cartItems) }}</span>
+                                <span class="pos-metric-label">productos</span>
+                            </div>
+
+                            {{-- SEPARADOR VISUAL --}}
+                            <div class="pos-cart-separator"></div>
+
+                            {{-- COMENSALES --}}
+                            <div class="pos-cart-guests-control">
+                                <x-heroicon-s-users class="pos-metric-icon" />
+                                <input
+                                    type="number"
+                                    wire:model.live="numberOfGuests"
+                                    min="1"
+                                    max="20"
+                                    placeholder="1"
+                                    class="pos-guests-input"
+                                    required
+                                >
+                                <span class="pos-metric-label">comensales</span>
+                            </div>
                         </div>
                     </div>
 
@@ -3315,44 +3739,44 @@
     <div class="pos-quick-actions-grid">
         <!-- Mapa -->
         <button wire:click="mountAction('backToTableMap')" class="pos-quick-action-btn btn-mapa primary" title="Ir al mapa de mesas">
-            Mapa
+            <span class="btn-label">Mapa</span>
         </button>
 
         <!-- Comanda -->
         <button wire:click="mountAction('printComanda')" class="pos-quick-action-btn btn-comanda primary" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Imprimir comanda para cocina">
-            Comanda
+            <span class="btn-label">Comanda</span>
         </button>
 
         <!-- Pre-Cuenta -->
         <button wire:click="mountAction('printPreBillNew')" class="pos-quick-action-btn btn-precuenta secondary" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Imprimir pre-cuenta para cliente">
-            Pre-Cuenta
+            <span class="btn-label">Pre-Cuenta</span>
         </button>
 
         <!-- Reabrir -->
         <button wire:click="mountAction('reopen_order_for_editing')" class="pos-quick-action-btn btn-reabrir secondary" {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists()) ? 'disabled' : '' }} title="Reabrir orden para edición">
-            Reabrir
+            <span class="btn-label">Reabrir</span>
         </button>
 
         <!-- Dividir -->
         <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }} title="Dividir cuenta entre mesas">
-            Dividir
+            <span class="btn-label">Dividir</span>
         </button>
 
         <!-- Transferir -->
         @if(!auth()->user()->hasRole(['waiter', 'cashier']))
             <button wire:click="mountAction('transferOrder')" class="pos-quick-action-btn btn-transferir tertiary" {{ !($this->order && $this->order->table_id && $this->order->status === 'open') ? 'disabled' : '' }} title="Transferir orden a otra mesa">
-                Transferir
+                <span class="btn-label">Transferir</span>
             </button>
         @endif
 
         <!-- Liberar Mesa -->
         <button wire:click="mountAction('releaseTable')" class="pos-quick-action-btn btn-liberar" {{ !($this->order && $this->order->table_id) ? 'disabled' : '' }} title="Liberar Mesa">
-            Liberar
+            <span class="btn-label">Liberar</span>
         </button>
 
         <!-- Cancelar Pedido -->
         <button wire:click="mountAction('cancelOrder')" class="pos-quick-action-btn btn-cancelar" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Cancelar Pedido">
-            Cancelar
+            <span class="btn-label">Cancelar</span>
         </button>
     </div>
 </div>
