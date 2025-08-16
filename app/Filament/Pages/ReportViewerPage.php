@@ -264,6 +264,11 @@ class ReportViewerPage extends Page implements HasForms
 
         return $this->reportData
             ->filter(function ($order) use ($type) {
+                // Verificar que la orden tenga invoices cargados
+                if (!$order->invoices || $order->invoices->isEmpty()) {
+                    return false;
+                }
+                
                 // Diferenciación correcta según el tipo solicitado
                 switch ($type) {
                     case 'sales_note':
@@ -302,6 +307,11 @@ class ReportViewerPage extends Page implements HasForms
 
         return $this->reportData
             ->filter(function ($order) {
+                // Verificar que la orden tenga invoices cargados
+                if (!$order->invoices || $order->invoices->isEmpty()) {
+                    return false;
+                }
+                
                 // Verificar si la orden tiene facturas anuladas
                 return $order->invoices->where('tax_authority_status', 'voided')->isNotEmpty();
             })
@@ -315,6 +325,7 @@ class ReportViewerPage extends Page implements HasForms
             'all_sales' => $this->getOrdersQueryWithoutFilters(),
             'delivery_sales' => $this->getOrdersQueryWithoutFilters('delivery'),
             'sales_by_waiter' => $this->getSalesByWaiterWithoutFilters(),
+            'products_by_channel' => $this->getProductsByChannelWithoutFilters(),
             // Otros reportes también sin filtros...
             default => collect([])
         };
@@ -391,6 +402,27 @@ class ReportViewerPage extends Page implements HasForms
             ->get();
     }
     
+    protected function getProductsByChannelWithoutFilters()
+    {
+        $query = \App\Models\OrderDetail::join('orders', 'order_details.order_id', '=', 'orders.id')
+            ->join('products', 'order_details.product_id', '=', 'products.id')
+            ->where('orders.billed', true);
+            
+        // Aplicar filtro por tipo de comprobante si está presente
+        $this->applyInvoiceTypeFilter($query);
+            
+        return $query->select(
+                'products.name as product_name',
+                'orders.service_type',
+                \DB::raw('SUM(order_details.quantity) as total_quantity'),
+                \DB::raw('SUM(order_details.subtotal) as total_sales')
+            )
+            ->groupBy('products.name', 'orders.service_type')
+            ->orderBy('products.name')
+            ->orderBy('orders.service_type')
+            ->get();
+    }
+    
     protected function applyInvoiceTypeFilter($query)
     {
         if ($this->invoiceType) {
@@ -402,11 +434,15 @@ class ReportViewerPage extends Page implements HasForms
     
     protected function getProductsByChannel($startDateTime, $endDateTime)
     {
-        return \App\Models\OrderDetail::join('orders', 'order_details.order_id', '=', 'orders.id')
+        $query = \App\Models\OrderDetail::join('orders', 'order_details.order_id', '=', 'orders.id')
             ->join('products', 'order_details.product_id', '=', 'products.id')
             ->whereBetween('orders.order_datetime', [$startDateTime, $endDateTime])
-            ->where('orders.billed', true)
-            ->select(
+            ->where('orders.billed', true);
+            
+        // Aplicar filtro por tipo de comprobante si está presente
+        $this->applyInvoiceTypeFilter($query);
+            
+        return $query->select(
                 'products.name as product_name',
                 'orders.service_type',
                 \DB::raw('SUM(order_details.quantity) as total_quantity'),
