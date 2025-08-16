@@ -63,7 +63,7 @@
 
                                 @php
                                     $notesText = $detail->notes ?? '';
-                                    $notesText = str_replace(['HELADA', 'AL TIEMPO', 'FRESCA', 'ROJO', 'JUGOSO', 'TRES CUARTOS', 'BIEN COCIDO'], '', $notesText);
+                                    $notesText = str_replace(['HELADA', 'AL TIEMPO', 'FRESCA', 'Punto Azul', 'Término medio', 'tres cuartos', 'bien cocido'], '', $notesText);
                                     $notesText = trim($notesText);
                                 @endphp
                                 @if($notesText)

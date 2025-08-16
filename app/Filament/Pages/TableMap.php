@@ -200,6 +200,10 @@ class TableMap extends Page
                 if (!$table) return [];
 
                 $buttons = [];
+                
+                // Verificar si hay cuentas divididas (con parent_id)
+                $tieneCuentasDivididas = $table->openOrders->whereNotNull('parent_id')->isNotEmpty();
+                
                 foreach ($table->openOrders as $index => $order) {
                     $label = $order->parent_id
                         ? sprintf('Cuenta Separada #%d (Total: S/. %s)', $order->id, number_format($order->total, 2))
@@ -212,10 +216,122 @@ class TableMap extends Page
                         ->action(fn() => $this->goToPos($table->id, $order->id));
                 }
 
+                // Agregar botón "Unir Cuentas" si hay cuentas divididas
+                if ($tieneCuentasDivididas) {
+                    $buttons[] = \Filament\Forms\Components\Actions\Action::make('unir_cuentas')
+                        ->label('🔗 Unir Todas las Cuentas')
+                        ->button()
+                        ->color('success')
+                        ->outlined()
+                        ->action(fn() => $this->unirCuentasDesdeModal($table->id));
+                }
+
                 return [
                     Forms\Components\Actions::make($buttons)->fullWidth()
                 ];
             });
+    }
+
+    /**
+     * Une todas las cuentas divididas desde el modal de selección
+     */
+    public function unirCuentasDesdeModal(int $tableId): void
+    {
+        try {
+            DB::beginTransaction();
+
+            $table = Table::find($tableId);
+            if (!$table) {
+                throw new \Exception('Mesa no encontrada');
+            }
+
+            // Obtener cuenta principal (sin parent_id)
+            $cuentaPrincipal = Order::where('table_id', $tableId)
+                ->where('status', Order::STATUS_OPEN)
+                ->whereNull('parent_id')
+                ->first();
+
+            // Obtener cuentas divididas (con parent_id)
+            $cuentasDivididas = Order::where('table_id', $tableId)
+                ->where('status', Order::STATUS_OPEN)
+                ->whereNotNull('parent_id')
+                ->get();
+
+            if ($cuentasDivididas->isEmpty()) {
+                Notification::make()
+                    ->title('Información')
+                    ->body('No hay cuentas divididas para unir')
+                    ->info()
+                    ->send();
+                return;
+            }
+
+            // Si no hay cuenta principal, usar la primera cuenta dividida como principal
+            if (!$cuentaPrincipal) {
+                $cuentaPrincipal = $cuentasDivididas->first();
+                $cuentaPrincipal->update(['parent_id' => null]);
+                $cuentasDivididas = $cuentasDivididas->except($cuentaPrincipal->id);
+            }
+
+            // Transferir todos los productos de cuentas divididas a la principal
+            foreach ($cuentasDivididas as $cuentaDividida) {
+                foreach ($cuentaDividida->orderDetails as $detail) {
+                    // Buscar si ya existe el mismo producto en la cuenta principal
+                    $existingDetail = $cuentaPrincipal->orderDetails()
+                        ->where('product_id', $detail->product_id)
+                        ->where('unit_price', $detail->unit_price)
+                        ->where('notes', $detail->notes)
+                        ->first();
+
+                    if ($existingDetail) {
+                        // Combinar cantidades si el producto ya existe
+                        $existingDetail->update([
+                            'quantity' => $existingDetail->quantity + $detail->quantity,
+                            'subtotal' => ($existingDetail->quantity + $detail->quantity) * $detail->unit_price
+                        ]);
+                    } else {
+                        // Transferir el detalle a la cuenta principal
+                        $detail->update(['order_id' => $cuentaPrincipal->id]);
+                    }
+                }
+
+                // Eliminar la cuenta dividida vacía
+                $cuentaDividida->delete();
+            }
+
+            // Recalcular totales de la cuenta principal
+            $cuentaPrincipal->refresh();
+            $subtotal = $cuentaPrincipal->orderDetails->sum('subtotal');
+            $tax = $subtotal * 0.18; // IGV 18%
+            $total = $subtotal + $tax;
+
+            $cuentaPrincipal->update([
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'total' => $total,
+                'number_of_guests' => $cuentaPrincipal->orderDetails->sum('quantity')
+            ]);
+
+            DB::commit();
+
+            Notification::make()
+                ->title('Éxito')
+                ->body('Todas las cuentas han sido unidas exitosamente')
+                ->success()
+                ->send();
+
+            // Cerrar el modal y redirigir al POS con la cuenta unificada
+            $this->goToPos($tableId, $cuentaPrincipal->id);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Notification::make()
+                ->title('Error')
+                ->body('Error al unir las cuentas: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     // Método para actualización automática cada 5 segundos

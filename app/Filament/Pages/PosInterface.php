@@ -292,6 +292,11 @@ class PosInterface extends Page
             return true;
         }
 
+        // Búsqueda por patrón: productos que contengan "¼" y "pollo" (case insensitive)
+        if (str_contains($product->name, '¼') && str_contains(strtolower($product->name), 'pollo')) {
+            return true;
+        }
+
         // IDs de las subcategorías "Gustitos a la leña" y "Promociones Familiares"
         $chickenSubcategories = [132, 133]; // Gustitos a la leña (132) y Promociones Familiares (133)
 
@@ -301,6 +306,129 @@ class PosInterface extends Page
         }
 
         return false;
+    }
+
+    /**
+     * Verifica si la mesa actual tiene cuentas divididas
+     */
+    public function tieneCuentasDivididas(): bool
+    {
+        if (!$this->selectedTable) {
+            return false;
+        }
+
+        // Verificar si hay órdenes hijas (cuentas divididas) en esta mesa
+        return Order::where('table_id', $this->selectedTable->id)
+            ->where('status', Order::STATUS_OPEN)
+            ->whereNotNull('parent_id')
+            ->exists();
+    }
+
+    /**
+     * Une todas las cuentas divididas de la mesa actual
+     */
+    public function unirCuentas(): void
+    {
+        if (!$this->selectedTable) {
+            Notification::make()
+                ->title('Error')
+                ->body('No hay mesa seleccionada')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Obtener cuenta principal (sin parent_id)
+            $cuentaPrincipal = Order::where('table_id', $this->selectedTable->id)
+                ->where('status', Order::STATUS_OPEN)
+                ->whereNull('parent_id')
+                ->first();
+
+            // Obtener cuentas divididas (con parent_id)
+            $cuentasDivididas = Order::where('table_id', $this->selectedTable->id)
+                ->where('status', Order::STATUS_OPEN)
+                ->whereNotNull('parent_id')
+                ->get();
+
+            if ($cuentasDivididas->isEmpty()) {
+                Notification::make()
+                    ->title('Información')
+                    ->body('No hay cuentas divididas para unir')
+                    ->info()
+                    ->send();
+                return;
+            }
+
+            // Si no hay cuenta principal, usar la primera cuenta dividida como principal
+            if (!$cuentaPrincipal) {
+                $cuentaPrincipal = $cuentasDivididas->first();
+                $cuentaPrincipal->update(['parent_id' => null]);
+                $cuentasDivididas = $cuentasDivididas->except($cuentaPrincipal->id);
+            }
+
+            // Transferir todos los productos de cuentas divididas a la principal
+            foreach ($cuentasDivididas as $cuentaDividida) {
+                foreach ($cuentaDividida->orderDetails as $detail) {
+                    // Buscar si ya existe el mismo producto en la cuenta principal
+                    $existingDetail = $cuentaPrincipal->orderDetails()
+                        ->where('product_id', $detail->product_id)
+                        ->where('unit_price', $detail->unit_price)
+                        ->where('notes', $detail->notes)
+                        ->first();
+
+                    if ($existingDetail) {
+                        // Combinar cantidades si el producto ya existe
+                        $existingDetail->update([
+                            'quantity' => $existingDetail->quantity + $detail->quantity,
+                            'subtotal' => ($existingDetail->quantity + $detail->quantity) * $detail->unit_price
+                        ]);
+                    } else {
+                        // Transferir el detalle a la cuenta principal
+                        $detail->update(['order_id' => $cuentaPrincipal->id]);
+                    }
+                }
+
+                // Eliminar la cuenta dividida vacía
+                $cuentaDividida->delete();
+            }
+
+            // Recalcular totales de la cuenta principal
+            $cuentaPrincipal->refresh();
+            $subtotal = $cuentaPrincipal->orderDetails->sum('subtotal');
+            $tax = $subtotal * 0.18; // IGV 18%
+            $total = $subtotal + $tax;
+
+            $cuentaPrincipal->update([
+                'subtotal' => $subtotal,
+                'tax' => $tax,
+                'total' => $total,
+                'number_of_guests' => $cuentaPrincipal->orderDetails->sum('quantity')
+            ]);
+
+            // Actualizar la orden actual y carrito
+            $this->order = $cuentaPrincipal;
+            $this->updateCartFromOrder();
+
+            DB::commit();
+
+            Notification::make()
+                ->title('Éxito')
+                ->body('Cuentas unidas exitosamente')
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            Notification::make()
+                ->title('Error')
+                ->body('Error al unir las cuentas: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     protected function getHeaderActions(): array
@@ -1021,7 +1149,7 @@ class PosInterface extends Page
 
                         // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                         if ($isGrillItem && $detail->notes) {
-                            $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
+                            $cookingPoints = ['AZUL', 'Punto Azul', 'Término medio', 'tres cuartos', 'bien cocido'];
                             foreach ($cookingPoints as $point) {
                                 if (strpos($detail->notes, $point) !== false) {
                                     $cookingPoint = $point;
@@ -1032,7 +1160,7 @@ class PosInterface extends Page
 
                         // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
                         if ($isGrillItem && !$cookingPoint) {
-                            $cookingPoint = 'MEDIO';
+                            $cookingPoint = 'Término medio';
                         }
 
                         // Si es un producto de pollo, detectar el tipo de presa desde las notas
@@ -1126,7 +1254,7 @@ class PosInterface extends Page
 
                         // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                         if ($isGrillItem && $detail->notes) {
-                            $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
+                            $cookingPoints = ['AZUL', 'Punto Azul', 'Término medio', 'tres cuartos', 'bien cocido'];
                             foreach ($cookingPoints as $point) {
                                 if (strpos($detail->notes, $point) !== false) {
                                     $cookingPoint = $point;
@@ -1137,7 +1265,7 @@ class PosInterface extends Page
 
                         // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
                         if ($isGrillItem && !$cookingPoint) {
-                            $cookingPoint = 'MEDIO';
+                            $cookingPoint = 'Término medio';
                         }
 
                         // Si es un producto de pollo, detectar el tipo de presa desde las notas
@@ -1321,7 +1449,7 @@ class PosInterface extends Page
                 'temperature' => null, // Sin temperatura por defecto
                 'is_cold_drink' => $isColdDrink,
                 'is_grill_item' => $isGrillItem,
-                'cooking_point' => $isGrillItem ? 'MEDIO' : null, // Por defecto MEDIO para parrillas
+                'cooking_point' => $isGrillItem ? 'Término medio' : null, // Por defecto MEDIO para parrillas
                 'is_chicken_cut' => $isChickenCut,
                 'chicken_cut_type' => $isChickenCut ? null : null, // Sin selección por defecto para pollos
             ];
@@ -2076,7 +2204,7 @@ class PosInterface extends Page
 
                 // Si es un producto de parrilla, detectar el punto de cocción desde las notas
                 if ($isGrillItem && $detail->notes) {
-                    $cookingPoints = ['AZUL', 'ROJO', 'MEDIO', 'TRES CUARTOS', 'BIEN COCIDO'];
+                    $cookingPoints = ['AZUL', 'Punto Azul', 'Término medio', 'tres cuartos', 'bien cocido'];
                     foreach ($cookingPoints as $point) {
                         if (strpos($detail->notes, $point) !== false) {
                             $cookingPoint = $point;
@@ -2087,7 +2215,7 @@ class PosInterface extends Page
 
                 // Si es parrilla pero no tiene punto de cocción especificado, por defecto MEDIO
                 if ($isGrillItem && !$cookingPoint) {
-                    $cookingPoint = 'MEDIO';
+                    $cookingPoint = 'Término medio';
                 }
 
                 // Si es un producto de pollo, detectar el tipo de presa desde las notas
@@ -2117,10 +2245,13 @@ class PosInterface extends Page
                 'notes'      => $detail->notes ?? '',
                 'is_cold_drink' => $isColdDrink,
                 'temperature' => $temperature,
+                'temperature_selected' => !is_null($temperature), // Si hay temperatura, está seleccionada
                 'is_grill_item' => $isGrillItem,
                 'cooking_point' => $cookingPoint,
+                'cooking_point_selected' => !is_null($cookingPoint), // Si hay punto de cocción, está seleccionado
                 'is_chicken_cut' => $this->isChickenCutCategory($detail->product),
                 'chicken_cut_type' => $chickenCutType,
+                'chicken_cut_type_selected' => !is_null($chickenCutType), // Si hay tipo de presa, está seleccionado
             ];
         }
 
@@ -3218,6 +3349,39 @@ class PosInterface extends Page
                 }
             })
             ->visible(fn (): bool => $this->order !== null && count($this->order->orderDetails) > 0);
+    }
+
+    /**
+     * Método para seleccionar una temperatura para una bebida fría
+     */
+    public function selectTemperature(int $index, string $temperature): void
+    {
+        if (isset($this->cartItems[$index])) {
+            $this->cartItems[$index]['temperature'] = $temperature;
+            $this->cartItems[$index]['temperature_selected'] = true;
+        }
+    }
+
+    /**
+     * Método para seleccionar un punto de cocción para una parrilla
+     */
+    public function selectCookingPoint(int $index, string $cookingPoint): void
+    {
+        if (isset($this->cartItems[$index])) {
+            $this->cartItems[$index]['cooking_point'] = $cookingPoint;
+            $this->cartItems[$index]['cooking_point_selected'] = true;
+        }
+    }
+
+    /**
+     * Método para seleccionar un tipo de presa para pollo
+     */
+    public function selectChickenCutType(int $index, string $chickenCutType): void
+    {
+        if (isset($this->cartItems[$index])) {
+            $this->cartItems[$index]['chicken_cut_type'] = $chickenCutType;
+            $this->cartItems[$index]['chicken_cut_type_selected'] = true;
+        }
     }
 
     /**

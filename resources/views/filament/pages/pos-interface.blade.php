@@ -1516,6 +1516,19 @@
             display: none;
         }
 
+        /* BOTÓN UNIR CUENTAS */
+        .pos-quick-action-btn.btn-unir.success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: 2px solid #059669;
+        }
+
+        .pos-quick-action-btn.btn-unir.success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
         /* BOTÓN LIMPIAR */
         .pos-cart-clear-btn {
             width: 32px;
@@ -1598,7 +1611,8 @@
     transition: background .15s ease, box-shadow .15s ease;
     display: grid;
     grid-template-columns: 1fr auto;
-    align-items: center;
+    grid-template-rows: auto auto auto;
+    align-items: start;
     column-gap: 6px;
     row-gap: 4px;
     font-size: var(--cart-item-font-size);
@@ -1616,6 +1630,7 @@
 
 .pos-cart-item-info {
     grid-column: 1 / 2;
+    grid-row: 1 / 3;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -1701,9 +1716,13 @@
     color: #dc2626;
     box-shadow: none;
     padding: 0;
+    grid-column: 2 / 3;
+    grid-row: 1;
 }
 .pos-cart-items .pos-item-remove-btn:hover:not(:disabled){ background:#fee2e2; }
 .pos-cart-items .pos-item-remove-btn:active:not(:disabled){ transform: scale(.9); }
+
+
 
 /* CONTROLES DE CANTIDAD - MEJORADOS PARA MÓVILES */
 .pos-quantity-controls {
@@ -1716,6 +1735,8 @@
     border: 1px solid var(--pos-gray-200);
     gap: 8px;
     margin-top: 4px;
+    grid-column: 1 / 2;
+    grid-row: 3;
     --qty-btn-size: 34px;
     --qty-font: 14px;
     --qty-value-font: 15px;
@@ -1750,14 +1771,22 @@
     transition: var(--pos-transition);
 }
 
+/* TOTAL DEL ITEM - EN LA MISMA FILA QUE LOS CONTROLES */
 .pos-quantity-total {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     color: var(--pos-success);
     background: rgba(16, 185, 129, 0.1);
-    padding: 4px 8px;
+    padding: 6px 8px;
     border-radius: var(--pos-border-radius);
     border: 1px solid rgba(16, 185, 129, 0.2);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    grid-column: 2 / 3;
+    grid-row: 3;
+    align-self: center;
+    min-height: 36px;
 }
 
 /* TOTALES DEL CARRITO - DISEÑO MÓVIL OPTIMIZADO */
@@ -1848,6 +1877,40 @@
     color: white;
 }
 
+/* CONTENEDOR DEL PRECIO Y OPCIONES SELECCIONADAS */
+.pos-cart-item-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+/* OPCIÓN SELECCIONADA DEBAJO DEL PRECIO - ESTILO COMPACTO */
+.pos-selected-option-display {
+    background-color: #dbeafe;
+    border: 1px solid #93c5fd;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    margin-top: 2px;
+}
+
+.pos-selected-option-tag {
+    background-color: #3b82f6;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 9px;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
 /* RESPONSIVE ESPECÍFICO PARA EL CARRITO EN MÓVILES */
 @media (max-width: 767px) {
     .pos-main-container {
@@ -1903,29 +1966,38 @@
         font-size: 12px;
     }
 
+    .pos-cart-item-footer {
+        margin-top: 6px;
+        padding-top: 6px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    
     .pos-quantity-controls {
-    padding: 6px 8px;
-    gap: 6px;
-    --qty-btn-size: 32px;
-    --qty-font: 13px;
-    --qty-value-font: 14px;
+        padding: 4px 6px;
+        gap: 4px;
+        --qty-btn-size: 28px;
+        --qty-font: 12px;
+        --qty-value-font: 13px;
     }
 
     .pos-quantity-btn {
-    width: var(--qty-btn-size);
-    height: var(--qty-btn-size);
-    font-size: var(--qty-font);
+        width: var(--qty-btn-size);
+        height: var(--qty-btn-size);
+        font-size: var(--qty-font);
     }
 
     .pos-quantity-value {
-    min-width: 44px;
-    font-size: var(--qty-value-font);
-    padding: 6px 4px;
+        min-width: 36px;
+        font-size: var(--qty-value-font);
+        padding: 4px;
     }
 
     .pos-quantity-total {
-    font-size: 12px;
-    padding: 3px 6px;
+        font-size: 11px;
+        padding: 3px 6px;
     }
 
     .pos-item-remove-btn {
@@ -3758,10 +3830,16 @@
             <span class="btn-label">Reabrir</span>
         </button>
 
-        <!-- Dividir -->
-        <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }} title="Dividir cuenta entre mesas">
-            <span class="btn-label">Dividir</span>
-        </button>
+        <!-- Dividir/Unir -->
+        @if($this->tieneCuentasDivididas())
+            <button wire:click="unirCuentas" class="pos-quick-action-btn btn-unir success" title="Unir todas las cuentas divididas">
+                <span class="btn-label">Unir</span>
+            </button>
+        @else
+            <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }} title="Dividir cuenta entre mesas">
+                <span class="btn-label">Dividir</span>
+            </button>
+        @endif
 
         <!-- Transferir -->
         @if(!auth()->user()->hasRole(['waiter', 'cashier']))
@@ -3790,7 +3868,26 @@
                             <div class="pos-cart-item-header">
                                 <div class="pos-cart-item-info">
                                     <div class="pos-cart-item-name">{{ $item['name'] }}</div>
-                                    <div class="pos-cart-item-price">S/ {{ number_format($item['unit_price'], 2) }} c/u</div>
+                                    <div class="pos-cart-item-price-container">
+                                        <div class="pos-cart-item-price">S/ {{ number_format($item['unit_price'], 2) }} c/u</div>
+                                        
+                                        {{-- MOSTRAR OPCIONES SELECCIONADAS DEBAJO DEL PRECIO --}}
+                                        @if(($item['temperature_selected'] ?? false) || ($item['cooking_point_selected'] ?? false) || ($item['chicken_cut_type_selected'] ?? false))
+                                            <div class="pos-selected-option-display">
+                                                @if($item['temperature_selected'] ?? false)
+                                                    <span class="pos-selected-option-tag">Temperatura: {{ $item['temperature'] }}</span>
+                                                @endif
+                                                
+                                                @if($item['cooking_point_selected'] ?? false)
+                                                    <span class="pos-selected-option-tag">Punto: {{ $item['cooking_point'] }}</span>
+                                                @endif
+                                                
+                                                @if($item['chicken_cut_type_selected'] ?? false)
+                                                    <span class="pos-selected-option-tag">Presa: {{ $item['chicken_cut_type'] }}</span>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
 
                                 {{-- Botón de Eliminación Individual --}}
@@ -3809,88 +3906,119 @@
                                 </button>
                             </div>
 
-                            {{-- OPCIONES ESPECIALES --}}
-                            @if($item['is_cold_drink'] ?? false)
-                                <div class="pos-special-options">
-                                    <div class="pos-special-options-title">Temperatura:</div>
-                                    <div class="pos-radio-group">
-                                        <div class="pos-radio-option">
-                                            <input
-                                                type="radio"
-                                                wire:model.live="cartItems.{{ $index }}.temperature"
-                                                value="HELADA"
-                                                id="cold-{{ $index }}"
-                                            >
-                                            <label for="cold-{{ $index }}">Helada</label>
-                                        </div>
-                                        <div class="pos-radio-option">
-                                            <input
-                                                type="radio"
-                                                wire:model.live="cartItems.{{ $index }}.temperature"
-                                                value="AL TIEMPO"
-                                                id="room-{{ $index }}"
-                                            >
-                                            <label for="room-{{ $index }}">Al tiempo</label>
-                                        </div>
-                                        <div class="pos-radio-option">
-                                            <input
-                                                type="radio"
-                                                wire:model.live="cartItems.{{ $index }}.temperature"
-                                                value="FRESCA"
-                                                id="fresh-{{ $index }}"
-                                            >
-                                            <label for="fresh-{{ $index }}">Fresca</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if($item['is_grill_item'] ?? false)
-                                <div class="pos-special-options">
-                                    <div class="pos-special-options-title">Punto de cocción:</div>
-                                    <div class="pos-radio-group">
-                                        @foreach(['ROJO', 'JUGOSO', 'TRES CUARTOS', 'BIEN COCIDO'] as $point)
-                                            <div class="pos-radio-option">
-                                                <input
-                                                    type="radio"
-                                                    wire:model.live="cartItems.{{ $index }}.cooking_point"
-                                                    value="{{ $point }}"
-                                                    id="grill-{{ $index }}-{{ $loop->index }}"
-                                                >
-                                                <label for="grill-{{ $index }}-{{ $loop->index }}">{{ $point }}</label>
+                            {{-- CONTENEDOR DE OPCIONES ESPECIALES - ALTURA ESTANDARIZADA --}}
+                            <div class="pos-special-options-container">
+                                {{-- OPCIONES ESPECIALES --}} 
+                                @if($item['is_cold_drink'] ?? false)
+                                    @if(!($item['temperature_selected'] ?? false))
+                                        <div class="pos-special-options">
+                                            <div class="pos-special-options-title">Temperatura:</div>
+                                            <div class="pos-radio-group">
+                                                <div class="pos-radio-option">
+                                                    <input
+                                                        type="radio"
+                                                        wire:click="selectTemperature({{ $index }}, 'HELADA')"
+                                                        name="temperature-{{ $index }}"
+                                                        value="HELADA"
+                                                        id="cold-{{ $index }}"
+                                                    >
+                                                    <label for="cold-{{ $index }}">Helada</label>
+                                                </div>
+                                                <div class="pos-radio-option">
+                                                    <input
+                                                        type="radio"
+                                                        wire:click="selectTemperature({{ $index }}, 'AL TIEMPO')"
+                                                        name="temperature-{{ $index }}"
+                                                        value="AL TIEMPO"
+                                                        id="room-{{ $index }}"
+                                                    >
+                                                    <label for="room-{{ $index }}">Al tiempo</label>
+                                                </div>
+                                                <div class="pos-radio-option">
+                                                    <input
+                                                        type="radio"
+                                                        wire:click="selectTemperature({{ $index }}, 'FRESCA')"
+                                                        name="temperature-{{ $index }}"
+                                                        value="FRESCA"
+                                                        id="fresh-{{ $index }}"
+                                                    >
+                                                    <label for="fresh-{{ $index }}">Fresca</label>
+                                                </div>
                                             </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if($item['is_chicken_cut'] ?? false)
-                                <div class="pos-special-options">
-                                    <div class="pos-special-options-title">Tipo de presa:</div>
-                                    <div class="pos-radio-group">
-                                        <div class="pos-radio-option">
-                                            <input
-                                                type="radio"
-                                                wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
-                                                value="PECHO"
-                                                id="chicken-{{ $index }}-breast"
-                                            >
-                                            <label for="chicken-{{ $index }}-breast">Pecho</label>
                                         </div>
-                                        <div class="pos-radio-option">
-                                            <input
-                                                type="radio"
-                                                wire:model.live="cartItems.{{ $index }}.chicken_cut_type"
-                                                value="PIERNA"
-                                                id="chicken-{{ $index }}-leg"
-                                            >
-                                            <label for="chicken-{{ $index }}-leg">Pierna</label>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
+                                    @else
+                                        {{-- Opción seleccionada - ocultar completamente las opciones --}}
+                                        <div class="pos-special-options-placeholder"></div>
+                                    @endif
+                                @endif
 
-                            {{-- CONTROLES DE CANTIDAD MEJORADOS --}}
+                                @if($item['is_grill_item'] ?? false)
+                                    @if(!($item['cooking_point_selected'] ?? false))
+                                        <div class="pos-special-options">
+                                            <div class="pos-special-options-title">Punto de cocción:</div>
+                                            <div class="pos-radio-group">
+                                                @foreach(['Punto Azul', 'Término medio', 'tres cuartos', 'bien cocido'] as $point)
+                                                    <div class="pos-radio-option">
+                                                        <input
+                                                            type="radio"
+                                                            wire:click="selectCookingPoint({{ $index }}, '{{ $point }}')"
+                                                            name="cooking-point-{{ $index }}"
+                                                            value="{{ $point }}"
+                                                            id="grill-{{ $index }}-{{ $loop->index }}"
+                                                        >
+                                                        <label for="grill-{{ $index }}-{{ $loop->index }}">{{ $point }}</label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @else
+                                        {{-- Opción seleccionada - ocultar completamente las opciones --}}
+                                        <div class="pos-special-options-placeholder"></div>
+                                    @endif
+                                @endif
+
+                                @if($item['is_chicken_cut'] ?? false)
+                                    @if(!($item['chicken_cut_type_selected'] ?? false))
+                                        <div class="pos-special-options">
+                                            <div class="pos-special-options-title">Tipo de presa:</div>
+                                            <div class="pos-radio-group">
+                                                <div class="pos-radio-option">
+                                                    <input
+                                                        type="radio"
+                                                        wire:click="selectChickenCutType({{ $index }}, 'PECHO')"
+                                                        name="chicken-cut-{{ $index }}"
+                                                        value="PECHO"
+                                                        id="chicken-{{ $index }}-breast"
+                                                    >
+                                                    <label for="chicken-{{ $index }}-breast">Pecho</label>
+                                                </div>
+                                                <div class="pos-radio-option">
+                                                    <input
+                                                        type="radio"
+                                                        wire:click="selectChickenCutType({{ $index }}, 'PIERNA')"
+                                                        name="chicken-cut-{{ $index }}"
+                                                        value="PIERNA"
+                                                        id="chicken-{{ $index }}-leg"
+                                                    >
+                                                    <label for="chicken-{{ $index }}-leg">Pierna</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @else
+                                        {{-- Opción seleccionada - ocultar completamente las opciones --}}
+                                        <div class="pos-special-options-placeholder"></div>
+                                    @endif
+                                @endif
+                                
+                                {{-- ESPACIO RESERVADO PARA MANTENER ALTURA CONSISTENTE --}}
+                                @if(!(($item['is_cold_drink'] ?? false) || ($item['is_grill_item'] ?? false) || ($item['is_chicken_cut'] ?? false)))
+                                    <div class="pos-special-options-placeholder"></div>
+                                @endif
+                            </div>
+                            
+
+
+                            {{-- CONTROLES DE CANTIDAD A LA IZQUIERDA --}}
                             <div class="pos-quantity-controls {{ $item['quantity'] <= 1 ? 'at-minimum' : '' }}">
                                 {{-- Botón Disminuir --}}
                                 <button
@@ -3932,14 +4060,14 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                                     </svg>
                                 </button>
+                            </div>
 
-                                {{-- Total del Item Mejorado --}}
-                                <div class="pos-quantity-total">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 4px;">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                    </svg>
-                                    {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
-                                </div>
+                            {{-- TOTAL DEL ITEM A LA DERECHA --}}
+                            <div class="pos-quantity-total">
+                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 4px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                </svg>
+                                {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
                             </div>
                         </div>
                     @empty
