@@ -264,8 +264,25 @@ class ReportViewerPage extends Page implements HasForms
 
         return $this->reportData
             ->filter(function ($order) use ($type) {
-                // Verificar si la orden tiene facturas del tipo especificado
-                return $order->invoices->where('invoice_type', $type)->isNotEmpty();
+                // Diferenciación correcta según el tipo solicitado
+                switch ($type) {
+                    case 'sales_note':
+                        // Notas de Venta: invoice_type='receipt' + sunat_status=null
+                        return $order->invoices->where('invoice_type', 'receipt')
+                            ->whereNull('sunat_status')->isNotEmpty();
+                    
+                    case 'receipt':
+                        // Boletas: invoice_type='receipt' + sunat_status!=null (va a SUNAT)
+                        return $order->invoices->where('invoice_type', 'receipt')
+                            ->whereNotNull('sunat_status')->isNotEmpty();
+                    
+                    case 'invoice':
+                        // Facturas: invoice_type='invoice'
+                        return $order->invoices->where('invoice_type', 'invoice')->isNotEmpty();
+                    
+                    default:
+                        return false;
+                }
             })
             ->sum('total');
     }
