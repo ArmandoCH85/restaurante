@@ -69,9 +69,16 @@ class ReportViewerPage extends Page implements HasForms
         
         // Only proceed if we have valid parameters
         if (!empty($this->category) && !empty($this->reportType)) {
-            // Handle dateRange from URL
-            $dateRange = request('dateRange', 'today');
-            $this->setDateRange($dateRange);
+            // Si no viene dateRange en la URL, NO aplicar filtros por defecto
+            if (request()->has('dateRange')) {
+                $dateRange = request('dateRange');
+                $this->setDateRange($dateRange);
+            } else {
+                // Cargar SIN FILTROS - todos los datos históricos
+                $this->dateRange = null;
+                $this->startDate = null;
+                $this->endDate = null;
+            }
             
             // Initialize form
             $this->form->fill([
@@ -79,7 +86,7 @@ class ReportViewerPage extends Page implements HasForms
                 'format' => 'pdf',
             ]);
 
-            // Load initial data
+            // Load initial data (libre de filtros por defecto)
             $this->loadReportData();
         }
     }
@@ -210,6 +217,22 @@ class ReportViewerPage extends Page implements HasForms
             return;
         }
 
+        // Si no hay fechas establecidas, cargar TODOS los datos sin filtros
+        if (!$this->startDate || !$this->endDate) {
+            $this->reportData = $this->getReportDataWithoutFilters();
+            
+            $this->reportStats = [
+                'total_operations' => $this->reportData->count(),
+                'total_sales' => $this->reportData->sum('total') ?? 0,
+                'total_sales_notes' => $this->getTotalByInvoiceType('sales_note'),
+                'total_receipts' => $this->getTotalByInvoiceType('receipt'), 
+                'total_invoices' => $this->getTotalByInvoiceType('invoice'),
+                'total_cancelled' => $this->getTotalCancelled(),
+                'period' => 'Todos los registros históricos',
+            ];
+            return;
+        }
+
         $startDateTime = $this->getStartDateTime();
         $endDateTime = $this->getEndDateTime();
 
@@ -235,14 +258,42 @@ class ReportViewerPage extends Page implements HasForms
 
     protected function getTotalByInvoiceType(string $type): float
     {
-        // Solución KISS: por ahora retornamos 0, podemos mejorar después
-        return 0;
+        if (!$this->reportData) {
+            return 0;
+        }
+
+        return $this->reportData
+            ->filter(function ($order) use ($type) {
+                // Verificar si la orden tiene facturas del tipo especificado
+                return $order->invoices->where('invoice_type', $type)->isNotEmpty();
+            })
+            ->sum('total');
     }
 
     protected function getTotalCancelled(): float
     {
-        // Solución KISS: por ahora retornamos 0, podemos mejorar después  
-        return 0;
+        if (!$this->reportData) {
+            return 0;
+        }
+
+        return $this->reportData
+            ->filter(function ($order) {
+                // Verificar si la orden tiene facturas anuladas
+                return $order->invoices->where('tax_authority_status', 'voided')->isNotEmpty();
+            })
+            ->sum('total');
+    }
+
+    protected function getReportDataWithoutFilters()
+    {
+        return match ($this->reportType) {
+            // SALES REPORTS - SIN FILTROS DE FECHA
+            'all_sales' => $this->getOrdersQueryWithoutFilters(),
+            'delivery_sales' => $this->getOrdersQueryWithoutFilters('delivery'),
+            'sales_by_waiter' => $this->getSalesByWaiterWithoutFilters(),
+            // Otros reportes también sin filtros...
+            default => collect([])
+        };
     }
 
     protected function getReportData($startDateTime, $endDateTime)
@@ -288,6 +339,32 @@ class ReportViewerPage extends Page implements HasForms
         $this->applyInvoiceTypeFilter($query);
         
         return $query->orderBy('order_datetime', 'desc')->get();
+    }
+
+    protected function getOrdersQueryWithoutFilters($serviceType = null)
+    {
+        $query = Order::where('billed', true)
+            ->with(['customer', 'user', 'table', 'cashRegister', 'invoices']);
+            
+        if ($serviceType) {
+            $query->where('service_type', $serviceType);
+        }
+        
+        // Aplicar filtro por tipo de comprobante si está presente
+        $this->applyInvoiceTypeFilter($query);
+        
+        return $query->orderBy('order_datetime', 'desc')->get();
+    }
+
+    protected function getSalesByWaiterWithoutFilters()
+    {
+        return Order::where('billed', true)
+            ->with(['user'])
+            ->selectRaw('user_id, users.name as waiter_name, COUNT(*) as total_orders, SUM(total) as total_sales')
+            ->join('users', 'orders.user_id', '=', 'users.id')
+            ->groupBy('user_id', 'users.name')
+            ->orderBy('total_sales', 'desc')
+            ->get();
     }
     
     protected function applyInvoiceTypeFilter($query)
