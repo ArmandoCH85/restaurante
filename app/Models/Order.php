@@ -822,10 +822,16 @@ class Order extends Model
             $correctSubtotal = $this->total / 1.18; // Subtotal sin IGV
             $correctIgv = $this->total - $correctSubtotal; // IGV incluido
             
-            // 5. Crear la factura
+            // 5. Mapear tipo de factura para almacenamiento en BD (sales_note se guarda como receipt)
+            $invoiceTypeForDb = $invoiceType === 'sales_note' ? 'receipt' : $invoiceType;
+            
+            // 6. Establecer estado SUNAT según el tipo de comprobante
+            $sunatStatus = in_array($invoiceType, ['invoice', 'receipt']) ? 'PENDIENTE' : null;
+            
+            // 7. Crear la factura
             $invoice = Invoice::create([
                 'order_id' => $this->id,
-                'invoice_type' => $invoiceType,
+                'invoice_type' => $invoiceTypeForDb,
                 'series' => $series,
                 'number' => $formattedNumber,
                 'issue_date' => now(),
@@ -842,10 +848,10 @@ class Order extends Model
                 'change_amount' => ($this->payment_method === 'cash' && $this->payment_amount > $this->total) ? 
                     $this->payment_amount - $this->total : 0,
                 'status' => 'issued',
-                'sunat_status' => 'PENDIENTE',
+                'sunat_status' => $sunatStatus,
             ]);
 
-            // 6. Agregar detalles de la factura
+            // 8. Agregar detalles de la factura
         foreach ($this->orderDetails as $detail) {
             $invoice->details()->create([
                 'product_id' => $detail->product_id,
@@ -856,7 +862,7 @@ class Order extends Model
             ]);
         }
 
-            // 6. Actualizar el correlativo en la serie del documento
+            // 9. Actualizar el correlativo en la serie del documento
             $documentSeries = DocumentSeries::where('series', $series)->first();
             if ($documentSeries) {
                 $documentSeries->increment('current_number');

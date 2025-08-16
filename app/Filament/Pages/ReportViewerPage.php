@@ -267,14 +267,21 @@ class ReportViewerPage extends Page implements HasForms
                 // Diferenciación correcta según el tipo solicitado
                 switch ($type) {
                     case 'sales_note':
-                        // Notas de Venta: invoice_type='receipt' + sunat_status=null
-                        return $order->invoices->where('invoice_type', 'receipt')
+                        // Notas de Venta: Buscar en ambas formas de almacenamiento
+                        // 1. Forma actual: invoice_type='receipt' + sunat_status=null
+                        $currentForm = $order->invoices->where('invoice_type', 'receipt')
                             ->whereNull('sunat_status')->isNotEmpty();
+                        
+                        // 2. Forma legacy: invoice_type='sales_note' (cualquier sunat_status)
+                        $legacyForm = $order->invoices->where('invoice_type', 'sales_note')->isNotEmpty();
+                        
+                        return $currentForm || $legacyForm;
                     
                     case 'receipt':
-                        // Boletas: invoice_type='receipt' + sunat_status!=null (va a SUNAT)
+                        // Boletas: invoice_type='receipt' + sunat_status!=null Y no sea 'NO_APLICA' (va a SUNAT)
                         return $order->invoices->where('invoice_type', 'receipt')
-                            ->whereNotNull('sunat_status')->isNotEmpty();
+                            ->whereNotNull('sunat_status')
+                            ->where('sunat_status', '!=', 'NO_APLICA')->isNotEmpty();
                     
                     case 'invoice':
                         // Facturas: invoice_type='invoice'
