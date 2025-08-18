@@ -69,6 +69,9 @@ class ReportViewerPage extends Page implements HasForms
         
         // Only proceed if we have valid parameters
         if (!empty($this->category) && !empty($this->reportType)) {
+            // Capturar filtro de tipo de comprobante del request
+            $this->invoiceType = request('invoiceType');
+            
             // Si no viene dateRange en la URL, NO aplicar filtros por defecto
             if (request()->has('dateRange')) {
                 $dateRange = request('dateRange');
@@ -454,9 +457,28 @@ class ReportViewerPage extends Page implements HasForms
     protected function applyInvoiceTypeFilter($query)
     {
         if ($this->invoiceType) {
+            \Log::info("Aplicando filtro de tipo de comprobante: {$this->invoiceType}");
+            
+            // Filtrar EXCLUSIVAMENTE por serie (más confiable que invoice_type)
             $query->whereHas('invoices', function ($invoiceQuery) {
-                $invoiceQuery->where('invoice_type', $this->invoiceType);
+                switch ($this->invoiceType) {
+                    case 'sales_note':
+                        $invoiceQuery->where('series', 'LIKE', 'NV%');
+                        break;
+                    case 'receipt':
+                        $invoiceQuery->where('series', 'LIKE', 'B%');
+                        break;
+                    case 'invoice':
+                        $invoiceQuery->where('series', 'LIKE', 'F%');
+                        break;
+                    default:
+                        // Si no es un tipo reconocido, usar invoice_type como fallback
+                        $invoiceQuery->where('invoice_type', $this->invoiceType);
+                        break;
+                }
             });
+        } else {
+            \Log::info("No se aplica filtro de tipo de comprobante - invoiceType es: " . ($this->invoiceType ?? 'null'));
         }
     }
     
