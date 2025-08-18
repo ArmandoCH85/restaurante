@@ -383,7 +383,15 @@ class ReportViewerPage extends Page implements HasForms
         \Log::info('Orders Query SQL: ' . $query->toSql());
         \Log::info('Orders Query Bindings: ' . json_encode($query->getBindings()));
         
-        return $query->orderBy('order_datetime', 'desc')->get();
+        $results = $query->orderBy('order_datetime', 'desc')->get();
+        
+        // Debug invoice types
+        $invoiceTypes = $results->flatMap(function($order) {
+            return $order->invoices->pluck('invoice_type');
+        })->unique()->values();
+        \Log::info('Invoice types found in results: ' . json_encode($invoiceTypes->toArray()));
+        
+        return $results;
     }
 
     protected function getOrdersQueryWithoutFilters($serviceType = null)

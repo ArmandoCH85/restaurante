@@ -341,11 +341,32 @@
                                                             @if($item->invoices->isNotEmpty())
                                                                 @php $invoice = $item->invoices->first(); @endphp
                                                                 <div class="flex items-center space-x-2">
-                                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium
-                                                                        {{ $invoice->invoice_type === 'sales_note' ? 'bg-yellow-100 text-yellow-800' : 
-                                                                           ($invoice->invoice_type === 'receipt' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800') }}">
-                                                                        {{ $invoice->invoice_type === 'sales_note' ? '📝 N/V' : 
-                                                                           ($invoice->invoice_type === 'receipt' ? '🧾 BOL' : '📋 FAC') }}
+                                                                    @php
+                                                                        // Detectar tipo real basándose en la serie del documento
+                                                                        $actualType = $invoice->invoice_type;
+                                                                        
+                                                                        // Corrección automática basada en la serie
+                                                                        if (str_starts_with($invoice->series, 'NV')) {
+                                                                            $actualType = 'sales_note';
+                                                                        } elseif (str_starts_with($invoice->series, 'B')) {
+                                                                            $actualType = 'receipt'; 
+                                                                        } elseif (str_starts_with($invoice->series, 'F')) {
+                                                                            $actualType = 'invoice';
+                                                                        }
+                                                                        
+                                                                        // Mapeo explícito de tipos de documento
+                                                                        $documentTypes = [
+                                                                            'sales_note' => ['label' => '📝 NV', 'class' => 'bg-yellow-100 text-yellow-800'],
+                                                                            'receipt' => ['label' => '🧾 BOL', 'class' => 'bg-blue-100 text-blue-800'],
+                                                                            'invoice' => ['label' => '📋 FAC', 'class' => 'bg-green-100 text-green-800']
+                                                                        ];
+                                                                        
+                                                                        $docType = $documentTypes[$actualType] ?? ['label' => '❓ ' . strtoupper($actualType), 'class' => 'bg-gray-100 text-gray-800'];
+                                                                    @endphp
+                                                                    
+                                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $docType['class'] }}" 
+                                                                          title="Tipo: {{ $invoice->invoice_type }}">
+                                                                        {{ $docType['label'] }}
                                                                     </span>
                                                                     <span>{{ $invoice->series }}-{{ str_pad($invoice->number, 6, '0', STR_PAD_LEFT) }}</span>
                                                                 </div>
