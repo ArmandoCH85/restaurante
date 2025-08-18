@@ -430,14 +430,33 @@
                 @endswitch
             </span>
         </div>
-        @if($invoice->payment_method === 'cash' && $invoice->change_amount > 0)
+        @php
+            // Calcular dinámicamente el vuelto en caso de que los datos de BD no estén correctos
+            $totalPaid = 0;
+            $changeAmount = 0;
+            
+            if ($invoice->order && $invoice->order->payments) {
+                $totalPaid = $invoice->order->payments->sum('amount');
+                $hasCashPayment = $invoice->order->payments->where('payment_method', 'cash')->isNotEmpty();
+                
+                if ($hasCashPayment && $totalPaid > $invoice->total) {
+                    $changeAmount = $totalPaid - $invoice->total;
+                }
+            }
+            
+            // Usar el vuelto de la BD si está correcto, sino usar el calculado
+            $displayChange = ($invoice->change_amount > 0) ? $invoice->change_amount : $changeAmount;
+            $displayPaid = ($invoice->payment_amount > 0) ? $invoice->payment_amount : $totalPaid;
+        @endphp
+        
+        @if($displayChange > 0)
         <div class="info-row">
             <span class="label">Recibido:</span>
-            <span>S/ {{ number_format($invoice->payment_amount, 2) }}</span>
+            <span>S/ {{ number_format($displayPaid, 2) }}</span>
         </div>
         <div class="info-row">
-            <span class="label">Vuelto:</span>
-            <span>S/ {{ number_format($invoice->change_amount, 2) }}</span>
+            <span class="label">🪙 Vuelto:</span>
+            <span>S/ {{ number_format($displayChange, 2) }}</span>
         </div>
         @endif
     </div>

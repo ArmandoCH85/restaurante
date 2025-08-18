@@ -538,7 +538,7 @@
 
                     <div id="change_container" class="p-3 mb-3 rounded-md" style="display: none; background-color: #d1e7dd;">
                         <div class="d-flex justify-content-between align-items-center">
-                            <span class="fw-bold">Cambio a devolver:</span>
+                            <span class="fw-bold">🪙 Vuelto a devolver:</span>
                             <span class="fs-5 fw-bold text-success">S/ <span id="change_amount">0.00</span></span>
                         </div>
                     </div>
@@ -567,9 +567,9 @@
                             <div class="col-6">
                                 <strong>
                                     @if($remainingBalance < 0)
-                                        Vuelto/Cambio:
+                                        🪙 Vuelto:
                                     @else
-                                        Saldo Pendiente:
+                                        ⏳ Saldo Pendiente:
                                     @endif
                                 </strong>
                             </div>
@@ -1209,6 +1209,66 @@
                 saveButton.innerHTML = 'Guardar';
             });
         }
+        
+        // Validar pagos divididos antes de enviar el formulario
+        function validatePaymentsBeforeSubmit() {
+            const orderTotal = {{ $order->total }};
+            const mainPaymentMethod = document.getElementById('payment_method').value;
+            const mainAmount = parseFloat(document.getElementById('amount').value) || 0;
+            
+            let totalPaid = mainAmount;
+            let hasCash = mainPaymentMethod === 'cash';
+            
+            // Sumar pagos adicionales
+            const additionalPayments = document.querySelectorAll('.additional-payment');
+            additionalPayments.forEach(payment => {
+                const methodSelect = payment.querySelector('select[name^="additional_payment_method_"]');
+                const amountInput = payment.querySelector('input[name^="additional_amount_"]');
+                
+                if (methodSelect && amountInput) {
+                    const amount = parseFloat(amountInput.value) || 0;
+                    totalPaid += amount;
+                    
+                    if (methodSelect.value === 'cash') {
+                        hasCash = true;
+                    }
+                }
+            });
+            
+            // Validar que el total sea suficiente
+            if (totalPaid < orderTotal - 0.01) {
+                alert('El total de los pagos (S/ ' + totalPaid.toFixed(2) + ') es insuficiente. Faltan S/ ' + (orderTotal - totalPaid).toFixed(2));
+                return false;
+            }
+            
+            // Validar exceso solo en efectivo
+            if (totalPaid > orderTotal + 0.01) {
+                if (!hasCash) {
+                    alert('El total pagado (S/ ' + totalPaid.toFixed(2) + ') excede el total de la orden (S/ ' + orderTotal.toFixed(2) + '). Solo se permite exceso en pagos de efectivo como vuelto.');
+                    return false;
+                }
+                // Si hay efectivo, mostrar confirmación del vuelto
+                const change = totalPaid - orderTotal;
+                const confirmMessage = `Se generará un vuelto de S/ ${change.toFixed(2)}. ¿Continuar?`;
+                if (!confirm(confirmMessage)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // Agregar validación al formulario
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (!validatePaymentsBeforeSubmit()) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
     </script>
 </body>
 </html>

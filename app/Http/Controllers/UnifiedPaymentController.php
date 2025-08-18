@@ -143,11 +143,22 @@ class UnifiedPaymentController extends Controller
                     ->with('error', 'El pago no cubre el total de la orden. Saldo pendiente: ' . number_format($order->getRemainingBalance(), 2));
             }
 
-            // Calcular el cambio/vuelto si el pago fue en efectivo y el monto total pagado es mayor al total de la orden
-            $changeAmount = 0;
+            // Validar exceso de pago - solo permitir vuelto en pagos de efectivo
             $totalPaid = $order->getTotalPaid();
+            $changeAmount = 0;
+            
             if ($totalPaid > $order->total) {
                 $changeAmount = $totalPaid - $order->total;
+                
+                // Verificar si hay pagos en efectivo para justificar el exceso
+                $hasCashPayment = $order->payments()
+                    ->where('payment_method', 'cash')
+                    ->exists();
+                
+                if (!$hasCashPayment) {
+                    return redirect()->route('pos.unified.form', ['order' => $order->id])
+                        ->with('error', 'El total pagado (S/ ' . number_format($totalPaid, 2) . ') excede el total de la orden (S/ ' . number_format($order->total, 2) . '). Solo se permite exceso en pagos de efectivo como vuelto.');
+                }
             }
 
             // 2. Recalcular totales según el tipo de comprobante

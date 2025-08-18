@@ -2679,6 +2679,7 @@ class PosInterface extends Page
 
     /**
      * Valida que el pago dividido sume exactamente el total
+     * Permite exceso solo en pagos de efectivo (vuelto)
      */
     protected function validateSplitPayment(array $paymentMethods): void
     {
@@ -2687,6 +2688,9 @@ class PosInterface extends Page
         }
 
         $totalPaid = 0;
+        $cashAmount = 0;
+        $hasCash = false;
+        
         foreach ($paymentMethods as $payment) {
             if (!isset($payment['method']) || !isset($payment['amount'])) {
                 throw new \Exception('Todos los métodos de pago deben tener método y monto');
@@ -2696,11 +2700,31 @@ class PosInterface extends Page
                 throw new \Exception('Todos los montos deben ser números positivos');
             }
 
-            $totalPaid += (float) $payment['amount'];
+            $amount = (float) $payment['amount'];
+            $totalPaid += $amount;
+            
+            // Rastrear si hay pago en efectivo
+            if ($payment['method'] === 'cash') {
+                $cashAmount += $amount;
+                $hasCash = true;
+            }
         }
 
-        if (abs($totalPaid - (float)$this->total) > 0.01) {
-            throw new \Exception('El total de los pagos (S/ ' . number_format((float)$totalPaid, 2) . ') debe ser igual al total de la orden (S/ ' . number_format((float)$this->total, 2) . ')');
+        $orderTotal = (float)$this->total;
+        $difference = $totalPaid - $orderTotal;
+        
+        // Si hay diferencia negativa (falta dinero), siempre es error
+        if ($difference < -0.01) {
+            throw new \Exception('El total de los pagos (S/ ' . number_format($totalPaid, 2) . ') es insuficiente. Faltan S/ ' . number_format(abs($difference), 2));
+        }
+        
+        // Si hay exceso positivo (sobra dinero)
+        if ($difference > 0.01) {
+            if (!$hasCash) {
+                // Si no hay efectivo, no se permite exceso
+                throw new \Exception('El total de los pagos (S/ ' . number_format($totalPaid, 2) . ') excede el total de la orden (S/ ' . number_format($orderTotal, 2) . '). Solo se permite exceso en pagos de efectivo como vuelto.');
+            }
+            // Si hay efectivo, el exceso es válido (será el vuelto)
         }
     }
 

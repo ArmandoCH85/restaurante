@@ -822,13 +822,35 @@ class Order extends Model
             $correctSubtotal = $this->total / 1.18; // Subtotal sin IGV
             $correctIgv = $this->total - $correctSubtotal; // IGV incluido
             
-            // 5. Mapear tipo de factura para almacenamiento en BD (sales_note se guarda como receipt)
-            $invoiceTypeForDb = $invoiceType === 'sales_note' ? 'receipt' : $invoiceType;
+            // 5. Guardar el tipo de documento tal como se seleccionó (sin mapear)
+            $invoiceTypeForDb = $invoiceType;
             
             // 6. Establecer estado SUNAT según el tipo de comprobante
             $sunatStatus = in_array($invoiceType, ['invoice', 'receipt']) ? 'PENDIENTE' : null;
             
-            // 7. Crear la factura
+            // 7. Calcular información de pagos para el comprobante
+            $totalPaid = $this->getTotalPaid();
+            $cashPayments = $this->payments()->where('payment_method', 'cash')->get();
+            $hasCashPayment = $cashPayments->isNotEmpty();
+            $cashAmount = $cashPayments->sum('amount');
+            
+            // Determinar método de pago principal para mostrar en el comprobante
+            $primaryPaymentMethod = 'cash'; // Por defecto efectivo
+            if ($this->payments()->count() === 1) {
+                // Si hay un solo pago, usar ese método
+                $primaryPaymentMethod = $this->payments()->first()->payment_method;
+            } elseif ($this->payments()->count() > 1) {
+                // Si hay múltiples pagos, mostrar como "mixto"
+                $primaryPaymentMethod = 'mixto';
+            }
+            
+            // Calcular vuelto solo si hay pago en efectivo y exceso
+            $changeAmount = 0;
+            if ($hasCashPayment && $totalPaid > $this->total) {
+                $changeAmount = $totalPaid - $this->total;
+            }
+            
+            // 8. Crear la factura
             $invoice = Invoice::create([
                 'order_id' => $this->id,
                 'invoice_type' => $invoiceTypeForDb,
@@ -843,10 +865,9 @@ class Order extends Model
                 'taxable_amount' => round($correctSubtotal, 2),
                 'tax' => round($correctIgv, 2),
                 'total' => $this->total,
-                'payment_method' => $this->payment_method ?? 'cash',
-                'payment_amount' => $this->payment_amount ?? $this->total,
-                'change_amount' => ($this->payment_method === 'cash' && $this->payment_amount > $this->total) ? 
-                    $this->payment_amount - $this->total : 0,
+                'payment_method' => $primaryPaymentMethod,
+                'payment_amount' => $totalPaid,
+                'change_amount' => $changeAmount,
                 'status' => 'issued',
                 'sunat_status' => $sunatStatus,
             ]);
