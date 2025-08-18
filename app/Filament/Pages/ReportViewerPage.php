@@ -364,7 +364,13 @@ class ReportViewerPage extends Page implements HasForms
     {
         $query = Order::whereBetween('order_datetime', [$startDateTime, $endDateTime])
             ->where('billed', true)
-            ->with(['customer', 'user', 'table', 'cashRegister', 'invoices']);
+            ->with([
+                'customer',           // Cliente formal de la order
+                'user', 
+                'table',              // Para mostrar mesa cuando no hay cliente
+                'cashRegister', 
+                'invoices.customer'   // Cliente formal de la invoice + campo client_name para comandas rápidas
+            ]);
             
         if ($serviceType) {
             $query->where('service_type', $serviceType);
@@ -372,6 +378,10 @@ class ReportViewerPage extends Page implements HasForms
         
         // Aplicar filtro por tipo de comprobante si está presente
         $this->applyInvoiceTypeFilter($query);
+        
+        // Log the SQL query for debugging
+        \Log::info('Orders Query SQL: ' . $query->toSql());
+        \Log::info('Orders Query Bindings: ' . json_encode($query->getBindings()));
         
         return $query->orderBy('order_datetime', 'desc')->get();
     }
@@ -379,7 +389,13 @@ class ReportViewerPage extends Page implements HasForms
     protected function getOrdersQueryWithoutFilters($serviceType = null)
     {
         $query = Order::where('billed', true)
-            ->with(['customer', 'user', 'table', 'cashRegister', 'invoices']);
+            ->with([
+                'customer',           // Cliente formal de la order
+                'user', 
+                'table',              // Para mostrar mesa cuando no hay cliente
+                'cashRegister', 
+                'invoices.customer'   // Cliente formal de la invoice + campo client_name para comandas rápidas
+            ]);
             
         if ($serviceType) {
             $query->where('service_type', $serviceType);
@@ -387,6 +403,10 @@ class ReportViewerPage extends Page implements HasForms
         
         // Aplicar filtro por tipo de comprobante si está presente
         $this->applyInvoiceTypeFilter($query);
+        
+        // Log the SQL query for debugging
+        \Log::info('Orders Query Without Filters SQL: ' . $query->toSql());
+        \Log::info('Orders Query Without Filters Bindings: ' . json_encode($query->getBindings()));
         
         return $query->orderBy('order_datetime', 'desc')->get();
     }

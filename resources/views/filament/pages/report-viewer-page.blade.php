@@ -228,7 +228,7 @@
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 @if($page->reportType === 'all_sales' || $page->reportType === 'delivery_sales')
-                                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha | Hora</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caja</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
@@ -293,9 +293,50 @@
                                             @foreach($page->reportData as $item)
                                                 <tr class="hover:bg-gray-50">
                                                     @if($page->reportType === 'all_sales' || $page->reportType === 'delivery_sales')
-                                                        <td class="px-3 py-4 whitespace-nowrap text-sm">{{ $item->order_datetime->format('d/m/Y') }}</td>
+                                                        <td class="px-3 py-4 whitespace-nowrap text-sm">
+                                                            <div class="flex items-center space-x-2">
+                                                                <span>{{ $item->order_datetime->format('d/m/Y') }}</span>
+                                                                <span class="text-gray-600">{{ $item->order_datetime->format('H:i') }}</span>
+                                                            </div>
+                                                        </td>
                                                         <td class="px-3 py-4 whitespace-nowrap text-sm">{{ $item->cashRegister?->name ?? 'C01' }}</td>
-                                                        <td class="px-3 py-4 whitespace-nowrap text-sm">{{ $item->customer?->name ?? 'Sin cliente' }}</td>
+                                                        <td class="px-3 py-4 whitespace-nowrap text-sm">
+                                                            @php
+                                                                $customerName = null;
+                                                                $isComandaClient = false;
+                                                                
+                                                                // 1. Verificar cliente formal en order
+                                                                if ($item->customer?->name) {
+                                                                    $customerName = $item->customer->name;
+                                                                }
+                                                                // 2. Verificar cliente formal en invoice
+                                                                elseif ($item->invoices->isNotEmpty() && $item->invoices->first()->customer?->name) {
+                                                                    $customerName = $item->invoices->first()->customer->name;
+                                                                }
+                                                                // 3. Verificar client_name en invoice (comanda rápida)
+                                                                elseif ($item->invoices->isNotEmpty() && $item->invoices->first()->client_name) {
+                                                                    $customerName = $item->invoices->first()->client_name;
+                                                                    $isComandaClient = true;
+                                                                }
+                                                                // 4. Extraer de notes en order (comanda rápida)
+                                                                elseif ($item->notes && str_contains($item->notes, 'Cliente:')) {
+                                                                    $customerName = trim(str_replace('Cliente:', '', $item->notes));
+                                                                    $isComandaClient = true;
+                                                                }
+                                                            @endphp
+                                                            
+                                                            @if($customerName)
+                                                                @if($isComandaClient)
+                                                                    <span class="text-purple-600 font-medium" title="Cliente de comanda rápida">{{ $customerName }}</span>
+                                                                @else
+                                                                    <span title="Cliente registrado">{{ $customerName }}</span>
+                                                                @endif
+                                                            @elseif($item->table?->number)
+                                                                <span class="text-blue-600 font-medium" title="Mesa sin cliente">Mesa #{{ $item->table->number }}</span>
+                                                            @else
+                                                                <span class="text-gray-500" title="Venta sin datos de cliente">Sin cliente</span>
+                                                            @endif
+                                                        </td>
                                                         <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
                                                             @if($item->invoices->isNotEmpty())
                                                                 @php $invoice = $item->invoices->first(); @endphp
