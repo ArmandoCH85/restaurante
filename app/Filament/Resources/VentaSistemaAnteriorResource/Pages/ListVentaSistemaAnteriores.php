@@ -10,6 +10,8 @@ use Filament\Resources\Pages\ListRecords;
 class ListVentaSistemaAnteriores extends ListRecords
 {
     protected static string $resource = VentaSistemaAnteriorResource::class;
+    
+    protected ?string $maxContentWidth = 'full';
 
     protected function getHeaderActions(): array
     {
