@@ -10,6 +10,8 @@ class ListInvoices extends ListRecords
 {
     protected static string $resource = InvoiceResource::class;
 
+    protected ?string $maxContentWidth = 'full';
+
     protected function getHeaderActions(): array
     {
         return [

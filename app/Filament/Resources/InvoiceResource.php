@@ -194,7 +194,22 @@ class InvoiceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->defaultSort(function (\Illuminate\Database\Eloquent\Builder $query): \Illuminate\Database\Eloquent\Builder {
+                return $query
+                    ->orderBy('issue_date', 'desc')
+                    ->orderBy('created_at', 'desc');
+            })
             ->columns([
+                Tables\Columns\TextColumn::make('issue_date')
+                    ->label('Fecha Emisión')
+                    ->date('d/m/Y')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('created_at')
+                    ->label('Hora Emisión')
+                    ->time('H:i:s')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('formattedNumber')
                     ->label('Número')
                     ->searchable(['series', 'number'])
@@ -219,11 +234,6 @@ class InvoiceResource extends Resource
                         'info' => fn ($state, $record) => str_starts_with($record->series, 'NV'),
                         'warning' => fn ($state, $record) => $state !== 'invoice' && $state !== 'receipt' && !str_starts_with($record->series, 'NV'),
                     ]),
-
-                Tables\Columns\TextColumn::make('issue_date')
-                    ->label('Fecha Emisión')
-                    ->date('d/m/Y')
-                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('customer.name')
                     ->label('Cliente')
@@ -512,7 +522,10 @@ class InvoiceResource extends Resource
                     // No bulk actions for invoices
                 ]),
             ])
-            ->defaultSort('issue_date', 'desc');
+            ->defaultSort('issue_date', 'desc')
+            ->striped()
+            ->paginated([10, 25, 50, 100])
+            ->extremePaginationLinks();
     }
 
     public static function getRelations(): array
