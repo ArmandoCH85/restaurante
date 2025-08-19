@@ -1789,6 +1789,110 @@
     min-height: 36px;
 }
 
+/* NUEVOS ESTILOS PARA LAYOUT INLINE CON CONTROLES */
+.pos-cart-item-name-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    gap: 12px;
+    flex: 1;
+    padding: 4px 6px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 8px;
+    border: 1px solid var(--pos-gray-200);
+}
+
+.pos-product-name {
+    flex: 1;
+    font-size: var(--cart-item-font-size);
+    font-weight: 600;
+    color: var(--pos-gray-800);
+    line-height: 1.3;
+    min-width: 0;
+    word-wrap: break-word;
+}
+
+.pos-inline-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--pos-gray-100);
+    padding: 2px;
+    border-radius: 6px;
+    border: 1px solid var(--pos-gray-300);
+    flex-shrink: 0;
+}
+
+.pos-btn-minus,
+.pos-btn-plus {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 4px;
+    background: white;
+    color: var(--pos-gray-600);
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--pos-transition-fast);
+    box-shadow: var(--pos-shadow-sm);
+}
+
+.pos-btn-minus:hover {
+    background: var(--pos-danger);
+    color: white;
+    transform: scale(1.1);
+}
+
+.pos-btn-plus:hover {
+    background: var(--pos-success);
+    color: white;
+    transform: scale(1.1);
+}
+
+.pos-btn-minus:active,
+.pos-btn-plus:active,
+.pos-btn-minus.pressed,
+.pos-btn-plus.pressed {
+    transform: scale(0.9);
+}
+
+.pos-btn-minus:disabled,
+.pos-btn-plus:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.pos-quantity-display {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--pos-gray-700);
+    min-width: 20px;
+    text-align: center;
+    background: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.pos-final-price {
+    font-size: 12px;
+    color: var(--pos-success);
+    font-weight: 700;
+    white-space: nowrap;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 4px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    min-width: 60px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
 /* TOTALES DEL CARRITO - DISEÑO MÓVIL OPTIMIZADO */
 .pos-cart-totals {
     padding: 8px 10px;
@@ -3867,27 +3971,61 @@
                         <div class="pos-cart-item">
                             <div class="pos-cart-item-header">
                                 <div class="pos-cart-item-info">
-                                    <div class="pos-cart-item-name">{{ $item['name'] }}</div>
-                                    <div class="pos-cart-item-price-container">
-                                        <div class="pos-cart-item-price">S/ {{ number_format($item['unit_price'], 2) }} c/u</div>
+                                    <div class="pos-cart-item-name-container">
+                                        {{-- NOMBRE DEL PRODUCTO --}}
+                                        <span class="pos-product-name">{{ $item['name'] }}</span>
                                         
-                                        {{-- MOSTRAR OPCIONES SELECCIONADAS DEBAJO DEL PRECIO --}}
-                                        @if(($item['temperature_selected'] ?? false) || ($item['cooking_point_selected'] ?? false) || ($item['chicken_cut_type_selected'] ?? false))
-                                            <div class="pos-selected-option-display">
-                                                @if($item['temperature_selected'] ?? false)
-                                                    <span class="pos-selected-option-tag">Temperatura: {{ $item['temperature'] }}</span>
-                                                @endif
-                                                
-                                                @if($item['cooking_point_selected'] ?? false)
-                                                    <span class="pos-selected-option-tag">Punto: {{ $item['cooking_point'] }}</span>
-                                                @endif
-                                                
-                                                @if($item['chicken_cut_type_selected'] ?? false)
-                                                    <span class="pos-selected-option-tag">Presa: {{ $item['chicken_cut_type'] }}</span>
-                                                @endif
-                                            </div>
-                                        @endif
+                                        {{-- CONTROLES INLINE COMPACTOS --}}
+                                        <div class="pos-inline-controls">
+                                            <button 
+                                                wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})"
+                                                class="pos-btn-minus"
+                                                {{ (!$canClearCart || $item['quantity'] <= 1) ? 'disabled' : '' }}
+                                                title="Disminuir cantidad"
+                                                x-data="{ pressed: false }"
+                                                @click="pressed = true; setTimeout(() => pressed = false, 100)"
+                                                :class="{ 'pressed': pressed }"
+                                            >
+                                                −
+                                            </button>
+                                            
+                                            <span class="pos-quantity-display">{{ $item['quantity'] }}</span>
+                                            
+                                            <button 
+                                                wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})"
+                                                class="pos-btn-plus"
+                                                {{ !$canClearCart ? 'disabled' : '' }}
+                                                title="Aumentar cantidad"
+                                                x-data="{ pressed: false }"
+                                                @click="pressed = true; setTimeout(() => pressed = false, 100)"
+                                                :class="{ 'pressed': pressed }"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                        
+                                        {{-- PRECIO FINAL --}}
+                                        <span class="pos-final-price">
+                                            S/ {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
+                                        </span>
                                     </div>
+                                    
+                                    {{-- MOSTRAR OPCIONES SELECCIONADAS DEBAJO DEL NOMBRE --}}
+                                    @if(($item['temperature_selected'] ?? false) || ($item['cooking_point_selected'] ?? false) || ($item['chicken_cut_type_selected'] ?? false))
+                                        <div class="pos-selected-option-display">
+                                            @if($item['temperature_selected'] ?? false)
+                                                <span class="pos-selected-option-tag">Temperatura: {{ $item['temperature'] }}</span>
+                                            @endif
+                                            
+                                            @if($item['cooking_point_selected'] ?? false)
+                                                <span class="pos-selected-option-tag">Punto: {{ $item['cooking_point'] }}</span>
+                                            @endif
+                                            
+                                            @if($item['chicken_cut_type_selected'] ?? false)
+                                                <span class="pos-selected-option-tag">Presa: {{ $item['chicken_cut_type'] }}</span>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
 
                                 {{-- Botón de Eliminación Individual --}}
@@ -4018,57 +4156,6 @@
                             
 
 
-                            {{-- CONTROLES DE CANTIDAD A LA IZQUIERDA --}}
-                            <div class="pos-quantity-controls {{ $item['quantity'] <= 1 ? 'at-minimum' : '' }}">
-                                {{-- Botón Disminuir --}}
-                                <button
-                                    wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})"
-                                    class="pos-quantity-btn decrease"
-                                    {{ (!$canClearCart || $item['quantity'] <= 1) ? 'disabled' : '' }}
-                                    title="Disminuir cantidad"
-                                    x-data="{ pressed: false }"
-                                    @click="pressed = true; setTimeout(() => pressed = false, 150)"
-                                    :class="{ 'scale-95': pressed }"
-                                >
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4"></path>
-                                    </svg>
-                                </button>
-
-                                {{-- Valor de Cantidad con Animación --}}
-                                <div
-                                    class="pos-quantity-value"
-                                    x-data="{ updating: false, currentValue: {{ $item['quantity'] }} }"
-                                    x-init="$watch('currentValue', () => { updating = true; setTimeout(() => updating = false, 200) })"
-                                    :class="{ 'updating': updating }"
-                                    wire:key="quantity-{{ $index }}-{{ $item['quantity'] }}"
-                                >
-                                    {{ $item['quantity'] }}
-                                </div>
-
-                                {{-- Botón Aumentar --}}
-                                <button
-                                    wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})"
-                                    class="pos-quantity-btn increase"
-                                    {{ !$canClearCart ? 'disabled' : '' }}
-                                    title="Aumentar cantidad"
-                                    x-data="{ pressed: false }"
-                                    @click="pressed = true; setTimeout(() => pressed = false, 150)"
-                                    :class="{ 'scale-95': pressed }"
-                                >
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                </button>
-                            </div>
-
-                            {{-- TOTAL DEL ITEM A LA DERECHA --}}
-                            <div class="pos-quantity-total">
-                                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 4px;">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                </svg>
-                                {{ number_format($item['quantity'] * $item['unit_price'], 2) }}
-                            </div>
                         </div>
                     @empty
                         <div class="pos-empty-state">

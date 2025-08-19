@@ -1,14 +1,20 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 # Sistema de Gestión de Restaurante
 
 ## Descripción del Proyecto
 Sistema integral de gestión de restaurante desarrollado en Laravel 12 con Filament 3. Incluye POS completo, gestión de mesas, delivery, facturación electrónica SUNAT, inventario y reportes avanzados.
 
 ## Tecnologías Principales
-- **Backend**: Laravel 12 + PHP 8.2
-- **Frontend**: Filament 3 + Livewire + TailwindCSS
+- **Backend**: Laravel 12 + PHP 8.2+
+- **Frontend**: Filament 3 + Livewire 3 + TailwindCSS 4
 - **Base de Datos**: MySQL/PostgreSQL
 - **Facturación**: Integración SUNAT con Greenter
-- **Testing**: Pest PHP
+- **Testing**: Pest PHP 3
+- **Formateo**: Laravel Pint
+- **Otros**: DomPDF, Maatwebsite Excel, Laravel Shield
 
 ## Estructura de Módulos
 
@@ -70,23 +76,32 @@ app/Livewire/
 
 ### Comandos Principales
 ```bash
-# Iniciar servidor de desarrollo
+# Iniciar servidor de desarrollo (incluye server, queue, vite)
 composer run dev
 
-# Ejecutar migraciones
+# Migraciones y datos
 php artisan migrate
+php artisan migrate:fresh --seed
 
 # Ejecutar seeders
 php artisan db:seed
 
-# Limpiar cache
+# Tests
+php artisan test
+php artisan test --filter=TestName
+php artisan test tests/Feature/ExampleTest.php
+
+# Formateo de código
+vendor/bin/pint --dirty
+
+# Assets frontend
+npm run build
+npm run dev
+
+# Cache
 php artisan cache:clear
 php artisan config:clear
 php artisan view:clear
-
-# Generar assets
-npm run build
-npm run dev
 ```
 
 ### Comandos Específicos del Sistema
@@ -187,10 +202,16 @@ MAIL_PASSWORD=
 # Ejecutar todos los tests
 php artisan test
 
-# Tests específicos SUNAT
+# Tests específicos por filtro
 php artisan test --filter=Sunat
+php artisan test --filter=Invoice
+php artisan test --filter=CashRegister
 
-# Tests con coverage
+# Tests por archivo específico
+php artisan test tests/Feature/SunatIntegrationTest.php
+php artisan test tests/Unit/InvoiceModelTest.php
+
+# Tests con cobertura
 php artisan test --coverage
 ```
 
@@ -212,6 +233,30 @@ npm run build
 # Ejecutar migraciones
 php artisan migrate --force
 ```
+
+## Arquitectura del Sistema
+
+### Patrones Arquitectónicos
+- **MVC con Laravel**: Modelos Eloquent, Controladores, Vistas Blade
+- **CRUD con Filament**: Resources auto-generados para administración
+- **Componentes Livewire**: Interactividad en tiempo real (POS, Delivery, Mesas)
+- **Event-Driven**: Events/Listeners para operaciones críticas (pagos, SUNAT)
+- **Policy-Based**: Autorización granular con Laravel Policies
+
+### Flujo de Datos Críticos
+1. **Pedidos**: Order → OrderDetail → (opcional) Invoice → Payment → CashRegister
+2. **Facturación**: Invoice → SUNAT (Greenter) → XML/PDF → Email
+3. **Caja**: CashRegister (apertura → transacciones → cierre a ciegas → aprobación)
+4. **Delivery**: DeliveryOrder → tracking GPS → notificaciones automáticas
+
+### Servicios Clave
+- **SunatService**: `app/Services/SunatService.php` - Integración completa SUNAT
+- **ReservationService**: `app/Services/ReservationService.php` - Gestión reservas
+
+### Traits y Utilidades
+- **CalculatesIgv**: `app/Traits/CalculatesIgv.php` - Cálculos IGV consistentes
+- **PermissionHelper**: `app/Helpers/PermissionHelper.php` - Gestión permisos
+- **PdfHelper**: `app/Helpers/PdfHelper.php` - Generación PDFs
 
 ## Funcionalidades Específicas
 
@@ -254,18 +299,108 @@ php artisan migrate --force
 - Estados de entrega en tiempo real
 - Notificaciones automáticas
 
+## Convenciones de Desarrollo
+
+### Estándares de Código
+- **PHP**: Usar Laravel Pint para formateo automático (`vendor/bin/pint --dirty`)
+- **Tests**: Pest PHP - cada cambio debe incluir tests
+- **Modelos**: Usar `casts()` method en lugar de `$casts` property
+- **Controladores**: Form Requests para validación, no validación inline
+
+### Naming Conventions
+- **Modelos**: Singular PascalCase (`Product`, `OrderDetail`)
+- **Controladores**: PascalCase con suffix (`ProductController`)
+- **Livewire**: PascalCase (`PointOfSale`, `TableMapView`)
+- **Rutas**: kebab-case (`/delivery-orders`, `/cash-registers`)
+
+### Database Patterns
+- Usar Eloquent relationships con type hints
+- Eager loading para prevenir N+1 queries
+- Migrations deben incluir todos los atributos al modificar columnas
+
 ## Troubleshooting
 
 ### Problemas Comunes
-1. **Error SUNAT**: Verificar certificados y configuración
-2. **Problemas POS**: Limpiar cache de navegador
-3. **Mesas no actualizan**: Revisar Livewire y broadcasting
+1. **Error SUNAT**: Verificar certificados y configuración con `php artisan sunat:check-config`
+2. **Problemas POS**: Limpiar cache navegador y ejecutar `php artisan view:clear`
+3. **Mesas no actualizan**: Revisar Livewire y broadcasting, verificar `composer run dev`
 4. **PDFs no generan**: Verificar permisos storage y DomPDF
+5. **Vite Error**: Ejecutar `npm run build` o `composer run dev`
 
 ### Logs Importantes
-- `storage/logs/laravel.log` - Log general
-- `storage/logs/delivery_*.log` - Logs delivery específicos
-- SUNAT logs en directorio configurado
+- `storage/logs/laravel.log` - Log general de aplicación
+- `storage/logs/delivery_*.log` - Logs específicos de delivery
+- `storage/logs/widget_debug.log` - Debug de widgets Filament
+- `storage/logs/browser.log` - Logs del navegador (Boost)
+- SUNAT logs en directorio configurado según `.env`
+
+## Principios Fundamentales de Desarrollo
+
+### REGLAS CRÍTICAS - SIEMPRE SEGUIR
+- **NUNCA crear datos mock o componentes simplificados** a menos que sea explícitamente solicitado
+- **NUNCA reemplazar componentes complejos existentes** con versiones simplificadas - siempre arreglar el problema real
+- **SIEMPRE trabajar con la base de código existente** - no crear alternativas simplificadas nuevas
+- **SIEMPRE encontrar y arreglar la raíz del problema** en vez de crear soluciones alternativas
+- **Cuando algo no funciona**: debuggear y arreglarlo - NO empezar de cero con una versión simple
+- **SIEMPRE consultar la documentación de Laravel** correspondiente a la versión del proyecto
+
+### Proceso de Trabajo Obligatorio
+1. **Arreglar el problema solicitado** usando la implementación existente
+2. **Explicar posibles mejoras** si las hay
+3. **Esperar aprobación explícita** antes de implementar mejoras
+4. **Solo entonces implementar** si es aprobado por el usuario
+
+## Guías para Análisis de Código
+
+### Manejo de Grandes Bases de Código
+
+#### Reconocer Limitaciones
+- **SIEMPRE indicar explícitamente** cuando los archivos sean demasiado grandes para leer completamente
+- **NUNCA fingir** haber leído todo el archivo si no fue posible
+- Ser transparente sobre las limitaciones de análisis
+
+#### Enfoque Sistemático de Búsqueda
+Al buscar en el código:
+- **Siempre usar búsquedas insensibles a mayúsculas primero** (`-i` con grep)
+- **Usar múltiples patrones de búsqueda** para validar hallazgos
+- **Informar sobre la metodología de búsqueda** utilizada
+- **Informar el recuento exacto** de coincidencias encontradas
+
+#### Análisis de Relaciones entre Modelos
+- Buscar específicamente `ForeignKey`, `ManyToMany` y relaciones `OneToOne`
+- Usar patrones como `grep -i "fieldname.*= models\.ForeignKey"`
+- Buscar tanto **relaciones directas como relaciones inversas**
+
+#### Protocolo de Verificación
+- **Después de hallazgos iniciales**: siempre realizar al menos una búsqueda de verificación
+- **Informar tanto hallazgos positivos como negativos**
+- **Si no estás seguro**: indicar claramente "No estoy seguro" en lugar de adivinar
+
+### Evitar Alucinaciones
+
+#### Respuestas Basadas en Evidencia Únicamente
+- **NUNCA afirmar** que un modelo tiene campos o relaciones sin evidencia directa del código
+- Solo declarar lo que se puede verificar directamente
+
+#### Seguimiento Claro de Fuentes
+- **SIEMPRE citar números de línea y rutas de archivos** para cualquier declaración sobre la estructura del código
+- Proporcionar evidencia concreta para cada afirmación
+
+#### Limitaciones de Consulta
+- **Indicar qué no se pudo verificar** y qué búsquedas podrían ser necesarias para tener confianza completa
+- Ser explícito sobre las limitaciones del análisis
+
+#### Niveles de Confianza
+Usar indicadores explícitos de confianza:
+- **"Confirmado"** (cuando se observa directamente en el código)
+- **"Probable"** (cuando se infiere de fuertes evidencias)
+- **"Posible"** (cuando lo sugieren evidencias parciales)
+- **"Desconocido"** (cuando no se encontró ninguna evidencia)
+
+### Comunicación en Español
+- **SIEMPRE responder en español** salvo que se solicite explícitamente otro idioma
+- Usar terminología técnica apropiada en español
+- Mantener claridad y precisión en las explicaciones
 
 ## Contacto y Soporte
 
