@@ -1119,7 +1119,19 @@ class PosInterface extends Page
 
                 // ✅ LÓGICA KISS: Si la orden tiene detalles, significa que fue "guardada" previamente
                 // Por lo tanto, debe estar bloqueada hasta que se use "Reabrir Orden"
-                $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
+                // EXCEPCIÓN: Para delivery auto-desbloquear para mejor UX
+                if ($this->originalCustomerData && ($this->originalCustomerData['service_type'] ?? '') === 'delivery') {
+                    $this->canAddProducts = true; // Auto-desbloquear para delivery
+                    $this->canClearCart = true;   // Permitir modificar carrito en delivery
+                    
+                    Notification::make()
+                        ->title('🚚 POS Desbloqueado para Delivery')
+                        ->body('Puede continuar agregando productos')
+                        ->success()
+                        ->send();
+                } else {
+                    $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
+                }
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     // Analizar las notas para detectar si es una bebida con temperatura
@@ -1224,7 +1236,13 @@ class PosInterface extends Page
                 $this->canClearCart = false;
 
                 // ✅ LÓGICA KISS: Si la orden tiene detalles, debe estar bloqueada
-                $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
+                // EXCEPCIÓN: Para delivery auto-desbloquear para mejor UX
+                if ($this->originalCustomerData && ($this->originalCustomerData['service_type'] ?? '') === 'delivery') {
+                    $this->canAddProducts = true; // Auto-desbloquear para delivery
+                    $this->canClearCart = true;   // Permitir modificar carrito en delivery
+                } else {
+                    $this->canAddProducts = false; // Bloquear hasta reabrir explícitamente
+                }
 
                 foreach ($activeOrder->orderDetails as $detail) {
                     // Analizar las notas para detectar si es una bebida con temperatura
