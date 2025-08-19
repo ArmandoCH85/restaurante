@@ -239,14 +239,6 @@ class TableMap extends Page
                         ->color('success')
                         ->outlined()
                         ->action(fn() => $this->unirCuentasDesdeModal($table->id));
-                    
-                    // Agregar botón "Dividir Más" si hay cuentas divididas
-                    $buttons[] = \Filament\Forms\Components\Actions\Action::make('dividir_mas')
-                        ->label('✂️ Dividir Más')
-                        ->button()
-                        ->color('warning')
-                        ->outlined()
-                        ->action(fn() => $this->dividirMasCuentas($table->id));
                 }
 
                 return [
@@ -352,42 +344,6 @@ class TableMap extends Page
             Notification::make()
                 ->title('Error')
                 ->body('Error al unir las cuentas: ' . $e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
-    /**
-     * Permite dividir más cuentas cuando ya existen cuentas divididas
-     */
-    public function dividirMasCuentas(int $tableId): void
-    {
-        try {
-            // Obtener la cuenta principal
-            $cuentaPrincipal = Order::where('table_id', $tableId)
-                ->where('status', Order::STATUS_OPEN)
-                ->whereNull('parent_id')
-                ->first();
-
-            if (!$cuentaPrincipal) {
-                Notification::make()
-                    ->title('Error')
-                    ->body('No se encontró la cuenta principal')
-                    ->danger()
-                    ->send();
-                return;
-            }
-
-            // Cerrar el modal actual
-            $this->dispatch('close-modal', id: 'filament-actions-modal');
-            
-            // Abrir el modal de división de cuenta
-            $this->mountAction('splitOrderFromModal', ['orderId' => $cuentaPrincipal->id]);
-
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Error')
-                ->body('Error al iniciar la división de cuentas: ' . $e->getMessage())
                 ->danger()
                 ->send();
         }

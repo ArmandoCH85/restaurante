@@ -2325,7 +2325,7 @@
 /* GRID DE ACCIONES RÁPIDAS - DISEÑO GESTALT */
 .pos-quick-actions-grid {
     display: grid;
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(9, 1fr);
     /* Principio de Proximidad: espaciado equilibrado */
     gap: clamp(1px, 0.2vw, 3px);
     position: relative;
@@ -3938,6 +3938,9 @@
         @if($this->tieneCuentasDivididas())
             <button wire:click="unirCuentas" class="pos-quick-action-btn btn-unir success" title="Unir todas las cuentas divididas">
                 <span class="btn-label">Unir</span>
+            </button>
+            <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !$this->puedeDividirMas() ? 'disabled' : '' }} title="Dividir cuenta entre mesas">
+                <span class="btn-label">Dividir+</span>
             </button>
         @else
             <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }} title="Dividir cuenta entre mesas">

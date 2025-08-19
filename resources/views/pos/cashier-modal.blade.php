@@ -76,7 +76,11 @@
                 return;
             }
 
-            if (this.paymentMethod === 'cash' && parseFloat(this.receivedAmount) < parseFloat(this.totalAmount)) {
+            // Convertir a números con redondeo apropiado para evitar problemas de precisión
+            const received = Math.round(parseFloat(this.receivedAmount) * 100) / 100;
+            const total = Math.round(parseFloat(this.totalAmount) * 100) / 100;
+            
+            if (this.paymentMethod === 'cash' && received < total) {
                 Swal.fire({
                     title: 'Error',
                     text: 'El monto recibido debe ser mayor o igual al total a pagar.',

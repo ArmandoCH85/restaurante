@@ -325,6 +325,15 @@ class PosInterface extends Page
     }
 
     /**
+     * Verifica si se puede dividir más la cuenta (siempre se puede dividir más)
+     */
+    public function puedeDividirMas(): bool
+    {
+        // Siempre se puede dividir más, incluso cuando ya hay cuentas divididas
+        return $this->order !== null && count($this->order->orderDetails ?? []) > 0;
+    }
+
+    /**
      * Une todas las cuentas divididas de la mesa actual
      */
     public function unirCuentas(): void
@@ -395,21 +404,18 @@ class PosInterface extends Page
                 $cuentaDividida->delete();
             }
 
-            // Recalcular totales de la cuenta principal
-            $cuentaPrincipal->refresh();
-            $subtotal = $cuentaPrincipal->orderDetails->sum('subtotal');
-            $tax = $subtotal * 0.18; // IGV 18%
-            $total = $subtotal + $tax;
+            // Recalcular totales de la cuenta principal usando el método centralizado del modelo
+            $cuentaPrincipal->recalculateTotals();
 
+            // Actualizar el número de comensales por separado
             $cuentaPrincipal->update([
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'total' => $total,
                 'number_of_guests' => $cuentaPrincipal->orderDetails->sum('quantity')
             ]);
 
-            // Actualizar la orden actual y carrito
-            $this->order = $cuentaPrincipal;
+            // Actualizar la orden actual y carrito, asegurando el orden de los items
+            $this->order = $cuentaPrincipal->load(['orderDetails' => function ($query) {
+                $query->orderBy('created_at', 'asc');
+            }]);
             $this->updateCartFromOrder();
 
             DB::commit();
@@ -812,6 +818,7 @@ class PosInterface extends Page
                                 ->schema([
                                     Forms\Components\Grid::make(12)
                                         ->schema([
+                                            Forms\Components\Hidden::make('order_detail_id'),
                                             Forms\Components\Hidden::make('product_id'),
                                             Forms\Components\Hidden::make('name'),
                                             Forms\Components\Hidden::make('quantity'),
@@ -844,6 +851,7 @@ class PosInterface extends Page
                     return [
                         'split_items' => $this->order->orderDetails->map(function($detail) {
                             return [
+                                'order_detail_id' => $detail->id,
                                 'product_id' => $detail->product_id,
                                 'name' => $detail->product->name,
                                 'product_name' => $detail->product->name,
@@ -917,12 +925,22 @@ class PosInterface extends Page
                                     'subtotal' => $splitQuantity * $item['unit_price'],
                                 ]);
 
-                                // Actualizar la cantidad en la orden original
-                                $this->order->orderDetails()
-                                    ->where('product_id', $item['product_id'])
-                                    ->update([
-                                        'quantity' => DB::raw("quantity - {$splitQuantity}")
+                                // Actualizar la cantidad y el subtotal en la orden original (usando el ID específico)
+                                $orderDetailId = $item['order_detail_id'] ?? null;
+                                if (!$orderDetailId) {
+                                    continue;
+                                }
+
+                                $originalDetail = $this->order->orderDetails()->find($orderDetailId);
+
+                                if ($originalDetail) {
+                                    $newQuantity = $originalDetail->quantity - $splitQuantity;
+                                    $newSubtotal = $newQuantity * $originalDetail->unit_price;
+                                    $originalDetail->update([
+                                        'quantity' => $newQuantity,
+                                        'subtotal' => $newSubtotal,
                                     ]);
+                                }
                             }
                         }
 
@@ -2342,7 +2360,7 @@ class PosInterface extends Page
                                     ->schema([
                                         Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
                                             Forms\Components\Select::make('payment_method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->default('cash')->live()->columnSpan(1),
-                                            Forms\Components\TextInput::make('payment_amount')->label('Monto Recibido')->numeric()->prefix('S/')->live()->default((float)$this->total)->step(0.01)->minValue(fn(Get $get) => $get('payment_method')==='cash' ? (float)$this->total : 0.01)->rule(fn(Get $get) => function(string $a,$v,\Closure $fail) use($get){ if($get('payment_method')==='cash'){ $val=(float)$v; if($val + 1e-6 < (float)$this->total){ $fail('El monto recibido debe ser mayor o igual al total.'); } } })->columnSpan(1),
+                                            Forms\Components\TextInput::make('payment_amount')->label('Monto Recibido')->numeric()->prefix('S/')->live()->default((float)$this->total)->step(0.01)->minValue(fn(Get $get) => $get('payment_method')==='cash' ? (float)$this->total : 0.01)->rule(fn(Get $get) => function(string $a,$v,\Closure $fail) use($get){ if($get('payment_method')==='cash'){ $val=(float)$v; $total=(float)$this->total; if(round($val, 2) < round($total, 2)){ $fail('El monto recibido debe ser mayor o igual al total.'); } } })->columnSpan(1),
                                             Forms\Components\Placeholder::make('change_display')->label('Vuelto')->content(function (Get $get){ $amount=(float)($get('payment_amount')??0); $totalAmount = is_numeric($this->total) ? (float)$this->total : 0.0; $change=$amount-$totalAmount; if($change>0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-xs'>S/ ".number_format((float)$change,2)."</span></div>");} elseif($change<0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-xs'>Falta: S/ ".number_format(abs((float)$change),2)."</span></div>");} return new \Illuminate\Support\HtmlString("<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'><span class='text-blue-700 font-bold text-xs'>Exacto ✓</span></div>"); })->live()->visible(fn(Get $get)=>$get('payment_method')==='cash')->columnSpan(1),
                                         ]),
                                         Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del terminal POS')->helperText('Visible solo para tarjeta')->visible(fn(Get $get)=>$get('payment_method')==='card')->required(fn(Get $get)=>$get('payment_method')==='card')->maxLength(50)->live(),
@@ -2561,7 +2579,13 @@ class PosInterface extends Page
                 if (($data['split_payment'] ?? false) === false) {
                     $methodTmp = $data['payment_method'] ?? 'cash';
                     $amountTmp = (float) ($data['payment_amount'] ?? $this->order->total);
-                    if ($methodTmp === 'cash' && $amountTmp + 1e-6 < (float) $this->order->total) {
+                    $totalTmp = (float) $this->order->total;
+                    
+                    // Redondear ambos valores a 2 decimales para evitar problemas de precisión
+                    $amountRounded = round($amountTmp, 2);
+                    $totalRounded = round($totalTmp, 2);
+                    
+                    if ($methodTmp === 'cash' && $amountRounded < $totalRounded) {
                         throw new \Exception('El monto recibido debe ser mayor o igual al total a pagar.');
                     }
                 }
@@ -2728,16 +2752,21 @@ class PosInterface extends Page
             }
         }
 
-        $orderTotal = (float)$this->total;
+        $orderTotal = (float)$this->order->total;
         $difference = $totalPaid - $orderTotal;
         
+        // Redondear valores para evitar problemas de precisión
+        $totalPaidRounded = round($totalPaid, 2);
+        $orderTotalRounded = round($orderTotal, 2);
+        $differenceRounded = $totalPaidRounded - $orderTotalRounded;
+        
         // Si hay diferencia negativa (falta dinero), siempre es error
-        if ($difference < -0.01) {
+        if ($differenceRounded < -0.01) {
             throw new \Exception('El total de los pagos (S/ ' . number_format($totalPaid, 2) . ') es insuficiente. Faltan S/ ' . number_format(abs($difference), 2));
         }
         
         // Si hay exceso positivo (sobra dinero)
-        if ($difference > 0.01) {
+        if ($differenceRounded > 0.01) {
             if (!$hasCash) {
                 // Si no hay efectivo, no se permite exceso
                 throw new \Exception('El total de los pagos (S/ ' . number_format($totalPaid, 2) . ') excede el total de la orden (S/ ' . number_format($orderTotal, 2) . '). Solo se permite exceso en pagos de efectivo como vuelto.');
