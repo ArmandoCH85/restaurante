@@ -713,7 +713,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter'])), // ✅ Solo para órdenes con mesa y no visible para waiter
 
             Action::make('cancelOrder')
                 ->label('Cancelar Orden')
@@ -733,7 +733,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier'])), // ✅ Solo para órdenes con mesa y no visible para waiter/cashier
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter'])), // ✅ Solo para órdenes con mesa y no visible para waiter
 
             Action::make('transferOrder')
                 ->label('Transferir')
@@ -2424,17 +2424,93 @@ class PosInterface extends Page
                                     ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-4'])
                                     ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt','invoice']))
                                     ->schema([
-                                        Forms\Components\Select::make('customer_id')->label('Cliente Existente')->searchable()->options(fn():array => Customer::limit(20)->pluck('name','id')->toArray())->getSearchResultsUsing(fn(string $search):array => Customer::where('name','like',"%{$search}%")->orWhere('document_number','like',"%{$search}%")->limit(20)->pluck('name','id')->toArray())->live()->afterStateUpdated(function (Set $set,$state){ if($state){ $set('new_customer_name',''); $set('new_customer_phone',''); $set('new_customer_address',''); $set('new_customer_document',''); } }),
-                                        Forms\Components\Fieldset::make('Registrar Cliente Nuevo')->schema([
-                                            Forms\Components\Grid::make(2)->schema([
-                                                Forms\Components\TextInput::make('new_customer_name')->label('Nombre Completo')->placeholder('Nombre del cliente')->live()->afterStateUpdated(function (Set $set,$state){ if($state){ $set('customer_id',null); } })->columnSpan(1),
-                                                Forms\Components\TextInput::make('new_customer_document')->label('DNI/RUC (Opcional)')->placeholder('Número de documento')->helperText('DNI (8) o RUC (11)')->columnSpan(1),
+                                        Forms\Components\Select::make('customer_id')
+                                            ->label('Cliente')
+                                            ->placeholder('Buscar cliente existente...')
+                                            ->searchable()
+                                            ->options(fn():array => Customer::limit(50)->pluck('name','id')->toArray())
+                                            ->getSearchResultsUsing(fn(string $search):array => 
+                                                Customer::where('name','like',"%{$search}%")
+                                                    ->orWhere('document_number','like',"%{$search}%")
+                                                    ->limit(50)
+                                                    ->pluck('name','id')
+                                                    ->toArray()
+                                            )
+                                            ->live()
+                                            ->suffixActions([
+                                                Forms\Components\Actions\Action::make('addNewCustomer')
+                                                    ->label('Nuevo')
+                                                    ->icon('heroicon-o-plus-circle')
+                                                    ->color('success')
+                                                    ->requiresConfirmation(false)
+                                                    ->modalHeading('Registrar Nuevo Cliente')
+                                                    ->modal()
+                                                    ->modalWidth('lg')
+                                                    ->form([
+                                                        Forms\Components\TextInput::make('customer_name')
+                                                            ->label('Nombre Completo')
+                                                            ->required()
+                                                            ->maxLength(255),
+                                                        Forms\Components\Grid::make(2)->schema([
+                                                            Forms\Components\Select::make('document_type')
+                                                                ->label('Tipo de Documento')
+                                                                ->options([
+                                                                    'DNI' => 'DNI',
+                                                                    'RUC' => 'RUC',
+                                                                    'CE' => 'Carnet de Extranjería',
+                                                                ])
+                                                                ->default('DNI')
+                                                                ->required(),
+                                                            Forms\Components\TextInput::make('document_number')
+                                                                ->label('Número de Documento')
+                                                                ->placeholder('Opcional'),
+                                                        ]),
+                                                        Forms\Components\Grid::make(2)->schema([
+                                                            Forms\Components\TextInput::make('customer_phone')
+                                                                ->label('Teléfono')
+                                                                ->tel(),
+                                                            Forms\Components\TextInput::make('customer_email')
+                                                                ->label('Email')
+                                                                ->email(),
+                                                        ]),
+                                                        Forms\Components\Textarea::make('customer_address')
+                                                            ->label('Dirección')
+                                                            ->rows(2),
+                                                    ])
+                                                    ->action(function (array $data, Forms\Set $set): void {
+                                                        try {
+                                                            $customer = Customer::create([
+                                                                'name' => $data['customer_name'],
+                                                                'document_type' => $data['document_type'],
+                                                                'document_number' => $data['document_number'],
+                                                                'phone' => $data['customer_phone'] ?? null,
+                                                                'email' => $data['customer_email'] ?? null,
+                                                                'address' => $data['customer_address'] ?? null,
+                                                            ]);
+
+                                                            // Establecer el cliente recién creado como seleccionado
+                                                            $set('customer_id', $customer->id);
+
+                                                            Notification::make()
+                                                                ->title('✅ Cliente Registrado')
+                                                                ->body("Cliente '{$customer->name}' creado exitosamente")
+                                                                ->success()
+                                                                ->send();
+
+                                                        } catch (\Exception $e) {
+                                                            Notification::make()
+                                                                ->title('❌ Error')
+                                                                ->body('Error al registrar cliente: ' . $e->getMessage())
+                                                                ->danger()
+                                                                ->send();
+                                                        }
+                                                    })
                                             ]),
-                                            Forms\Components\Grid::make(2)->schema([
-                                                Forms\Components\TextInput::make('new_customer_phone')->label('Teléfono')->placeholder('Número de teléfono')->tel()->columnSpan(1),
-                                                Forms\Components\TextInput::make('new_customer_address')->label('Dirección')->placeholder('Dirección completa')->columnSpan(1),
-                                            ]),
-                                        ])->columns(1),
+                                        // Campos ocultos para mantener compatibilidad con el backend
+                                        Forms\Components\Hidden::make('new_customer_name'),
+                                        Forms\Components\Hidden::make('new_customer_document'),
+                                        Forms\Components\Hidden::make('new_customer_phone'),
+                                        Forms\Components\Hidden::make('new_customer_address'),
                                     ]),
                             ])->columnSpan(['md' => 8,'lg' => 9])->extraAttributes(['class' => 'space-y-4']),
                         ]),
@@ -2465,6 +2541,7 @@ class PosInterface extends Page
             ->action(fn(array $data) => $this->handlePayment($data))
             ->extraAttributes(['style' => 'padding:0.25rem;']);
     }
+
 
     protected function handlePayment(array $data)
     {
@@ -3150,7 +3227,7 @@ class PosInterface extends Page
                     return redirect(TableMap::getUrl());
                 }
             })
-            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier']));
+            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter']));
     }
 
     /**
@@ -3176,7 +3253,7 @@ class PosInterface extends Page
                     return redirect(TableMap::getUrl());
                 }
             })
-            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier']));
+            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter']));
     }
 
     /**
@@ -3247,7 +3324,7 @@ class PosInterface extends Page
             })
             ->modalHeading('Transferir / Combinar Cuentas')
             ->modalDescription('Selecciona los productos y la cantidad a mover a otra mesa.')
-            ->visible(fn(): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter', 'cashier']));
+            ->visible(fn(): bool => $this->order && $this->order->table_id && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter']));
     }
 
     /**

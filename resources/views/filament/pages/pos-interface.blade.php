@@ -3949,7 +3949,7 @@
         @endif
 
         <!-- Transferir -->
-        @if(!auth()->user()->hasRole(['waiter', 'cashier']))
+        @if(!auth()->user()->hasRole(['waiter']))
             <button wire:click="mountAction('transferOrder')" class="pos-quick-action-btn btn-transferir tertiary" {{ !($this->order && $this->order->table_id && $this->order->status === 'open') ? 'disabled' : '' }} title="Transferir orden a otra mesa">
                 <span class="btn-label">Transferir</span>
             </button>

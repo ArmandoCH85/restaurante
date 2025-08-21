@@ -186,6 +186,7 @@
                 <td><strong>Fecha:</strong></td>
                 <td>{{ now()->format('d/m/Y - H:i:s') }}</td>
             </tr>
+            {{-- Información del Cliente --}}
             <tr>
                 <td><strong>Cliente:</strong></td>
                 <td>
@@ -201,6 +202,68 @@
                 <td><strong>Contacto:</strong></td>
                 <td>{{ $direct_sale_customer_name }}</td>
             </tr>
+            @endif
+            
+            {{-- Para delivery: manejo inteligente de direcciones --}}
+            @if($invoice->order && $invoice->order->service_type === 'delivery' && $invoice->order->deliveryOrder)
+                @php
+                    $deliveryOrder = $invoice->order->deliveryOrder;
+                    $clientAddress = $invoice->client_address;
+                    $deliveryAddress = $deliveryOrder->delivery_address;
+                    $recipientAddress = $deliveryOrder->recipient_address;
+                    
+                    // Para sales_note mostrar dirección cliente si existe y es diferente
+                    $showClientAddress = $clientAddress && 
+                                       $clientAddress !== $deliveryAddress && 
+                                       $clientAddress !== 'Dirección pendiente de completar';
+                @endphp
+                
+                @if($showClientAddress)
+                <tr>
+                    <td><strong>Dirección:</strong></td>
+                    <td>{{ $clientAddress }}</td>
+                </tr>
+                @endif
+                
+                {{-- Separador visual para delivery --}}
+                <tr><td colspan="2" style="text-align: center; font-weight: bold; padding: 4px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000;">🚚 INFORMACIÓN DE CONTACTO</td></tr>
+                
+                {{-- Para notas de venta: priorizar dirección destinatario sobre dirección entrega --}}
+                @if($recipientAddress && $recipientAddress !== 'Dirección pendiente de completar')
+                <tr>
+                    <td><strong>Dirección Destinatario:</strong></td>
+                    <td>{{ $recipientAddress }}</td>
+                </tr>
+                @elseif($deliveryAddress && $deliveryAddress !== 'Dirección pendiente de completar')
+                <tr>
+                    <td><strong>Dirección Entrega:</strong></td>
+                    <td>{{ $deliveryAddress }}</td>
+                </tr>
+                @endif
+                
+                @if($deliveryOrder->delivery_references)
+                <tr>
+                    <td><strong>Referencias:</strong></td>
+                    <td>{{ $deliveryOrder->delivery_references }}</td>
+                </tr>
+                @endif
+                
+                @if($deliveryOrder->recipient_name)
+                <tr>
+                    <td><strong>Recibe:</strong></td>
+                    <td>{{ $deliveryOrder->recipient_name }}</td>
+                </tr>
+                @endif
+                
+                @if($deliveryOrder->recipient_phone)
+                <tr>
+                    <td><strong>Teléfono:</strong></td>
+                    <td>{{ $deliveryOrder->recipient_phone }}</td>
+                </tr>
+                @endif
+                
+                {{-- Separador de cierre --}}
+                <tr><td colspan="2" style="border-bottom: 1px dashed #000; padding: 2px 0;"></td></tr>
             @endif
             @php
                 $waiterName = null;

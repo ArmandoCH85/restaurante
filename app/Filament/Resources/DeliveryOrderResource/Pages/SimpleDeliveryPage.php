@@ -30,6 +30,9 @@ class SimpleDeliveryPage extends Page
         'phone' => '',
         'address' => '',
         'reference' => '',
+        'recipient_name' => '',
+        'recipient_phone' => '',
+        'recipient_address' => '',
     ];
 
     protected function getForms(): array
@@ -149,6 +152,30 @@ class SimpleDeliveryPage extends Page
                     ->rows(2)
                     ->placeholder('Color de casa, piso, indicaciones...')
                     ->columnSpanFull(),
+
+                Forms\Components\Section::make('Persona que recibe el delivery (Opcional)')
+                    ->description('Información de contacto de quien recibirá el pedido')
+                    ->icon('heroicon-o-user-circle')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('recipient_name')
+                            ->label('Nombre completo')
+                            ->placeholder('Ej. María Gonzales')
+                            ->prefixIcon('heroicon-o-user')
+                            ->columnSpanFull(),
+                        
+                        Forms\Components\TextInput::make('recipient_phone')
+                            ->label('Teléfono de contacto')
+                            ->tel()
+                            ->placeholder('9XXXXXXXX')
+                            ->prefixIcon('heroicon-o-phone'),
+                        
+                        Forms\Components\Textarea::make('recipient_address')
+                            ->label('Dirección exacta de entrega')
+                            ->rows(3)
+                            ->placeholder('Calle, número, departamento, referencias específicas')
+                            ->columnSpanFull(),
+                    ]),
             ])
             ->statePath('simple')
             ->columns(1);
@@ -164,6 +191,9 @@ class SimpleDeliveryPage extends Page
             'simple.customer_name' => 'required_without:simple.customer_id|string|min:3',
             'simple.phone' => 'required_without:simple.customer_id|string|min:6',
             'simple.address' => 'required|string|min:5',
+            'simple.recipient_name' => 'nullable|string|min:3',
+            'simple.recipient_phone' => 'nullable|string|min:6',
+            'simple.recipient_address' => 'nullable|string|min:5',
         ]);
 
         try {
@@ -216,6 +246,9 @@ class SimpleDeliveryPage extends Page
                     'order_id' => $order->id,
                     'delivery_address' => $data['address'],
                     'delivery_references' => $data['reference'] ?? '',
+                    'recipient_name' => $data['recipient_name'] ?? '',
+                    'recipient_phone' => $data['recipient_phone'] ?? '',
+                    'recipient_address' => $data['recipient_address'] ?? '',
                     'status' => DeliveryOrder::STATUS_PENDING,
                 ]);
 
@@ -229,6 +262,9 @@ class SimpleDeliveryPage extends Page
                     'delivery_type' => 'domicilio',
                     'delivery_address' => $data['address'],
                     'delivery_references' => $data['reference'] ?? '',
+                    'recipient_name' => $data['recipient_name'] ?? '',
+                    'recipient_phone' => $data['recipient_phone'] ?? '',
+                    'recipient_address' => $data['recipient_address'] ?? '',
                     'service_type' => 'delivery',
                 ]]);
 
@@ -265,6 +301,9 @@ class SimpleDeliveryPage extends Page
             'phone' => $customer->phone ?? '',
             'address' => $customer->address ?? '',
             'reference' => $customer->address_references ?? '',
+            'recipient_name' => '',
+            'recipient_phone' => '',
+            'recipient_address' => '',
         ]);
     }
 
