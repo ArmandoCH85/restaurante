@@ -100,6 +100,53 @@ class CompanyConfigResource extends Resource
                     ])
                     ->columns(1),
 
+                Forms\Components\Section::make('APIs Externas')
+                    ->description('Configuración de tokens para servicios externos')
+                    ->icon('heroicon-o-cloud')
+                    ->schema([
+                        Forms\Components\TextInput::make('value')
+                            ->label(function ($record) {
+                                return match ($record->key) {
+                                    'factiliza_token' => 'Token de Factiliza',
+                                    default => ucfirst(str_replace('_', ' ', $record->key)),
+                                };
+                            })
+                            ->helperText(function ($record) {
+                                return match ($record->key) {
+                                    'factiliza_token' => '🔑 Token de autorización para la API de Factiliza. Se usa para búsqueda automática de datos de empresas por RUC.',
+                                    default => null,
+                                };
+                            })
+                            ->password(function ($record) {
+                                return $record && $record->key === 'factiliza_token';
+                            })
+                            ->revealable(function ($record) {
+                                return $record && $record->key === 'factiliza_token';
+                            })
+                            ->placeholder(function ($record) {
+                                return match ($record->key) {
+                                    'factiliza_token' => 'Ingrese su token de Factiliza...',
+                                    default => null,
+                                };
+                            })
+                            ->required(false)
+                            ->maxLength(255)
+                            ->columnSpanFull()
+                            ->extraInputAttributes(function ($record) {
+                                if ($record && $record->key === 'factiliza_token') {
+                                    return [
+                                        'style' => 'border: 2px solid #8b5cf6; background-color: #f3f4f6;',
+                                        'autocomplete' => 'new-password'
+                                    ];
+                                }
+                                return [];
+                            }),
+                    ])
+                    ->visible(function ($record) {
+                        return $record && $record->key === 'factiliza_token';
+                    })
+                    ->columns(1),
+
                 Forms\Components\Section::make('Información Adicional')
                     ->description('Esta configuración se utiliza para la emisión de comprobantes electrónicos')
                     ->icon('heroicon-o-information-circle')
@@ -158,6 +205,7 @@ class CompanyConfigResource extends Resource
                             'codigo_pais' => 'Código de País',
                             'telefono' => 'Teléfono',
                             'email' => 'Email',
+                            'factiliza_token' => 'Token de Factiliza',
                             default => ucfirst(str_replace('_', ' ', $state)),
                         };
                     }),
@@ -165,7 +213,16 @@ class CompanyConfigResource extends Resource
                     ->label('Valor')
                     ->searchable()
                     ->sortable()
-                    ->limit(50),
+                    ->limit(50)
+                    ->formatStateUsing(function ($state, $record) {
+                        if ($record->key === 'factiliza_token' && $state) {
+                            return str_repeat('*', min(strlen($state), 20)) . ' (Token configurado)';
+                        }
+                        return $state;
+                    })
+                    ->color(function ($record) {
+                        return $record->key === 'factiliza_token' ? 'purple' : null;
+                    }),
             ])
             ->filters([
                 //

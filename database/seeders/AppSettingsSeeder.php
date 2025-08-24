@@ -82,6 +82,12 @@ class AppSettingsSeeder extends Seeder
                 'default' => 'facturacion@miempresa-ejemplo.com.pe',
                 'value' => 'facturacion@miempresa-ejemplo.com.pe', // Email de ejemplo
             ],
+            [
+                'tab' => 'Empresa',
+                'key' => 'factiliza_token',
+                'default' => '',
+                'value' => '', // Token de la API de Factiliza para búsqueda de RUC
+            ],
         ];
 
         // Configuración de Facturación Electrónica (Tab: FacturacionElectronica)

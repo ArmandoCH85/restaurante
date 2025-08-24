@@ -153,4 +153,14 @@ class CompanyConfig
     {
         return self::get('email');
     }
+
+    /**
+     * Obtiene el token de la API de Factiliza para búsqueda de RUC.
+     *
+     * @return string|null
+     */
+    public static function getFactilizaToken(): ?string
+    {
+        return self::get('factiliza_token');
+    }
 }

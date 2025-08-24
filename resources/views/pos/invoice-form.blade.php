@@ -484,6 +484,7 @@
             const documentNumber = document.getElementById('client_document').value;
             const documentType = document.getElementById('document_type').value;
             const searchMessage = document.getElementById('search_message');
+            const searchButton = document.querySelector('button[onclick="searchCustomer()"]');
 
             if (!documentNumber) {
                 searchMessage.textContent = 'Ingrese un número de documento';
@@ -502,36 +503,114 @@
                 return;
             }
 
-            // Realizar la búsqueda
+            // Mostrar indicador de búsqueda
+            searchMessage.textContent = 'Buscando...';
+            searchMessage.classList.remove('hidden', 'text-red-600', 'text-green-600');
+            searchMessage.classList.add('text-blue-600');
+            
+            // Deshabilitar botón durante la búsqueda
+            if (searchButton) {
+                searchButton.disabled = true;
+                searchButton.innerHTML = '🔄';
+            }
+
+            // Primero buscar en base de datos local
             fetch(`{{ route('pos.customers.find') }}?document=${documentNumber}&type=${documentType}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Cliente encontrado
-                        document.getElementById('customer_id').value = data.customer.id;
-                        document.getElementById('client_name').value = data.customer.name;
-                        document.getElementById('client_address').value = data.customer.address || '';
-
-                        searchMessage.textContent = 'Cliente encontrado';
-                        searchMessage.classList.remove('hidden', 'text-red-600');
-                        searchMessage.classList.add('text-green-600');
+                        // Cliente encontrado en base de datos local
+                        fillCustomerData(data.customer, 'local');
+                    } else if (documentType === 'RUC' && data.suggest_api_lookup) {
+                        // No encontrado localmente, intentar con Factiliza para RUC
+                        searchWithFactiliza(documentNumber);
                     } else {
-                        // Cliente no encontrado
-                        document.getElementById('customer_id').value = '';
-                        document.getElementById('client_name').value = '';
-                        document.getElementById('client_address').value = '';
-
-                        searchMessage.textContent = 'Cliente no encontrado. Puede registrarlo como nuevo.';
-                        searchMessage.classList.remove('hidden', 'text-green-600');
-                        searchMessage.classList.add('text-red-600');
+                        // No encontrado y no es RUC o no hay sugerencia de API
+                        showNotFoundMessage();
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    searchMessage.textContent = 'Error al buscar cliente';
-                    searchMessage.classList.remove('hidden', 'text-green-600');
-                    searchMessage.classList.add('text-red-600');
+                    console.error('Error en búsqueda local:', error);
+                    if (documentType === 'RUC') {
+                        // Si hay error en local, intentar con Factiliza para RUC
+                        searchWithFactiliza(documentNumber);
+                    } else {
+                        showErrorMessage('Error al buscar cliente');
+                    }
+                })
+                .finally(() => {
+                    // Rehabilitar botón
+                    if (searchButton) {
+                        searchButton.disabled = false;
+                        searchButton.innerHTML = '🔍';
+                    }
                 });
+        }
+
+        function searchWithFactiliza(ruc) {
+            const searchMessage = document.getElementById('search_message');
+            
+            searchMessage.textContent = 'Consultando Factiliza...';
+            searchMessage.classList.remove('text-blue-600');
+            searchMessage.classList.add('text-purple-600');
+
+            fetch(`{{ route('ruc.lookup') }}?ruc=${ruc}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // RUC encontrado en Factiliza
+                        const customerData = {
+                            id: data.data.customer_id,
+                            name: data.data.razon_social,
+                            document_number: data.data.ruc,
+                            document_type: 'RUC',
+                            address: data.data.direccion,
+                            phone: data.data.telefono,
+                            email: data.data.email
+                        };
+                        fillCustomerData(customerData, 'factiliza');
+                    } else {
+                        // No encontrado en Factiliza
+                        showNotFoundMessage();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en Factiliza:', error);
+                    showErrorMessage('Error consultando Factiliza');
+                });
+        }
+
+        function fillCustomerData(customer, source) {
+            const searchMessage = document.getElementById('search_message');
+            
+            document.getElementById('customer_id').value = customer.id;
+            document.getElementById('client_name').value = customer.name;
+            document.getElementById('client_address').value = customer.address || '';
+
+            const sourceText = source === 'factiliza' ? ' (desde Factiliza)' : ' (base de datos local)';
+            searchMessage.textContent = 'Cliente encontrado' + sourceText;
+            searchMessage.classList.remove('hidden', 'text-red-600', 'text-blue-600', 'text-purple-600');
+            searchMessage.classList.add('text-green-600');
+        }
+
+        function showNotFoundMessage() {
+            const searchMessage = document.getElementById('search_message');
+            
+            document.getElementById('customer_id').value = '';
+            document.getElementById('client_name').value = '';
+            document.getElementById('client_address').value = '';
+
+            searchMessage.textContent = 'Cliente no encontrado. Puede registrarlo como nuevo.';
+            searchMessage.classList.remove('hidden', 'text-green-600', 'text-blue-600', 'text-purple-600');
+            searchMessage.classList.add('text-red-600');
+        }
+
+        function showErrorMessage(message) {
+            const searchMessage = document.getElementById('search_message');
+            
+            searchMessage.textContent = message;
+            searchMessage.classList.remove('hidden', 'text-green-600', 'text-blue-600', 'text-purple-600');
+            searchMessage.classList.add('text-red-600');
         }
 
         function showNewCustomerForm() {

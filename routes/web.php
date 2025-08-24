@@ -105,6 +105,12 @@ Route::middleware(['auth', 'pos.access'])->group(function () {
     Route::get('/pos/customers/find', [PosController::class, 'findCustomer'])->name('pos.customers.find');
     Route::get('/pos/customers/search', [PosController::class, 'searchCustomers'])->name('pos.customers.search');
     Route::post('/pos/customers/store', [PosController::class, 'storeCustomer'])->name('pos.customers.store');
+
+    // Rutas para búsqueda de RUC y DNI con Factiliza
+    Route::get('/ruc/lookup', [\App\Http\Controllers\RucLookupController::class, 'lookup'])->name('ruc.lookup');
+    Route::get('/dni/lookup', [\App\Http\Controllers\RucLookupController::class, 'lookupDni'])->name('dni.lookup');
+    Route::get('/ruc/status', [\App\Http\Controllers\RucLookupController::class, 'status'])->name('ruc.status');
+    Route::get('/pos/customers/find-enhanced', [\App\Http\Controllers\RucLookupController::class, 'findCustomer'])->name('pos.customers.find.enhanced');
 });
 
 // Ruta de prueba para imágenes

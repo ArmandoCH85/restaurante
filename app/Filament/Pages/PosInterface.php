@@ -2460,10 +2460,188 @@ class PosInterface extends Page
                                                                     'CE' => 'Carnet de Extranjería',
                                                                 ])
                                                                 ->default('DNI')
-                                                                ->required(),
-                                                            Forms\Components\TextInput::make('document_number')
-                                                                ->label('Número de Documento')
-                                                                ->placeholder('Opcional'),
+                                                                ->required()
+                                                                ->live(),
+                                                            Forms\Components\Grid::make(3)->schema([
+                                                                Forms\Components\TextInput::make('document_number')
+                                                                    ->label('Número de Documento')
+                                                                    ->placeholder(fn(Get $get) => match($get('document_type')) {
+                                                                        'RUC' => '20123456789 (11 dígitos)',
+                                                                        'DNI' => '12345678 (8 dígitos)',
+                                                                        default => 'Opcional'
+                                                                    })
+                                                                    ->maxLength(fn(Get $get) => match($get('document_type')) {
+                                                                        'RUC' => 11,
+                                                                        'DNI' => 8,
+                                                                        default => 20
+                                                                    })
+                                                                    ->columnSpan(2)
+                                                                    ->live(),
+                                                                Forms\Components\Actions::make([
+                                                                    Forms\Components\Actions\Action::make('searchRuc')
+                                                                        ->label(fn(Get $get) => match($get('document_type')) {
+                                                                            'RUC' => '🔍 Buscar Empresa',
+                                                                            'DNI' => '🔍 Buscar Persona',
+                                                                            default => '🔍 Buscar'
+                                                                        })
+                                                                        ->color('primary')
+                                                                        ->size('sm')
+                                                                        ->visible(fn(Get $get) => in_array($get('document_type'), ['RUC', 'DNI']) && !empty($get('document_number')))
+                                                                        ->action(function (Get $get, Set $set) {
+                                                                            $documentType = $get('document_type');
+                                                                            $documentNumber = $get('document_number');
+                                                                            
+                                                                            // Validar según el tipo de documento
+                                                                            if ($documentType === 'RUC') {
+                                                                                if (strlen($documentNumber) !== 11 || !preg_match('/^[0-9]{11}$/', $documentNumber)) {
+                                                                                    Notification::make()
+                                                                                        ->title('❌ RUC Inválido')
+                                                                                        ->body('El RUC debe tener exactamente 11 dígitos numéricos')
+                                                                                        ->danger()
+                                                                                        ->send();
+                                                                                    return;
+                                                                                }
+                                                                            } elseif ($documentType === 'DNI') {
+                                                                                if (strlen($documentNumber) !== 8 || !preg_match('/^[0-9]{8}$/', $documentNumber)) {
+                                                                                    Notification::make()
+                                                                                        ->title('❌ DNI Inválido')
+                                                                                        ->body('El DNI debe tener exactamente 8 dígitos numéricos')
+                                                                                        ->danger()
+                                                                                        ->send();
+                                                                                    return;
+                                                                                }
+                                                                            }
+                                                                            
+                                                                            try {
+                                                                                // Verificar primero en base de datos local
+                                                                                $existingCustomer = \App\Models\Customer::where('document_number', $documentNumber)
+                                                                                    ->where('document_type', $documentType)
+                                                                                    ->first();
+                                                                                    
+                                                                                if ($existingCustomer) {
+                                                                                    // Auto-completar con datos locales (solo campos esenciales)
+                                                                                    $set('customer_name', $existingCustomer->name);
+                                                                                    $set('customer_address', $existingCustomer->address ?? '');
+                                                                                    $set('customer_phone', $existingCustomer->phone ?? '');
+                                                                                    $set('customer_email', $existingCustomer->email ?? '');
+                                                                                    
+                                                                                    Notification::make()
+                                                                                        ->title('✅ Cliente Encontrado')
+                                                                                        ->body('Datos cargados desde la base de datos local')
+                                                                                        ->success()
+                                                                                        ->send();
+                                                                                    return;
+                                                                                }
+                                                                                
+                                                                                // Si es RUC y no existe localmente, buscar con Factiliza
+                                                                                if ($documentType === 'RUC') {
+                                                                                    $rucLookupService = app(\App\Services\RucLookupService::class);
+                                                                                    
+                                                                                    try {
+                                                                                        $companyData = $rucLookupService->lookupRuc($documentNumber);
+                                                                                        
+                                                                                        if ($companyData) {
+                                                                                            // Auto-completar SOLO los campos necesarios del API
+                                                                                            $set('customer_name', $companyData['razon_social']);
+                                                                                            
+                                                                                            // Dirección completa (priorizar dirección principal)
+                                                                                            $fullAddress = trim($companyData['direccion'] ?? '');
+                                                                                            if (!empty($companyData['distrito'])) {
+                                                                                                $fullAddress .= ', ' . $companyData['distrito'];
+                                                                                            }
+                                                                                            if (!empty($companyData['provincia'])) {
+                                                                                                $fullAddress .= ', ' . $companyData['provincia'];
+                                                                                            }
+                                                                                            $set('customer_address', $fullAddress);
+                                                                                            
+                                                                                            // Teléfono y email (solo si existen)
+                                                                                            if (!empty($companyData['telefono'])) {
+                                                                                                $set('customer_phone', $companyData['telefono']);
+                                                                                            }
+                                                                                            if (!empty($companyData['email'])) {
+                                                                                                $set('customer_email', $companyData['email']);
+                                                                                            }
+                                                                                            
+                                                                                            Notification::make()
+                                                                                                ->title('✅ RUC Encontrado')
+                                                                                                ->body('Empresa: ' . $companyData['razon_social'])
+                                                                                                ->success()
+                                                                                                ->duration(4000)
+                                                                                                ->send();
+                                                                                        } else {
+                                                                                            Notification::make()
+                                                                                                ->title('❌ RUC No Encontrado')
+                                                                                                ->body('No se encontró información para este RUC en Factiliza')
+                                                                                                ->warning()
+                                                                                                ->send();
+                                                                                        }
+                                                                                    } catch (\Exception $e) {
+                                                                                        Notification::make()
+                                                                                            ->title('⚠️ Error de Búsqueda')
+                                                                                            ->body($e->getMessage())
+                                                                                            ->warning()
+                                                                                            ->send();
+                                                                                    }
+                                                                                } elseif ($documentType === 'DNI') {
+                                                                                    // Buscar DNI con Factiliza
+                                                                                    $rucLookupService = app(\App\Services\RucLookupService::class);
+                                                                                    
+                                                                                    try {
+                                                                                        $personData = $rucLookupService->lookupDni($documentNumber);
+                                                                                        
+                                                                                        if ($personData) {
+                                                                                            // Auto-completar SOLO los campos necesarios del API
+                                                                                            $set('customer_name', $personData['nombre_completo']);
+                                                                                            
+                                                                                            // Dirección completa (priorizar dirección principal)
+                                                                                            $fullAddress = trim($personData['direccion'] ?? '');
+                                                                                            if (!empty($personData['distrito'])) {
+                                                                                                $fullAddress .= ', ' . $personData['distrito'];
+                                                                                            }
+                                                                                            if (!empty($personData['provincia'])) {
+                                                                                                $fullAddress .= ', ' . $personData['provincia'];
+                                                                                            }
+                                                                                            $set('customer_address', $fullAddress);
+                                                                                            
+                                                                                            // Teléfono y email (solo si existen)
+                                                                                            if (!empty($personData['telefono'])) {
+                                                                                                $set('customer_phone', $personData['telefono']);
+                                                                                            }
+                                                                                            if (!empty($personData['email'])) {
+                                                                                                $set('customer_email', $personData['email']);
+                                                                                            }
+                                                                                            
+                                                                                            Notification::make()
+                                                                                                ->title('✅ DNI Encontrado')
+                                                                                                ->body('Persona: ' . $personData['nombre_completo'])
+                                                                                                ->success()
+                                                                                                ->duration(4000)
+                                                                                                ->send();
+                                                                                        } else {
+                                                                                            Notification::make()
+                                                                                                ->title('❌ DNI No Encontrado')
+                                                                                                ->body('No se encontró información para este DNI en Factiliza')
+                                                                                                ->warning()
+                                                                                                ->send();
+                                                                                        }
+                                                                                    } catch (\Exception $e) {
+                                                                                        Notification::make()
+                                                                                            ->title('⚠️ Error de Búsqueda')
+                                                                                            ->body($e->getMessage())
+                                                                                            ->warning()
+                                                                                            ->send();
+                                                                                    }
+                                                                                }
+                                                                            } catch (\Exception $e) {
+                                                                                Notification::make()
+                                                                                    ->title('❌ Error Interno')
+                                                                                    ->body('Error al buscar documento: ' . $e->getMessage())
+                                                                                    ->danger()
+                                                                                    ->send();
+                                                                            }
+                                                                        })
+                                                                ])->columnSpan(1)
+                                                            ]),
                                                         ]),
                                                         Forms\Components\Grid::make(2)->schema([
                                                             Forms\Components\TextInput::make('customer_phone')
