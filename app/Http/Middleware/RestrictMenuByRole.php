@@ -33,6 +33,8 @@ class RestrictMenuByRole
                 'livewire/upload-file', // ✅ Permitir subida de archivos de Livewire
                 'livewire', // ✅ Permitir todas las rutas de Livewire
                 'orders',
+                'print/prebill', // ✅ NUEVO: Permitir acceso a pre-cuentas
+                'thermal-preview/pre-bill', // ✅ NUEVO: Permitir vista previa de pre-cuentas
             ];
 
             $currentPath = $request->path();
