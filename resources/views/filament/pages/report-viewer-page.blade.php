@@ -28,25 +28,59 @@
         
         /* Ajustes específicos para la columna Cliente */
         .customer-column {
-            max-width: 200px;
+            min-width: 200px;
+            max-width: 300px;
             word-wrap: break-word;
-            word-break: break-word;
-            hyphens: auto;
             white-space: normal;
-            line-height: 1.4;
+            line-height: 1.3;
         }
         
         .customer-name {
             display: block;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            white-space: normal;
+            word-wrap: break-word;
+            line-height: 1.3;
         }
         
-        .customer-name:hover {
-            white-space: normal;
-            overflow: visible;
-            text-overflow: unset;
+        /* Columna Cliente estática/fija */
+        .table-container {
+            position: relative;
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        
+        .sticky-customer-header {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background-color: #f9fafb;
+            border-right: 2px solid #e5e7eb;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sticky-customer-cell {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            background-color: white;
+            border-right: 2px solid #e5e7eb;
+            box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .sticky-customer-cell:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Asegurar que el resto de la tabla tenga scroll */
+        .table-container table {
+            min-width: 1200px; /* Fuerza scroll horizontal si es necesario */
+        }
+        
+        /* Mejora visual para pantallas pequeñas */
+        @media (max-width: 1024px) {
+            .table-container table {
+                min-width: 1400px;
+            }
         }
     </style>
 </head>
@@ -246,14 +280,14 @@
                             </h3>
 
                             @if($page->reportData->isNotEmpty())
-                                <div class="overflow-x-auto table-responsive">
+                                <div class="table-container">
                                     <table class="min-w-full divide-y divide-gray-200 table-fixed">
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 @if($page->reportType === 'all_sales' || $page->reportType === 'delivery_sales')
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha | Hora</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caja</th>
-                                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48 min-w-48">Cliente</th>
+                                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky-customer-header" style="min-width: 200px; max-width: 300px;">Cliente</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Canal venta</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo pago</th>
@@ -323,7 +357,7 @@
                                                             </div>
                                                         </td>
                                                         <td class="px-3 py-4 whitespace-nowrap text-sm">{{ $item->cashRegister?->name ?? 'C01' }}</td>
-                                                        <td class="px-3 py-4 text-sm w-48 min-w-48">
+                                                        <td class="px-3 py-4 text-sm sticky-customer-cell" style="min-width: 200px; max-width: 300px;">
                                                             @php
                                                                 $customerName = null;
                                                                 $isComandaClient = false;
