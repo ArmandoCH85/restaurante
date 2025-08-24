@@ -522,7 +522,6 @@ class InvoiceResource extends Resource
                     // No bulk actions for invoices
                 ]),
             ])
-            ->defaultSort('issue_date', 'desc')
             ->striped()
             ->paginated([10, 25, 50, 100])
             ->extremePaginationLinks();
