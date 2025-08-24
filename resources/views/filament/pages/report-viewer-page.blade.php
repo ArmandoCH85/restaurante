@@ -25,6 +25,29 @@
                 white-space: nowrap;
             }
         }
+        
+        /* Ajustes específicos para la columna Cliente */
+        .customer-column {
+            max-width: 200px;
+            word-wrap: break-word;
+            word-break: break-word;
+            hyphens: auto;
+            white-space: normal;
+            line-height: 1.4;
+        }
+        
+        .customer-name {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .customer-name:hover {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: unset;
+        }
     </style>
 </head>
 <body class="h-full">
@@ -224,13 +247,13 @@
 
                             @if($page->reportData->isNotEmpty())
                                 <div class="overflow-x-auto table-responsive">
-                                    <table class="min-w-full divide-y divide-gray-200">
+                                    <table class="min-w-full divide-y divide-gray-200 table-fixed">
                                         <thead class="bg-gray-50">
                                             <tr>
                                                 @if($page->reportType === 'all_sales' || $page->reportType === 'delivery_sales')
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha | Hora</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caja</th>
-                                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                                                    <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48 min-w-48">Cliente</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documento</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Canal venta</th>
                                                     <th class="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo pago</th>
@@ -300,7 +323,7 @@
                                                             </div>
                                                         </td>
                                                         <td class="px-3 py-4 whitespace-nowrap text-sm">{{ $item->cashRegister?->name ?? 'C01' }}</td>
-                                                        <td class="px-3 py-4 whitespace-nowrap text-sm">
+                                                        <td class="px-3 py-4 text-sm w-48 min-w-48">
                                                             @php
                                                                 $customerName = null;
                                                                 $isComandaClient = false;
@@ -327,14 +350,14 @@
                                                             
                                                             @if($customerName)
                                                                 @if($isComandaClient)
-                                                                    <span class="text-purple-600 font-medium" title="Cliente de comanda rápida">{{ $customerName }}</span>
+                                                                    <span class="customer-name text-purple-600 font-medium" title="Cliente de comanda rápida">{{ $customerName }}</span>
                                                                 @else
-                                                                    <span title="Cliente registrado">{{ $customerName }}</span>
+                                                                    <span class="customer-name" title="Cliente registrado">{{ $customerName }}</span>
                                                                 @endif
                                                             @elseif($item->table?->number)
-                                                                <span class="text-blue-600 font-medium" title="Mesa sin cliente">Mesa #{{ $item->table->number }}</span>
+                                                                <span class="customer-name text-blue-600 font-medium" title="Mesa sin cliente">Mesa #{{ $item->table->number }}</span>
                                                             @else
-                                                                <span class="text-gray-500" title="Venta sin datos de cliente">Sin cliente</span>
+                                                                <span class="customer-name text-gray-500" title="Venta sin datos de cliente">Sin cliente</span>
                                                             @endif
                                                         </td>
                                                         <td class="px-3 py-4 whitespace-nowrap text-sm font-medium">
