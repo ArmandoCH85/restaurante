@@ -185,6 +185,19 @@ class UnifiedPaymentController extends Controller
             // Obtener la serie desde DocumentSeries
             $series = $this->getNextSeries($request->invoice_type);
 
+            // ✅ CRUCIAL: Refrescar relación de pagos justo antes de generar factura
+            $order->load('payments');
+            
+            Log::info('🔍 UnifiedPaymentController - Payments antes de generateInvoice', [
+                'order_id' => $order->id,
+                'payments_count' => $order->payments->count(),
+                'payments' => $order->payments->map(fn($p) => [
+                    'method' => $p->payment_method,
+                    'amount' => $p->amount,
+                    'created_at' => $p->created_at
+                ])->toArray()
+            ]);
+
             $invoice = $order->generateInvoice(
                 $request->invoice_type,
                 $series,
@@ -314,6 +327,9 @@ class UnifiedPaymentController extends Controller
         $order->tax = $tax;
         $order->total = $total;
         $order->save();
+        
+        // ✅ CRUCIAL: Refrescar relación de pagos después del save
+        $order->load('payments');
 
         // Log para depuración
         Log::info('Totales recalculados para facturación', [
@@ -322,7 +338,8 @@ class UnifiedPaymentController extends Controller
             'subtotal' => $subtotal,
             'discount' => $discountAmount,
             'tax' => $tax,
-            'total' => $total
+            'total' => $total,
+            'payments_count' => $order->payments->count() // ✅ Verificar que los pagos siguen ahí
         ]);
     }
 }

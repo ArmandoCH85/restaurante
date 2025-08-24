@@ -828,7 +828,10 @@ class Order extends Model
             // 6. Establecer estado SUNAT según el tipo de comprobante
             $sunatStatus = in_array($invoiceType, ['invoice', 'receipt']) ? 'PENDIENTE' : null;
             
-            // 7. Calcular información de pagos para el comprobante
+            // 7. REFRESCAR relación de pagos para asegurar datos actualizados
+            $this->load('payments'); // ✅ FORZAR REFRESH DE PAGOS
+            
+            // Calcular información de pagos para el comprobante
             $totalPaid = $this->getTotalPaid();
             $cashPayments = $this->payments()->where('payment_method', 'cash')->get();
             $hasCashPayment = $cashPayments->isNotEmpty();
@@ -836,12 +839,34 @@ class Order extends Model
             
             // Determinar método de pago principal para mostrar en el comprobante
             $primaryPaymentMethod = 'cash'; // Por defecto efectivo
+            
+            // ✅ LOG PARA DEBUG
+            \Illuminate\Support\Facades\Log::info('🔍 Analizando pagos para factura', [
+                'order_id' => $this->id,
+                'payments_count' => $this->payments()->count(),
+                'payments_data' => $this->payments->map(function($p) {
+                    return ['method' => $p->payment_method, 'amount' => $p->amount];
+                })->toArray()
+            ]);
+            
             if ($this->payments()->count() === 1) {
                 // Si hay un solo pago, usar ese método
                 $primaryPaymentMethod = $this->payments()->first()->payment_method;
+                \Illuminate\Support\Facades\Log::info('✅ Un solo pago detectado', [
+                    'payment_method' => $primaryPaymentMethod
+                ]);
             } elseif ($this->payments()->count() > 1) {
                 // Si hay múltiples pagos, mostrar como "mixto"
                 $primaryPaymentMethod = 'mixto';
+                \Illuminate\Support\Facades\Log::info('✅ Múltiples pagos detectados', [
+                    'payment_method' => 'mixto',
+                    'payments_count' => $this->payments()->count()
+                ]);
+            } else {
+                \Illuminate\Support\Facades\Log::warning('❌ No se encontraron pagos', [
+                    'payment_method' => 'cash (default)',
+                    'order_id' => $this->id
+                ]);
             }
             
             // Calcular vuelto solo si hay pago en efectivo y exceso

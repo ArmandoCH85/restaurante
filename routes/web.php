@@ -463,6 +463,20 @@ Route::middleware(['web', 'auth'])->group(function () {
     })->name('admin.orders.print');
 });
 
+// 🧪 RUTAS DE PRUEBA SUNAT
+Route::middleware(['auth'])->group(function () {
+    // Vista principal de prueba SUNAT
+    Route::get('/sunat-test', [\App\Http\Controllers\SunatTestController::class, 'index'])
+        ->name('sunat-test.index');
+    
+    // Envío de factura de prueba a SUNAT
+    Route::post('/sunat-test/send', [\App\Http\Controllers\SunatTestController::class, 'sendToSunat'])
+        ->name('sunat-test.send');
+    
+    // Obtener logs del sistema en tiempo real
+    Route::get('/sunat-test/logs', [\App\Http\Controllers\SunatTestController::class, 'logs'])
+        ->name('sunat-test.logs');
+});
 
 
 

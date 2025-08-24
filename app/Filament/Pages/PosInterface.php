@@ -2673,37 +2673,7 @@ class PosInterface extends Page
                     'payment_amount' => $paymentAmount,
                 ]);
 
-                // Obtener la serie correcta según el tipo de documento
-                $series = $this->getNextSeries($data['document_type'] ?? 'receipt');
-
-                // Crear la factura usando el método del modelo Order
-                $invoice = $this->order->generateInvoice(
-                    $data['document_type'] ?? 'receipt',
-                    $series,
-                    $customerId
-                );
-
-                if (!$invoice) {
-                    throw new \Exception('No se pudo generar la factura');
-                }
-
-                // AHORA SÍ marcar orden como completada y facturada (después de generar factura exitosamente)
-                $this->order->update([
-                    'status' => 'completed',
-                    'billed' => true,
-                ]);
-
-                // Para pagos divididos, guardar detalles en las notas de la factura
-                if ($data['split_payment'] ?? false) {
-                    $paymentDetails = [];
-                    foreach ($data['payment_methods'] as $payment) {
-                        $paymentDetails[] = $payment['method'] . ': S/ ' . number_format((float)$payment['amount'], 2);
-                    }
-                    $invoice->update([
-                        'notes' => 'Pago dividido: ' . implode(', ', $paymentDetails)
-                    ]);
-                }
-
+                // ✅ REGISTRAR PAGOS ANTES DE GENERAR FACTURA
                 // Registrar el pago en la tabla payments
                 if ($data['split_payment'] ?? false) {
                     // Para pagos divididos, registrar cada método por separado
@@ -2736,6 +2706,50 @@ class PosInterface extends Page
                         $paymentAmount,
                         $reference
                     );
+                }
+
+                // Obtener la serie correcta según el tipo de documento
+                $series = $this->getNextSeries($data['document_type'] ?? 'receipt');
+
+                // ✅ REFRESH DE PAYMENTS ANTES DE GENERAR FACTURA
+                $this->order->load('payments');
+                
+                Log::info('🎮 Filament PosInterface - Payments antes de generateInvoice', [
+                    'order_id' => $this->order->id,
+                    'payments_count' => $this->order->payments->count(),
+                    'payments' => $this->order->payments->map(fn($p) => [
+                        'method' => $p->payment_method,
+                        'amount' => $p->amount,
+                        'created_at' => $p->created_at
+                    ])->toArray()
+                ]);
+
+                // Crear la factura usando el método del modelo Order
+                $invoice = $this->order->generateInvoice(
+                    $data['document_type'] ?? 'receipt',
+                    $series,
+                    $customerId
+                );
+
+                if (!$invoice) {
+                    throw new \Exception('No se pudo generar la factura');
+                }
+
+                // AHORA SÍ marcar orden como completada y facturada (después de generar factura exitosamente)
+                $this->order->update([
+                    'status' => 'completed',
+                    'billed' => true,
+                ]);
+
+                // Para pagos divididos, guardar detalles en las notas de la factura
+                if ($data['split_payment'] ?? false) {
+                    $paymentDetails = [];
+                    foreach ($data['payment_methods'] as $payment) {
+                        $paymentDetails[] = $payment['method'] . ': S/ ' . number_format((float)$payment['amount'], 2);
+                    }
+                    $invoice->update([
+                        'notes' => 'Pago dividido: ' . implode(', ', $paymentDetails)
+                    ]);
                 }
 
                 // Liberar mesa automáticamente después del pago

@@ -917,34 +917,36 @@ class PosController extends Controller
                 return back()->withErrors(['split_amounts' => 'La suma de los pagos debe ser igual al total de la venta']);
             }
 
-            // Para pagos divididos, solo se genera un comprobante (no varios como antes)
-            $series = $this->getNextSeries($validated['invoice_type']);
-            $number = $this->getNextNumber($series);
-
-            // Crear el comprobante con el total
-            $invoice = new \App\Models\Invoice();
-            $invoice->invoice_type = $invoiceTypeForDb;
-            $invoice->series = $series;
-            $invoice->number = $number;
-            $invoice->issue_date = now()->format('Y-m-d');
-            $invoice->customer_id = $customerId;
-            $invoice->taxable_amount = $subtotalAfterDiscount;
-            $invoice->tax = $taxAmount;
-            $invoice->total = $total;
-            $invoice->payment_method = $validated['payment_method'];
-            $invoice->payment_amount = $validated['payment_method'] === 'cash' ? $validated['payment_amount'] : $total;
-            $invoice->change_amount = $validated['payment_method'] === 'cash' ? ($validated['payment_amount'] - $total) : 0;
-            $invoice->tax_authority_status = 'pending';
-
-            // Establecer estado SUNAT según el tipo de comprobante
-            if (in_array($validated['invoice_type'], ['invoice', 'receipt'])) {
-                $invoice->sunat_status = 'PENDIENTE'; // Para Boletas y Facturas
-            } else {
-                $invoice->sunat_status = null; // Para Notas de Venta (no van a SUNAT)
+            // ✅ REGISTRAR PAGOS MÚLTIPLES ANTES DE CREAR COMPROBANTE
+            // Limpiar pagos anteriores de esta orden
+            $order->payments()->delete();
+            
+            // Registrar cada método de pago por separado
+            foreach ($validated['split_methods'] as $index => $method) {
+                $amount = $validated['split_amounts'][$index] ?? 0;
+                if ($amount > 0) {
+                    $order->registerPayment(
+                        $method,
+                        $amount,
+                        null // Sin referencia específica para pagos divididos
+                    );
+                }
             }
 
-            $invoice->order_id = $order->id;
-            $invoice->save();
+            // ✅ USAR Order::generateInvoice() PARA LECTURA CORRECTA DE PAGOS
+            // Obtener la serie correcta según el tipo de documento
+            $series = $this->getNextSeries($validated['invoice_type']);
+            
+            // Generar la factura usando el método del modelo Order (que lee pagos correctamente)
+            $invoice = $order->generateInvoice(
+                $validated['invoice_type'],
+                $series,
+                $customerId
+            );
+            
+            if (!$invoice) {
+                throw new \Exception('No se pudo generar la factura');
+            }
 
             // Guardar los detalles del comprobante
             foreach ($order->orderDetails as $detail) {
@@ -1033,45 +1035,31 @@ class PosController extends Controller
             }
             return $response;
         } else {
-            // Generar serie y número según tipo
+            // ✅ REGISTRAR PAGO SIMPLE ANTES DE CREAR COMPROBANTE
+            // Limpiar pagos anteriores de esta orden
+            $order->payments()->delete();
+            
+            // Registrar el pago seleccionado
+            $paymentAmount = $validated['payment_method'] === 'cash' ? $validated['payment_amount'] : $total;
+            $order->registerPayment(
+                $validated['payment_method'],
+                $paymentAmount,
+                null // Sin referencia específica
+            );
+
+            // ✅ USAR Order::generateInvoice() PARA LECTURA CORRECTA DE PAGOS
+            // Obtener la serie correcta según el tipo de documento
             $series = $this->getNextSeries($validated['invoice_type']);
-            $number = $this->getNextNumber($series);
-
-            // Crear el comprobante normal (pago único)
-            $invoice = new \App\Models\Invoice();
-            $invoice->invoice_type = $invoiceTypeForDb;
-            $invoice->series = $series;
-            $invoice->number = $number;
-            $invoice->issue_date = now()->format('Y-m-d');
-            $invoice->customer_id = $customerId;
-            $invoice->taxable_amount = $subtotalAfterDiscount;
-            $invoice->tax = $taxAmount;
-            $invoice->total = $total;
-            $invoice->payment_method = $validated['payment_method'];
-            $invoice->payment_amount = $validated['payment_method'] === 'cash' ? $validated['payment_amount'] : $total;
-            $invoice->change_amount = $validated['payment_method'] === 'cash' ? ($validated['payment_amount'] - $total) : 0;
-            $invoice->tax_authority_status = 'pending';
-
-            // Establecer estado SUNAT según el tipo de comprobante
-            if (in_array($validated['invoice_type'], ['invoice', 'receipt'])) {
-                $invoice->sunat_status = 'PENDIENTE'; // Para Boletas y Facturas
-            } else {
-                $invoice->sunat_status = null; // Para Notas de Venta (no van a SUNAT)
-            }
-
-            $invoice->order_id = $order->id;
-            $invoice->save();
-
-            // Guardar detalles del comprobante
-            foreach ($order->orderDetails as $detail) {
-                $invoiceDetail = new \App\Models\InvoiceDetail();
-                $invoiceDetail->invoice_id = $invoice->id;
-                $invoiceDetail->product_id = $detail->product_id;
-                $invoiceDetail->description = $detail->product->name;
-                $invoiceDetail->quantity = $detail->quantity;
-                $invoiceDetail->unit_price = $detail->unit_price;
-                $invoiceDetail->subtotal = $detail->quantity * $detail->unit_price;
-                $invoiceDetail->save();
+            
+            // Generar la factura usando el método del modelo Order (que lee pagos correctamente)
+            $invoice = $order->generateInvoice(
+                $validated['invoice_type'],
+                $series,
+                $customerId
+            );
+            
+            if (!$invoice) {
+                throw new \Exception('No se pudo generar la factura');
             }
 
             // Generar código QR para el comprobante
