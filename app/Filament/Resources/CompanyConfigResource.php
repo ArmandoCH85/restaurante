@@ -142,8 +142,9 @@ class CompanyConfigResource extends Resource
                                 return [];
                             }),
                     ])
-                    ->visible(function ($record) {
-                        return $record && in_array($record->key, ['factiliza_token']);
+                    ->visible(function ($livewire) {
+                        // Mostrar siempre la sección de APIs Externas
+                        return true;
                     })
                     ->columns(1),
 
