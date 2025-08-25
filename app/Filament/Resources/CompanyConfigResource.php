@@ -143,7 +143,7 @@ class CompanyConfigResource extends Resource
                             }),
                     ])
                     ->visible(function ($record) {
-                        return $record && $record->key === 'factiliza_token';
+                        return $record && in_array($record->key, ['factiliza_token']);
                     })
                     ->columns(1),
 
