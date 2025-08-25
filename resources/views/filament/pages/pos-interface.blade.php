@@ -3930,7 +3930,7 @@
         </button>
 
         <!-- Reabrir -->
-        <button wire:click="mountAction('reopen_order_for_editing')" class="pos-quick-action-btn btn-reabrir secondary" {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists()) ? 'disabled' : '' }} title="Reabrir orden para edición">
+        <button wire:click="mountAction('reopen_order_for_editing')" class="pos-quick-action-btn btn-reabrir secondary" {{ !($this->order instanceof \App\Models\Order && !$this->order->invoices()->exists() && $this->order->status !== \App\Models\Order::STATUS_COMPLETED) ? 'disabled' : '' }} title="Reabrir orden para edición">
             <span class="btn-label">Reabrir</span>
         </button>
 

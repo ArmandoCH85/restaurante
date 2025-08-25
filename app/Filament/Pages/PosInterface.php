@@ -3376,7 +3376,8 @@ class PosInterface extends Page
             })
             ->visible(fn () =>
                 $this->order instanceof Order &&
-                !$this->order->invoices()->exists()
+                !$this->order->invoices()->exists() &&
+                $this->order->status !== Order::STATUS_COMPLETED
             );
     }
 
