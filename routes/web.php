@@ -283,7 +283,7 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
     ];
 
     // Datos para el PDF/HTML
-    $invoice->load(['customer', 'details.product', 'order.table']);
+    $invoice->load(['customer', 'details.product', 'order.table', 'order.payments']);
     // Pasar contacto solo para Nota de Venta en venta directa (sin mesa, no delivery)
     $directSaleName = null;
     if ($invoice->invoice_type === 'sales_note' && ($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery') {

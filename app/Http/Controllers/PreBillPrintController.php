@@ -40,7 +40,7 @@ class PreBillPrintController extends Controller
         }
         
         // Cargar relaciones necesarias
-        $order->load(['orderDetails.product', 'table', 'employee']);
+        $order->load(['orderDetails.product', 'table', 'employee', 'payments']);
 
         // Registrar la acción
         Log::info('🖨️ Imprimiendo pre-cuenta', [

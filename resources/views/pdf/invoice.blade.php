@@ -396,6 +396,27 @@
                     default => ucfirst(str_replace('_', ' ', $invoice->payment_method ?? 'Efectivo'))
                 }) }}
             </p>
+            @if(($invoice->payment_method ?? 'cash') === 'mixto' && $invoice->order && $invoice->order->payments)
+                <div style="font-size: 10px; margin-top: 5px; text-align: center;">
+                    <strong>Detalle de pagos:</strong><br>
+                    @foreach($invoice->order->payments as $payment)
+                        {{ ucfirst(match($payment->payment_method) {
+                            'cash' => 'Efectivo',
+                            'credit_card' => 'Tarjeta Crédito',
+                            'debit_card' => 'Tarjeta Débito',
+                            'bank_transfer' => 'Transferencia',
+                            'digital_wallet' => 'Billetera Digital',
+                            'yape' => 'Yape',
+                            'plin' => 'Plin',
+                            'pedidos_ya' => 'Pedidos Ya',
+                            'didi_food' => 'Didi Food',
+                            'rappi' => 'Rappi',
+                            'bita_express' => 'Bita Express',
+                            default => ucfirst(str_replace('_', ' ', $payment->payment_method))
+                        }) }}: S/ {{ number_format($payment->amount, 2) }}<br>
+                    @endforeach
+                </div>
+            @endif
 
         </div>
         <hr>
