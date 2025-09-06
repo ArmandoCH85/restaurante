@@ -2344,42 +2344,63 @@ class PosInterface extends Page
                                 Forms\Components\Placeholder::make('payment_summary')
                                     ->label('Total a Pagar')
                                     ->content(function () { return new \Illuminate\Support\HtmlString('<div class="text-center sticky top-0 z-10 p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/55 border border-emerald-200 shadow-sm ring-1 ring-emerald-100/60"><div class="text-[11px] font-semibold tracking-widest text-emerald-600/70 mb-1 uppercase">Total a Pagar</div><div class="text-3xl font-extrabold leading-none tracking-tight text-emerald-600 drop-shadow">S/ ' . number_format((float)$this->total, 2) . '</div><div class="mt-1 text-[10px] font-semibold text-emerald-500/80 uppercase">IGV incluido</div></div>'); }),
-                                Forms\Components\Toggle::make('split_payment')->label('💰 Dividir Pago')->helperText('Activa si usarás varios métodos.')->live()->default(false)->inline(false)->extraAttributes([
-                                    'style' => 'background-color: rgb(220, 38, 38) !important; border-color: rgb(220, 38, 38) !important; box-shadow: 0 0 0 1px rgb(220, 38, 38) !important;',
-                                    'class' => 'mt-2',
+                                Forms\Components\Toggle::make('split_payment')->label('💰 Dividir Pago')->helperText('Activa si usarás varios métodos.')->live()->default(false)->inline(false),
+                                    'class' => 'mt-2 toggle-payment-split-custom',
                                     'x-data' => '{
-                                        observer: null,
+                                        colorInterval: null,
                                         init() {
-                                            this.setupObserver();
+                                            console.log("🚀 TOGGLE INIT: Starting color enforcer");
+                                            console.log("🚀 Element found:", this.$el);
+                                            console.log("🚀 Element classes:", this.$el.className);
+                                            this.startColorEnforcer();
                                         },
-                                        setupObserver() {
-                                            this.observer = new MutationObserver((mutations) => {
-                                                mutations.forEach((mutation) => {
-                                                    if (mutation.type === "attributes" &&
-                                                        (mutation.attributeName === "class" || mutation.attributeName === "style")) {
-                                                        this.forceCorrectColor();
-                                                    }
+                                        startColorEnforcer() {
+                                            console.log("⚡ Starting color enforcer interval");
+                                            this.colorInterval = setInterval(() => {
+                                                this.enforceColors();
+                                            }, 100);
+                                            console.log("✅ Color enforcer started");
+                                        },
+                                        enforceColors() {
+                                            try {
+                                                const isChecked = this.$wire.split_payment;
+                                                const currentBg = this.$el.style.backgroundColor;
+                                                const expectedBg = isChecked ? "rgb(5, 150, 105)" : "rgb(220, 38, 38)";
+
+                                                console.log("🔍 ENFORCER CHECK:", {
+                                                    isChecked: isChecked,
+                                                    currentBg: currentBg,
+                                                    expectedBg: expectedBg,
+                                                    elementClasses: this.$el.className,
+                                                    needsUpdate: currentBg !== expectedBg
                                                 });
-                                            });
 
-                                            this.observer.observe(this.$el, {
-                                                attributes: true,
-                                                attributeFilter: ["class", "style"]
-                                            });
+                                                // REMOVER CLASES PROBLEMÁTICAS DE FILAMENT
+                                                this.$el.classList.remove("bg-gray-200");
+                                                this.$el.classList.remove("dark:bg-gray-700");
+                                                this.$el.classList.remove("fi-color-gray");
+                                                console.log("🧹 Removed Filament gray classes");
 
-                                            // Forzar color inicial
-                                            this.forceCorrectColor();
+                                                // Aplicar colores correctos
+                                                if (isChecked) {
+                                                    this.$el.style.setProperty("background-color", "#059669", "important");
+                                                    this.$el.style.setProperty("border-color", "#059669", "important");
+                                                    this.$el.style.setProperty("box-shadow", "0 0 0 1px #059669", "important");
+                                                    console.log("🟢 GREEN APPLIED - ON state");
+                                                } else {
+                                                    this.$el.style.setProperty("background-color", "#dc2626", "important");
+                                                    this.$el.style.setProperty("border-color", "#dc2626", "important");
+                                                    this.$el.style.setProperty("box-shadow", "0 0 0 1px #dc2626", "important");
+                                                    console.log("🔴 RED APPLIED - OFF state");
+                                                }
+                                            } catch (error) {
+                                                console.error("❌ Error in enforceColors:", error);
+                                            }
                                         },
-                                        forceCorrectColor() {
-                                            const isChecked = this.$wire.split_payment;
-                                            if (isChecked) {
-                                                this.$el.style.backgroundColor = "rgb(5, 150, 105)";
-                                                this.$el.style.borderColor = "rgb(5, 150, 105)";
-                                                this.$el.style.boxShadow = "0 0 0 1px rgb(5, 150, 105)";
-                                            } else {
-                                                this.$el.style.backgroundColor = "rgb(220, 38, 38)";
-                                                this.$el.style.borderColor = "rgb(220, 38, 38)";
-                                                this.$el.style.boxShadow = "0 0 0 1px rgb(220, 38, 38)";
+                                        destroy() {
+                                            if (this.colorInterval) {
+                                                clearInterval(this.colorInterval);
+                                                console.log("🛑 Color enforcer stopped");
                                             }
                                         }
                                     }',

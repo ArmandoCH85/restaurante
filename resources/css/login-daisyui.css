@@ -6,7 +6,7 @@
 @import "tailwindcss";
 
 /* Configuración específica de DaisyUI para login */
-@config "./tailwind-login.config.js";
+@config "../../tailwind-login.config.js";
 
 /* ========================================
    ESTILOS BASE PARA LOGIN

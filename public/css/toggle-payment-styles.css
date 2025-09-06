@@ -1,0 +1,28 @@
+/* ========================================= */
+/* 🎛️ SOLUCIÓN ULTRA-AGRESIVA PARA TOGGLE */
+/* ========================================= */
+
+/* FUERZA MÁXIMA - Prevenir gris en cualquier contexto */
+.fi-sidebar-open .fi-main .fi-page .fi-form .fi-fo-toggle:not([data-state="checked"]),
+.modal .fi-form .fi-fo-toggle:not([data-state="checked"]),
+.fi-fo-toggle:not([data-state="checked"]) {
+  background-color: rgb(220, 38, 38) !important;
+  border-color: rgb(220, 38, 38) !important;
+  box-shadow: 0 0 0 1px rgb(220, 38, 38) !important;
+}
+
+/* Estado checked - mantener verde */
+.fi-sidebar-open .fi-main .fi-page .fi-form .fi-fo-toggle[data-state="checked"],
+.modal .fi-form .fi-fo-toggle[data-state="checked"],
+.fi-fo-toggle[data-state="checked"] {
+  background-color: rgb(5, 150, 105) !important;
+  border-color: rgb(5, 150, 105) !important;
+  box-shadow: 0 0 0 1px rgb(5, 150, 105) !important;
+}
+
+/* Selector de fuerza nuclear */
+div.fi-fo-toggle:not([data-state="checked"]) {
+  background-color: rgb(220, 38, 38) !important;
+  border-color: rgb(220, 38, 38) !important;
+  box-shadow: 0 0 0 1px rgb(220, 38, 38) !important;
+}
