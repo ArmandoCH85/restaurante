@@ -130,8 +130,8 @@
         @php
             $nombreComercial = \App\Models\CompanyConfig::getNombreComercial();
         @endphp
-        <p class="company-name">{{ $nombreComercial ?: 'RESTAURANTE' }}</p>
-        <p><strong>RUC:</strong> {{ \App\Models\CompanyConfig::getRuc() }}</p>
+        <p class="company-name" style="font-size: 16px;">{{ $nombreComercial ?: 'RESTAURANTE' }}</p>
+        <p style="font-size: 14px;"><strong>RUC:</strong> {{ \App\Models\CompanyConfig::getRuc() }}</p>
     </div>
 
     <hr>

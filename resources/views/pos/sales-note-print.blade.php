@@ -260,11 +260,11 @@
 <body>
     <div class="header">
         <div class="company">
-            <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
-            <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
-            <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</p>
+            <h1 style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
+            <p style="font-size: 14px;">RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
+            <p style="font-size: 14px;">{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</p>
             @if(\App\Models\CompanyConfig::getTelefono())
-                <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                <p style="font-size: 14px;">Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
             @endif
         </div>
     </div>

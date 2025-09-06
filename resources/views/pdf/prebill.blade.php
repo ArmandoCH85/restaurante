@@ -82,12 +82,12 @@
                 $nombreComercial = \App\Models\CompanyConfig::getNombreComercial();
                 $razonSocial = \App\Models\CompanyConfig::getRazonSocial();
             @endphp
-            <p><strong>{{ $nombreComercial ?: $razonSocial }}</strong></p>
-            <p>{{ $razonSocial }}</p>
-            <p>RUC: {{ \App\Models\CompanyConfig::getRuc() }}</p>
-            <p>{{ \App\Models\CompanyConfig::getDireccion() }}</p>
+            <p><strong style="font-size: 16px;">{{ $nombreComercial ?: $razonSocial }}</strong></p>
+            <p style="font-size: 16px;">{{ $razonSocial }}</p>
+            <p style="font-size: 14px;">RUC: {{ \App\Models\CompanyConfig::getRuc() }}</p>
+            <p style="font-size: 14px;">{{ \App\Models\CompanyConfig::getDireccion() }}</p>
             @if(\App\Models\CompanyConfig::getTelefono())
-                <p>Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                <p style="font-size: 14px;">Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
             @endif
         </div>
         <hr>

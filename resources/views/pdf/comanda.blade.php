@@ -219,12 +219,12 @@
             $direccion = \App\Models\CompanyConfig::getDireccion();
         @endphp
 
-        <div class="company-name">
+        <div class="company-name" style="font-size: 16px;">
             {{ $nombreComercial ?: $razonSocial ?: 'RESTAURANTE' }}
         </div>
 
         @if($direccion)
-        <div class="company-address">{{ $direccion }}</div>
+        <div class="company-address" style="font-size: 14px;">{{ $direccion }}</div>
         @endif
     </div>
 

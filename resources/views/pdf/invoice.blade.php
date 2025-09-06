@@ -174,13 +174,13 @@
     <div class="container">
         <div class="header">
             <h1>FACTURA ELECTRÓNICA</h1>
-            <p><strong>{{ \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
-            <p>RUC: {{ \App\Models\CompanyConfig::getRuc() }}</p>
-            <p>{{ \App\Models\CompanyConfig::getDireccion() }}</p>
+            <p><strong style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
+            <p style="font-size: 14px;">RUC: {{ \App\Models\CompanyConfig::getRuc() }}</p>
+            <p style="font-size: 14px;">{{ \App\Models\CompanyConfig::getDireccion() }}</p>
             @if(\App\Models\CompanyConfig::getTelefono())
-                <p>Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                <p style="font-size: 14px;">Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
             @endif
-            <p><strong>F{{ $invoice->series }}-{{ str_pad($invoice->number, 8, '0', STR_PAD_LEFT) }}</strong></p>
+            <p><strong style="font-size: 15px;">F{{ $invoice->series }}-{{ str_pad($invoice->number, 8, '0', STR_PAD_LEFT) }}</strong></p>
         </div>
         <hr>
         <table class="info-table">
@@ -426,7 +426,7 @@
             <p>N° 203-2015/SUNAT</p>
             <p>Consulte su comprobante en www.sunat.gob.pe</p>
             <p>Gracias por su preferencia</p>
-            <p><strong>{{ \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
+            <p><strong style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
         </div>
     </div>
     <script>

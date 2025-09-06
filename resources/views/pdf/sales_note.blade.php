@@ -173,12 +173,12 @@
     <div class="container">
         <div class="header">
             <h1>NOTA DE VENTA</h1>
-            <p><strong>{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</strong></p>
-            <p>{{ $company['direccion'] ?? \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</p>
+            <p><strong style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</strong></p>
+            <p style="font-size: 14px;">{{ $company['direccion'] ?? \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</p>
             @if(($company['telefono'] ?? \App\Models\CompanyConfig::getTelefono()))
-                <p>Tel: {{ $company['telefono'] ?? \App\Models\CompanyConfig::getTelefono() }}</p>
+                <p style="font-size: 14px;">Tel: {{ $company['telefono'] ?? \App\Models\CompanyConfig::getTelefono() }}</p>
             @endif
-            <p><strong>{{ $invoice->series }}-{{ str_pad($invoice->number, 8, '0', STR_PAD_LEFT) }}</strong></p>
+            <p><strong style="font-size: 15px;">{{ $invoice->series }}-{{ str_pad($invoice->number, 8, '0', STR_PAD_LEFT) }}</strong></p>
         </div>
         <hr>
         <table class="info-table">

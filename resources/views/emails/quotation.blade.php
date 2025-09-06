@@ -68,14 +68,14 @@
 
             <p>Atentamente,</p>
             <p><strong>{{ $quotation->user->name }}</strong><br>
-            {{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</p>
+            <span style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</span></p>
         </div>
 
         <div class="footer">
-            <p>© {{ date('Y') }} {{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}. Todos los derechos reservados.</p>
-            <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Principal 123, Lima, Perú' }}
+            <p>© {{ date('Y') }} <span style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'Restaurante Ejemplo' }}</span>. Todos los derechos reservados.</p>
+            <p style="font-size: 14px;">{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Principal 123, Lima, Perú' }}
             @if(\App\Models\CompanyConfig::getTelefono())
-                | Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}
+                | <span style="font-size: 14px;">Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</span>
             @endif
             @if(\App\Models\CompanyConfig::getEmail())
                 | Email: {{ \App\Models\CompanyConfig::getEmail() }}

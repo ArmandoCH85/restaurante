@@ -190,12 +190,12 @@
     <div class="container">
         <div class="header">
             <div class="company-info">
-                <h1>{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
-                <p>{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Principal 123, Lima, Perú' }}</p>
+                <h1 style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</h1>
+                <p style="font-size: 14px;">{{ \App\Models\CompanyConfig::getDireccion() ?? 'Av. Principal 123, Lima, Perú' }}</p>
                 @if(\App\Models\CompanyConfig::getTelefono())
-                    <p>Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+                    <p style="font-size: 14px;">Teléfono: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
                 @endif
-                <p>RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
+                <p style="font-size: 14px;">RUC: {{ \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
             </div>
         </div>
 
