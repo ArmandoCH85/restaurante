@@ -752,7 +752,7 @@ class PosController extends Controller
         // Validaciones según tipo de comprobante
         $rules = [
             'invoice_type' => 'required|in:receipt,invoice,sales_note',
-            'payment_method' => 'required|string|in:cash,card,transfer,yape,plin,multiple',
+            'payment_method' => 'required|string|in:cash,card,transfer,yape,plin,rappi,bita_express,multiple',
             'discount_percent' => 'nullable|numeric|min:0|max:100',
             'customer_id' => 'nullable|exists:customers,id'
         ];

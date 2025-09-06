@@ -425,6 +425,8 @@ class CashRegister extends Model
             Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD => 'tarjeta',
             Payment::METHOD_DIGITAL_WALLET => 'billetera digital',
             Payment::METHOD_BANK_TRANSFER => 'transferencia bancaria',
+            Payment::METHOD_RAPPI => 'rappi',
+            Payment::METHOD_BITA_EXPRESS => 'bita express',
             default => $paymentMethod
         };
 

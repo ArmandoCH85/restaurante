@@ -166,6 +166,14 @@
                                 <i class="fas fa-mobile-alt"></i>
                                 <span>Plin</span>
                             </div>
+                            <div class="payment-method" data-method="rappi" onclick="selectPaymentMethod(this, 'rappi')">
+                                <i class="fas fa-shipping-fast"></i>
+                                <span>Rappi</span>
+                            </div>
+                            <div class="payment-method" data-method="bita_express" onclick="selectPaymentMethod(this, 'bita_express')">
+                                <i class="fas fa-truck"></i>
+                                <span>Bita Express</span>
+                            </div>
                         </div>
 
                         <input type="hidden" name="payment_method" id="payment_method" value="cash">

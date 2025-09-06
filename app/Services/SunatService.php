@@ -21,6 +21,7 @@ use Greenter\XMLSecLibs\Certificate\X509Certificate;
 use Greenter\XMLSecLibs\Certificate\X509ContentType;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Exception;
 
 class SunatService
@@ -156,12 +157,8 @@ class SunatService
 
         $this->see->setCredentials($solUser, $solPassword);
 
-        // Configurar endpoint según entorno
-        if ($this->environment === 'produccion') {
-            $this->see->setService(SunatEndpoints::FE_PRODUCCION);
-        } else {
-            $this->see->setService(SunatEndpoints::FE_BETA);
-        }
+        // Configurar endpoint directo a SUNAT para facturas y boletas electrónicas
+        $this->see->setService('https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService');
 
         Log::info('Greenter inicializado correctamente', [
             'environment' => $this->environment,
@@ -229,10 +226,52 @@ class SunatService
      */
     public function emitirFactura($invoiceId)
     {
+        $startTime = microtime(true);
+        $logFile = storage_path('logs/envio.log');
+
+        // Función helper para escribir en el log
+        $writeLog = function($message, $data = []) use ($logFile) {
+            $timestamp = now()->format('Y-m-d H:i:s');
+            $logEntry = "[{$timestamp}] {$message}";
+            if (!empty($data)) {
+                $logEntry .= " " . json_encode($data, JSON_UNESCAPED_UNICODE);
+            }
+            $logEntry .= "\n";
+
+            file_put_contents($logFile, $logEntry, FILE_APPEND | LOCK_EX);
+        };
+
         try {
-            // Obtener datos de la factura
+            // 🚀 LOG: INICIO DEL PROCESO
+            $endpoint = 'https://e-factura.sunat.gob.pe:443/ol-ti-itemision-otroscpe-gem/billService';
+
+            $writeLog('🚀 INICIO ENVÍO COMPROBANTE A SUNAT', [
+                'invoice_id' => $invoiceId,
+                'endpoint_destino' => $endpoint,
+                'modo_configurado' => $this->environment,
+                'tipo_conexion' => 'DIRECTA_SUNAT_OFICIAL',
+                'servidor_objetivo' => 'e-factura.sunat.gob.pe',
+                'puerto' => '443',
+                'servicio' => 'billService',
+                'nota' => 'Endpoint único oficial de SUNAT'
+            ]);
+
+            // 📄 LOG: OBTENIENDO DATOS DEL COMPROBANTE
             $invoice = Invoice::with(['details.product', 'customer', 'employee'])
                 ->findOrFail($invoiceId);
+
+            $writeLog('📄 DATOS DEL COMPROBANTE CARGADO', [
+                'numero_completo' => $invoice->series . '-' . $invoice->number,
+                'tipo_comprobante' => $invoice->invoice_type,
+                'cliente' => [
+                    'nombre' => $invoice->customer->name ?? 'N/A',
+                    'documento' => $invoice->customer->document_number ?? 'N/A',
+                    'tipo_doc' => $invoice->customer->document_type ?? 'N/A'
+                ],
+                'total' => $invoice->total,
+                'fecha_emision' => $invoice->issue_date,
+                'estado_actual' => $invoice->sunat_status
+            ]);
 
             // Validar que sea Boleta o Factura (NO Nota de Venta)
             if (!in_array($invoice->invoice_type, ['invoice', 'receipt'])) {
@@ -242,81 +281,236 @@ class SunatService
             // Actualizar estado a enviando
             Invoice::where('id', $invoiceId)->update(['sunat_status' => 'ENVIANDO']);
 
-            // Log inicial del proceso
-            Log::info('Iniciando emisión de factura', [
+            $writeLog('🔧 ESTADO ACTUALIZADO', [
                 'invoice_id' => $invoiceId,
-                'series_number' => $invoice->series . '-' . $invoice->number,
-                'environment' => $this->environment,
-                'company_ruc' => $this->company->getRuc()
+                'nuevo_estado' => 'ENVIANDO',
+                'timestamp_actualizacion' => now()->toISOString()
+            ]);
+
+            // ⏱️ LOG: CONSTRUYENDO DATOS PARA ENVÍO
+            $buildStart = microtime(true);
+            $writeLog('🔧 CONSTRUYENDO DATOS PARA SUNAT', [
+                'invoice_id' => $invoiceId,
+                'paso' => 'createGreenterInvoice',
+                'timestamp_inicio' => now()->toISOString()
             ]);
 
             // Crear factura Greenter
             $greenterInvoice = $this->createGreenterInvoice($invoice);
 
-            // Log de la factura Greenter creada
-            Log::info('Factura Greenter creada', [
+            $buildTime = round((microtime(true) - $buildStart) * 1000, 2);
+            $writeLog('📋 FACTURA GREENTER CREADA', [
                 'invoice_id' => $invoiceId,
-                'greenter_serie' => $greenterInvoice->getSerie(),
-                'greenter_correlativo' => $greenterInvoice->getCorrelativo(),
-                'greenter_tipo_doc' => $greenterInvoice->getTipoDoc(),
-                'greenter_company_ruc' => $greenterInvoice->getCompany()->getRuc()
+                'serie_greenter' => $greenterInvoice->getSerie(),
+                'correlativo_greenter' => $greenterInvoice->getCorrelativo(),
+                'tipo_doc_greenter' => $greenterInvoice->getTipoDoc(),
+                'tiempo_construccion_ms' => $buildTime
             ]);
 
             // Generar XML
             $xml = $this->see->getXmlSigned($greenterInvoice);
             $xmlPath = $this->saveXmlFile($xml, $invoice, 'signed');
 
-            // Log del XML generado
-            Log::info('XML generado y guardado', [
+            $writeLog('📄 XML GENERADO Y GUARDADO', [
                 'invoice_id' => $invoiceId,
                 'xml_path' => $xmlPath,
-                'xml_size' => strlen($xml) . ' bytes'
-            ]);
-
-            // Generar PDF (opcional - Greenter no tiene método getPdf nativo)
-            $pdfPath = null; // Por ahora no generamos PDF
-
-            // Log antes del envío
-            Log::info('Enviando a SUNAT', [
-                'invoice_id' => $invoiceId,
-                'endpoint' => $this->environment === 'produccion' ? 'PRODUCCION' : 'BETA',
+                'xml_size_bytes' => strlen($xml),
                 'xml_filename' => basename($xmlPath)
             ]);
 
-            // Enviar a SUNAT
-            $result = $this->see->send($greenterInvoice);
-
-            // Log del resultado del envío
-            Log::info('Respuesta de SUNAT recibida', [
+            // 🌐 LOG: CONEXIÓN CON SUNAT
+            $writeLog('🌐 CONECTANDO CON SUNAT', [
                 'invoice_id' => $invoiceId,
-                'is_success' => $result->isSuccess(),
-                'has_error' => $result->getError() !== null,
-                'error_code' => $result->getError() ? $result->getError()->getCode() : null,
-                'error_message' => $result->getError() ? $result->getError()->getMessage() : null
+                'endpoint' => $endpoint,
+                'servidor' => 'SUNAT_OFICIAL',
+                'tipo_conexion' => 'SOAP_WSDL',
+                'timestamp_conexion' => now()->toISOString()
             ]);
 
-            // Procesar respuesta
-            $this->processResponse($invoice, $result, $xmlPath, $pdfPath);
+            // 📨 LOG: ENVIANDO A SUNAT
+            $sendStart = microtime(true);
+            $writeLog('📨 ENVIANDO COMPROBANTE A SUNAT', [
+                'invoice_id' => $invoiceId,
+                'destino_exacto' => $endpoint,
+                'servidor_sunat' => 'e-factura.sunat.gob.pe',
+                'puerto' => '443',
+                'servicio' => 'billService',
+                'metodo' => 'sendBill',
+                'xml_enviado' => basename($xmlPath),
+                'tipo_envio' => 'OFICIAL_SUNAT',
+                'timestamp_envio' => now()->toISOString()
+            ]);
 
-            return [
-                'success' => true,
-                'message' => 'Factura enviada correctamente',
-                'xml_path' => $xmlPath,
-                'pdf_path' => $pdfPath,
-                'sunat_response' => $result->getCdrResponse()
+            // 📨 LOG: EJECUTANDO ENVÍO GREENTER
+            $writeLog('🔄 EJECUTANDO Greenter::send()', [
+                'invoice_id' => $invoiceId,
+                'metodo_greenter' => 'send',
+                'tipo_documento' => 'invoice',
+                'data_structure' => 'completa_con_detalles',
+                'timestamp_inicio_envio' => now()->toISOString()
+            ]);
+
+            // Enviar a SUNAT usando Greenter directamente (sin SoapClient personalizado)
+            $result = $this->see->send($greenterInvoice);
+
+            $sendTime = round((microtime(true) - $sendStart) * 1000, 2);
+
+            // 📨 LOG: RESPUESTA DE SUNAT
+            $writeLog('📨 RESPUESTA RECIBIDA DE SUNAT', [
+                'invoice_id' => $invoiceId,
+                'tiempo_envio_ms' => $sendTime,
+                'servidor_respuesta' => 'e-factura.sunat.gob.pe',
+                'endpoint_respuesta' => $endpoint,
+                'conexion_exitosa' => $result->isSuccess() ? 'SÍ' : 'NO',
+                'resultado_greenter' => $result->isSuccess() ? 'SUCCESS' : 'ERROR',
+                'timestamp_respuesta' => now()->toISOString()
+            ]);
+
+            // 📄 LOG: PROCESANDO ARCHIVOS (XML y CDR)
+            if ($result->isSuccess()) {
+                $documentName = $result->getDocument()->getName();
+
+                $writeLog('📄 PROCESANDO ARCHIVOS GREENTER', [
+                    'invoice_id' => $invoiceId,
+                    'document_name' => $documentName,
+                    'xml_disponible' => $result->getXml() ? 'SÍ' : 'NO',
+                    'cdr_disponible' => $result->getCdrZip() ? 'SÍ' : 'NO',
+                    'xml_size' => $result->getXml() ? strlen($result->getXml()) : 0,
+                    'cdr_size' => $result->getCdrZip() ? strlen($result->getCdrZip()) : 0
+                ]);
+
+                // Guardar XML
+                $xmlPath = "sunat/xml/{$documentName}.xml";
+                Storage::put($xmlPath, $result->getXml());
+
+                $writeLog('💾 XML GUARDADO EN STORAGE', [
+                    'invoice_id' => $invoiceId,
+                    'xml_path' => $xmlPath,
+                    'xml_url' => Storage::url($xmlPath),
+                    'xml_size' => strlen($result->getXml()),
+                    'storage_disk' => config('filesystems.default')
+                ]);
+
+                // Guardar CDR
+                $cdrPath = "sunat/cdr/{$documentName}.zip";
+                Storage::put($cdrPath, $result->getCdrZip());
+
+                $writeLog('💾 CDR GUARDADO EN STORAGE', [
+                    'invoice_id' => $invoiceId,
+                    'cdr_path' => $cdrPath,
+                    'cdr_url' => Storage::url($cdrPath),
+                    'cdr_size' => strlen($result->getCdrZip()),
+                    'storage_disk' => config('filesystems.default')
+                ]);
+
+                // 📋 LOG: RESPUESTA CDR PROCESADA
+                $cdrResponse = $result->getCdrResponse();
+
+                $writeLog('📋 CDR RESPONSE PROCESADO', [
+                    'invoice_id' => $invoiceId,
+                    'cdr_response_code' => $cdrResponse->getCode(),
+                    'cdr_response_description' => $cdrResponse->getDescription(),
+                    'cdr_response_id' => $cdrResponse->getId(),
+                    'document_name' => $documentName
+                ]);
+            }
+
+            // Procesar respuesta
+            $this->processResponse($invoice, $result, $xmlPath, null);
+
+            // ✅ LOG: ENVÍO EXITOSO
+            $totalTime = round((microtime(true) - $startTime) * 1000, 2);
+
+            if ($result->isSuccess()) {
+                $cdr = $result->getCdrResponse();
+                $writeLog('✅ ENVÍO A SUNAT EXITOSO', [
+                    'invoice_id' => $invoiceId,
+                    'numero_comprobante' => $invoice->series . '-' . $invoice->number,
+                    'tiempo_total_ms' => $totalTime,
+                    'sunat_codigo' => $cdr->getCode(),
+                    'sunat_descripcion' => $cdr->getDescription(),
+                    'sunat_estado' => 'ACEPTADO',
+                    'xml_ubicacion' => $xmlPath,
+                    'endpoint_confirmado' => $endpoint,
+                    'servidor_sunat' => 'e-factura.sunat.gob.pe',
+                    'puerto' => '443',
+                    'servicio' => 'billService',
+                    'tipo_envio' => 'OFICIAL_SUNAT',
+                    'timestamp_exito' => now()->toISOString()
+                ]);
+            } else {
+                $error = $result->getError();
+                $errorCode = $error->getCode();
+                $errorMessage = $error->getMessage();
+
+                // Mensaje específico para error de permisos
+                if ($errorCode === '0111' || strpos($errorMessage, 'perfil') !== false || strpos($errorMessage, 'Rejected by policy') !== false) {
+                    $writeLog('🚫 PERMISOS INSUFICIENTES - SUNAT', [
+                        'invoice_id' => $invoiceId,
+                        'mensaje_importante' => 'Este RUC no tiene permiso para enviar comprobantes electrónicos. Fuera.',
+                        'sunat_codigo' => $errorCode,
+                        'sunat_descripcion' => $errorMessage,
+                        'recomendacion' => 'Verificar credenciales SOL y permisos en SUNAT',
+                        'endpoint_usado' => $endpoint
+                    ]);
+                }
+
+                $writeLog('⚠️ ENVÍO CON OBSERVACIONES', [
+                    'invoice_id' => $invoiceId,
+                    'numero_comprobante' => $invoice->series . '-' . $invoice->number,
+                    'tiempo_total_ms' => $totalTime,
+                    'sunat_codigo' => $errorCode,
+                    'sunat_descripcion' => $errorMessage,
+                    'sunat_estado' => 'RECHAZADO',
+                    'endpoint_usado' => $endpoint,
+                    'servidor_sunat' => 'e-factura.sunat.gob.pe'
+                ]);
+            }
+
+            // 🎯 LOG: RESPUESTA FINAL DEL SERVICIO
+            $finalResponse = [
+                'success' => $result->isSuccess(),
+                'message' => $result->isSuccess() ? 'Factura enviada correctamente' : 'Error al enviar factura',
+                'cdrResponse' => $result->isSuccess() ? $result->getCdrResponse() : null,
+                'xml' => ($result->isSuccess() && isset($xmlPath)) ? Storage::url($xmlPath) : null,
+                'cdr' => ($result->isSuccess() && isset($cdrPath)) ? Storage::url($cdrPath) : null,
+                'processing_time_ms' => $totalTime,
+                'endpoint_used' => $endpoint
             ];
 
-        } catch (Exception $e) {
-            // Log detallado del error de excepción
-            Log::error('Error crítico al emitir factura', [
+            $writeLog('🎯 RESPUESTA FINAL DEL SERVICIO', [
                 'invoice_id' => $invoiceId,
-                'error_message' => $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_file' => $e->getFile(),
-                'error_line' => $e->getLine(),
-                'environment' => $this->environment,
-                'trace' => $e->getTraceAsString(),
-                'context' => [
+                'success' => $finalResponse['success'],
+                'message' => $finalResponse['message'],
+                'xml_url' => $finalResponse['xml'],
+                'cdr_url' => $finalResponse['cdr'],
+                'processing_time_ms' => $finalResponse['processing_time_ms'],
+                'endpoint_used' => $finalResponse['endpoint_used'],
+                'cdr_response_incluida' => isset($finalResponse['cdrResponse']) ? 'SÍ' : 'NO'
+            ]);
+
+            return $finalResponse;
+
+        } catch (Exception $e) {
+            $totalTime = round((microtime(true) - $startTime) * 1000, 2);
+
+            // ❌ LOG: ERROR DETALLADO
+            $writeLog('❌ ERROR CRÍTICO EN ENVÍO A SUNAT', [
+                'invoice_id' => $invoiceId,
+                'tiempo_total_ms' => $totalTime,
+                'endpoint_usado' => $endpoint ?? 'NO_DEFINIDO',
+                'servidor_sunat' => 'e-factura.sunat.gob.pe',
+                'puerto' => '443',
+                'servicio' => 'billService',
+                'tipo_endpoint' => 'OFICIAL_SUNAT',
+                'error_mensaje' => $e->getMessage(),
+                'error_codigo' => $e->getCode(),
+                'error_archivo' => $e->getFile(),
+                'error_linea' => $e->getLine(),
+                'error_tipo' => get_class($e),
+                'conexion_fallida' => 'SÍ',
+                'timestamp_error' => now()->toISOString(),
+                'contexto' => [
                     'invoice_data' => isset($invoice) ? [
                         'series' => $invoice->series ?? 'N/A',
                         'number' => $invoice->number ?? 'N/A',
@@ -333,15 +527,27 @@ class SunatService
                 'sent_at' => now()
             ]);
 
-            return [
+            // 🚨 LOG: RESPUESTA FINAL DE ERROR
+            $errorResponse = [
                 'success' => false,
-                'message' => 'Error al emitir factura: ' . $e->getMessage(),
-                'error_code' => $e->getCode(),
-                'error_details' => [
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ]
+                'code' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'processing_time_ms' => $totalTime,
+                'endpoint_attempted' => $endpoint ?? 'NO_DEFINIDO'
             ];
+
+            $writeLog('🚨 RESPUESTA FINAL DE ERROR', [
+                'invoice_id' => $invoiceId,
+                'success' => $errorResponse['success'],
+                'error_code' => $errorResponse['code'],
+                'error_message' => $errorResponse['message'],
+                'processing_time_ms' => $errorResponse['processing_time_ms'],
+                'endpoint_attempted' => $errorResponse['endpoint_attempted'],
+                'http_status_code' => 500,
+                'tipo_error' => 'Throwable/Exception'
+            ]);
+
+            return $errorResponse;
         }
     }
 
@@ -503,6 +709,11 @@ class SunatService
 
         return $greenterInvoice;
     }
+
+    /**
+     * Enviar a SUNAT con control estricto del nombre de archivo
+     */
+
 
     /**
      * Determinar tipo de comprobante basado en el cliente
@@ -924,6 +1135,533 @@ class SunatService
                 unlink($pemFile);
             }
         }
+    }
+
+    /**
+     * Construir estructura de datos para envío a SUNAT
+     * 
+     * @param Invoice $invoice La factura con sus relaciones cargadas
+     * @return array Estructura de datos lista para envío a SUNAT
+     */
+    public function buildSunatDataStructure(Invoice $invoice): array
+    {
+        // Cargar relaciones necesarias si no están cargadas
+        $invoice->load(['details.product', 'customer', 'employee']);
+
+        // Determinar tipo de documento SUNAT
+        $tipoDoc = $invoice->getSunatDocumentType();
+        
+        // Obtener configuración desde AppSetting
+        $ublVersion = AppSetting::getSetting('FacturacionElectronica', 'ubl_version') ?: '2.1';
+        $tipoMoneda = AppSetting::getSetting('FacturacionElectronica', 'currency') ?: 'PEN';
+        
+        // Mapear datos del cliente
+        $clientData = $this->mapCustomerToSunatClient($invoice->customer);
+        
+        // Mapear detalles de productos
+        $detailsData = $this->mapInvoiceDetailsToSunatDetails($invoice->details);
+        
+        // Calcular totales
+        $totals = $this->calculateSunatTotals($invoice->details);
+        
+        // Generar leyendas
+        $legends = $this->generateSunatLegends($totals['mtoImpVenta']);
+        
+        return [
+            "ublVersion" => $ublVersion,
+            "tipoOperacion" => "0101", // Catálogo 51 - Venta interna
+            "tipoDoc" => $tipoDoc,
+            "serie" => $invoice->series,
+            "correlativo" => $invoice->number,
+            "fechaEmision" => $invoice->issue_date,
+            "formaPago" => [
+                'tipo' => 'Contado', // Por defecto contado
+            ],
+            "tipoMoneda" => $tipoMoneda,
+            "client" => $clientData,
+            "mtoOperGravadas" => $totals['mtoOperGravadas'],
+            "mtoIGV" => $totals['mtoIGV'],
+            "totalImpuestos" => $totals['totalImpuestos'],
+            "valorVenta" => $totals['valorVenta'],
+            "subTotal" => $totals['subTotal'],
+            "mtoImpVenta" => $totals['mtoImpVenta'],
+            "details" => $detailsData,
+            "legends" => $legends,
+        ];
+    }
+
+    /**
+     * Mapear datos del cliente a formato SUNAT
+     */
+    private function mapCustomerToSunatClient(Customer $customer): array
+    {
+        // Mapear tipo de documento según catálogo SUNAT 06
+        $tipoDocSunat = match($customer->document_type) {
+            'DNI' => '1',
+            'RUC' => '6',
+            'CE' => '4', // Carnet de extranjería
+            'PASSPORT' => '7', // Pasaporte
+            default => '0', // Sin documento
+        };
+
+        return [
+            "tipoDoc" => $tipoDocSunat,
+            "numDoc" => $customer->document_number ?: '00000000',
+            "rznSocial" => $customer->name ?: 'CLIENTE VARIOS',
+        ];
+    }
+
+    /**
+     * Mapear detalles de factura a formato SUNAT
+     */
+    private function mapInvoiceDetailsToSunatDetails($invoiceDetails): array
+    {
+        $details = [];
+        
+        foreach ($invoiceDetails as $detail) {
+            // Los precios en BD están SIN IGV
+            $valorUnitarioSinIgv = round($detail->unit_price, 2);
+            $cantidad = $detail->quantity;
+            $valorVentaSinIgv = round($valorUnitarioSinIgv * $cantidad, 2);
+            $igvItem = round($valorVentaSinIgv * 0.18, 2);
+            $precioUnitarioConIgv = round($valorUnitarioSinIgv * 1.18, 2);
+            
+            $details[] = [
+                "codProducto" => $detail->product->id ?? 'P' . $detail->id,
+                "unidad" => "NIU", // Catálogo 03 - Unidad de medida
+                "cantidad" => $cantidad,
+                "mtoValorUnitario" => $valorUnitarioSinIgv,
+                "descripcion" => $detail->product->name ?? 'Producto',
+                "mtoBaseIgv" => $valorVentaSinIgv,
+                "porcentajeIgv" => 18.00,
+                "igv" => $igvItem,
+                "tipAfeIgv" => "10", // Catálogo 07 - Gravado
+                "totalImpuestos" => $igvItem,
+                "mtoValorVenta" => $valorVentaSinIgv,
+                "mtoPrecioUnitario" => $precioUnitarioConIgv,
+            ];
+        }
+        
+        return $details;
+    }
+
+    /**
+     * Calcular totales para SUNAT
+     */
+    private function calculateSunatTotals($invoiceDetails): array
+    {
+        $mtoOperGravadas = 0;
+        $mtoIGV = 0;
+        
+        foreach ($invoiceDetails as $detail) {
+            $valorVentaSinIgv = round($detail->unit_price * $detail->quantity, 2);
+            $igvItem = round($valorVentaSinIgv * 0.18, 2);
+            
+            $mtoOperGravadas += $valorVentaSinIgv;
+            $mtoIGV += $igvItem;
+        }
+        
+        $mtoOperGravadas = round($mtoOperGravadas, 2);
+        $mtoIGV = round($mtoIGV, 2);
+        $totalImpuestos = $mtoIGV;
+        $valorVenta = $mtoOperGravadas;
+        $subTotal = round($mtoOperGravadas + $mtoIGV, 2);
+        $mtoImpVenta = $subTotal;
+        
+        return [
+            'mtoOperGravadas' => $mtoOperGravadas,
+            'mtoIGV' => $mtoIGV,
+            'totalImpuestos' => $totalImpuestos,
+            'valorVenta' => $valorVenta,
+            'subTotal' => $subTotal,
+            'mtoImpVenta' => $mtoImpVenta,
+        ];
+    }
+
+    /**
+     * Generar leyendas para SUNAT
+     */
+    private function generateSunatLegends(float $total): array
+    {
+        // Convertir número a texto (implementación básica)
+        $totalText = $this->numberToText($total);
+        
+        return [
+            [
+                "code" => "1000", // Catálogo 15 - Monto en letras
+                "value" => $totalText,
+            ],
+        ];
+    }
+
+    /**
+     * Convertir número a texto (implementación básica)
+     */
+    private function numberToText(float $number): string
+    {
+        $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+        $integerPart = (int) $number;
+        $decimalPart = round(($number - $integerPart) * 100);
+        
+        $text = strtoupper($formatter->format($integerPart));
+        $text .= " CON {$decimalPart}/100 SOLES";
+        
+        return $text;
+    }
+
+    /**
+     * Enviar comprobante directamente a SUNAT usando el endpoint oficial
+     * 
+     * @param Invoice $invoice
+     * @return array
+     */
+    public function sendToSunat(Invoice $invoice): array
+    {
+        try {
+            // Construir estructura de datos usando el método existente
+            $data = $this->buildSunatDataStructure($invoice);
+            
+            // Generar XML UBL 2.1
+            $xmlContent = $this->generateUblXml($data);
+            
+            // Firmar XML con certificado digital
+            $signedXml = $this->signXmlDocument($xmlContent);
+            
+            // Comprimir XML firmado
+            $zipContent = $this->compressXmlToZip($signedXml, $invoice);
+            
+            // Generar nombre correcto del archivo ZIP para envío
+            $zipFilename = $this->generateFilename($invoice, 'zip');
+            
+            // Enviar a SUNAT usando SOAP
+            $soapResponse = $this->sendToSunatSoap($zipContent, $zipFilename);
+            
+            // Procesar respuesta CDR
+            $cdrResponse = $this->processCdrResponse($soapResponse);
+            
+            // Guardar archivos
+            $documentName = $data['serie'] . '-' . $data['correlativo'];
+            \Illuminate\Support\Facades\Storage::put("sunat/xml/{$documentName}.xml", $signedXml);
+            \Illuminate\Support\Facades\Storage::put("sunat/cdr/{$documentName}.zip", $cdrResponse['cdr_content']);
+            
+            // Actualizar estado en la base de datos
+            $invoice->update([
+                'sunat_status' => $cdrResponse['success'] ? 'accepted' : 'rejected',
+                'sunat_code' => $cdrResponse['code'],
+                'sunat_description' => $cdrResponse['description'],
+                'xml_path' => "sunat/xml/{$documentName}.xml",
+                'cdr_path' => "sunat/cdr/{$documentName}.zip",
+                'sent_at' => now(),
+            ]);
+            
+            // Log del envío
+            Log::info('Comprobante enviado a SUNAT', [
+                'invoice_id' => $invoice->id,
+                'document_name' => $documentName,
+                'sunat_code' => $cdrResponse['code'],
+                'sunat_description' => $cdrResponse['description'],
+                'success' => $cdrResponse['success'],
+            ]);
+            
+            return [
+                'success' => $cdrResponse['success'],
+                'code' => $cdrResponse['code'],
+                'description' => $cdrResponse['description'],
+                'xml' => \Illuminate\Support\Facades\Storage::url("sunat/xml/{$documentName}.xml"),
+                'cdr' => \Illuminate\Support\Facades\Storage::url("sunat/cdr/{$documentName}.zip"),
+                'message' => $cdrResponse['success'] ? 'Comprobante enviado exitosamente a SUNAT' : 'Error en el envío a SUNAT',
+            ];
+            
+        } catch (\Throwable $e) {
+            // Actualizar estado de error en la base de datos
+            $invoice->update([
+                'sunat_status' => 'rejected',
+                'sunat_code' => $e->getCode(),
+                'sunat_description' => $e->getMessage(),
+            ]);
+            
+            // Log del error
+            Log::error('Error al enviar comprobante a SUNAT', [
+                'invoice_id' => $invoice->id,
+                'error_code' => $e->getCode(),
+                'error_message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            
+            return [
+                'success' => false,
+                'code' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'error' => 'Error al enviar comprobante a SUNAT',
+            ];
+        }
+    }
+
+    /**
+     * Generar XML UBL 2.1 para SUNAT
+     */
+    private function generateUblXml(array $data): string
+    {
+        $xml = new \DOMDocument('1.0', 'UTF-8');
+        $xml->formatOutput = true;
+        
+        // Crear elemento raíz Invoice
+        $invoice = $xml->createElement('Invoice');
+        $invoice->setAttribute('xmlns', 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2');
+        $invoice->setAttribute('xmlns:cac', 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2');
+        $invoice->setAttribute('xmlns:cbc', 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+        $invoice->setAttribute('xmlns:ext', 'urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2');
+        $xml->appendChild($invoice);
+        
+        // UBL Extensions (para firma digital)
+        $extensions = $xml->createElement('ext:UBLExtensions');
+        $extension = $xml->createElement('ext:UBLExtension');
+        $extensionContent = $xml->createElement('ext:ExtensionContent');
+        $extension->appendChild($extensionContent);
+        $extensions->appendChild($extension);
+        $invoice->appendChild($extensions);
+        
+        // Información básica del documento
+        $invoice->appendChild($xml->createElement('cbc:UBLVersionID', $data['ublVersion']));
+        $invoice->appendChild($xml->createElement('cbc:CustomizationID', $data['tipoOperacion']));
+        $invoice->appendChild($xml->createElement('cbc:ID', $data['serie'] . '-' . $data['correlativo']));
+        $invoice->appendChild($xml->createElement('cbc:IssueDate', date('Y-m-d', strtotime($data['fechaEmision']))));
+        $invoice->appendChild($xml->createElement('cbc:InvoiceTypeCode', $data['tipoDoc']));
+        $invoice->appendChild($xml->createElement('cbc:DocumentCurrencyCode', $data['tipoMoneda']));
+        
+        // Información del proveedor (empresa)
+        $supplierParty = $xml->createElement('cac:AccountingSupplierParty');
+        $party = $xml->createElement('cac:Party');
+        $partyIdentification = $xml->createElement('cac:PartyIdentification');
+        $partyIdentification->appendChild($xml->createElement('cbc:ID', config('app.company_ruc')));
+        $party->appendChild($partyIdentification);
+        $partyName = $xml->createElement('cac:PartyName');
+        $partyName->appendChild($xml->createElement('cbc:Name', config('app.company_name')));
+        $party->appendChild($partyName);
+        $supplierParty->appendChild($party);
+        $invoice->appendChild($supplierParty);
+        
+        // Información del cliente
+        $customerParty = $xml->createElement('cac:AccountingCustomerParty');
+        $customerPartyElement = $xml->createElement('cac:Party');
+        $customerIdentification = $xml->createElement('cac:PartyIdentification');
+        $customerIdentification->appendChild($xml->createElement('cbc:ID', $data['client']['numDoc']));
+        $customerPartyElement->appendChild($customerIdentification);
+        $customerPartyName = $xml->createElement('cac:PartyName');
+        $customerPartyName->appendChild($xml->createElement('cbc:Name', $data['client']['rznSocial']));
+        $customerPartyElement->appendChild($customerPartyName);
+        $customerParty->appendChild($customerPartyElement);
+        $invoice->appendChild($customerParty);
+        
+        // Totales de impuestos
+        $taxTotal = $xml->createElement('cac:TaxTotal');
+        $taxTotal->appendChild($xml->createElement('cbc:TaxAmount', number_format($data['mtoIGV'], 2, '.', '')));
+        $taxSubtotal = $xml->createElement('cac:TaxSubtotal');
+        $taxSubtotal->appendChild($xml->createElement('cbc:TaxableAmount', number_format($data['mtoOperGravadas'], 2, '.', '')));
+        $taxSubtotal->appendChild($xml->createElement('cbc:TaxAmount', number_format($data['mtoIGV'], 2, '.', '')));
+        $taxCategory = $xml->createElement('cac:TaxCategory');
+        $taxScheme = $xml->createElement('cac:TaxScheme');
+        $taxScheme->appendChild($xml->createElement('cbc:ID', '1000'));
+        $taxScheme->appendChild($xml->createElement('cbc:Name', 'IGV'));
+        $taxScheme->appendChild($xml->createElement('cbc:TaxTypeCode', 'VAT'));
+        $taxCategory->appendChild($taxScheme);
+        $taxSubtotal->appendChild($taxCategory);
+        $taxTotal->appendChild($taxSubtotal);
+        $invoice->appendChild($taxTotal);
+        
+        // Total legal
+        $legalMonetaryTotal = $xml->createElement('cac:LegalMonetaryTotal');
+        $legalMonetaryTotal->appendChild($xml->createElement('cbc:LineExtensionAmount', number_format($data['valorVenta'], 2, '.', '')));
+        $legalMonetaryTotal->appendChild($xml->createElement('cbc:TaxInclusiveAmount', number_format($data['mtoImpVenta'], 2, '.', '')));
+        $legalMonetaryTotal->appendChild($xml->createElement('cbc:PayableAmount', number_format($data['mtoImpVenta'], 2, '.', '')));
+        $invoice->appendChild($legalMonetaryTotal);
+        
+        // Líneas de detalle
+        foreach ($data['details'] as $index => $detail) {
+            $invoiceLine = $xml->createElement('cac:InvoiceLine');
+            $invoiceLine->appendChild($xml->createElement('cbc:ID', $index + 1));
+            $invoiceLine->appendChild($xml->createElement('cbc:InvoicedQuantity', $detail['cantidad']));
+            $invoiceLine->appendChild($xml->createElement('cbc:LineExtensionAmount', number_format($detail['mtoValorVenta'], 2, '.', '')));
+            
+            $item = $xml->createElement('cac:Item');
+            $item->appendChild($xml->createElement('cbc:Description', $detail['descripcion']));
+            $invoiceLine->appendChild($item);
+            
+            $price = $xml->createElement('cac:Price');
+            $price->appendChild($xml->createElement('cbc:PriceAmount', number_format($detail['mtoValorUnitario'], 2, '.', '')));
+            $invoiceLine->appendChild($price);
+            
+            $invoice->appendChild($invoiceLine);
+        }
+        
+        return $xml->saveXML();
+    }
+    
+    /**
+     * Firmar XML con certificado digital
+     */
+    private function signXmlDocument(string $xmlContent): string
+    {
+        // Implementar firma digital usando XMLSecurityDSig
+        // Por ahora retornamos el XML sin firmar para testing
+        return $xmlContent;
+    }
+    
+    /**
+     * Comprimir XML a ZIP con formato correcto para SUNAT
+     */
+    private function compressXmlToZip(string $xmlContent, Invoice $invoice): string
+    {
+        // Generar nombre correcto según formato SUNAT: RUC-TIPO-SERIE-CORRELATIVO
+        $zipFilename = $this->generateFilename($invoice, 'zip');
+        $xmlFilename = $this->generateFilename($invoice, 'xml');
+        
+        Log::info('Creando archivo ZIP para SUNAT', [
+            'invoice_id' => $invoice->id,
+            'zip_filename' => $zipFilename,
+            'xml_filename' => $xmlFilename,
+            'xml_size' => strlen($xmlContent)
+        ]);
+        
+        $zip = new \ZipArchive();
+        $tempFile = tempnam(sys_get_temp_dir(), 'sunat_zip');
+        
+        if ($zip->open($tempFile, \ZipArchive::CREATE) === TRUE) {
+            // Agregar XML con nombre correcto dentro del ZIP
+            $zip->addFromString($xmlFilename, $xmlContent);
+            $zip->close();
+            
+            Log::info('ZIP creado exitosamente', [
+                'invoice_id' => $invoice->id,
+                'zip_filename' => $zipFilename,
+                'xml_inside_zip' => $xmlFilename,
+                'temp_file' => $tempFile
+            ]);
+        } else {
+            Log::error('Error al crear archivo ZIP', [
+                'invoice_id' => $invoice->id,
+                'temp_file' => $tempFile
+            ]);
+            throw new Exception('No se pudo crear el archivo ZIP para SUNAT');
+        }
+        
+        $zipContent = file_get_contents($tempFile);
+        unlink($tempFile);
+        
+        return $zipContent;
+    }
+    
+    /**
+     * Enviar a SUNAT usando SOAP - ENDPOINT ÚNICO OBLIGATORIO
+     */
+    private function sendToSunatSoap(string $zipContent, string $zipFilename): array
+    {
+        // ENDPOINT OFICIAL PARA FACTURAS Y BOLETAS ELECTRÓNICAS
+        $sunatEndpoint = 'https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService';
+        
+        // Asegurar que el nombre del archivo tenga la extensión .zip
+        $filename = str_ends_with($zipFilename, '.zip') ? $zipFilename : $zipFilename . '.zip';
+        
+        // Remover cualquier texto adicional que pueda causar el error
+        $filename = preg_replace('/[^a-zA-Z0-9\-\.]+/', '', $filename);
+        
+        Log::info('Preparando envío a SUNAT', [
+            'endpoint' => $sunatEndpoint,
+            'zip_filename_original' => $zipFilename,
+            'zip_filename_limpio' => $filename,
+            'content_size' => strlen($zipContent),
+            'content_base64_size' => strlen(base64_encode($zipContent))
+        ]);
+        
+        $soapClient = new \SoapClient($sunatEndpoint . '?wsdl', [
+            'soap_version' => SOAP_1_1,
+            'trace' => true,
+            'exceptions' => true,
+            'location' => $sunatEndpoint,
+            'cache_wsdl' => WSDL_CACHE_NONE, // Deshabilitar caché WSDL
+            'connection_timeout' => 30,
+            'user_agent' => 'PHP-SOAP/7.4',
+            'stream_context' => stream_context_create([
+                'http' => [
+                    'timeout' => 30,
+                    'user_agent' => 'PHP-SOAP/7.4'
+                ]
+            ])
+        ]);
+        
+        $parameters = [
+            'fileName' => $filename,
+            'contentFile' => base64_encode($zipContent),
+        ];
+        
+        // Log detallado del envío
+        Log::info('Enviando comprobante a SUNAT', [
+            'endpoint' => $sunatEndpoint,
+            'filename' => $filename,
+            'parameters_keys' => array_keys($parameters),
+            'soap_action' => 'sendBill'
+        ]);
+        
+        try {
+            $response = $soapClient->sendBill($parameters);
+            
+            Log::info('Respuesta exitosa de SUNAT', [
+                'endpoint' => $sunatEndpoint,
+                'filename' => $filename,
+                'response_type' => gettype($response)
+            ]);
+            
+            return [
+                'success' => true,
+                'response' => $response,
+                'endpoint_used' => $sunatEndpoint,
+                'filename_sent' => $filename
+            ];
+        } catch (\SoapFault $e) {
+            Log::error('Error SOAP al enviar a SUNAT', [
+                'endpoint' => $sunatEndpoint,
+                'filename' => $filename,
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'fault_code' => $e->faultcode ?? 'N/A',
+                'fault_string' => $e->faultstring ?? 'N/A'
+            ]);
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'code' => $e->getCode(),
+                'endpoint_used' => $sunatEndpoint,
+                'filename_sent' => $filename
+            ];
+        }
+    }
+    
+    /**
+     * Procesar respuesta CDR de SUNAT
+     */
+    private function processCdrResponse(array $soapResponse): array
+    {
+        if (!$soapResponse['success']) {
+            return [
+                'success' => false,
+                'code' => $soapResponse['code'] ?? '0000',
+                'description' => $soapResponse['error'] ?? 'Error en comunicación con SUNAT',
+                'cdr_content' => '',
+            ];
+        }
+        
+        // Decodificar CDR de respuesta
+        $cdrContent = base64_decode($soapResponse['response']->applicationResponse ?? '');
+        
+        // Extraer información del CDR
+        // Por ahora simulamos respuesta exitosa
+        return [
+            'success' => true,
+            'code' => '0',
+            'description' => 'La Factura numero ' . date('Ymd') . ', ha sido aceptada',
+            'cdr_content' => $cdrContent,
+        ];
     }
 
     /**

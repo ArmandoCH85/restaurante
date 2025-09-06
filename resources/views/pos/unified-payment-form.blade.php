@@ -513,6 +513,14 @@
                             <img src="{{ asset('images/plin.png') }}" alt="Plin" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
                             <span>Plin</span>
                         </div>
+                        <div class="payment-method" data-method="rappi" onclick="selectPaymentMethod(this, 'rappi')">
+                            <img src="{{ asset('images/rappi.svg') }}" alt="Rappi" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
+                            <span>Rappi</span>
+                        </div>
+                        <div class="payment-method" data-method="bita_express" onclick="selectPaymentMethod(this, 'bita_express')">
+                            <img src="{{ asset('images/bita_express.svg') }}" alt="Bita Express" style="height: 30px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto;">
+                            <span>Bita Express</span>
+                        </div>
                     </div>
 
                     <input type="hidden" name="payment_method" id="payment_method" value="cash">

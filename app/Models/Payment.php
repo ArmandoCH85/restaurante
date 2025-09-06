@@ -44,6 +44,8 @@ class Payment extends Model
     const METHOD_DEBIT_CARD = 'debit_card';
     const METHOD_BANK_TRANSFER = 'bank_transfer';
     const METHOD_DIGITAL_WALLET = 'digital_wallet';
+    const METHOD_RAPPI = 'rappi';
+    const METHOD_BITA_EXPRESS = 'bita_express';
 
     /**
      * Obtiene la orden asociada al pago.
@@ -81,6 +83,8 @@ class Payment extends Model
             self::METHOD_CARD => 'Tarjeta',
             self::METHOD_BANK_TRANSFER => 'Transferencia Bancaria',
             self::METHOD_DIGITAL_WALLET => 'Billetera Digital',
+            self::METHOD_RAPPI => 'Rappi',
+            self::METHOD_BITA_EXPRESS => 'Bita Express',
             default => $this->payment_method,
         };
     }
