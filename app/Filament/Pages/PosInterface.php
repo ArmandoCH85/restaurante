@@ -3815,4 +3815,62 @@ class PosInterface extends Page
             default => 'B001',
         };
     }
+
+    /**
+     * Genera un índice de color único basado en el nombre de la categoría
+     * Esto asegura que la misma categoría siempre tenga el mismo color
+     */
+    public function generateColorIndex(string $categoryName): int
+    {
+        // Crear un hash simple pero consistente del nombre
+        $hash = crc32($categoryName);
+        // Convertir a un índice entre 0-19 (20 colores disponibles)
+        return abs($hash) % 20;
+    }
+
+    /**
+     * Genera colores automáticos profesionales basados en un índice
+     */
+    public function getAutoColors(int $index): array
+    {
+        // Paleta de colores profesionales predefinidos
+        $colorPalette = [
+            // Tonos azules
+            ['bg' => 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', 'bgHover' => 'linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%)', 'bgActive' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'border' => '#bfdbfe', 'borderHover' => '#93c5fd', 'borderActive' => '#2563eb', 'text' => '#1e40af', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', 'bgHover' => 'linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%)', 'bgActive' => 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', 'border' => '#c7d2fe', 'borderHover' => '#a5b4fc', 'borderActive' => '#4f46e5', 'text' => '#3730a3', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)', 'bgHover' => 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)', 'bgActive' => 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)', 'border' => '#e0f2fe', 'borderHover' => '#bae6fd', 'borderActive' => '#0284c7', 'text' => '#0c4a6e', 'textActive' => '#ffffff'],
+
+            // Tonos verdes
+            ['bg' => 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', 'bgHover' => 'linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%)', 'bgActive' => 'linear-gradient(135deg, #059669 0%, #047857 100%)', 'border' => '#a7f3d0', 'borderHover' => '#6ee7b7', 'borderActive' => '#047857', 'text' => '#065f46', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)', 'bgHover' => 'linear-gradient(135deg, #bbf7d0 0%, #86efac 100%)', 'bgActive' => 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)', 'border' => '#bbf7d0', 'borderHover' => '#86efac', 'borderActive' => '#15803d', 'text' => '#166534', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', 'bgHover' => 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', 'bgActive' => 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)', 'border' => '#d1fae5', 'borderHover' => '#a7f3d0', 'borderActive' => '#16a34a', 'text' => '#14532d', 'textActive' => '#ffffff'],
+
+            // Tonos púrpuras
+            ['bg' => 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', 'bgHover' => 'linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%)', 'bgActive' => 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', 'border' => '#e9d5ff', 'borderHover' => '#d8b4fe', 'borderActive' => '#7c3aed', 'text' => '#581c87', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', 'bgHover' => 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', 'bgActive' => 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)', 'border' => '#f3e8ff', 'borderHover' => '#e9d5ff', 'borderActive' => '#9333ea', 'text' => '#6b21a8', 'textActive' => '#ffffff'],
+
+            // Tonos rosas
+            ['bg' => 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)', 'bgHover' => 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', 'bgActive' => 'linear-gradient(135deg, #db2777 0%, #be185d 100%)', 'border' => '#fce7f3', 'borderHover' => '#fbcfe8', 'borderActive' => '#be185d', 'text' => '#831843', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)', 'bgHover' => 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', 'bgActive' => 'linear-gradient(135deg, #ec4899 0%, #db2777 100%)', 'border' => '#fce7f3', 'borderHover' => '#fbcfe8', 'borderActive' => '#db2777', 'text' => '#9d174d', 'textActive' => '#ffffff'],
+
+            // Tonos naranjas
+            ['bg' => 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)', 'bgHover' => 'linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%)', 'bgActive' => 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)', 'border' => '#ffedd5', 'borderHover' => '#fed7aa', 'borderActive' => '#c2410c', 'text' => '#9a3412', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', 'bgHover' => 'linear-gradient(135deg, #fde68a 0%, #fcd34d 100%)', 'bgActive' => 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 'border' => '#fde68a', 'borderHover' => '#fcd34d', 'borderActive' => '#d97706', 'text' => '#92400e', 'textActive' => '#ffffff'],
+
+            // Tonos rojos
+            ['bg' => 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', 'bgHover' => 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', 'bgActive' => 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)', 'border' => '#fee2e2', 'borderHover' => '#fecaca', 'borderActive' => '#b91c1c', 'text' => '#991b1b', 'textActive' => '#ffffff'],
+
+            // Tonos cian
+            ['bg' => 'linear-gradient(135deg, #ecfeff 0%, #cffafe 100%)', 'bgHover' => 'linear-gradient(135deg, #cffafe 0%, #a5f3fc 100%)', 'bgActive' => 'linear-gradient(135deg, #06b6d4 0%, #0891b2 100%)', 'border' => '#cffafe', 'borderHover' => '#a5f3fc', 'borderActive' => '#0891b2', 'text' => '#0e7490', 'textActive' => '#ffffff'],
+
+            // Tonos grises/teal
+            ['bg' => 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)', 'bgHover' => 'linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%)', 'bgActive' => 'linear-gradient(135deg, #64748b 0%, #475569 100%)', 'border' => '#e2e8f0', 'borderHover' => '#cbd5e1', 'borderActive' => '#475569', 'text' => '#334155', 'textActive' => '#ffffff'],
+            ['bg' => 'linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%)', 'bgHover' => 'linear-gradient(135deg, #ccfbf1 0%, #99f6e4 100%)', 'bgActive' => 'linear-gradient(135deg, #0f766e 0%, #115e59 100%)', 'border' => '#ccfbf1', 'borderHover' => '#99f6e4', 'borderActive' => '#115e59', 'text' => '#134e4a', 'textActive' => '#ffffff'],
+        ];
+
+        // Asegurar que el índice esté dentro del rango
+        $safeIndex = $index % count($colorPalette);
+
+        return $colorPalette[$safeIndex];
+    }
 }

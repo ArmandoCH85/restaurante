@@ -204,6 +204,35 @@
             scroll-behavior: smooth;
         }
 
+        /* SISTEMA DE COLORES PROFESIONALES PARA CATEGORÍAS */
+        :root {
+            /* Paleta de colores sutiles y profesionales */
+            --cat-sopas: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);           /* Amarillo cálido suave */
+            --cat-ensaladas: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);      /* Verde menta suave */
+            --cat-piqueos: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);         /* Rosa coral suave */
+            --cat-pastas: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);         /* Rojo salmon suave */
+            --cat-entradas: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);       /* Azul lavanda suave */
+            --cat-parrillas: linear-gradient(135deg, #fed7aa 0%, #fdba74 100%);      /* Naranja terracota suave */
+            --cat-pollos: linear-gradient(135deg, #fde2e2 0%, #fecaca 100%);         /* Rojo cereza suave */
+            --cat-platos: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);         /* Púrpura lavanda suave */
+            --cat-bebidas: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);         /* Azul cielo suave */
+            --cat-adicionales: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);   /* Gris plateado suave */
+            --cat-carta: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);           /* Cyan glacial suave */
+
+            /* Colores hover sutiles */
+            --cat-sopas-hover: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
+            --cat-ensaladas-hover: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
+            --cat-piqueos-hover: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+            --cat-pastas-hover: linear-gradient(135deg, #feb2b2 0%, #f87171 100%);
+            --cat-entradas-hover: linear-gradient(135deg, #c7d2fe 0%, #a5b4fc 100%);
+            --cat-parrillas-hover: linear-gradient(135deg, #fdba74 0%, #fb923c 100%);
+            --cat-pollos-hover: linear-gradient(135deg, #fecaca 0%, #fca5a5 100%);
+            --cat-platos-hover: linear-gradient(135deg, #e9d5ff 0%, #d8b4fe 100%);
+            --cat-bebidas-hover: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+            --cat-adicionales-hover: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+            --cat-carta-hover: linear-gradient(135deg, #cffafe 0%, #7dd3fc 100%);
+        }
+
         /* BOTONES DE CATEGORÍA - DISEÑO GESTALT APLICADO */
         .pos-category-btn {
             width: 100%;
@@ -282,7 +311,229 @@
 
         .pos-category-btn:active {
             transform: translateY(0);
-            transition: transform 0.1s ease;
+        }
+
+        /* COLORES ESPECÍFICOS PARA CADA CATEGORÍA */
+        .pos-category-btn.cat-sopas {
+            background: var(--cat-sopas);
+            border-color: #fde68a;
+            color: #92400e;
+        }
+
+        .pos-category-btn.cat-sopas:hover {
+            background: var(--cat-sopas-hover);
+            border-color: #fcd34d;
+        }
+
+        .pos-category-btn.cat-sopas.active {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border-color: #d97706;
+        }
+
+        .pos-category-btn.cat-ensaladas {
+            background: var(--cat-ensaladas);
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+
+        .pos-category-btn.cat-ensaladas:hover {
+            background: var(--cat-ensaladas-hover);
+            border-color: #6ee7b7;
+        }
+
+        .pos-category-btn.cat-ensaladas.active {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            border-color: #047857;
+        }
+
+        .pos-category-btn.cat-piqueos {
+            background: var(--cat-piqueos);
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .pos-category-btn.cat-piqueos:hover {
+            background: var(--cat-piqueos-hover);
+            border-color: #fca5a5;
+        }
+
+        .pos-category-btn.cat-piqueos.active {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border-color: #b91c1c;
+        }
+
+        .pos-category-btn.cat-pastas {
+            background: var(--cat-pastas);
+            border-color: #feb2b2;
+            color: #991b1b;
+        }
+
+        .pos-category-btn.cat-pastas:hover {
+            background: var(--cat-pastas-hover);
+            border-color: #f87171;
+        }
+
+        .pos-category-btn.cat-pastas.active {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border-color: #b91c1c;
+        }
+
+        .pos-category-btn.cat-entradas {
+            background: var(--cat-entradas);
+            border-color: #c7d2fe;
+            color: #3730a3;
+        }
+
+        .pos-category-btn.cat-entradas:hover {
+            background: var(--cat-entradas-hover);
+            border-color: #a5b4fc;
+        }
+
+        .pos-category-btn.cat-entradas.active {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .pos-category-btn.cat-parrillas {
+            background: var(--cat-parrillas);
+            border-color: #fdba74;
+            color: #9a3412;
+        }
+
+        .pos-category-btn.cat-parrillas:hover {
+            background: var(--cat-parrillas-hover);
+            border-color: #fb923c;
+        }
+
+        .pos-category-btn.cat-parrillas.active {
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            color: white;
+            border-color: #c2410c;
+        }
+
+        .pos-category-btn.cat-pollos {
+            background: var(--cat-pollos);
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .pos-category-btn.cat-pollos:hover {
+            background: var(--cat-pollos-hover);
+            border-color: #fca5a5;
+        }
+
+        .pos-category-btn.cat-pollos.active {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border-color: #b91c1c;
+        }
+
+        .pos-category-btn.cat-platos {
+            background: var(--cat-platos);
+            border-color: #e9d5ff;
+            color: #581c87;
+        }
+
+        .pos-category-btn.cat-platos:hover {
+            background: var(--cat-platos-hover);
+            border-color: #d8b4fe;
+        }
+
+        .pos-category-btn.cat-platos.active {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border-color: #7c3aed;
+        }
+
+        .pos-category-btn.cat-bebidas {
+            background: var(--cat-bebidas);
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .pos-category-btn.cat-bebidas:hover {
+            background: var(--cat-bebidas-hover);
+            border-color: #93c5fd;
+        }
+
+        .pos-category-btn.cat-bebidas.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .pos-category-btn.cat-adicionales {
+            background: var(--cat-adicionales);
+            border-color: #e2e8f0;
+            color: #334155;
+        }
+
+        .pos-category-btn.cat-adicionales:hover {
+            background: var(--cat-adicionales-hover);
+            border-color: #cbd5e1;
+        }
+
+        .pos-category-btn.cat-adicionales.active {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            border-color: #475569;
+        }
+
+        .pos-category-btn.cat-carta {
+            background: var(--cat-carta);
+            border-color: #cffafe;
+            color: #0e7490;
+        }
+
+        .pos-category-btn.cat-carta:hover {
+            background: var(--cat-carta-hover);
+            border-color: #7dd3fc;
+        }
+
+        .pos-category-btn.cat-carta.active {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border-color: #0891b2;
+        }
+
+        .pos-category-btn.cat-default {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-color: var(--pos-border-subtle);
+            color: #475569;
+        }
+
+        .pos-category-btn.cat-default:hover {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            border-color: var(--pos-primary);
+        }
+
+        .pos-category-btn.cat-default.active {
+            background: linear-gradient(135deg, var(--pos-primary) 0%, var(--pos-secondary) 100%);
+            color: white;
+            border-color: var(--pos-primary);
+        }
+
+        /* COLORES AUTO-GENERADOS PARA CATEGORÍAS NUEVAS */
+        .pos-category-btn[class*="cat-auto-"] {
+            background: var(--auto-bg);
+            border-color: var(--auto-border);
+            color: var(--auto-text);
+        }
+
+        .pos-category-btn[class*="cat-auto-"]:hover {
+            background: var(--auto-bg-hover);
+            border-color: var(--auto-border-hover);
+        }
+
+        .pos-category-btn[class*="cat-auto-"].active {
+            background: var(--auto-bg-active);
+            color: var(--auto-text-active);
+            border-color: var(--auto-border-active);
         }
 
         /* SUBCATEGORÍAS - DISEÑO JERÁRQUICO CON PRINCIPIOS GESTALT */
@@ -3698,9 +3949,44 @@
 
                 <div class="pos-categories-content">
                     @foreach($this->getCategoriesProperty() as $category)
+                        @php
+                            $categorySlug = strtolower(str_replace([' ', 'á', 'é', 'í', 'ó', 'ú', 'ñ', 'ü', '–', '"', "'"], ['', 'a', 'e', 'i', 'o', 'u', 'n', 'u', '-', '', ''], $category->name));
+
+                            // Sistema inteligente de colores: categorías específicas + auto-generadas
+                            $categoryClass = match($categorySlug) {
+                                'sopas' => 'cat-sopas',
+                                'ensaladas' => 'cat-ensaladas',
+                                'piqueos' => 'cat-piqueos',
+                                'pastasartesanales', 'pastas', 'pasta' => 'cat-pastas',
+                                'entradas' => 'cat-entradas',
+                                'parrillas' => 'cat-parrillas',
+                                'pollosalalea', 'pollos', 'pollosalaleña' => 'cat-pollos',
+                                'platosdefondofusionqrico', 'platos', 'fondofusion', 'platosdefondo' => 'cat-platos',
+                                'bebidas' => 'cat-bebidas',
+                                'adicionales' => 'cat-adicionales',
+                                'cartaanterior', 'carta', 'menuanterior' => 'cat-carta',
+                                default => 'cat-auto-' . $this->generateColorIndex($category->name)
+                            };
+
+                            // Generar colores únicos para categorías nuevas
+                            $autoColorIndex = $this->generateColorIndex($category->name);
+                            $autoColors = $this->getAutoColors($autoColorIndex);
+                        @endphp
                         <button
                             wire:click="selectCategory({{ $category->id }})"
-                            class="pos-category-btn {{ $selectedCategoryId === $category->id ? 'active' : '' }}"
+                            class="pos-category-btn {{ $selectedCategoryId === $category->id ? 'active' : '' }} {{ $categoryClass }}"
+                            @if(str_starts_with($categoryClass, 'cat-auto-'))
+                                style="
+                                    --auto-bg: {{ $autoColors['bg'] }};
+                                    --auto-bg-hover: {{ $autoColors['bgHover'] }};
+                                    --auto-bg-active: {{ $autoColors['bgActive'] }};
+                                    --auto-border: {{ $autoColors['border'] }};
+                                    --auto-border-hover: {{ $autoColors['borderHover'] }};
+                                    --auto-border-active: {{ $autoColors['borderActive'] }};
+                                    --auto-text: {{ $autoColors['text'] }};
+                                    --auto-text-active: {{ $autoColors['textActive'] }};
+                                "
+                            @endif
                         >
                             {{ $category->name }}
                         </button>
