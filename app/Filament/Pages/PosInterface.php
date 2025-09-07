@@ -1845,7 +1845,16 @@ class PosInterface extends Page
             // Detiene la ejecución sin registrar un error grave, ya que la notificación ya se envió.
         } catch (\Exception $e) {
             Log::error('Error al procesar la orden en TPV: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
-            Notification::make()->title('Error al guardar la orden')->body('Ocurrió un error inesperado. Revisa los logs.')->danger()->send();
+            
+            // Usar mensaje de error comprensible
+            $errorMessage = $this->getOrderErrorMessage($e);
+            
+            Notification::make()
+                ->title('❌ Error al guardar la orden')
+                ->body($errorMessage)
+                ->danger()
+                ->persistent()
+                ->send();
         }
     }
 
@@ -2745,10 +2754,14 @@ class PosInterface extends Page
                                                                 ->send();
 
                                                         } catch (\Exception $e) {
+                                                            // Mensajes de error específicos y comprensibles
+                                                            $errorMessage = $this->getCustomerErrorMessage($e);
+                                                            
                                                             Notification::make()
-                                                                ->title('❌ Error')
-                                                                ->body('Error al registrar cliente: ' . $e->getMessage())
+                                                                ->title('❌ No se pudo registrar el cliente')
+                                                                ->body($errorMessage)
                                                                 ->danger()
+                                                                ->persistent()
                                                                 ->send();
                                                         }
                                                     })
@@ -3047,10 +3060,14 @@ class PosInterface extends Page
                 'order_id' => $this->order?->id
             ]);
 
+            // Usar mensaje de error comprensible
+            $errorMessage = $this->getPaymentErrorMessage($e);
+            
             Notification::make()
                 ->title('❌ Error en el pago')
-                ->body('No se pudo procesar el pago: ' . $e->getMessage())
+                ->body($errorMessage)
                 ->danger()
+                ->persistent()
                 ->send();
 
             return false;
@@ -3872,5 +3889,182 @@ class PosInterface extends Page
         $safeIndex = $index % count($colorPalette);
 
         return $colorPalette[$safeIndex];
+    }
+
+    /**
+     * Convierte errores SQL en mensajes comprensibles para el usuario final
+     */
+    protected function getCustomerErrorMessage(\Exception $e): string
+    {
+        $errorMessage = $e->getMessage();
+        $errorCode = $e->getCode();
+        
+        // Errores de duplicación (cliente ya existe)
+        if (str_contains($errorMessage, 'Duplicate entry') || str_contains($errorMessage, 'UNIQUE constraint failed') || $errorCode == 23000) {
+            if (str_contains($errorMessage, 'document_number')) {
+                return "🚫 Ya existe un cliente con ese número de documento. Por favor revise el DNI/RUC ingresado.";
+            }
+            if (str_contains($errorMessage, 'email')) {
+                return "📧 Ya existe un cliente con ese correo electrónico. Use otro email o busque el cliente existente.";
+            }
+            return "👥 Este cliente ya está registrado en el sistema. Use el buscador para encontrarlo.";
+        }
+        
+        // Errores de campos requeridos
+        if (str_contains($errorMessage, 'cannot be null') || str_contains($errorMessage, 'NOT NULL constraint failed')) {
+            if (str_contains($errorMessage, 'name')) {
+                return "📝 El nombre del cliente es obligatorio. Por favor escriba el nombre completo.";
+            }
+            if (str_contains($errorMessage, 'document_number')) {
+                return "🆔 El número de documento es obligatorio. Ingrese el DNI o RUC del cliente.";
+            }
+            return "⚠️ Faltan datos obligatorios. Complete todos los campos marcados como requeridos.";
+        }
+        
+        // Errores de longitud de campo
+        if (str_contains($errorMessage, 'Data too long') || str_contains($errorMessage, 'value too long')) {
+            if (str_contains($errorMessage, 'name')) {
+                return "📏 El nombre es muy largo. Use máximo 100 caracteres.";
+            }
+            if (str_contains($errorMessage, 'document_number')) {
+                return "🔢 El número de documento es muy largo. Verifique que sea correcto.";
+            }
+            if (str_contains($errorMessage, 'phone')) {
+                return "📱 El número de teléfono es muy largo. Use máximo 15 dígitos.";
+            }
+            return "📐 Uno de los datos ingresados es muy largo. Reduzca el texto.";
+        }
+        
+        // Errores de formato de email
+        if (str_contains($errorMessage, 'email') && (str_contains($errorMessage, 'format') || str_contains($errorMessage, 'invalid'))) {
+            return "📧 El formato del correo electrónico no es válido. Ejemplo: cliente@gmail.com";
+        }
+        
+        // Errores de conexión a base de datos
+        if (str_contains($errorMessage, 'Connection refused') || str_contains($errorMessage, 'SQLSTATE[HY000]')) {
+            return "🔌 Problema de conexión con la base de datos. Contacte al administrador del sistema.";
+        }
+        
+        // Errores de permisos
+        if (str_contains($errorMessage, 'Access denied') || str_contains($errorMessage, 'permission')) {
+            return "🔒 No tiene permisos para registrar clientes. Contacte al administrador.";
+        }
+        
+        // Errores de validación de documento
+        if (str_contains($errorMessage, 'document_type') || str_contains($errorMessage, 'invalid document')) {
+            return "🆔 El tipo de documento no es válido. Seleccione DNI, RUC o Pasaporte.";
+        }
+        
+        // Error genérico pero comprensible
+        return "❌ No se pudo registrar el cliente. Revise que todos los datos sean correctos y vuelva a intentar. Si el problema persiste, contacte al administrador.";
+    }
+
+    /**
+     * Convierte errores de pago en mensajes comprensibles para el usuario final
+     */
+    protected function getPaymentErrorMessage(\Exception $e): string
+    {
+        $errorMessage = $e->getMessage();
+        $errorCode = $e->getCode();
+        
+        // Errores de caja registradora
+        if (str_contains($errorMessage, 'cash_register') || str_contains($errorMessage, 'caja')) {
+            return "💰 No hay una caja abierta. Abra la caja antes de procesar pagos.";
+        }
+        
+        // Errores de monto insuficiente
+        if (str_contains($errorMessage, 'insufficient') || str_contains($errorMessage, 'insuficiente')) {
+            return "💵 El monto recibido es menor al total de la cuenta. Verifique el dinero entregado.";
+        }
+        
+        // Errores de conexión con impresora
+        if (str_contains($errorMessage, 'printer') || str_contains($errorMessage, 'impresora')) {
+            return "🖨️ Problema con la impresora. El pago se procesó pero no se pudo imprimir. Contacte al técnico.";
+        }
+        
+        // Errores de facturación electrónica
+        if (str_contains($errorMessage, 'SUNAT') || str_contains($errorMessage, 'facturación')) {
+            return "📄 El pago se procesó pero hay un problema con la facturación electrónica. Contacte al administrador.";
+        }
+        
+        // Errores de base de datos
+        if (str_contains($errorMessage, 'Connection refused') || str_contains($errorMessage, 'SQLSTATE')) {
+            return "🔌 Problema de conexión con la base de datos. Verifique su conexión a internet y vuelva a intentar.";
+        }
+        
+        // Errores de validación de datos
+        if (str_contains($errorMessage, 'validation') || str_contains($errorMessage, 'required')) {
+            return "📝 Faltan datos obligatorios para procesar el pago. Complete todos los campos requeridos.";
+        }
+        
+        // Errores de permisos
+        if (str_contains($errorMessage, 'permission') || str_contains($errorMessage, 'unauthorized')) {
+            return "🔒 No tiene permisos para procesar pagos. Contacte al administrador del sistema.";
+        }
+        
+        // Errores de método de pago
+        if (str_contains($errorMessage, 'payment_method') || str_contains($errorMessage, 'método de pago')) {
+            return "💳 Método de pago no válido. Seleccione efectivo, tarjeta o transferencia.";
+        }
+        
+        // Error genérico pero comprensible
+        return "❌ No se pudo procesar el pago. Verifique que todos los datos sean correctos y vuelva a intentar. Si el problema continúa, contacte al administrador.";
+    }
+
+    /**
+     * Convierte errores de órdenes en mensajes comprensibles para el usuario final
+     */
+    protected function getOrderErrorMessage(\Exception $e): string
+    {
+        $errorMessage = $e->getMessage();
+        $errorCode = $e->getCode();
+        
+        // Errores de carrito vacío
+        if (str_contains($errorMessage, 'empty') || str_contains($errorMessage, 'vacío')) {
+            return "🛒 El carrito está vacío. Agregue productos antes de crear la orden.";
+        }
+        
+        // Errores de mesa ocupada
+        if (str_contains($errorMessage, 'table') && str_contains($errorMessage, 'occupied')) {
+            return "🪑 La mesa seleccionada ya está ocupada. Seleccione otra mesa o libere la actual.";
+        }
+        
+        // Errores de empleado
+        if (str_contains($errorMessage, 'employee') || str_contains($errorMessage, 'empleado')) {
+            return "👤 No se encontró información del empleado. Cierre sesión y vuelva a ingresar.";
+        }
+        
+        // Errores de caja registradora
+        if (str_contains($errorMessage, 'cash_register') || str_contains($errorMessage, 'caja')) {
+            return "💰 No hay una caja abierta. Abra la caja antes de crear órdenes.";
+        }
+        
+        // Errores de productos
+        if (str_contains($errorMessage, 'product') && str_contains($errorMessage, 'not found')) {
+            return "🍽️ Uno de los productos seleccionados ya no está disponible. Actualice el carrito.";
+        }
+        
+        // Errores de stock
+        if (str_contains($errorMessage, 'stock') || str_contains($errorMessage, 'inventory')) {
+            return "📦 No hay suficiente stock de uno de los productos. Verifique la disponibilidad.";
+        }
+        
+        // Errores de base de datos
+        if (str_contains($errorMessage, 'Connection refused') || str_contains($errorMessage, 'SQLSTATE')) {
+            return "🔌 Problema de conexión con la base de datos. Verifique su conexión a internet.";
+        }
+        
+        // Errores de validación
+        if (str_contains($errorMessage, 'validation') || str_contains($errorMessage, 'required')) {
+            return "📝 Faltan datos obligatorios. Complete la información de la mesa y cliente.";
+        }
+        
+        // Errores de permisos
+        if (str_contains($errorMessage, 'permission') || str_contains($errorMessage, 'unauthorized')) {
+            return "🔒 No tiene permisos para crear órdenes. Contacte al administrador.";
+        }
+        
+        // Error genérico pero comprensible
+        return "❌ No se pudo guardar la orden. Verifique que todos los datos sean correctos y vuelva a intentar. Si el problema persiste, contacte al administrador.";
     }
 }
