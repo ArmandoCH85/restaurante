@@ -80,8 +80,252 @@ class SimpleDeliveryPage extends Page
                     })
                     ->getOptionLabelUsing(fn ($value) => optional(Customer::find($value), fn ($c) => trim(($c->name ?? '') . ' - ' . ($c->phone ?? ''))) ?? '')
                     ->createOptionForm([
+                        Forms\Components\Select::make('document_type')
+                            ->label('Tipo Documento')
+                            ->options([
+                                'DNI' => 'DNI',
+                                'RUC' => 'RUC'
+                            ])
+                            ->default('DNI')
+                            ->live()
+                            ->afterStateUpdated(function ($state, callable $set) {
+                                // Limpiar número cuando cambia el tipo
+                                $set('document_number', '');
+                                $set('name', '');
+                                $set('phone', '');
+                                $set('address', '');
+                            }),
+                        Forms\Components\TextInput::make('document_number')
+                            ->label('Número de Documento')
+                            ->required()
+                            ->maxLength(11)
+                            ->live(debounce: 500)
+                            ->rules([
+                                'regex:/^[0-9]{8,11}$/'
+                            ])
+                            ->helperText(fn (callable $get) =>
+                                $get('document_type') === 'DNI'
+                                    ? 'Ingrese 8 dígitos para DNI'
+                                    : 'Ingrese 11 dígitos para RUC'
+                            ),
+                            Forms\Components\Actions::make([
+                            Forms\Components\Actions\Action::make('lookup_document')
+                                ->label('🔍 Buscar en RENIEC/SUNAT')
+                                ->icon('heroicon-o-magnifying-glass')
+                                ->color('primary')
+                                ->action(function (callable $set, callable $get) {
+                                    $documentType = $get('document_type') ?? 'DNI';
+                                    $documentNumber = $get('document_number') ?? '';
+
+
+                                    if (empty($documentNumber)) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('⚠️ Campo requerido')
+                                            ->body('Ingrese un número de documento para buscar.')
+                                            ->warning()
+                                            ->send();
+                                        return;
+                                    }
+
+                                    // Validar formato según tipo de documento
+                                    if ($documentType === 'DNI' && !preg_match('/^[0-9]{8}$/', $documentNumber)) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('⚠️ Formato inválido')
+                                            ->body('El DNI debe tener exactamente 8 dígitos.')
+                                            ->warning()
+                                            ->send();
+                                        return;
+                                    }
+
+                                    if ($documentType === 'RUC' && !preg_match('/^[0-9]{11}$/', $documentNumber)) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('⚠️ Formato inválido')
+                                            ->body('El RUC debe tener exactamente 11 dígitos.')
+                                            ->warning()
+                                            ->send();
+                                        return;
+                                    }
+
+                                    try {
+                                        $rucLookupService = app(\App\Services\RucLookupService::class);
+
+                                        if ($documentType === 'RUC') {
+                                            $companyData = $rucLookupService->lookupRuc($documentNumber);
+
+                                            // Debug: Ver qué datos llegan
+                                            \Illuminate\Support\Facades\Log::info('RUC Lookup Result', [
+                                                'ruc' => $documentNumber,
+                                                'companyData' => $companyData,
+                                                'has_direccion' => isset($companyData['direccion']) ? !empty($companyData['direccion']) : false,
+                                                'direccion_value' => $companyData['direccion'] ?? 'NO DIRECCION',
+                                                'distrito' => $companyData['distrito'] ?? 'NO DISTRITO',
+                                                'provincia' => $companyData['provincia'] ?? 'NO PROVINCIA'
+                                            ]);
+
+                                            if ($companyData) {
+                                                $set('name', $companyData['razon_social']);
+
+                                                // Construir dirección completa con mejor formato
+                                                $addressParts = [];
+
+                                                if (!empty($companyData['direccion'])) {
+                                                    $addressParts[] = trim($companyData['direccion']);
+                                                }
+
+                                                if (!empty($companyData['distrito'])) {
+                                                    $addressParts[] = trim($companyData['distrito']);
+                                                }
+
+                                                if (!empty($companyData['provincia'])) {
+                                                    $addressParts[] = trim($companyData['provincia']);
+                                                }
+
+                                                $fullAddress = implode(', ', array_filter($addressParts));
+
+                                                // Debug: Ver dirección final para RUC
+                                                \Illuminate\Support\Facades\Log::info('RUC Final Address Construction', [
+                                                    'ruc' => $documentNumber,
+                                                    'addressParts' => $addressParts,
+                                                    'fullAddress' => $fullAddress,
+                                                    'will_assign' => !empty($fullAddress)
+                                                ]);
+
+                                                // Solo asignar si hay dirección
+                                                if (!empty($fullAddress)) {
+                                                    $set('address', $fullAddress);
+                                                }
+
+                                                // Teléfono si existe
+                                                if (!empty($companyData['telefono'])) {
+                                                    $set('phone', $companyData['telefono']);
+                                                }
+
+                                                // Agregar información adicional a referencias
+                                                $referenceParts = [];
+                                                if (!empty($companyData['departamento'])) {
+                                                    $referenceParts[] = 'Departamento: ' . $companyData['departamento'];
+                                                }
+                                                if (!empty($companyData['ubigeo'])) {
+                                                    $referenceParts[] = 'Ubigeo: ' . $companyData['ubigeo'];
+                                                }
+                                                if (!empty($companyData['estado'])) {
+                                                    $referenceParts[] = 'Estado: ' . $companyData['estado'];
+                                                }
+
+                                                if (!empty($referenceParts)) {
+                                                    $set('reference', implode(' | ', $referenceParts));
+                                                }
+
+                                                $notificationBody = 'Datos de ' . $companyData['razon_social'] . ' cargados correctamente.';
+                                                if (!empty($fullAddress)) {
+                                                    $notificationBody .= ' Dirección incluida.';
+                                                }
+
+                                                \Filament\Notifications\Notification::make()
+                                                    ->title('✅ Empresa encontrada')
+                                                    ->body($notificationBody)
+                                                    ->success()
+                                                    ->duration(4000)
+                                                    ->send();
+                                            } else {
+                                                \Filament\Notifications\Notification::make()
+                                                    ->title('❌ RUC no encontrado')
+                                                    ->body('No se encontró información para este RUC.')
+                                                    ->warning()
+                                                    ->send();
+                                            }
+                                        } elseif ($documentType === 'DNI') {
+                                            $personData = $rucLookupService->lookupDni($documentNumber);
+
+                                            // Debug: Ver qué datos llegan
+                                            \Illuminate\Support\Facades\Log::info('DNI Lookup Result', [
+                                                'dni' => $documentNumber,
+                                                'personData' => $personData,
+                                                'has_direccion' => isset($personData['direccion']) ? !empty($personData['direccion']) : false,
+                                                'direccion_value' => $personData['direccion'] ?? 'NO DIRECCION',
+                                                'distrito' => $personData['distrito'] ?? 'NO DISTRITO',
+                                                'provincia' => $personData['provincia'] ?? 'NO PROVINCIA'
+                                            ]);
+
+                                            if ($personData) {
+                                                $set('name', $personData['nombre_completo']);
+
+                                                // Construir dirección completa con mejor formato
+                                                $addressParts = [];
+
+                                                if (!empty($personData['direccion'])) {
+                                                    $addressParts[] = trim($personData['direccion']);
+                                                }
+
+                                                if (!empty($personData['distrito'])) {
+                                                    $addressParts[] = trim($personData['distrito']);
+                                                }
+
+                                                if (!empty($personData['provincia'])) {
+                                                    $addressParts[] = trim($personData['provincia']);
+                                                }
+
+                                                $fullAddress = implode(', ', array_filter($addressParts));
+
+                                                // Debug: Ver dirección final para DNI
+                                                \Illuminate\Support\Facades\Log::info('DNI Final Address Construction', [
+                                                    'dni' => $documentNumber,
+                                                    'addressParts' => $addressParts,
+                                                    'fullAddress' => $fullAddress,
+                                                    'will_assign' => !empty($fullAddress)
+                                                ]);
+
+                                                // Solo asignar si hay dirección
+                                                if (!empty($fullAddress)) {
+                                                    $set('address', $fullAddress);
+                                                }
+
+                                                // Agregar información adicional a referencias si hay datos extra
+                                                $referenceParts = [];
+                                                if (!empty($personData['departamento'])) {
+                                                    $referenceParts[] = 'Departamento: ' . $personData['departamento'];
+                                                }
+                                                if (!empty($personData['ubigeo'])) {
+                                                    $referenceParts[] = 'Ubigeo: ' . $personData['ubigeo'];
+                                                }
+
+                                                if (!empty($referenceParts)) {
+                                                    $set('reference', implode(' | ', $referenceParts));
+                                                }
+
+                                                $notificationBody = 'Datos de ' . $personData['nombre_completo'] . ' cargados correctamente.';
+                                                if (!empty($fullAddress)) {
+                                                    $notificationBody .= ' Dirección incluida.';
+                                                }
+
+                                                \Filament\Notifications\Notification::make()
+                                                    ->title('✅ Persona encontrada')
+                                                    ->body($notificationBody)
+                                                    ->success()
+                                                    ->duration(4000)
+                                                    ->send();
+                                            } else {
+                                                \Filament\Notifications\Notification::make()
+                                                    ->title('❌ DNI no encontrado')
+                                                    ->body('No se encontró información para este DNI.')
+                                                    ->warning()
+                                                    ->send();
+                                            }
+                                        }
+                                    } catch (\Exception $e) {
+                                        \Filament\Notifications\Notification::make()
+                                            ->title('⚠️ Error de búsqueda')
+                                            ->body($e->getMessage())
+                                            ->danger()
+                                            ->send();
+                                    }
+                                })
+                                ->icon('heroicon-o-magnifying-glass')
+                                ->color('primary')
+                                ->visible(fn (callable $get) => !empty($get('document_number')) && strlen($get('document_number')) >= 8)
+                        ]),
                         Forms\Components\TextInput::make('name')
-                            ->label('Nombre')
+                            ->label('Nombre Completo')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\TextInput::make('phone')
@@ -102,6 +346,8 @@ class SimpleDeliveryPage extends Page
                             'phone' => $data['phone'],
                             'address' => $data['address'] ?? null,
                             'address_references' => $data['address_references'] ?? null,
+                            'document_type' => $data['document_type'] ?? null,
+                            'document_number' => $data['document_number'] ?? null,
                         ]);
                         return $customer->id;
                     })
