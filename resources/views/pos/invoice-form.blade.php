@@ -639,13 +639,13 @@
             const address = document.getElementById('new_address').value;
             const phone = document.getElementById('new_phone').value;
             const email = document.getElementById('new_email').value;
-
+        
             // Validaciones básicas
             if (!docNumber || !name) {
                 alert('El documento y nombre son obligatorios');
                 return;
             }
-
+        
             // Validar formato según tipo
             if ((docType === 'RUC' && docNumber.length !== 11) ||
                 (docType === 'DNI' && docNumber.length !== 8)) {
@@ -653,7 +653,7 @@
                     'El RUC debe tener 11 dígitos' : 'El DNI debe tener 8 dígitos');
                 return;
             }
-
+        
             // Crear el cliente
             fetch('{{ route('pos.customers.store') }}', {
                 method: 'POST',
@@ -679,13 +679,13 @@
                     document.getElementById('client_document').value = data.customer.document_number;
                     document.getElementById('client_name').value = data.customer.name;
                     document.getElementById('client_address').value = data.customer.address || '';
-
+        
                     // Mostrar mensaje y cerrar modal
                     const searchMessage = document.getElementById('search_message');
                     searchMessage.textContent = 'Cliente registrado exitosamente';
                     searchMessage.classList.remove('hidden', 'text-red-600');
                     searchMessage.classList.add('text-green-600');
-
+        
                     closeNewCustomerModal();
                 } else {
                     alert('Error al registrar cliente: ' + data.message);

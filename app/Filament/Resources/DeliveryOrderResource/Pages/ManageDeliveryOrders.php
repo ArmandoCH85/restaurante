@@ -308,8 +308,120 @@ class ManageDeliveryOrders extends Page implements HasForms, HasTable
                                             Forms\Components\TextInput::make('document_number')
                                                 ->label('Número de Documento')
                                                 ->placeholder('Opcional')
-                                                ->prefixIcon('heroicon-o-hashtag'),
+                                                ->prefixIcon('heroicon-o-hashtag')
+                                                ->live(debounce: 500)
+                                                ->helperText(fn (Forms\Get $get): string =>
+                                                    ($get('document_type') === 'dni')
+                                                        ? 'Ingrese 8 dígitos para DNI'
+                                                        : 'Ingrese 11 dígitos para RUC'
+                                                ),
                                         ]),
+
+                                    Forms\Components\Actions::make([
+                                        Forms\Components\Actions\Action::make('lookup_document')
+                                            ->label('🔍 Buscar en RENIEC/SUNAT')
+                                            ->icon('heroicon-o-magnifying-glass')
+                                            ->color('primary')
+                                            ->action(function (Forms\Get $get, callable $set) {
+                                                $documentType = strtolower((string) ($get('document_type') ?? 'dni'));
+                                                $documentNumber = (string) ($get('document_number') ?? '');
+
+                                                if ($documentNumber === '') {
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('⚠️ Campo requerido')
+                                                        ->body('Ingrese un número de documento para buscar.')
+                                                        ->warning()
+                                                        ->send();
+                                                    return;
+                                                }
+
+                                                if ($documentType === 'dni' && !preg_match('/^[0-9]{8}$/', $documentNumber)) {
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('⚠️ Formato inválido')
+                                                        ->body('El DNI debe tener exactamente 8 dígitos.')
+                                                        ->warning()
+                                                        ->send();
+                                                    return;
+                                                }
+
+                                                if ($documentType === 'ruc' && !preg_match('/^[0-9]{11}$/', $documentNumber)) {
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('⚠️ Formato inválido')
+                                                        ->body('El RUC debe tener exactamente 11 dígitos.')
+                                                        ->warning()
+                                                        ->send();
+                                                    return;
+                                                }
+
+                                                try {
+                                                    $rucLookupService = app(\App\Services\RucLookupService::class);
+
+                                                    if ($documentType === 'ruc') {
+                                                        $companyData = $rucLookupService->lookupRuc($documentNumber);
+                                                        if ($companyData) {
+                                                            // Si Factiliza no trae teléfono, intentar obtenerlo de un cliente existente con ese RUC
+                                                            $rucPhone = $companyData['telefono'] ?? '';
+                                                            if (empty($rucPhone)) {
+                                                                $existingByRuc = \App\Models\Customer::whereIn('document_type', ['RUC', 'ruc'])
+                                                                    ->where('document_number', $documentNumber)
+                                                                    ->first();
+                                                                if ($existingByRuc && !empty($existingByRuc->phone)) {
+                                                                    $rucPhone = $existingByRuc->phone;
+                                                                }
+                                                            }
+
+                                                            // Rellenar campos del formulario de nuevo delivery
+                                                            $set('customer_name', $companyData['razon_social'] ?? '');
+                                                            $set('phone', $rucPhone);
+                                                            $set('address', $companyData['direccion'] ?? '');
+                                                            $set('reference', 'Estado: ' . ($companyData['estado'] ?? ''));
+                                                        } else {
+                                                            \Filament\Notifications\Notification::make()
+                                                                ->title('❌ RUC no encontrado')
+                                                                ->body('No se encontró información para este RUC.')
+                                                                ->warning()
+                                                                ->send();
+                                                        }
+                                                    } else { // dni
+                                                        $personData = $rucLookupService->lookupDni($documentNumber);
+                                                        if ($personData) {
+                                                            // Intentar obtener teléfono: primero de Factiliza, si no, de un cliente existente con ese DNI
+                                                            $dniPhone = $personData['telefono'] ?? '';
+                                                            if (empty($dniPhone)) {
+                                                                $existingByDni = \App\Models\Customer::whereIn('document_type', ['DNI', 'dni'])
+                                                                    ->where('document_number', $documentNumber)
+                                                                    ->first();
+                                                                if ($existingByDni && !empty($existingByDni->phone)) {
+                                                                    $dniPhone = $existingByDni->phone;
+                                                                }
+                                                            }
+
+                                                            $set('customer_name', $personData['nombre_completo'] ?? '');
+                                                            $set('address', $personData['direccion'] ?? '');
+                                                            $set('phone', $dniPhone);
+                                                        } else {
+                                                            \Filament\Notifications\Notification::make()
+                                                                ->title('❌ DNI no encontrado')
+                                                                ->body('No se encontró información para este DNI.')
+                                                                ->warning()
+                                                                ->send();
+                                                        }
+                                                    }
+                                                } catch (\Exception $e) {
+                                                    \Filament\Notifications\Notification::make()
+                                                        ->title('⚠️ Error de búsqueda')
+                                                        ->body($e->getMessage())
+                                                        ->danger()
+                                                        ->send();
+                                                }
+                                            })
+                                            ->visible(fn (Forms\Get $get) => (
+                                                ($get('document_type') === 'dni' && strlen((string) $get('document_number')) >= 8)
+                                            ) || (
+                                                ($get('document_type') === 'ruc' && strlen((string) $get('document_number')) >= 11)
+                                            )),
+                                    ])
+                                    ->columnSpanFull(),
                                 ]),
                         ]),
 

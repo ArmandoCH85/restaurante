@@ -35,6 +35,16 @@ class SimpleDeliveryPage extends Page
         'recipient_address' => '',
     ];
 
+    public bool $showNewCustomerFields = false;
+
+    // Propiedades para el formulario de creación de cliente
+    public ?string $document_type = 'DNI';
+    public ?string $document_number = '';
+    public ?string $name = '';
+    public ?string $phone = '';
+    public ?string $address = '';
+    public ?string $address_references = '';
+
     protected function getForms(): array
     {
         return [
@@ -79,7 +89,63 @@ class SimpleDeliveryPage extends Page
                             ->toArray();
                     })
                     ->getOptionLabelUsing(fn ($value) => optional(Customer::find($value), fn ($c) => trim(($c->name ?? '') . ' - ' . ($c->phone ?? ''))) ?? '')
-                    ->createOptionForm([
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        if (!$state) {
+                            // Si no hay cliente seleccionado, mostrar campos de creación
+                            $this->showNewCustomerFields = false;
+                            return;
+                        }
+                        $customer = Customer::find($state);
+                        if ($customer) {
+                            // Cliente existente encontrado - ocultar campos de creación
+                            $this->showNewCustomerFields = false;
+                            // statePath('simple'): usar claves relativas
+                            $set('customer_name', $customer->name ?? '');
+                            $set('phone', $customer->phone ?? '');
+                            $set('address', $customer->address ?? '');
+                            $set('reference', $customer->address_references ?? '');
+                        }
+                    }),
+
+
+                // BOTÓN PARA MOSTRAR CAMPOS DE CREACIÓN DE CLIENTE
+                Forms\Components\Actions::make([
+                    Forms\Components\Actions\Action::make('showNewCustomerFields')
+                        ->label('Crear Nuevo Cliente')
+                        ->icon('heroicon-o-user-plus')
+                        ->color('gray')
+                        ->visible(fn () => !$this->showNewCustomerFields)
+                        ->action(function () {
+                            $this->showNewCustomerFields = true;
+                        }),
+                        Forms\Components\Actions\Action::make('hideNewCustomerFields')
+                        ->label('Cancelar Creación')
+                        ->icon('heroicon-o-x-mark')
+                        ->color('gray')
+                        ->visible(fn () => $this->showNewCustomerFields)
+                        ->action(function () {
+                            $this->showNewCustomerFields = false;
+                        }),
+                    Forms\Components\Actions\Action::make('createNewCustomer')
+                        ->label('Guardar Cliente')
+                        ->icon('heroicon-o-check')
+                        ->color('success')
+                        ->visible(fn () => $this->showNewCustomerFields)
+                        ->action(function () {
+                            $this->createNewCustomer();
+                        }),
+                ])
+                ->visible(fn () => !$this->simple['customer_id']) // Solo mostrar si no hay cliente seleccionado
+                ->columnSpanFull(),
+
+                // SECCIÓN CONDICIONAL PARA CREACIÓN DE CLIENTE NUEVO
+                Forms\Components\Section::make('Nuevo Cliente')
+                    ->description('Complete los datos para crear un cliente nuevo')
+                    ->icon('heroicon-o-user-plus')
+                    ->visible(fn () => $this->showNewCustomerFields)
+                    ->columns(2)
+                    ->schema([
                         Forms\Components\Select::make('document_type')
                             ->label('Tipo Documento')
                             ->options([
@@ -88,13 +154,15 @@ class SimpleDeliveryPage extends Page
                             ])
                             ->default('DNI')
                             ->live()
-                            ->afterStateUpdated(function ($state, callable $set) {
-                                // Limpiar número cuando cambia el tipo
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                // Limpiar campos cuando cambia el tipo (usar estado del formulario)
                                 $set('document_number', '');
                                 $set('name', '');
                                 $set('phone', '');
                                 $set('address', '');
-                            }),
+                                $set('address_references', '');
+                            })
+                            ->columnSpanFull(),
                         Forms\Components\TextInput::make('document_number')
                             ->label('Número de Documento')
                             ->required()
@@ -103,20 +171,20 @@ class SimpleDeliveryPage extends Page
                             ->rules([
                                 'regex:/^[0-9]{8,11}$/'
                             ])
-                            ->helperText(fn (callable $get) =>
+                            ->helperText(fn (Forms\Get $get) =>
                                 $get('document_type') === 'DNI'
                                     ? 'Ingrese 8 dígitos para DNI'
                                     : 'Ingrese 11 dígitos para RUC'
                             ),
-                            Forms\Components\Actions::make([
+                        Forms\Components\Actions::make([
                             Forms\Components\Actions\Action::make('lookup_document')
                                 ->label('🔍 Buscar en RENIEC/SUNAT')
                                 ->icon('heroicon-o-magnifying-glass')
                                 ->color('primary')
-                                ->action(function (callable $set, callable $get) {
+                                ->action(function (Forms\Get $get, Forms\Set $set) {
+                                    // Leer estado actual del formulario (statePath 'simple')
                                     $documentType = $get('document_type') ?? 'DNI';
                                     $documentNumber = $get('document_number') ?? '';
-
 
                                     if (empty($documentNumber)) {
                                         \Filament\Notifications\Notification::make()
@@ -151,82 +219,34 @@ class SimpleDeliveryPage extends Page
 
                                         if ($documentType === 'RUC') {
                                             $companyData = $rucLookupService->lookupRuc($documentNumber);
-
-                                            // Debug: Ver qué datos llegan
-                                            \Illuminate\Support\Facades\Log::info('RUC Lookup Result', [
-                                                'ruc' => $documentNumber,
-                                                'companyData' => $companyData,
-                                                'has_direccion' => isset($companyData['direccion']) ? !empty($companyData['direccion']) : false,
-                                                'direccion_value' => $companyData['direccion'] ?? 'NO DIRECCION',
-                                                'distrito' => $companyData['distrito'] ?? 'NO DISTRITO',
-                                                'provincia' => $companyData['provincia'] ?? 'NO PROVINCIA'
-                                            ]);
-
                                             if ($companyData) {
-                                                $set('name', $companyData['razon_social']);
-
-                                                // Construir dirección completa con mejor formato
-                                                $addressParts = [];
-
-                                                if (!empty($companyData['direccion'])) {
-                                                    $addressParts[] = trim($companyData['direccion']);
+                                                // Si Factiliza no trae teléfono, intentar obtenerlo de un cliente existente con ese RUC
+                                                $rucPhone = $companyData['telefono'] ?? '';
+                                                if (empty($rucPhone)) {
+                                                    $existingByRuc = \App\Models\Customer::where('document_type', 'RUC')
+                                                        ->where('document_number', $documentNumber)
+                                                        ->first();
+                                                    if ($existingByRuc && !empty($existingByRuc->phone)) {
+                                                        $rucPhone = $existingByRuc->phone;
+                                                    }
                                                 }
 
-                                                if (!empty($companyData['distrito'])) {
-                                                    $addressParts[] = trim($companyData['distrito']);
-                                                }
+                                                // Usar $set para actualizar campos principales del formulario de delivery
+                                                // Estos son los campos que se ven en el formulario principal
+                                                $set('customer_name', $companyData['razon_social'] ?? '');
+                                                $set('phone', $rucPhone);
+                                                $set('address', $companyData['direccion'] ?? ''); // Campo principal de dirección
+                                                $set('reference', 'Estado: ' . ($companyData['estado'] ?? ''));
 
-                                                if (!empty($companyData['provincia'])) {
-                                                    $addressParts[] = trim($companyData['provincia']);
-                                                }
+                                                // También actualizar campos de creación de cliente (por si están visibles)
+                                                $set('name', $companyData['razon_social'] ?? '');
+                                                $set('address_references', 'Estado: ' . ($companyData['estado'] ?? ''));
 
-                                                $fullAddress = implode(', ', array_filter($addressParts));
-
-                                                // Debug: Ver dirección final para RUC
-                                                \Illuminate\Support\Facades\Log::info('RUC Final Address Construction', [
-                                                    'ruc' => $documentNumber,
-                                                    'addressParts' => $addressParts,
-                                                    'fullAddress' => $fullAddress,
-                                                    'will_assign' => !empty($fullAddress)
-                                                ]);
-
-                                                // Solo asignar si hay dirección
-                                                if (!empty($fullAddress)) {
-                                                    $set('address', $fullAddress);
-                                                }
-
-                                                // Teléfono si existe
-                                                if (!empty($companyData['telefono'])) {
-                                                    $set('phone', $companyData['telefono']);
-                                                }
-
-                                                // Agregar información adicional a referencias
-                                                $referenceParts = [];
-                                                if (!empty($companyData['departamento'])) {
-                                                    $referenceParts[] = 'Departamento: ' . $companyData['departamento'];
-                                                }
-                                                if (!empty($companyData['ubigeo'])) {
-                                                    $referenceParts[] = 'Ubigeo: ' . $companyData['ubigeo'];
-                                                }
-                                                if (!empty($companyData['estado'])) {
-                                                    $referenceParts[] = 'Estado: ' . $companyData['estado'];
-                                                }
-
-                                                if (!empty($referenceParts)) {
-                                                    $set('reference', implode(' | ', $referenceParts));
-                                                }
-
-                                                $notificationBody = 'Datos de ' . $companyData['razon_social'] . ' cargados correctamente.';
-                                                if (!empty($fullAddress)) {
-                                                    $notificationBody .= ' Dirección incluida.';
-                                                }
-
-                                                \Filament\Notifications\Notification::make()
-                                                    ->title('✅ Empresa encontrada')
-                                                    ->body($notificationBody)
-                                                    ->success()
-                                                    ->duration(4000)
-                                                    ->send();
+                                                // Actualizar el array simple para persistencia
+                                                $this->simple['customer_name'] = $companyData['razon_social'] ?? '';
+                                                $this->simple['address'] = $companyData['direccion'] ?? '';
+                                                $this->simple['phone'] = $rucPhone;
+                                                $this->simple['reference'] = 'Estado: ' . ($companyData['estado'] ?? '');
                                             } else {
                                                 \Filament\Notifications\Notification::make()
                                                     ->title('❌ RUC no encontrado')
@@ -234,76 +254,33 @@ class SimpleDeliveryPage extends Page
                                                     ->warning()
                                                     ->send();
                                             }
-                                        } elseif ($documentType === 'DNI') {
+                                        } else { // DNI
                                             $personData = $rucLookupService->lookupDni($documentNumber);
-
-                                            // Debug: Ver qué datos llegan
-                                            \Illuminate\Support\Facades\Log::info('DNI Lookup Result', [
-                                                'dni' => $documentNumber,
-                                                'personData' => $personData,
-                                                'has_direccion' => isset($personData['direccion']) ? !empty($personData['direccion']) : false,
-                                                'direccion_value' => $personData['direccion'] ?? 'NO DIRECCION',
-                                                'distrito' => $personData['distrito'] ?? 'NO DISTRITO',
-                                                'provincia' => $personData['provincia'] ?? 'NO PROVINCIA'
-                                            ]);
-
                                             if ($personData) {
-                                                $set('name', $personData['nombre_completo']);
-
-                                                // Construir dirección completa con mejor formato
-                                                $addressParts = [];
-
-                                                if (!empty($personData['direccion'])) {
-                                                    $addressParts[] = trim($personData['direccion']);
+                                                // Intentar obtener teléfono: primero de Factiliza, si no, de un cliente existente con ese DNI
+                                                $dniPhone = $personData['telefono'] ?? '';
+                                                if (empty($dniPhone)) {
+                                                    $existingByDni = \App\Models\Customer::where('document_type', 'DNI')
+                                                        ->where('document_number', $documentNumber)
+                                                        ->first();
+                                                    if ($existingByDni && !empty($existingByDni->phone)) {
+                                                        $dniPhone = $existingByDni->phone;
+                                                    }
                                                 }
 
-                                                if (!empty($personData['distrito'])) {
-                                                    $addressParts[] = trim($personData['distrito']);
-                                                }
+                                                // Usar $set para actualizar campos principales del formulario de delivery
+                                                // Estos son los campos que se ven en el formulario principal
+                                                $set('customer_name', $personData['nombre_completo'] ?? '');
+                                                $set('phone', $dniPhone);
+                                                $set('address', $personData['direccion'] ?? ''); // Campo principal de dirección
 
-                                                if (!empty($personData['provincia'])) {
-                                                    $addressParts[] = trim($personData['provincia']);
-                                                }
+                                                // También actualizar campos de creación de cliente (por si están visibles)
+                                                $set('name', $personData['nombre_completo'] ?? '');
 
-                                                $fullAddress = implode(', ', array_filter($addressParts));
-
-                                                // Debug: Ver dirección final para DNI
-                                                \Illuminate\Support\Facades\Log::info('DNI Final Address Construction', [
-                                                    'dni' => $documentNumber,
-                                                    'addressParts' => $addressParts,
-                                                    'fullAddress' => $fullAddress,
-                                                    'will_assign' => !empty($fullAddress)
-                                                ]);
-
-                                                // Solo asignar si hay dirección
-                                                if (!empty($fullAddress)) {
-                                                    $set('address', $fullAddress);
-                                                }
-
-                                                // Agregar información adicional a referencias si hay datos extra
-                                                $referenceParts = [];
-                                                if (!empty($personData['departamento'])) {
-                                                    $referenceParts[] = 'Departamento: ' . $personData['departamento'];
-                                                }
-                                                if (!empty($personData['ubigeo'])) {
-                                                    $referenceParts[] = 'Ubigeo: ' . $personData['ubigeo'];
-                                                }
-
-                                                if (!empty($referenceParts)) {
-                                                    $set('reference', implode(' | ', $referenceParts));
-                                                }
-
-                                                $notificationBody = 'Datos de ' . $personData['nombre_completo'] . ' cargados correctamente.';
-                                                if (!empty($fullAddress)) {
-                                                    $notificationBody .= ' Dirección incluida.';
-                                                }
-
-                                                \Filament\Notifications\Notification::make()
-                                                    ->title('✅ Persona encontrada')
-                                                    ->body($notificationBody)
-                                                    ->success()
-                                                    ->duration(4000)
-                                                    ->send();
+                                                // Actualizar el array simple para persistencia
+                                                $this->simple['customer_name'] = $personData['nombre_completo'] ?? '';
+                                                $this->simple['address'] = $personData['direccion'] ?? '';
+                                                $this->simple['phone'] = $dniPhone;
                                             } else {
                                                 \Filament\Notifications\Notification::make()
                                                     ->title('❌ DNI no encontrado')
@@ -320,10 +297,13 @@ class SimpleDeliveryPage extends Page
                                             ->send();
                                     }
                                 })
-                                ->icon('heroicon-o-magnifying-glass')
-                                ->color('primary')
-                                ->visible(fn (callable $get) => !empty($get('document_number')) && strlen($get('document_number')) >= 8)
-                        ]),
+                                ->visible(fn (Forms\Get $get) => (
+                                    $get('document_type') === 'DNI' && strlen((string) $get('document_number')) >= 8
+                                ) || (
+                                    $get('document_type') === 'RUC' && strlen((string) $get('document_number')) >= 11
+                                ))
+                        ])
+                        ->columnSpanFull(),
                         Forms\Components\TextInput::make('name')
                             ->label('Nombre Completo')
                             ->required()
@@ -338,42 +318,9 @@ class SimpleDeliveryPage extends Page
                             ->rows(2),
                         Forms\Components\Textarea::make('address_references')
                             ->label('Referencias')
-                            ->rows(2),
-                    ])
-                    ->createOptionUsing(function (array $data) {
-                        $customer = Customer::create([
-                            'name' => $data['name'],
-                            'phone' => $data['phone'],
-                            'address' => $data['address'] ?? null,
-                            'address_references' => $data['address_references'] ?? null,
-                            'document_type' => $data['document_type'] ?? null,
-                            'document_number' => $data['document_number'] ?? null,
-                        ]);
-                        return $customer->id;
-                    })
-                    ->createOptionAction(function ($action) {
-                        return $action
-                            ->modalHeading('Nuevo Cliente')
-                            ->modalWidth('lg')
-                            ->modalSubmitActionLabel('Guardar cliente')
-                            ->label('Crear nuevo');
-                    })
-                    ->reactive()
-            ->afterStateUpdated(function ($state, callable $set) {
-                        if (!$state) {
-                            return;
-                        }
-                        $customer = Customer::find($state);
-                        if ($customer) {
-                // statePath('simple'): usar claves relativas
-                $set('customer_name', $customer->name ?? '');
-                $set('phone', $customer->phone ?? '');
-                $set('address', $customer->address ?? '');
-                $set('reference', $customer->address_references ?? '');
-                        }
-                    })
-                    ->helperText('Busca por nombre o teléfono, o crea un cliente nuevo')
-                    ->columnSpanFull(),
+                            ->rows(2)
+                            ->columnSpanFull(),
+                    ]),
 
                 // (Botón de copiar datos removido a solicitud del usuario)
                 Forms\Components\TextInput::make('customer_name')
@@ -409,13 +356,13 @@ class SimpleDeliveryPage extends Page
                             ->placeholder('Ej. María Gonzales')
                             ->prefixIcon('heroicon-o-user')
                             ->columnSpanFull(),
-                        
+
                         Forms\Components\TextInput::make('recipient_phone')
                             ->label('Teléfono de contacto')
                             ->tel()
                             ->placeholder('9XXXXXXXX')
                             ->prefixIcon('heroicon-o-phone'),
-                        
+
                         Forms\Components\Textarea::make('recipient_address')
                             ->label('Dirección exacta de entrega')
                             ->rows(3)
@@ -425,6 +372,59 @@ class SimpleDeliveryPage extends Page
             ])
             ->statePath('simple')
             ->columns(1);
+    }
+
+    public function createNewCustomer(): void
+    {
+        // Validar campos del nuevo cliente
+        $this->validate([
+            'document_type' => 'required|in:DNI,RUC',
+            'document_number' => 'required|string|max:11',
+            'name' => 'required|string|max:255',
+            'phone' => 'required|string|max:30',
+            'address' => 'nullable|string',
+            'address_references' => 'nullable|string',
+        ]);
+
+        try {
+            // Crear el nuevo cliente
+            $customer = Customer::create([
+                'name' => $this->name,
+                'phone' => $this->phone,
+                'address' => $this->address ?? null,
+                'address_references' => $this->address_references ?? null,
+                'document_type' => $this->document_type,
+                'document_number' => $this->document_number,
+            ]);
+
+            // Actualizar el formulario principal con los datos del nuevo cliente
+            $this->simpleForm()->fill([
+                'customer_id' => $customer->id,
+                'customer_name' => $customer->name,
+                'phone' => $customer->phone,
+                'address' => $customer->address,
+                'reference' => $customer->address_references,
+            ]);
+
+            // Ocultar los campos de creación
+            $this->showNewCustomerFields = false;
+
+            // Limpiar los campos del formulario de creación
+            $this->reset(['document_type', 'document_number', 'name', 'phone', 'address', 'address_references']);
+
+            Notification::make()
+                ->title('✅ Cliente creado exitosamente')
+                ->body('Los datos del cliente han sido guardados.')
+                ->success()
+                ->send();
+
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('❌ Error al crear cliente')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     public function createSimpleDelivery(): void
@@ -554,4 +554,6 @@ class SimpleDeliveryPage extends Page
     }
 
     // copySelectedCustomer eliminado (ya no es necesario)
+
 }
+
