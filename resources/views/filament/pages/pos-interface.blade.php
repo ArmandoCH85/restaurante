@@ -3441,11 +3441,11 @@
         }
 
         .pos-system-logo {
-            width: clamp(160px, 25vw, 220px);
+            width: clamp(320px, 45vw, 400px);
             height: auto;
-            max-width: 85%;
+            max-width: 100%;
             /* Principio de Proximidad: espaciado con el texto */
-            margin-bottom: clamp(20px, 3vw, 28px);
+            margin-bottom: clamp(36px, 5vw, 44px);
             opacity: 0.85;
             /* Principio de Continuidad: transición elegante */
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);

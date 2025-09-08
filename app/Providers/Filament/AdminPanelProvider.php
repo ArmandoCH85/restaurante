@@ -49,7 +49,7 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('')
             ->brandLogo(asset('images/logoWayna.svg'))
-            ->brandLogoHeight('4rem')
+            ->brandLogoHeight('6rem')
             ->colors([
                 'primary' => Color::Indigo, // Profesional / principal
                 'info' => Color::Cyan, // Info/accent secundario
@@ -151,8 +151,8 @@ class AdminPanelProvider extends PanelProvider
                     header.fi-sidebar-header img,
                     header.fi-sidebar-header svg {
                         display: block !important;
-                        max-height: 64px !important;
-                        height: 64px !important;
+                        max-height: 96px !important;  /* Aumentado de 64px a 96px (6rem = 96px) */
+                        height: 96px !important;     /* Aumentado de 64px a 96px (6rem = 96px) */
                         width: auto !important;
                         object-fit: contain !important;
                         filter: brightness(1) !important;
@@ -166,6 +166,7 @@ class AdminPanelProvider extends PanelProvider
                         align-items: center !important;
                         justify-content: center !important;
                         text-decoration: none !important;
+                        padding: 1rem 0.5rem !important; /* Espaciado adicional para el logo más grande */
                     }
 
                     /* TEXTO DEL LOGO */
