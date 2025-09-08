@@ -93,6 +93,7 @@ class ListOrders extends ListRecords
                             'all' => '🍽️ Todos los servicios',
                             'mesa' => '🍽️ Solo Mesa',
                             'delivery' => '🚚 Solo Delivery',
+                            'apps' => '📱 Solo Apps',
                             'directa' => '🥡 Solo Venta Directa',
                         ])
                         ->default('all')
@@ -132,6 +133,7 @@ class ListOrders extends ListRecords
                             'all' => '🍽️ Todos los servicios',
                             'mesa' => '🍽️ Solo Mesa',
                             'delivery' => '🚚 Solo Delivery',
+                            'apps' => '📱 Solo Apps',
                             'directa' => '🥡 Solo Venta Directa',
                         ])
                         ->default('all')
@@ -145,10 +147,11 @@ class ListOrders extends ListRecords
                                     'sales_trend' => '📈 Tendencia de Ventas',
                                     'top_products' => '🏆 Productos Más Vendidos',
                                     'payment_methods' => '💳 Métodos de Pago',
+                                    'apps_platforms' => '📱 Ventas por Plataforma Apps',
                                     'sales_hours' => '⏰ Horas Pico',
                                     'orders_detail' => '📋 Detalle de Órdenes',
                                 ])
-                                ->default(['stats', 'sales_trend', 'top_products', 'payment_methods'])
+                                ->default(['stats', 'sales_trend', 'top_products', 'payment_methods', 'apps_platforms'])
                                 ->columns(2)
                                 ->bulkToggleable(),
                         ])
@@ -338,8 +341,17 @@ class ListOrders extends ListRecords
                 case 'delivery':
                     $ordersQuery->whereHas('deliveryOrder');
                     break;
+                case 'apps':
+                    $ordersQuery->whereHas('payments', function ($query) {
+                        $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                    });
+                    break;
                 case 'directa':
-                    $ordersQuery->whereNull('table_id')->whereDoesntHave('deliveryOrder');
+                    $ordersQuery->whereNull('table_id')
+                        ->whereDoesntHave('deliveryOrder')
+                        ->whereDoesntHave('payments', function ($query) {
+                            $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                        });
                     break;
             }
         }
@@ -355,7 +367,8 @@ class ListOrders extends ListRecords
         $salesByType = [
             'mesa' => $orders->whereNotNull('table_id')->sum('total'),
             'delivery' => $orders->filter(fn($order) => $order->deliveryOrder)->sum('total'),
-            'directa' => $orders->filter(fn($order) => is_null($order->table_id) && !$order->deliveryOrder)->sum('total'),
+            'apps' => $this->calculateAppsSales($orders),
+            'directa' => $orders->filter(fn($order) => is_null($order->table_id) && !$order->deliveryOrder && !$this->isAppsOrder($order))->sum('total'),
         ];
 
         // 🏆 PRODUCTOS MÁS VENDIDOS
@@ -379,10 +392,30 @@ class ListOrders extends ListRecords
                     'yape' => '📱 Yape',
                     'plin' => '💙 Plin',
                     'bank_transfer', 'transfer' => '🏦 Transferencias',
+                    'rappi' => '🛵 Rappi',
+                    'bita_express' => '🚚 Bita Express',
+                    'didi_food' => '🚗 Didi Food',
+                    'pedidos_ya' => '🍕 Pedidos Ya',
                     default => $payment->payment_method,
                 };
                 return [$method => $payment->total_amount];
             });
+
+        // 📱 VENTAS POR PLATAFORMA DE APPS (para reportes detallados)
+        $appsPlatforms = [
+            'rappi' => Payment::whereIn('order_id', $orders->pluck('id'))
+                ->where('payment_method', 'rappi')
+                ->sum('amount'),
+            'bita_express' => Payment::whereIn('order_id', $orders->pluck('id'))
+                ->where('payment_method', 'bita_express')
+                ->sum('amount'),
+            'didi_food' => Payment::whereIn('order_id', $orders->pluck('id'))
+                ->where('payment_method', 'didi_food')
+                ->sum('amount'),
+            'pedidos_ya' => Payment::whereIn('order_id', $orders->pluck('id'))
+                ->where('payment_method', 'pedidos_ya')
+                ->sum('amount'),
+        ];
 
         // ⏰ VENTAS POR HORA
         $salesByHour = $orders->groupBy(function ($order) {
@@ -400,6 +433,7 @@ class ListOrders extends ListRecords
             ],
             'top_products' => $topProducts,
             'payment_methods' => $paymentMethods,
+            'apps_platforms' => $appsPlatforms,
             'sales_by_hour' => $salesByHour,
             'orders' => $orders,
         ];
@@ -423,6 +457,9 @@ class ListOrders extends ListRecords
                     break;
                 case 'sales_hours':
                     $this->createSalesHoursSheet($spreadsheet, $data['sales_by_hour']);
+                    break;
+                case 'apps_platforms':
+                    $this->createAppsPlatformsSheet($spreadsheet, $data['apps_platforms']);
                     break;
                 case 'orders_detail':
                     $this->createOrdersSheet($spreadsheet, $data['orders']);
@@ -461,6 +498,7 @@ class ListOrders extends ListRecords
             $typeLabel = match($type) {
                 'mesa' => '🍽️ Mesa',
                 'delivery' => '🚚 Delivery',
+                'apps' => '📱 Apps',
                 'directa' => '🥡 Venta Directa',
                 default => $type,
             };
@@ -575,6 +613,73 @@ class ListOrders extends ListRecords
         $sheet->getColumnDimension('B')->setWidth(20);
     }
 
+    // 📱 HOJA DE PLATAFORMAS DE APPS
+    private function createAppsPlatformsSheet(Spreadsheet $spreadsheet, $appsPlatforms): void
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle('📱 Apps Plataformas');
+
+        // Encabezados
+        $sheet->setCellValue('A1', 'VENTAS POR PLATAFORMA DE DELIVERY APPS');
+        $sheet->setCellValue('A3', 'Plataforma');
+        $sheet->setCellValue('B3', 'Ventas Totales');
+        $sheet->setCellValue('C3', 'Pedidos');
+        $sheet->setCellValue('D3', 'Ticket Promedio');
+
+        // Datos
+        $row = 4;
+        $totalAppsSales = 0;
+        $totalAppsOrders = 0;
+
+        foreach ($appsPlatforms as $platform => $amount) {
+            if ($amount > 0) {
+                $platformName = match($platform) {
+                    'rappi' => '🛵 Rappi',
+                    'bita_express' => '🚚 Bita Express',
+                    'didi_food' => '🚗 Didi Food',
+                    'pedidos_ya' => '🍕 Pedidos Ya',
+                    default => $platform,
+                };
+
+                // Contar pedidos para esta plataforma
+                $ordersCount = Payment::where('payment_method', $platform)
+                    ->whereHas('order', function ($query) {
+                        $query->whereBetween('created_at', [request('start_date', now()->startOfMonth()), request('end_date', now())])
+                              ->where('billed', true);
+                    })
+                    ->distinct('order_id')
+                    ->count('order_id');
+
+                $averageTicket = $ordersCount > 0 ? $amount / $ordersCount : 0;
+
+                $sheet->setCellValue('A' . $row, $platformName);
+                $sheet->setCellValue('B' . $row, 'S/ ' . number_format($amount, 2));
+                $sheet->setCellValue('C' . $row, $ordersCount);
+                $sheet->setCellValue('D' . $row, 'S/ ' . number_format($averageTicket, 2));
+
+                $totalAppsSales += $amount;
+                $totalAppsOrders += $ordersCount;
+                $row++;
+            }
+        }
+
+        // Totales
+        if ($totalAppsSales > 0) {
+            $sheet->setCellValue('A' . $row, '📊 TOTAL APPS');
+            $sheet->setCellValue('B' . $row, 'S/ ' . number_format($totalAppsSales, 2));
+            $sheet->setCellValue('C' . $row, $totalAppsOrders);
+            $sheet->getStyle('A' . $row . ':D' . $row)->getFont()->setBold(true);
+        }
+
+        // Estilos
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(16);
+        $sheet->getStyle('A3:D3')->getFont()->setBold(true);
+        $sheet->getColumnDimension('A')->setWidth(20);
+        $sheet->getColumnDimension('B')->setWidth(15);
+        $sheet->getColumnDimension('C')->setWidth(10);
+        $sheet->getColumnDimension('D')->setWidth(15);
+    }
+
     // 📋 HOJA DE ÓRDENES DETALLADAS
     private function createOrdersSheet(Spreadsheet $spreadsheet, $orders): void
     {
@@ -593,7 +698,9 @@ class ListOrders extends ListRecords
         // Datos
         $row = 4;
         foreach ($orders as $order) {
-            $serviceType = $order->table_id ? '🍽️ Mesa' : ($order->deliveryOrder ? '🚚 Delivery' : '🥡 Directa');
+            $serviceType = $order->table_id ? '🍽️ Mesa' :
+                          ($order->deliveryOrder ? '🚚 Delivery' :
+                          ($this->getAppsPlatformName($order) ?: '🥡 Directa'));
 
             $sheet->setCellValue('A' . $row, $order->id);
             $sheet->setCellValue('B' . $row, $order->created_at->format('d/m/Y H:i'));
@@ -613,6 +720,58 @@ class ListOrders extends ListRecords
         $sheet->getColumnDimension('D')->setWidth(15);
         $sheet->getColumnDimension('E')->setWidth(15);
         $sheet->getColumnDimension('F')->setWidth(15);
+    }
+
+    /**
+     * Calcula las ventas realizadas a través de plataformas de delivery (Apps)
+     */
+    private function calculateAppsSales($orders): float
+    {
+        $appsPlatforms = ['rappi', 'bita_express', 'didi_food', 'pedidos_ya'];
+
+        return $orders->filter(function ($order) use ($appsPlatforms) {
+            return $order->payments->contains(function ($payment) use ($appsPlatforms) {
+                return in_array($payment->payment_method, $appsPlatforms);
+            });
+        })->sum('total');
+    }
+
+    /**
+     * Verifica si una orden es de plataformas de delivery (Apps)
+     */
+    private function isAppsOrder($order): bool
+    {
+        $appsPlatforms = ['rappi', 'bita_express', 'didi_food', 'pedidos_ya'];
+
+        return $order->payments->contains(function ($payment) use ($appsPlatforms) {
+            return in_array($payment->payment_method, $appsPlatforms);
+        });
+    }
+
+    /**
+     * Obtiene el nombre específico de la plataforma de apps para una orden
+     */
+    private function getAppsPlatformName($order): ?string
+    {
+        if (!$this->isAppsOrder($order)) {
+            return null;
+        }
+
+        $platformPayment = $order->payments->first(function ($payment) {
+            return in_array($payment->payment_method, ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+        });
+
+        if ($platformPayment) {
+            return match($platformPayment->payment_method) {
+                'rappi' => '🛵 Rappi',
+                'bita_express' => '🚚 Bita Express',
+                'didi_food' => '🚗 Didi Food',
+                'pedidos_ya' => '🍕 Pedidos Ya',
+                default => '📱 Apps',
+            };
+        }
+
+        return null;
     }
 
     /**

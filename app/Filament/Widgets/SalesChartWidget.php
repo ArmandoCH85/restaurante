@@ -55,6 +55,15 @@ class SalesChartWidget extends ChartWidget
                     'fill' => true,
                 ],
                 [
+                    'label' => '📱 Apps',
+                    'data' => $data['apps'],
+                    'backgroundColor' => 'rgba(147, 51, 234, 0.1)', // Púrpura
+                    'borderColor' => 'rgb(147, 51, 234)',
+                    'pointBackgroundColor' => 'rgb(147, 51, 234)',
+                    'tension' => 0.4,
+                    'fill' => true,
+                ],
+                [
                     'label' => '🥡 Venta Directa',
                     'data' => $data['directa'],
                     'backgroundColor' => 'rgba(34, 197, 94, 0.1)', // Verde
@@ -80,6 +89,7 @@ class SalesChartWidget extends ChartWidget
         $mesaData = [];
         $deliveryData = [];
         $directaData = [];
+        $appsData = [];
 
     $dates = $this->expandDailyDates();
 
@@ -100,7 +110,16 @@ class SalesChartWidget extends ChartWidget
                 ->sum('total');
             $deliveryData[] = (float) $deliverySales;
 
-            // 🥡 VENTA DIRECTA (takeout + sin mesa)
+            // 📱 VENTAS APPS (Rappi, Bita Express, etc.)
+            $appsSales = Order::whereDate('created_at', $date['date'])
+                ->where('billed', true)
+                ->whereHas('payments', function($query) {
+                    $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                })
+                ->sum('total');
+            $appsData[] = (float) $appsSales;
+
+            // 🥡 VENTA DIRECTA (takeout + sin mesa, EXCLUYENDO Apps)
             $directaSales = Order::whereDate('created_at', $date['date'])
                 ->where(function($query) {
                     $query->where('service_type', 'takeout')
@@ -110,6 +129,9 @@ class SalesChartWidget extends ChartWidget
                           });
                 })
                 ->where('billed', true)
+                ->whereDoesntHave('payments', function($query) {
+                    $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                })
                 ->sum('total');
             $directaData[] = (float) $directaSales;
         }
@@ -119,6 +141,7 @@ class SalesChartWidget extends ChartWidget
             'mesa' => $mesaData,
             'delivery' => $deliveryData,
             'directa' => $directaData,
+            'apps' => $appsData,
         ];
     }
 

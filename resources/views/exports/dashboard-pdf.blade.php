@@ -266,6 +266,7 @@
                         $typeLabel = match($type) {
                             'mesa' => '🍽️ Mesa',
                             'delivery' => '🚚 Delivery',
+                            'apps' => '📱 Apps',
                             'directa' => '🥡 Venta Directa',
                             default => ucfirst($type),
                         };
@@ -328,6 +329,51 @@
                 @endforeach
             </tbody>
         </table>
+
+        <!-- Plataformas de Apps -->
+        @if(isset($data['apps_platforms']) && !empty(array_filter($data['apps_platforms'])))
+        <div class="section-title">📱 VENTAS POR PLATAFORMA DE APPS</div>
+        <table class="mb-6">
+            <thead>
+                <tr>
+                    <th>Plataforma</th>
+                    <th class="text-right">Ventas</th>
+                    <th class="text-right">Porcentaje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $appsTotal = array_sum($data['apps_platforms']);
+                @endphp
+                @foreach($data['apps_platforms'] as $platform => $amount)
+                    @if($amount > 0)
+                    @php
+                        $percentage = $appsTotal > 0 ? ($amount / $appsTotal) * 100 : 0;
+                        $platformLabel = match($platform) {
+                            'rappi' => '🛵 Rappi',
+                            'bita_express' => '🚚 Bita Express',
+                            'didi_food' => '🚗 Didi Food',
+                            'pedidos_ya' => '🍕 Pedidos Ya',
+                            default => ucfirst($platform),
+                        };
+                    @endphp
+                    <tr>
+                        <td class="font-medium">{{ $platformLabel }}</td>
+                        <td class="text-right">S/ {{ number_format($amount, 2) }}</td>
+                        <td class="text-right">{{ number_format($percentage, 1) }}%</td>
+                    </tr>
+                    @endif
+                @endforeach
+                @if($appsTotal > 0)
+                <tr class="font-bold bg-gray-50">
+                    <td><strong>TOTAL APPS</strong></td>
+                    <td class="text-right"><strong>S/ {{ number_format($appsTotal, 2) }}</strong></td>
+                    <td class="text-right"><strong>100%</strong></td>
+                </tr>
+                @endif
+            </tbody>
+        </table>
+        @endif
 
         <!-- Ventas por Hora -->
         <div class="section-title">⏰ DISTRIBUCIÓN DE VENTAS POR HORA</div>

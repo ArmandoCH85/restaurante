@@ -49,8 +49,11 @@ class PaymentMethodsWidget extends ChartWidget
                         '#3B82F6', // 💙 Azul - Tarjetas
                         '#F59E0B', // 🟡 Ámbar - Yape
                         '#8B5CF6', // 💜 Púrpura - Plin
-                        '#EF4444', // ❤️ Rojo - Transferencias
-                        '#6B7280', // ⚫ Gris - Otros
+                        '#EF4444', // ❤️ Rojo - Pedidos Ya
+                        '#F97316', // 🟠 Naranja - Didi Food
+                        '#06B6D4', // 💙 Cyan - Bita Express
+                        '#EC4899', // 🩷 Rosa - Rappi
+                        '#6B7280', // ⚫ Gris - Transferencias
                     ],
                     'borderWidth' => 2,
                     'borderColor' => '#ffffff',
@@ -133,6 +136,8 @@ class PaymentMethodsWidget extends ChartWidget
             '💙 Plin' => 0,
             '🛵 Pedidos Ya' => 0,
             '🚗 Didi Food' => 0,
+            '🚚 Bita Express' => 0,
+            '🛵 Rappi' => 0,
             '🏦 Transferencias' => 0,
         ];
 
@@ -161,6 +166,10 @@ class PaymentMethodsWidget extends ChartWidget
                 $amounts['🛵 Pedidos Ya'] += $amount;
             } elseif ($payment->payment_method === 'didi_food') {
                 $amounts['🚗 Didi Food'] += $amount;
+            } elseif ($payment->payment_method === 'bita_express') {
+                $amounts['🚚 Bita Express'] += $amount;
+            } elseif ($payment->payment_method === 'rappi') {
+                $amounts['🛵 Rappi'] += $amount;
             } elseif (in_array($payment->payment_method, ['bank_transfer', 'transfer'])) {
                 $amounts['🏦 Transferencias'] += $amount;
             }

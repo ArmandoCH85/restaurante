@@ -219,6 +219,16 @@
             --cat-adicionales: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);   /* Gris plateado suave */
             --cat-carta: linear-gradient(135deg, #ecfeff 0%, #cffafe 100%);           /* Cyan glacial suave */
 
+            /* Colores para subcategorías de bebidas - mismo tono azul pero variaciones */
+            --subcat-bebidas-gaseosas: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);   /* Azul cielo más claro */
+            --subcat-bebidas-naturales: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);   /* Azul cielo estándar */
+            --subcat-bebidas-alcoholicas: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%); /* Azul cielo medio */
+            --subcat-bebidas-calientes: linear-gradient(135deg, #7dd3fc 0%, #38bdf8 100%);   /* Azul cielo más intenso */
+            --subcat-bebidas-frozen: linear-gradient(135deg, #a5f3fc 0%, #67e8f9 100%);     /* Cyan hielo */
+            --subcat-bebidas-vinos: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);      /* Púrpura vino */
+            --subcat-bebidas-sangrias: linear-gradient(135deg, #ec4899 0%, #f97316 100%);   /* Rosa-naranja sangría */
+            --subcat-bebidas-tragos: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);     /* Ámbar cóctel */
+
             /* Colores hover sutiles */
             --cat-sopas-hover: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
             --cat-ensaladas-hover: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
@@ -619,6 +629,151 @@
         .pos-subcategory-btn:active {
             transform: translateY(0);
             transition: transform 0.1s ease;
+        }
+
+        /* CLASES ESPECÍFICAS PARA SUBCATEGORÍAS DE BEBIDAS */
+        .pos-subcategory-btn.subcat-gaseosas {
+            background: var(--subcat-bebidas-gaseosas);
+            border-color: #bae6fd;
+            color: #0c4a6e;
+        }
+
+        .pos-subcategory-btn.subcat-gaseosas:hover {
+            background: linear-gradient(135deg, #bae6fd 0%, #7dd3fc 100%);
+            border-color: #7dd3fc;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-gaseosas.active {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border-color: #0284c7;
+        }
+
+        .pos-subcategory-btn.subcat-naturales {
+            background: var(--subcat-bebidas-naturales);
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+
+        .pos-subcategory-btn.subcat-naturales:hover {
+            background: linear-gradient(135deg, #bfdbfe 0%, #93c5fd 100%);
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-naturales.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border-color: #2563eb;
+        }
+
+        .pos-subcategory-btn.subcat-alcoholicas {
+            background: var(--subcat-bebidas-alcoholicas);
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+
+        .pos-subcategory-btn.subcat-alcoholicas:hover {
+            background: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
+            border-color: #60a5fa;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-alcoholicas.active {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border-color: #1d4ed8;
+        }
+
+        .pos-subcategory-btn.subcat-calientes {
+            background: var(--subcat-bebidas-calientes);
+            border-color: #38bdf8;
+            color: #0c4a6e;
+        }
+
+        .pos-subcategory-btn.subcat-calientes:hover {
+            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+            border-color: #0ea5e9;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-calientes.active {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: white;
+            border-color: #0369a1;
+        }
+
+        .pos-subcategory-btn.subcat-frozen {
+            background: var(--subcat-bebidas-frozen);
+            border-color: #67e8f9;
+            color: #0c4a6e;
+        }
+
+        .pos-subcategory-btn.subcat-frozen:hover {
+            background: linear-gradient(135deg, #67e8f9 0%, #22d3ee 100%);
+            border-color: #22d3ee;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-frozen.active {
+            background: linear-gradient(135deg, #0891b2 0%, #0e7490 100%);
+            color: white;
+            border-color: #0e7490;
+        }
+
+        .pos-subcategory-btn.subcat-vinos {
+            background: var(--subcat-bebidas-vinos);
+            border-color: #8b5cf6;
+            color: #1e1b4b;
+        }
+
+        .pos-subcategory-btn.subcat-vinos:hover {
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            border-color: #a855f7;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-vinos.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            color: white;
+            border-color: #6d28d9;
+        }
+
+        .pos-subcategory-btn.subcat-sangrias {
+            background: var(--subcat-bebidas-sangrias);
+            border-color: #f97316;
+            color: #9a3412;
+        }
+
+        .pos-subcategory-btn.subcat-sangrias:hover {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            border-color: #ea580c;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-sangrias.active {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            color: white;
+            border-color: #b91c1c;
+        }
+
+        .pos-subcategory-btn.subcat-tragos {
+            background: var(--subcat-bebidas-tragos);
+            border-color: #d97706;
+            color: #92400e;
+        }
+
+        .pos-subcategory-btn.subcat-tragos:hover {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+            border-color: #b45309;
+            transform: translateY(-1px);
+        }
+
+        .pos-subcategory-btn.subcat-tragos.active {
+            background: linear-gradient(135deg, #a16207 0%, #78350f 100%);
+            color: white;
+            border-color: #78350f;
         }
 
         /* Contenedor de subcategorías - Principio de Proximidad */
@@ -4005,9 +4160,50 @@
                                 Todos
                             </button>
                             @foreach($subcategories as $subcat)
+                                @php
+                                    // Determinar la clase CSS para subcategorías de bebidas
+                                    $subcategoryClass = '';
+                                    if ($selectedCategoryId) {
+                                        $parentCategory = \App\Models\ProductCategory::find($selectedCategoryId);
+                                        if ($parentCategory && strtolower($parentCategory->name) === 'bebidas') {
+                                            $subcatName = strtolower($subcat->name);
+
+                                            // Mapeo específico de subcategorías existentes
+                                            if ($subcatName === 'gaseosas') {
+                                                $subcategoryClass = 'subcat-gaseosas';
+                                            } elseif (str_contains($subcatName, 'bebidas naturales') || $subcatName === 'naturales clásicas') {
+                                                $subcategoryClass = 'subcat-naturales';
+                                            } elseif ($subcatName === 'bebidas frozen') {
+                                                $subcategoryClass = 'subcat-frozen';
+                                            } elseif ($subcatName === 'cervezas') {
+                                                $subcategoryClass = 'subcat-alcoholicas';
+                                            } elseif ($subcatName === 'vinos') {
+                                                $subcategoryClass = 'subcat-vinos';
+                                            } elseif ($subcatName === 'sangrías') {
+                                                $subcategoryClass = 'subcat-sangrias';
+                                            } elseif ($subcatName === 'tragos') {
+                                                $subcategoryClass = 'subcat-tragos';
+                                            }
+
+                                            // Fallback para subcategorías no mapeadas específicamente
+                                            elseif (str_contains($subcatName, 'gaseosa') || str_contains($subcatName, 'refresco') || str_contains($subcatName, 'soda')) {
+                                                $subcategoryClass = 'subcat-gaseosas';
+                                            } elseif (str_contains($subcatName, 'natural') || str_contains($subcatName, 'jugo') || str_contains($subcatName, 'agua')) {
+                                                $subcategoryClass = 'subcat-naturales';
+                                            } elseif (str_contains($subcatName, 'cerveza') || str_contains($subcatName, 'vino') || str_contains($subcatName, 'licor') || str_contains($subcatName, 'alcohol') || str_contains($subcatName, 'trago')) {
+                                                $subcategoryClass = 'subcat-alcoholicas';
+                                            } elseif (str_contains($subcatName, 'café') || str_contains($subcatName, 'té') || str_contains($subcatName, 'chocolate') || str_contains($subcatName, 'caliente') || str_contains($subcatName, 'frozen')) {
+                                                $subcategoryClass = 'subcat-calientes';
+                                            } else {
+                                                // Color por defecto para subcategorías no clasificadas
+                                                $subcategoryClass = 'subcat-gaseosas';
+                                            }
+                                        }
+                                    }
+                                @endphp
                                 <button
                                     wire:click="selectSubcategory({{ $subcat->id }})"
-                                    class="pos-subcategory-btn {{ $selectedSubcategoryId === $subcat->id ? 'active' : '' }}"
+                                    class="pos-subcategory-btn {{ $selectedSubcategoryId === $subcat->id ? 'active' : '' }} {{ $subcategoryClass }}"
                                 >
                                     {{ $subcat->name }}
                                 </button>
