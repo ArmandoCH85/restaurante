@@ -52,15 +52,13 @@ class RecipeResource extends Resource
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->unique(ignoreRecord: true)
                             ->createOptionForm([
                                 Forms\Components\TextInput::make('name')
                                     ->required()
                                     ->maxLength(255),
                                 Forms\Components\TextInput::make('code')
                                     ->required()
-                                    ->maxLength(20)
-                                    ->unique(),
+                                    ->maxLength(20),
                                 Forms\Components\TextInput::make('sale_price')
                                     ->required()
                                     ->numeric()

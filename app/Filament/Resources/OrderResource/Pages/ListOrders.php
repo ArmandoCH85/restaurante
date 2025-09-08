@@ -7,6 +7,7 @@ use Filament\Actions;
 use Filament\Forms;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
+use Filament\Notifications\Notification;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\OrderDetail;
@@ -18,6 +19,8 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
+use Exception;
 
 class ListOrders extends ListRecords
 {
@@ -610,5 +613,32 @@ class ListOrders extends ListRecords
         $sheet->getColumnDimension('D')->setWidth(15);
         $sheet->getColumnDimension('E')->setWidth(15);
         $sheet->getColumnDimension('F')->setWidth(15);
+    }
+
+    /**
+     * Convierte errores técnicos de base de datos en mensajes simples para usuarios
+     */
+    private function getFriendlyErrorMessage(QueryException $exception): string
+    {
+        $errorCode = $exception->getCode();
+        $errorMessage = $exception->getMessage();
+
+        // Errores de clave foránea (foreign key)
+        if ($errorCode == 23000 && str_contains($errorMessage, 'foreign key constraint')) {
+            return "🚫 Hay pedidos que no se pueden mostrar porque tienen datos relacionados eliminados.";
+        }
+
+        // Errores de conexión
+        if (in_array($errorCode, ['2002', '2003', '2006'])) {
+            return "🌐 Problema de conexión al cargar la lista de pedidos. Espera 10 segundos y vuelve a intentar.";
+        }
+
+        // Deadlock o bloqueo de datos
+        if ($errorCode == 1213) {
+            return "⏳ Los datos están ocupados. Cierra esta ventana, espera 5 segundos y abre de nuevo.";
+        }
+
+        // Error genérico
+        return "😅 Ocurrió un problema al cargar la lista de pedidos. Intenta recargar la página.";
     }
 }

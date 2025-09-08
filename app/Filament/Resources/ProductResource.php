@@ -36,7 +36,6 @@ class ProductResource extends Resource
                         Forms\Components\TextInput::make('code')
                             ->label('Código')
                             ->required()
-                            ->unique(ignoreRecord: true)
                             ->maxLength(20)
                             ->placeholder('Ingrese el código del producto'),
 

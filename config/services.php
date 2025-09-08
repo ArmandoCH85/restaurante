@@ -35,4 +35,13 @@ return [
         ],
     ],
 
+    'qps' => [
+        'base_url' => env('QPS_BASE_URL', 'https://demo-cpe.qpse.pe'),
+        'token_url' => env('QPS_TOKEN_URL', 'https://demo-cpe.qpse.pe/api/auth/cpe/token'),
+        'api_url' => env('QPS_API_URL', 'https://demo-cpe.qpse.pe/api/cpe'),
+        'username' => env('QPS_USERNAME'),
+        'password' => env('QPS_PASSWORD'),
+        'enabled' => env('QPS_ENABLED', false),
+    ],
+
 ];

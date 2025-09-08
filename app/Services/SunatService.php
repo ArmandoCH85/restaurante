@@ -222,6 +222,34 @@ class SunatService
     }
 
     /**
+     * Obtener instancia de See (Greenter) para uso externo
+     * 
+     * @return See
+     */
+    public function getSee(): See
+    {
+        return $this->see;
+    }
+
+    /**
+     * Generar XML sin firmar usando Greenter
+     * 
+     * @param mixed $greenterInvoice
+     * @return string XML sin firmar
+     */
+    public function getUnsignedXml($greenterInvoice): string
+    {
+        try {
+            // Generar XML sin firma usando InvoiceBuilder directamente
+            $builder = new \Greenter\Xml\Builder\InvoiceBuilder();
+            return $builder->build($greenterInvoice);
+        } catch (Exception $e) {
+            Log::error('Error generando XML sin firmar: ' . $e->getMessage());
+            throw new Exception('Error al generar XML sin firmar: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Emitir factura electrónica
      */
     public function emitirFactura($invoiceId)
@@ -554,7 +582,7 @@ class SunatService
     /**
      * Crear objeto Invoice de Greenter
      */
-    private function createGreenterInvoice($invoice)
+    public function createGreenterInvoice($invoice)
     {
         // Determinar tipo de comprobante basado en el tipo de documento del cliente
         $tipoComprobante = $this->determinarTipoComprobante($invoice);
@@ -580,12 +608,23 @@ class SunatService
         ]);
 
         $greenterInvoice = new GreenterInvoice();
+        
+        // Normalizar serie a 4 caracteres (B02/F02 -> B002/F002) y correlativo sin padding (ej. 00000064 -> 64)
+        $serieNormalizada = $invoice->series;
+        if (is_string($serieNormalizada) && preg_match('/^[BF][0-9]{2}$/', $serieNormalizada)) {
+            $serieNormalizada = $serieNormalizada[0] . '0' . substr($serieNormalizada, 1);
+        }
+        $correlativoSinPadding = ltrim((string)$invoice->number, '0');
+        if ($correlativoSinPadding === '') {
+            $correlativoSinPadding = '0';
+        }
+
         $greenterInvoice
             ->setUblVersion('2.1')
             ->setTipoOperacion('0101') // Venta interna
             ->setTipoDoc($tipoDocSunat)
-            ->setSerie($invoice->series)
-            ->setCorrelativo($invoice->number)
+            ->setSerie($serieNormalizada)
+            ->setCorrelativo($correlativoSinPadding)
             ->setFechaEmision(new \DateTime($invoice->issue_date))
             ->setTipoMoneda('PEN')
             ->setCompany($this->company)

@@ -47,8 +47,7 @@ class IngredientResource extends Resource
                         Forms\Components\TextInput::make('code')
                             ->label('Código')
                             ->required()
-                            ->maxLength(20)
-                            ->unique(ignoreRecord: true),
+                            ->maxLength(20),
 
                         Forms\Components\Textarea::make('description')
                             ->label('Descripción')

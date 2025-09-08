@@ -47,10 +47,11 @@ class EditInvoice extends EditRecord
                 ->requiresConfirmation()
                 ->action(function () {
                     try {
-                        $service = new SunatService();
-                        $result = $service->emitirFactura($this->record->id);
+                        // Usar QPS exclusivamente
+                        $qpsService = new \App\Services\QpsService();
+                        $result = $qpsService->sendInvoiceViaQps($this->record);
                         if ($result['success']) {
-                            Notification::make()->title('Comprobante reenviado')->success()->send();
+                            Notification::make()->title('Comprobante reenviado vía QPS')->success()->send();
                             $this->refreshRecord();
                         } else {
                             Notification::make()->title('Error al reenviar')->body($result['message'])->danger()->send();

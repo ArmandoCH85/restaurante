@@ -137,8 +137,8 @@ class PurchaseResource extends Resource
                             ->relationship()
                             ->schema([
                                 Forms\Components\Select::make('product_id')
-                                    ->label('Producto')
-                                    ->options(\App\Models\Product::all()->pluck('name', 'id'))
+                                    ->label('Ingredientes')
+                                    ->options(\App\Models\Product::whereIn('product_type', ['ingredient', 'both'])->pluck('name', 'id'))
                                     ->required()
                                     ->searchable()
                                     ->reactive()
@@ -281,13 +281,26 @@ class PurchaseResource extends Resource
                                         // El stock inicial se establece en el campo current_stock del formulario
                                         // y se registra en la tabla ingredient_stock
                                         if ($product->isIngredient()) {
+                                            // Crear el registro correspondiente en la tabla ingredients
+                                            $ingredient = \App\Models\Ingredient::create([
+                                                'name' => $data['name'],
+                                                'code' => $data['code'],
+                                                'description' => $data['description'] ?? null,
+                                                'unit_of_measure' => 'unidad', // valor por defecto
+                                                'min_stock' => 0,
+                                                'current_stock' => $data['current_stock'] ?? 0,
+                                                'current_cost' => $data['current_cost'],
+                                                'supplier_id' => null, // se puede asignar después si es necesario
+                                                'active' => $data['active'] ?? true
+                                            ]);
+
                                             // Obtener el almacén predeterminado
                                             $defaultWarehouse = \App\Models\Warehouse::where('is_default', true)->first();
 
                                             if ($defaultWarehouse) {
-                                                // Crear un registro de stock para el ingrediente
+                                                // Crear un registro de stock para el ingrediente usando el ID correcto
                                                 \App\Models\IngredientStock::create([
-                                                    'ingredient_id' => $product->id,
+                                                    'ingredient_id' => $ingredient->id, // Usar ID del ingrediente, no del producto
                                                     'warehouse_id' => $defaultWarehouse->id,
                                                     'quantity' => $data['current_stock'] ?? 0,
                                                     'unit_cost' => $data['current_cost'],
@@ -317,8 +330,17 @@ class PurchaseResource extends Resource
                                     ->default(1)
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, $get, callable $set) {
-                                        $set('subtotal', $state * $get('unit_cost'));
-                                        $set('../../subtotal', collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0));
+                                        $subtotal = $state * $get('unit_cost');
+                                        $set('subtotal', $subtotal);
+
+                                        // Actualizar totales generales
+                                        $totalSubtotal = collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0);
+                                        $taxRate = $get('../../tax') ?? 18;
+                                        $taxAmount = $totalSubtotal * ($taxRate / 100);
+                                        $total = $totalSubtotal + $taxAmount;
+
+                                        $set('../../subtotal', $totalSubtotal);
+                                        $set('../../total', $total);
                                     }),
 
                                 Forms\Components\TextInput::make('unit_cost')
@@ -329,8 +351,17 @@ class PurchaseResource extends Resource
                                     ->default(0)
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, $get, callable $set) {
-                                        $set('subtotal', $get('quantity') * $state);
-                                        $set('../../subtotal', collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0));
+                                        $subtotal = $get('quantity') * $state;
+                                        $set('subtotal', $subtotal);
+
+                                        // Actualizar totales generales
+                                        $totalSubtotal = collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0);
+                                        $taxRate = $get('../../tax') ?? 18;
+                                        $taxAmount = $totalSubtotal * ($taxRate / 100);
+                                        $total = $totalSubtotal + $taxAmount;
+
+                                        $set('../../subtotal', $totalSubtotal);
+                                        $set('../../total', $total);
                                     }),
 
                                 Forms\Components\TextInput::make('subtotal')
@@ -358,7 +389,13 @@ class PurchaseResource extends Resource
                                     : null
                             )
                             ->afterStateUpdated(function (callable $get, callable $set) {
-                                $set('subtotal', collect($get('details'))->sum(fn($item) => $item['subtotal'] ?? 0));
+                                $subtotal = collect($get('details'))->sum(fn($item) => $item['subtotal'] ?? 0);
+                                $taxRate = $get('tax') ?? 18;
+                                $taxAmount = $subtotal * ($taxRate / 100);
+                                $total = $subtotal + $taxAmount;
+
+                                $set('subtotal', $subtotal);
+                                $set('total', $total);
                             }),
                     ]),
 
@@ -370,16 +407,30 @@ class PurchaseResource extends Resource
                             ->prefix('S/')
                             ->default(0)
                             ->disabled()
-                            ->dehydrated(),
+                            ->dehydrated()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                $taxRate = $get('tax') ?? 18;
+                                $taxAmount = $state * ($taxRate / 100);
+                                $total = $state + $taxAmount;
+                                $set('total', $total);
+                            }),
 
                         Forms\Components\TextInput::make('tax')
                             ->label('IGV (%)')
                             ->numeric()
-                            ->prefix('S/')
                             ->default(18)
                             ->minValue(0)
                             ->maxValue(100)
-                            ->suffix('%'),
+                            ->suffix('%')
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
+                                $subtotal = $get('subtotal') ?? 0;
+                                $taxAmount = $subtotal * ($state / 100);
+                                $total = $subtotal + $taxAmount;
+                                $set('total', $total);
+                            })
+                            ->helperText('Porcentaje de IGV aplicado al subtotal'),
 
                         Forms\Components\TextInput::make('total')
                             ->label('Total')
@@ -387,7 +438,8 @@ class PurchaseResource extends Resource
                             ->prefix('S/')
                             ->default(0)
                             ->disabled()
-                            ->dehydrated(),
+                            ->dehydrated()
+                            ->reactive(),
                     ])
                     ->columns(3),
             ]);
@@ -523,4 +575,5 @@ class PurchaseResource extends Resource
             'edit' => Pages\EditPurchase::route('/{record}/edit'),
         ];
     }
+
 }

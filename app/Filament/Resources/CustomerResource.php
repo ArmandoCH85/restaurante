@@ -48,7 +48,6 @@ class CustomerResource extends Resource
                             ->label('Número de Documento')
                             ->required()
                             ->maxLength(15)
-                            ->unique(ignoreRecord: true)
                             ->placeholder(fn (callable $get) =>
                                 $get('document_type') === 'DNI'
                                     ? '12345678'

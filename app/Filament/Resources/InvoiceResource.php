@@ -376,28 +376,35 @@ class InvoiceResource extends Resource
                         in_array($record->invoice_type, ['invoice', 'receipt']) &&
                         ($record->sunat_status === 'PENDIENTE' || $record->sunat_status === null)
                     )
-                    ->requiresConfirmation()
+                    ->form([
+                        Forms\Components\Placeholder::make('info')
+                            ->label('Método de Envío')
+                            ->content('Se enviará vía QPS (qpse.pe) - Método estable y confiable')
+                    ])
                     ->modalHeading('Enviar Comprobante a SUNAT')
                     ->modalDescription(fn (Invoice $record): string =>
-                        "¿Está seguro de enviar el comprobante {$record->series}-{$record->number} a SUNAT?"
+                        "Comprobante: {$record->series}-{$record->number}\nCliente: {$record->customer->name}\nTotal: S/ " . number_format($record->total, 2)
                     )
                     ->modalSubmitActionLabel('Enviar a SUNAT')
-                    ->action(function (Invoice $record): void {
+                    ->action(function (Invoice $record, array $data): void {
                         try {
-                            $sunatService = new SunatService();
-                            $result = $sunatService->emitirFactura($record->id);
+                            // Envío exclusivamente vía QPS
+                            $qpsService = new \App\Services\QpsService();
+                            $result = $qpsService->sendInvoiceViaQps($record);
 
                             if ($result['success']) {
                                 Notification::make()
                                     ->title('Comprobante enviado exitosamente')
-                                    ->body('El comprobante ha sido enviado y aceptado por SUNAT')
+                                    ->body('El comprobante ha sido enviado y aceptado por SUNAT vía QPS')
                                     ->success()
+                                    ->persistent()
                                     ->send();
                             } else {
                                 Notification::make()
                                     ->title('Error al enviar comprobante')
                                     ->body($result['message'])
                                     ->danger()
+                                    ->persistent()
                                     ->send();
                             }
                         } catch (\Exception $e) {
@@ -405,6 +412,7 @@ class InvoiceResource extends Resource
                                 ->title('Error inesperado')
                                 ->body('Error: ' . $e->getMessage())
                                 ->danger()
+                                ->persistent()
                                 ->send();
                         }
                     }),
@@ -469,8 +477,14 @@ class InvoiceResource extends Resource
                     ->icon('heroicon-o-document-text')
                     ->color('info')
                     ->visible(fn (Invoice $record): bool =>
-                        // Solo mostrar si el comprobante tiene XML generado
-                        !empty($record->xml_path) && file_exists($record->xml_path)
+                        (function ($path) {
+                            if (empty($path)) return false;
+                            if (file_exists($path)) return true;
+                            $normalized = ltrim(str_replace('\\', '/', $path), '/');
+                            if (file_exists(storage_path('app/private/' . $normalized))) return true;
+                            if (file_exists(storage_path('app/' . $normalized))) return true;
+                            return false;
+                        })($record->xml_path)
                     )
                     ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-xml', $record))
                     ->openUrlInNewTab(),
@@ -479,8 +493,14 @@ class InvoiceResource extends Resource
                     ->icon('heroicon-o-document-check')
                     ->color('warning')
                     ->visible(fn (Invoice $record): bool =>
-                        // Solo mostrar si el comprobante tiene CDR de SUNAT
-                        !empty($record->cdr_path) && file_exists($record->cdr_path)
+                        (function ($path) {
+                            if (empty($path)) return false;
+                            if (file_exists($path)) return true;
+                            $normalized = ltrim(str_replace('\\', '/', $path), '/');
+                            if (file_exists(storage_path('app/private/' . $normalized))) return true;
+                            if (file_exists(storage_path('app/' . $normalized))) return true;
+                            return false;
+                        })($record->cdr_path)
                     )
                     ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-cdr', $record))
                     ->openUrlInNewTab(),
@@ -504,11 +524,12 @@ class InvoiceResource extends Resource
                     ->modalSubmitActionLabel('Reenviar')
                     ->action(function (Invoice $record): void {
                         try {
-                            $sunatService = new \App\Services\SunatService();
-                            $result = $sunatService->emitirFactura($record->id);
+                            // Usar QPS exclusivamente
+                            $qpsService = new \App\Services\QpsService();
+                            $result = $qpsService->sendInvoiceViaQps($record);
 
                             if ($result['success']) {
-                                Notification::make()->title('Comprobante reenviado')->success()->send();
+                                Notification::make()->title('Comprobante reenviado vía QPS')->success()->send();
                             } else {
                                 Notification::make()->title('Error al reenviar')->body($result['message'])->danger()->send();
                             }

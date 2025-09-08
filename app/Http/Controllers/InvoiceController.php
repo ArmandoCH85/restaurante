@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Str;
 
 class InvoiceController extends Controller
 {
@@ -318,13 +319,52 @@ class InvoiceController extends Controller
      */
     public function downloadXml(Invoice $invoice)
     {
-        if (!$invoice->xml_path || !File::exists($invoice->xml_path)) {
-            abort(404, 'Archivo XML no encontrado');
+        if (!$invoice->xml_path) {
+            // Intentar con nombre por defecto
+            $documentName = $invoice->series . '-' . $invoice->number;
+            $candidate = storage_path('app/private/sunat/xml/' . $documentName . '.xml');
+            $altCandidate = storage_path('app/sunat/xml/' . $documentName . '.xml');
+            if (File::exists($candidate)) {
+                $path = $candidate;
+            } elseif (File::exists($altCandidate)) {
+                $path = $altCandidate;
+            } else {
+                abort(404, 'Archivo XML no encontrado');
+            }
+        } else {
+            $path = $invoice->xml_path;
+            if (!File::exists($path)) {
+                $normalized = ltrim(str_replace(['\\'], ['/' ], $path), '/');
+                $candidate = storage_path('app/private/' . $normalized);
+                if (File::exists($candidate)) {
+                    $path = $candidate;
+                } else {
+                    // Nuevo: probar también bajo storage/app
+                    $altCandidate = storage_path('app/' . $normalized);
+                    if (File::exists($altCandidate)) {
+                        $path = $altCandidate;
+                    } else {
+                        // Fallback final por nombre por defecto
+                        $documentName = $invoice->series . '-' . $invoice->number;
+                        $default1 = storage_path('app/private/sunat/xml/' . $documentName . '.xml');
+                        $default2 = storage_path('app/sunat/xml/' . $documentName . '.xml');
+                        if (File::exists($default1)) {
+                            $path = $default1;
+                        } elseif (File::exists($default2)) {
+                            $path = $default2;
+                        }
+                    }
+                }
+            }
+
+            if (!File::exists($path)) {
+                abort(404, 'Archivo XML no encontrado');
+            }
         }
 
-        $filename = basename($invoice->xml_path);
+        $filename = basename($path);
 
-        return response()->download($invoice->xml_path, $filename, [
+        return response()->download($path, $filename, [
             'Content-Type' => 'application/xml',
         ]);
     }
@@ -334,13 +374,52 @@ class InvoiceController extends Controller
      */
     public function downloadCdr(Invoice $invoice)
     {
-        if (!$invoice->cdr_path || !File::exists($invoice->cdr_path)) {
-            abort(404, 'Archivo CDR no encontrado');
+        if (!$invoice->cdr_path) {
+            // Intentar con nombre por defecto
+            $documentName = $invoice->series . '-' . $invoice->number;
+            $candidate = storage_path('app/private/sunat/cdr/' . $documentName . '.zip');
+            $altCandidate = storage_path('app/sunat/cdr/' . $documentName . '.zip');
+            if (File::exists($candidate)) {
+                $path = $candidate;
+            } elseif (File::exists($altCandidate)) {
+                $path = $altCandidate;
+            } else {
+                abort(404, 'Archivo CDR no encontrado');
+            }
+        } else {
+            $path = $invoice->cdr_path;
+            if (!File::exists($path)) {
+                $normalized = ltrim(str_replace(['\\'], ['/' ], $path), '/');
+                $candidate = storage_path('app/private/' . $normalized);
+                if (File::exists($candidate)) {
+                    $path = $candidate;
+                } else {
+                    // Nuevo: probar también bajo storage/app
+                    $altCandidate = storage_path('app/' . $normalized);
+                    if (File::exists($altCandidate)) {
+                        $path = $altCandidate;
+                    } else {
+                        // Fallback final por nombre por defecto
+                        $documentName = $invoice->series . '-' . $invoice->number;
+                        $default1 = storage_path('app/private/sunat/cdr/' . $documentName . '.zip');
+                        $default2 = storage_path('app/sunat/cdr/' . $documentName . '.zip');
+                        if (File::exists($default1)) {
+                            $path = $default1;
+                        } elseif (File::exists($default2)) {
+                            $path = $default2;
+                        }
+                    }
+                }
+            }
+
+            if (!File::exists($path)) {
+                abort(404, 'Archivo CDR no encontrado');
+            }
         }
 
-        $filename = basename($invoice->cdr_path);
+        $filename = basename($path);
 
-        return response()->download($invoice->cdr_path, $filename, [
+        return response()->download($path, $filename, [
             'Content-Type' => 'application/zip',
         ]);
     }
