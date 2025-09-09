@@ -156,4 +156,61 @@ class AppSetting extends Model
 
         return self::setSetting($tab, $key, $value);
     }
+
+    /**
+     * Obtiene el endpoint de QPSE Beta desde Facturación Electrónica.
+     *
+     * @return string|null
+     */
+    public static function getQpseEndpointBetaFromFacturacion(): ?string
+    {
+        return self::getSetting('FacturacionElectronica', 'qpse_endpoint_beta');
+    }
+
+    /**
+     * Establece el endpoint de QPSE Beta en Facturación Electrónica.
+     *
+     * @param string $endpoint
+     * @return bool
+     */
+    public static function setQpseEndpointBetaInFacturacion(string $endpoint): bool
+    {
+        return self::setSetting('FacturacionElectronica', 'qpse_endpoint_beta', $endpoint);
+    }
+
+    /**
+     * Obtiene el endpoint de QPSE Producción desde Facturación Electrónica.
+     *
+     * @return string|null
+     */
+    public static function getQpseEndpointProductionFromFacturacion(): ?string
+    {
+        return self::getSetting('FacturacionElectronica', 'qpse_endpoint_production');
+    }
+
+    /**
+     * Establece el endpoint de QPSE Producción en Facturación Electrónica.
+     *
+     * @param string $endpoint
+     * @return bool
+     */
+    public static function setQpseEndpointProductionInFacturacion(string $endpoint): bool
+    {
+        return self::setSetting('FacturacionElectronica', 'qpse_endpoint_production', $endpoint);
+    }
+
+    /**
+     * Obtiene el endpoint de QPSE según el entorno desde Facturación Electrónica.
+     *
+     * @param string $environment 'beta' o 'production'
+     * @return string|null
+     */
+    public static function getQpseEndpointByEnvironmentFromFacturacion(string $environment): ?string
+    {
+        return match ($environment) {
+            'beta' => self::getQpseEndpointBetaFromFacturacion(),
+            'production' => self::getQpseEndpointProductionFromFacturacion(),
+            default => null,
+        };
+    }
 }

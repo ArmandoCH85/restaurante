@@ -148,6 +148,18 @@ class AppSettingsSeeder extends Seeder
                 'default' => '18.00',
                 'value' => '18.00', // Porcentaje de IGV (18% es el estándar en Perú)
             ],
+            [
+                'tab' => 'FacturacionElectronica',
+                'key' => 'qpse_endpoint_beta',
+                'default' => '',
+                'value' => '', // URL del endpoint QPSE para pruebas
+            ],
+            [
+                'tab' => 'FacturacionElectronica',
+                'key' => 'qpse_endpoint_production',
+                'default' => '',
+                'value' => '', // URL del endpoint QPSE para producción
+            ],
         ];
 
         // Combinar todas las configuraciones

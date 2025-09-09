@@ -185,6 +185,87 @@ class ManageElectronicBillingConfig extends ManageRecords
                         ->send();
                 }),
 
+            Actions\Action::make('add_qpse_fields')
+                ->label('Agregar Campos QPSE')
+                ->color('warning')
+                ->icon('heroicon-o-plus')
+                ->requiresConfirmation()
+                ->modalHeading('Agregar Campos QPSE')
+                ->modalDescription('Esta acción agregará los campos "qpse_endpoint_beta" y "qpse_endpoint_production" para configurar endpoints separados de QPSE.')
+                ->modalSubmitActionLabel('Sí, agregar campos')
+                ->action(function () {
+                    try {
+                        // Primero eliminar duplicados en otras tabs
+                        \App\Models\AppSetting::where('key', 'qpse_endpoint_beta')
+                            ->where('tab', '!=', 'FacturacionElectronica')
+                            ->delete();
+                        
+                        \App\Models\AppSetting::where('key', 'qpse_endpoint_production')
+                            ->where('tab', '!=', 'FacturacionElectronica')
+                            ->delete();
+                        
+                        $endpoints = [
+                            [
+                                'key' => 'qpse_endpoint_beta',
+                                'label' => '🧪 Endpoint QPSE Beta'
+                            ],
+                            [
+                                'key' => 'qpse_endpoint_production',
+                                'label' => '🚀 Endpoint QPSE Producción'
+                            ]
+                        ];
+                        
+                        $created = 0;
+                        $existing = 0;
+                        
+                        foreach ($endpoints as $endpoint) {
+                            $exists = \App\Models\AppSetting::where('tab', 'FacturacionElectronica')
+                                ->where('key', $endpoint['key'])
+                                ->exists();
+                            
+                            if (!$exists) {
+                                \App\Models\AppSetting::create([
+                                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                                    'tab' => 'FacturacionElectronica',
+                                    'key' => $endpoint['key'],
+                                    'default' => '',
+                                    'value' => '',
+                                ]);
+                                $created++;
+                            } else {
+                                $existing++;
+                            }
+                        }
+                        
+                        if ($created > 0) {
+                            Notification::make()
+                                ->title('✅ Campos QPSE agregados exitosamente')
+                                ->body("Se crearon $created campos nuevos. Duplicados eliminados.")
+                                ->success()
+                                ->duration(8000)
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('✅ Campos QPSE verificados')
+                                ->body('Los campos QPSE ya existen. Duplicados eliminados.')
+                                ->success()
+                                ->duration(5000)
+                                ->send();
+                        }
+                        
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('❌ Error al crear campos')
+                            ->body('Error: ' . $e->getMessage())
+                            ->danger()
+                            ->duration(10000)
+                            ->send();
+                    }
+                    
+                    // Recargar la página
+                    $this->redirect($this->getResource()::getUrl('index'));
+                }),
+
             Actions\Action::make('clear_certificates')
                 ->label('Limpiar Certificados')
                 ->color('danger')

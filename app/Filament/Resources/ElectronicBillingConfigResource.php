@@ -178,6 +178,8 @@ class ElectronicBillingConfigResource extends Resource
                                     'send_automatically' => 'Enviar Automáticamente',
                                     'generate_pdf' => 'Generar PDF',
                                     'igv_percent' => 'Porcentaje de IGV',
+                                    'qpse_endpoint_beta' => '🧪 Endpoint QPSE Beta',
+                                    'qpse_endpoint_production' => '🚀 Endpoint QPSE Producción',
                                     default => ucfirst(str_replace('_', ' ', $record->key)),
                                 };
                             })
@@ -192,14 +194,18 @@ class ElectronicBillingConfigResource extends Resource
                                     'send_automatically' => 'Si los comprobantes se envían automáticamente (true/false)',
                                     'generate_pdf' => 'Si se generan PDFs automáticamente (true/false)',
                                     'igv_percent' => 'Porcentaje de IGV (18.00)',
+                                    'qpse_endpoint_beta' => '🧪 URL del endpoint QPSE para PRUEBAS. Ejemplo: https://beta.qpse.com/api/v1/invoices',
+                                    'qpse_endpoint_production' => '🚀 URL del endpoint QPSE para PRODUCCIÓN. Ejemplo: https://api.qpse.com/v1/invoices',
                                     default => null,
                                 };
                             })
                             ->required(function ($record) {
-                                // No requerir campos que se manejan automáticamente
-                                return !in_array($record->key, ['environment', 'certificate_path']);
+                                // No requerir campos que se manejan automáticamente o son opcionales
+                                return !in_array($record->key, ['environment', 'certificate_path', 'qpse_endpoint_beta', 'qpse_endpoint_production']);
                             })
-                            ->maxLength(255)
+                            ->maxLength(function ($record) {
+                                return $record && in_array($record->key, ['qpse_endpoint_beta', 'qpse_endpoint_production']) ? 500 : 255;
+                            })
                             ->columnSpanFull()
                             ->disabled(function ($record) {
                                 // Deshabilitar campos que se manejan automáticamente
@@ -208,6 +214,25 @@ class ElectronicBillingConfigResource extends Resource
                             ->password(function ($record) {
                                 // Mostrar como contraseña para campos sensibles
                                 return in_array($record->key, ['sol_password', 'certificate_password']);
+                            })
+                            ->rules(function ($record) {
+                                if ($record && in_array($record->key, ['qpse_endpoint_beta', 'qpse_endpoint_production'])) {
+                                    return [
+                                        'nullable',
+                                        'string',
+                                        'url',
+                                        'max:500',
+                                        function (string $attribute, $value, \Closure $fail) {
+                                            if ($value && !filter_var($value, FILTER_VALIDATE_URL)) {
+                                                $fail('El endpoint debe ser una URL válida.');
+                                            }
+                                            if ($value && !str_starts_with($value, 'https://')) {
+                                                $fail('El endpoint debe usar HTTPS para mayor seguridad.');
+                                            }
+                                        },
+                                    ];
+                                }
+                                return [];
                             })
                             ->dehydrateStateUsing(function ($state, $record) {
                                 // Cifrar valores sensibles
@@ -221,6 +246,21 @@ class ElectronicBillingConfigResource extends Resource
                                 if (in_array($record->key, ['sol_password', 'certificate_password'])) {
                                     $component->state('');
                                 }
+                            })
+                            ->extraInputAttributes(function ($record) {
+                                if ($record && $record->key === 'qpse_endpoint_beta') {
+                                    return [
+                                        'style' => 'border: 2px solid #f59e0b; background-color: #fef3c7;',
+                                        'placeholder' => 'https://beta.qpse.com/api/v1/invoices'
+                                    ];
+                                }
+                                if ($record && $record->key === 'qpse_endpoint_production') {
+                                    return [
+                                        'style' => 'border: 2px solid #10b981; background-color: #f0fdf4;',
+                                        'placeholder' => 'https://api.qpse.com/v1/invoices'
+                                    ];
+                                }
+                                return [];
                             }),
                     ])
                     ->columns(1),
@@ -285,6 +325,8 @@ class ElectronicBillingConfigResource extends Resource
                             'send_automatically' => 'Enviar Automáticamente',
                             'generate_pdf' => 'Generar PDF',
                             'igv_percent' => 'Porcentaje de IGV',
+                            'qpse_endpoint_beta' => '🧪 Endpoint QPSE Beta',
+                            'qpse_endpoint_production' => '🚀 Endpoint QPSE Producción',
                             default => ucfirst(str_replace('_', ' ', $state)),
                         };
                     }),
@@ -296,7 +338,22 @@ class ElectronicBillingConfigResource extends Resource
                         if (in_array($record->key, ['sol_password', 'certificate_password'])) {
                             return '********';
                         }
+                        if ($record->key === 'qpse_endpoint_beta' && $state) {
+                            return $state . ' 🧪';
+                        }
+                        if ($record->key === 'qpse_endpoint_production' && $state) {
+                            return $state . ' 🚀';
+                        }
                         return $state;
+                    })
+                    ->color(function ($record) {
+                        if ($record->key === 'qpse_endpoint_beta') {
+                            return 'warning';
+                        }
+                        if ($record->key === 'qpse_endpoint_production') {
+                            return 'success';
+                        }
+                        return null;
                     })
                     ->limit(50),
             ])
