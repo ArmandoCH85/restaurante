@@ -267,6 +267,7 @@ class UnifiedPaymentController extends Controller
                 'sales_note' => 'NV001',
                 'receipt' => 'B001',
                 'invoice' => 'F001',
+                'credit_note' => 'FC01',
                 default => 'NV001',
             };
         }

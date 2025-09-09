@@ -745,7 +745,7 @@
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end"><strong>IGV (18%):</strong></td>
-                            <td class="text-end" id="display-tax">S/ {{ number_format($order->subtotal * 0.18, 2) }}</td>
+                            <td class="text-end" id="display-tax">S/ {{ number_format($order->tax, 2) }}</td>
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end"><strong>Total:</strong></td>

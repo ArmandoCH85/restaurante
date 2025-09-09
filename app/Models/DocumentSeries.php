@@ -65,6 +65,7 @@ class DocumentSeries extends Model
             'invoice' => 'Factura',
             'receipt' => 'Boleta',
             'sales_note' => 'Nota de Venta',
+            'credit_note' => 'Nota de Crédito',
             default => $this->document_type,
         };
     }

@@ -389,7 +389,7 @@
                         </div>
                         <div class="flex justify-between py-1 tax-row">
                             <span>I.G.V. (18%):</span>
-                            <span id="tax-amount">S/ {{ number_format($order->subtotal * 0.18, 2) }}</span>
+                            <span id="tax-amount">S/ {{ number_format($order->tax, 2) }}</span>
                         </div>
                         <div class="flex justify-between py-1 font-bold">
                             <span>Total:</span>

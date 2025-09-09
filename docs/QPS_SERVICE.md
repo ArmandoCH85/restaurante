@@ -7,35 +7,60 @@ El servicio QPS (`QpsService`) permite enviar comprobantes electrónicos a SUNAT
 ## Características
 
 - ✅ **Autenticación automática** con tokens de acceso
+- ✅ **Configuración dinámica** desde base de datos
+- ✅ **Endpoints configurables** (beta/producción)
+- ✅ **Credenciales cifradas** en base de datos
 - ✅ **Integración con Greenter** para generar XML firmado
-- ✅ **Manejo de errores** comprensible y detallado
+- ✅ **Manejo de errores mejorado** con códigos específicos
 - ✅ **Cache de tokens** para optimizar rendimiento
-- ✅ **Ambiente de pruebas** (beta.qpse.pe)
+- ✅ **Ambiente de pruebas** (demo.qpse.pe)
 - ✅ **Logs detallados** para debugging
 - ✅ **Verificación de disponibilidad** del servicio
+- ✅ **Reintentos automáticos** en caso de fallas temporales
 
 ## Configuración
 
-### Variables de Entorno
+### Configuración Dinámica (Recomendada)
 
-Agregar al archivo `.env`:
+La configuración se maneja desde el panel de administración en:
+**Configuración → Facturación Electrónica**
+
+#### Campos disponibles:
+- **🧪 Endpoint QPSE Beta**: URL para ambiente de pruebas
+- **🚀 Endpoint QPSE Producción**: URL para ambiente de producción
+- **👤 Usuario QPSE**: Usuario para autenticación
+- **🔑 Contraseña QPSE**: Contraseña (se cifra automáticamente)
+
+#### Configuración de entorno:
+- El sistema usa automáticamente el endpoint correcto según el toggle **Producción SUNAT**
+- **Beta**: Se usa cuando "Producción SUNAT" está desactivado
+- **Producción**: Se usa cuando "Producción SUNAT" está activado
+
+### Variables de Entorno (Opcional)
+
+Para usar configuración estática, agregar al archivo `.env`:
 
 ```env
 # QPS Configuration (qpse.pe)
-QPS_BASE_URL=https://demo-cpe.qpse.pe/api/cpe
-QPS_USERNAME=IERCEST1
-QPS_PASSWORD=Qrico123
+QPS_BASE_URL=https://demo.qpse.pe
+QPS_USERNAME=tu_usuario
+QPS_PASSWORD=tu_contraseña
 QPS_ENABLED=true
+# Usar configuración dinámica (true) o estática (false)
+QPS_USE_DYNAMIC_CONFIG=true
 ```
 
 ### Configuración en services.php
 
 ```php
 'qps' => [
-    'base_url' => env('QPS_BASE_URL', 'https://demo-cpe.qpse.pe/api/cpe'),
+    'base_url' => env('QPS_BASE_URL', 'https://demo.qpse.pe'),
+    'token_url' => env('QPS_TOKEN_URL', 'https://demo.qpse.pe/api/token'),
+    'api_url' => env('QPS_API_URL', 'https://demo.qpse.pe/api/v1'),
     'username' => env('QPS_USERNAME'),
     'password' => env('QPS_PASSWORD'),
-    'enabled' => env('QPS_ENABLED', true),
+    'enabled' => env('QPS_ENABLED', false),
+    'use_dynamic_config' => env('QPS_USE_DYNAMIC_CONFIG', true),
 ],
 ```
 
@@ -73,10 +98,16 @@ if ($result['success']) {
 }
 ```
 
-### 3. Comando Artisan para Pruebas
+### 3. Comandos Artisan
 
 ```bash
-# Probar configuración y conectividad
+# Probar configuración dinámica y conectividad
+php artisan qpse:test-config
+
+# Mostrar credenciales en el output (para debugging)
+php artisan qpse:test-config --show-credentials
+
+# Comando original para pruebas de envío
 php artisan qps:test
 
 # Probar envío de factura específica

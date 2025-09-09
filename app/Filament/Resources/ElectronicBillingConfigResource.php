@@ -179,7 +179,9 @@ class ElectronicBillingConfigResource extends Resource
                                     'generate_pdf' => 'Generar PDF',
                                     'igv_percent' => 'Porcentaje de IGV',
                                     'qpse_endpoint_beta' => '🧪 Endpoint QPSE Beta',
-                                    'qpse_endpoint_production' => '🚀 Endpoint QPSE Producción',
+                                            'qpse_endpoint_production' => '🚀 Endpoint QPSE Producción',
+                                            'qpse_username' => '👤 Usuario QPSE',
+                                            'qpse_password' => '🔑 Contraseña QPSE',
                                     default => ucfirst(str_replace('_', ' ', $record->key)),
                                 };
                             })
@@ -194,14 +196,16 @@ class ElectronicBillingConfigResource extends Resource
                                     'send_automatically' => 'Si los comprobantes se envían automáticamente (true/false)',
                                     'generate_pdf' => 'Si se generan PDFs automáticamente (true/false)',
                                     'igv_percent' => 'Porcentaje de IGV (18.00)',
-                                    'qpse_endpoint_beta' => '🧪 URL del endpoint QPSE para PRUEBAS. Ejemplo: https://beta.qpse.com/api/v1/invoices',
-                                    'qpse_endpoint_production' => '🚀 URL del endpoint QPSE para PRODUCCIÓN. Ejemplo: https://api.qpse.com/v1/invoices',
+                                    'qpse_endpoint_beta' => '🧪 URL del endpoint QPSE para PRUEBAS. Ejemplo: https://demo-cpe.qpse.pe',
+                                    'qpse_endpoint_production' => '🚀 URL del endpoint QPSE para PRODUCCIÓN. Ejemplo: https://cpe.qpse.pe',
+                                    'qpse_username' => '👤 Usuario QPSE (credenciales proporcionadas por QPSE)',
+                                    'qpse_password' => '🔑 Contraseña QPSE (se guardará cifrada)',
                                     default => null,
                                 };
                             })
                             ->required(function ($record) {
                                 // No requerir campos que se manejan automáticamente o son opcionales
-                                return !in_array($record->key, ['environment', 'certificate_path', 'qpse_endpoint_beta', 'qpse_endpoint_production']);
+                                return !in_array($record->key, ['environment', 'certificate_path', 'qpse_endpoint_beta', 'qpse_endpoint_production', 'qpse_username', 'qpse_password']);
                             })
                             ->maxLength(function ($record) {
                                 return $record && in_array($record->key, ['qpse_endpoint_beta', 'qpse_endpoint_production']) ? 500 : 255;
@@ -213,7 +217,7 @@ class ElectronicBillingConfigResource extends Resource
                             })
                             ->password(function ($record) {
                                 // Mostrar como contraseña para campos sensibles
-                                return in_array($record->key, ['sol_password', 'certificate_password']);
+                                return in_array($record->key, ['sol_password', 'certificate_password', 'qpse_password']);
                             })
                             ->rules(function ($record) {
                                 if ($record && in_array($record->key, ['qpse_endpoint_beta', 'qpse_endpoint_production'])) {
@@ -236,14 +240,14 @@ class ElectronicBillingConfigResource extends Resource
                             })
                             ->dehydrateStateUsing(function ($state, $record) {
                                 // Cifrar valores sensibles
-                                if (in_array($record->key, ['sol_password', 'certificate_password']) && $state) {
+                                if (in_array($record->key, ['sol_password', 'certificate_password', 'qpse_password']) && $state) {
                                     return Crypt::encryptString($state);
                                 }
                                 return $state;
                             })
                             ->afterStateHydrated(function ($component, $state, $record) {
                                 // No mostrar valores cifrados en el formulario
-                                if (in_array($record->key, ['sol_password', 'certificate_password'])) {
+                                if (in_array($record->key, ['sol_password', 'certificate_password', 'qpse_password'])) {
                                     $component->state('');
                                 }
                             })
@@ -327,6 +331,8 @@ class ElectronicBillingConfigResource extends Resource
                             'igv_percent' => 'Porcentaje de IGV',
                             'qpse_endpoint_beta' => '🧪 Endpoint QPSE Beta',
                             'qpse_endpoint_production' => '🚀 Endpoint QPSE Producción',
+                            'qpse_username' => '👤 Usuario QPSE',
+                            'qpse_password' => '🔑 Contraseña QPSE',
                             default => ucfirst(str_replace('_', ' ', $state)),
                         };
                     }),
@@ -335,7 +341,7 @@ class ElectronicBillingConfigResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->formatStateUsing(function ($state, $record) {
-                        if (in_array($record->key, ['sol_password', 'certificate_password'])) {
+                        if (in_array($record->key, ['sol_password', 'certificate_password', 'qpse_password'])) {
                             return '********';
                         }
                         if ($record->key === 'qpse_endpoint_beta' && $state) {
@@ -343,6 +349,9 @@ class ElectronicBillingConfigResource extends Resource
                         }
                         if ($record->key === 'qpse_endpoint_production' && $state) {
                             return $state . ' 🚀';
+                        }
+                        if ($record->key === 'qpse_username' && $state) {
+                            return $state . ' 👤';
                         }
                         return $state;
                     })

@@ -36,12 +36,14 @@ return [
     ],
 
     'qps' => [
-        'base_url' => env('QPS_BASE_URL', 'https://demo-cpe.qpse.pe'),
-        'token_url' => env('QPS_TOKEN_URL', 'https://demo-cpe.qpse.pe/api/auth/cpe/token'),
-        'api_url' => env('QPS_API_URL', 'https://demo-cpe.qpse.pe/api/cpe'),
+        'base_url' => env('QPS_BASE_URL', 'https://demo.qpse.pe'),
+        'token_url' => env('QPS_TOKEN_URL', 'https://demo.qpse.pe/api/token'),
+        'api_url' => env('QPS_API_URL', 'https://demo.qpse.pe/api/v1'),
         'username' => env('QPS_USERNAME'),
         'password' => env('QPS_PASSWORD'),
         'enabled' => env('QPS_ENABLED', false),
+        // Configuración dinámica desde base de datos
+        'use_dynamic_config' => env('QPS_USE_DYNAMIC_CONFIG', true),
     ],
 
 ];

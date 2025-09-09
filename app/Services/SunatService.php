@@ -11,6 +11,7 @@ use Greenter\Model\Client\Client;
 use Greenter\Model\Company\Company;
 use Greenter\Model\Company\Address;
 use Greenter\Model\Sale\Invoice as GreenterInvoice;
+use Greenter\Model\Sale\Note;
 use Greenter\Model\Sale\SaleDetail;
 use Greenter\Model\Sale\Legend;
 use Greenter\Model\Sale\PaymentTerms;
@@ -317,65 +318,33 @@ class SunatService
 
             // ⏱️ LOG: CONSTRUYENDO DATOS PARA ENVÍO
             $buildStart = microtime(true);
-            $writeLog('🔧 CONSTRUYENDO DATOS PARA SUNAT', [
+            $writeLog('🔧 PROCESANDO FACTURA PARA SUNAT', [
                 'invoice_id' => $invoiceId,
-                'paso' => 'createGreenterInvoice',
                 'timestamp_inicio' => now()->toISOString()
             ]);
 
-            // Crear factura Greenter
+            // Crear factura Greenter (optimizado - sin logs internos)
             $greenterInvoice = $this->createGreenterInvoice($invoice);
 
-            $buildTime = round((microtime(true) - $buildStart) * 1000, 2);
-            $writeLog('📋 FACTURA GREENTER CREADA', [
-                'invoice_id' => $invoiceId,
-                'serie_greenter' => $greenterInvoice->getSerie(),
-                'correlativo_greenter' => $greenterInvoice->getCorrelativo(),
-                'tipo_doc_greenter' => $greenterInvoice->getTipoDoc(),
-                'tiempo_construccion_ms' => $buildTime
-            ]);
-
-            // Generar XML
+            // Generar XML (optimizado)
             $xml = $this->see->getXmlSigned($greenterInvoice);
             $xmlPath = $this->saveXmlFile($xml, $invoice, 'signed');
 
-            $writeLog('📄 XML GENERADO Y GUARDADO', [
+            $buildTime = round((microtime(true) - $buildStart) * 1000, 2);
+            $writeLog('📋 FACTURA Y XML PROCESADOS', [
                 'invoice_id' => $invoiceId,
-                'xml_path' => $xmlPath,
-                'xml_size_bytes' => strlen($xml),
-                'xml_filename' => basename($xmlPath)
+                'serie' => $greenterInvoice->getSerie(),
+                'correlativo' => $greenterInvoice->getCorrelativo(),
+                'xml_size_kb' => round(strlen($xml) / 1024, 2),
+                'tiempo_total_ms' => $buildTime
             ]);
 
-            // 🌐 LOG: CONEXIÓN CON SUNAT
-            $writeLog('🌐 CONECTANDO CON SUNAT', [
+            // 📨 LOG: ENVIANDO A SUNAT (optimizado)
+            $sendStart = microtime(true);
+            $writeLog('📨 ENVIANDO A SUNAT', [
                 'invoice_id' => $invoiceId,
                 'endpoint' => $endpoint,
-                'servidor' => 'SUNAT_OFICIAL',
-                'tipo_conexion' => 'SOAP_WSDL',
-                'timestamp_conexion' => now()->toISOString()
-            ]);
-
-            // 📨 LOG: ENVIANDO A SUNAT
-            $sendStart = microtime(true);
-            $writeLog('📨 ENVIANDO COMPROBANTE A SUNAT', [
-                'invoice_id' => $invoiceId,
-                'destino_exacto' => $endpoint,
-                'servidor_sunat' => 'e-factura.sunat.gob.pe',
-                'puerto' => '443',
-                'servicio' => 'billService',
-                'metodo' => 'sendBill',
-                'xml_enviado' => basename($xmlPath),
-                'tipo_envio' => 'OFICIAL_SUNAT',
                 'timestamp_envio' => now()->toISOString()
-            ]);
-
-            // 📨 LOG: EJECUTANDO ENVÍO GREENTER
-            $writeLog('🔄 EJECUTANDO Greenter::send()', [
-                'invoice_id' => $invoiceId,
-                'metodo_greenter' => 'send',
-                'tipo_documento' => 'invoice',
-                'data_structure' => 'completa_con_detalles',
-                'timestamp_inicio_envio' => now()->toISOString()
             ]);
 
             // Enviar a SUNAT usando Greenter directamente (sin SoapClient personalizado)
@@ -630,18 +599,26 @@ class SunatService
             ->setCompany($this->company)
             ->setClient($this->createClient($invoice->customer));
 
+        // Obtener porcentaje de IGV desde configuración
+        $igvPercent = (float) AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?: 18.00;
+        $igvFactor = 1 + ($igvPercent / 100); // 1.18 para 18%
+        $igvRate = $igvPercent / 100; // 0.18 para 18%
+
         // Agregar detalles
         $details = [];
         $sumaValorVenta = 0; // Para verificar consistencia
         $sumaIgv = 0; // Para verificar consistencia
 
         foreach ($invoice->details as $detail) {
-            // CORRECCIÓN: Los precios en BD NO incluyen IGV
-            // Los precios y subtotales están SIN IGV
-            $valorUnitarioSinIgv = $detail->unit_price; // Precio unitario SIN IGV (como está en BD)
-            $valorVentaSinIgv = $detail->subtotal; // Subtotal SIN IGV (como está en BD)
-            $igvItem = round($valorVentaSinIgv * 0.18, 2); // IGV calculado (18%)
-            $precioUnitarioConIgv = round($valorUnitarioSinIgv * 1.18, 2); // Precio CON IGV para XML
+            // CORRECCIÓN: Los precios en BD SÍ INCLUYEN IGV
+            // Los precios y subtotales están CON IGV
+            $precioUnitarioConIgv = $detail->unit_price; // Precio unitario CON IGV (como está en BD)
+            $subtotalConIgv = $detail->subtotal; // Subtotal CON IGV (como está en BD)
+            
+            // Calcular valores sin IGV usando las fórmulas correctas
+            $valorUnitarioSinIgv = round($precioUnitarioConIgv / $igvFactor, 2); // Precio unitario SIN IGV
+            $valorVentaSinIgv = round($subtotalConIgv / $igvFactor, 2); // Subtotal SIN IGV
+            $igvItem = round($subtotalConIgv - $valorVentaSinIgv, 2); // IGV incluido
 
             // Acumular para verificación
             $sumaValorVenta += $valorVentaSinIgv;
@@ -653,15 +630,17 @@ class SunatService
                 'product_id' => $detail->product->id,
                 'product_name' => $detail->product->name,
                 'quantity' => $detail->quantity,
-                'unit_price_bd_sin_igv' => $detail->unit_price,
-                'subtotal_bd_sin_igv' => $detail->subtotal,
-                'precio_con_igv_para_xml' => $precioUnitarioConIgv,
+                'igv_percent_config' => $igvPercent,
+                'unit_price_bd_con_igv' => $detail->unit_price,
+                'subtotal_bd_con_igv' => $detail->subtotal,
+                'precio_unitario_sin_igv_xml' => $valorUnitarioSinIgv,
                 'valor_venta_sin_igv_xml' => $valorVentaSinIgv,
-                'igv_calculado_18_porciento' => $igvItem,
+                'igv_incluido_calculado' => $igvItem,
                 'total_item_con_igv' => $valorVentaSinIgv + $igvItem,
                 'verificacion' => [
-                    'unit_price_debe_ser' => $detail->unit_price,
-                    'precio_con_igv_debe_ser' => round($detail->unit_price * 1.18, 2)
+                    'subtotal_original' => $detail->subtotal,
+                    'subtotal_recalculado' => $valorVentaSinIgv + $igvItem,
+                    'diferencia' => abs($detail->subtotal - ($valorVentaSinIgv + $igvItem))
                 ]
             ]);
 
@@ -671,7 +650,7 @@ class SunatService
                 ->setCantidad($detail->quantity)
                 ->setDescripcion($detail->product->name)
                 ->setMtoBaseIgv($valorVentaSinIgv) // Base imponible (sin IGV)
-                ->setPorcentajeIgv(18.00) // Porcentaje IGV
+                ->setPorcentajeIgv($igvPercent) // Porcentaje IGV desde configuración
                 ->setIgv($igvItem) // IGV calculado
                 ->setTipAfeIgv('10') // Gravado - Operación Onerosa
                 ->setTotalImpuestos($igvItem) // Total de impuestos
@@ -691,7 +670,7 @@ class SunatService
             'total_calculado_con_igv' => $sumaValorVenta + $sumaIgv,
             'total_factura_original' => $invoice->total,
             'diferencia' => abs(($sumaValorVenta + $sumaIgv) - $invoice->total),
-            'nota' => 'Precios en BD son SIN IGV, XML debe mostrar CON IGV'
+            'nota' => 'Precios en BD SÍ INCLUYEN IGV, XML calcula correctamente valores sin IGV'
         ]);
 
         $greenterInvoice->setDetails($details);
@@ -1257,13 +1236,18 @@ class SunatService
     {
         $details = [];
         
+        // Obtener porcentaje de IGV desde configuración
+        $igvPercent = (float) AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?: 18.00;
+        $igvFactor = 1 + ($igvPercent / 100);
+
         foreach ($invoiceDetails as $detail) {
-            // Los precios en BD están SIN IGV
-            $valorUnitarioSinIgv = round($detail->unit_price, 2);
+            // Los precios en BD SÍ INCLUYEN IGV
+            $precioUnitarioConIgv = round($detail->unit_price, 2);
             $cantidad = $detail->quantity;
-            $valorVentaSinIgv = round($valorUnitarioSinIgv * $cantidad, 2);
-            $igvItem = round($valorVentaSinIgv * 0.18, 2);
-            $precioUnitarioConIgv = round($valorUnitarioSinIgv * 1.18, 2);
+            $subtotalConIgv = round($precioUnitarioConIgv * $cantidad, 2);
+            $valorUnitarioSinIgv = round($precioUnitarioConIgv / $igvFactor, 2);
+            $valorVentaSinIgv = round($subtotalConIgv / $igvFactor, 2);
+            $igvItem = round($subtotalConIgv - $valorVentaSinIgv, 2);
             
             $details[] = [
                 "codProducto" => $detail->product->id ?? 'P' . $detail->id,
@@ -1272,7 +1256,7 @@ class SunatService
                 "mtoValorUnitario" => $valorUnitarioSinIgv,
                 "descripcion" => $detail->product->name ?? 'Producto',
                 "mtoBaseIgv" => $valorVentaSinIgv,
-                "porcentajeIgv" => 18.00,
+                "porcentajeIgv" => $igvPercent,
                 "igv" => $igvItem,
                 "tipAfeIgv" => "10", // Catálogo 07 - Gravado
                 "totalImpuestos" => $igvItem,
@@ -1292,9 +1276,14 @@ class SunatService
         $mtoOperGravadas = 0;
         $mtoIGV = 0;
         
+        // Obtener porcentaje de IGV desde configuración
+        $igvPercent = (float) AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?: 18.00;
+        $igvFactor = 1 + ($igvPercent / 100);
+
         foreach ($invoiceDetails as $detail) {
-            $valorVentaSinIgv = round($detail->unit_price * $detail->quantity, 2);
-            $igvItem = round($valorVentaSinIgv * 0.18, 2);
+            $subtotalConIgv = round($detail->unit_price * $detail->quantity, 2);
+            $valorVentaSinIgv = round($subtotalConIgv / $igvFactor, 2);
+            $igvItem = round($subtotalConIgv - $valorVentaSinIgv, 2);
             
             $mtoOperGravadas += $valorVentaSinIgv;
             $mtoIGV += $igvItem;
@@ -1598,6 +1587,11 @@ class SunatService
         // ENDPOINT OFICIAL PARA FACTURAS Y BOLETAS ELECTRÓNICAS
         $sunatEndpoint = 'https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService';
         
+        // Configuración de reintentos
+        $maxRetries = 3;
+        $retryDelay = 2; // segundos
+        $lastError = null;
+        
         // Asegurar que el nombre del archivo tenga la extensión .zip
         $filename = str_ends_with($zipFilename, '.zip') ? $zipFilename : $zipFilename . '.zip';
         
@@ -1617,13 +1611,26 @@ class SunatService
             'trace' => true,
             'exceptions' => true,
             'location' => $sunatEndpoint,
-            'cache_wsdl' => WSDL_CACHE_NONE, // Deshabilitar caché WSDL
-            'connection_timeout' => 30,
-            'user_agent' => 'PHP-SOAP/7.4',
+            'cache_wsdl' => WSDL_CACHE_MEMORY, // Usar caché en memoria para mejor rendimiento
+            'connection_timeout' => 15, // Reducido de 30 a 15 segundos
+            'user_agent' => 'PHP-SOAP/8.0',
+            'compression' => SOAP_COMPRESSION_ACCEPT | SOAP_COMPRESSION_GZIP, // Habilitar compresión
             'stream_context' => stream_context_create([
                 'http' => [
-                    'timeout' => 30,
-                    'user_agent' => 'PHP-SOAP/7.4'
+                    'timeout' => 15, // Reducido de 30 a 15 segundos
+                    'user_agent' => 'PHP-SOAP/8.0',
+                    'method' => 'POST',
+                    'protocol_version' => '1.1',
+                    'header' => [
+                        'Connection: Keep-Alive',
+                        'Keep-Alive: timeout=15, max=10'
+                    ]
+                ],
+                'ssl' => [
+                    'verify_peer' => true,
+                    'verify_peer_name' => true,
+                    'allow_self_signed' => false,
+                    'SNI_enabled' => true
                 ]
             ])
         ]);
@@ -1633,47 +1640,78 @@ class SunatService
             'contentFile' => base64_encode($zipContent),
         ];
         
-        // Log detallado del envío
-        Log::info('Enviando comprobante a SUNAT', [
+        // Implementar reintentos
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            // Log detallado del envío
+            Log::info('Enviando comprobante a SUNAT', [
+                'endpoint' => $sunatEndpoint,
+                'filename' => $filename,
+                'attempt' => $attempt,
+                'max_retries' => $maxRetries,
+                'parameters_keys' => array_keys($parameters),
+                'soap_action' => 'sendBill'
+            ]);
+            
+            try {
+                $response = $soapClient->sendBill($parameters);
+                
+                Log::info('Respuesta exitosa de SUNAT', [
+                    'endpoint' => $sunatEndpoint,
+                    'filename' => $filename,
+                    'attempt' => $attempt,
+                    'response_type' => gettype($response)
+                ]);
+                
+                return [
+                    'success' => true,
+                    'response' => $response,
+                    'endpoint_used' => $sunatEndpoint,
+                    'filename_sent' => $filename,
+                    'attempts_made' => $attempt
+                ];
+            } catch (\SoapFault $e) {
+                $lastError = $e;
+                
+                Log::warning('Error SOAP al enviar a SUNAT', [
+                    'endpoint' => $sunatEndpoint,
+                    'filename' => $filename,
+                    'attempt' => $attempt,
+                    'max_retries' => $maxRetries,
+                    'error' => $e->getMessage(),
+                    'code' => $e->getCode(),
+                    'fault_code' => $e->faultcode ?? 'N/A',
+                    'fault_string' => $e->faultstring ?? 'N/A'
+                ]);
+                
+                // Si no es el último intento, esperar antes del siguiente
+                if ($attempt < $maxRetries) {
+                    Log::info('Esperando antes del siguiente intento', [
+                        'delay_seconds' => $retryDelay,
+                        'next_attempt' => $attempt + 1
+                    ]);
+                    sleep($retryDelay);
+                    $retryDelay *= 2; // Incrementar el delay exponencialmente
+                }
+            }
+        }
+        
+        // Si llegamos aquí, todos los intentos fallaron
+        Log::error('Todos los intentos de envío a SUNAT fallaron', [
             'endpoint' => $sunatEndpoint,
             'filename' => $filename,
-            'parameters_keys' => array_keys($parameters),
-            'soap_action' => 'sendBill'
+            'total_attempts' => $maxRetries,
+            'final_error' => $lastError->getMessage(),
+            'final_code' => $lastError->getCode()
         ]);
         
-        try {
-            $response = $soapClient->sendBill($parameters);
-            
-            Log::info('Respuesta exitosa de SUNAT', [
-                'endpoint' => $sunatEndpoint,
-                'filename' => $filename,
-                'response_type' => gettype($response)
-            ]);
-            
-            return [
-                'success' => true,
-                'response' => $response,
-                'endpoint_used' => $sunatEndpoint,
-                'filename_sent' => $filename
-            ];
-        } catch (\SoapFault $e) {
-            Log::error('Error SOAP al enviar a SUNAT', [
-                'endpoint' => $sunatEndpoint,
-                'filename' => $filename,
-                'error' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'fault_code' => $e->faultcode ?? 'N/A',
-                'fault_string' => $e->faultstring ?? 'N/A'
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-                'code' => $e->getCode(),
-                'endpoint_used' => $sunatEndpoint,
-                'filename_sent' => $filename
-            ];
-        }
+        return [
+            'success' => false,
+            'error' => $lastError->getMessage(),
+            'code' => $lastError->getCode(),
+            'endpoint_used' => $sunatEndpoint,
+            'filename_sent' => $filename,
+            'attempts_made' => $maxRetries
+        ];
     }
     
     /**
@@ -1759,5 +1797,540 @@ class SunatService
             'pem_length' => strlen($pemContent),
             'extra_certs_count' => isset($certs['extracerts']) ? count($certs['extracerts']) : 0
         ]);
+    }
+
+    /**
+     * Emitir nota de crédito a SUNAT
+     */
+    public function emitirNotaCredito(Invoice $invoice, string $motivo = '01', string $descripcionMotivo = 'ANULACION DE LA OPERACION'): array
+    {
+        // Log inicio del proceso
+        \App\Helpers\CreditNoteLogger::logCreationStart($invoice, $motivo, $descripcionMotivo);
+        
+        try {
+            // Obtener serie activa para notas de crédito desde DocumentSeries
+            $documentSeries = \App\Models\DocumentSeries::where('document_type', 'credit_note')
+                ->where('active', true)
+                ->first();
+            
+            if (!$documentSeries) {
+                throw new \Exception('No hay series activas configuradas para notas de crédito. Configure una serie desde el panel de administración.');
+            }
+            
+            $serie = $documentSeries->series;
+            $correlativo = $documentSeries->getNextNumber();
+            
+            \App\Helpers\CreditNoteLogger::logDebugData('Serie y correlativo generados', [
+                'serie' => $serie,
+                'correlativo' => $correlativo
+            ]);
+            
+            // Crear estructura de datos para la nota de crédito
+            $creditNoteData = $this->buildCreditNoteStructure($invoice, $serie, $correlativo, $motivo, $descripcionMotivo);
+            
+            \App\Helpers\CreditNoteLogger::logDebugData('Estructura de datos creada', [
+                'data_keys' => array_keys($creditNoteData),
+                'total' => $creditNoteData['mtoImpVenta'] ?? 'N/A'
+            ]);
+            
+            // Generar XML
+            $xml = $this->generateCreditNoteXml($creditNoteData);
+            
+            // Log envío a SUNAT
+            \App\Helpers\CreditNoteLogger::logSunatSend($creditNoteData, $xml);
+            
+            // Enviar a SUNAT
+            $response = $this->sendCreditNoteToSunat($creditNoteData, $xml);
+            
+            // Log respuesta de SUNAT
+            \App\Helpers\CreditNoteLogger::logSunatResponse($creditNoteData, $response);
+            
+            // Guardar en base de datos
+            $creditNote = $this->saveCreditNote($invoice, $creditNoteData, $response);
+            
+            // Log éxito
+            \App\Helpers\CreditNoteLogger::logCreationSuccess($creditNote);
+            
+            return [
+                'success' => true,
+                'credit_note' => $creditNote,
+                'sunat_response' => $response
+            ];
+            
+        } catch (\Exception $e) {
+            // Log error detallado
+            \App\Helpers\CreditNoteLogger::logCreationError($invoice, $e, [
+                'motivo' => $motivo,
+                'descripcion' => $descripcionMotivo
+            ]);
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+    
+    /**
+     * Construir estructura de datos para nota de crédito
+     */
+    private function buildCreditNoteStructure(Invoice $invoice, string $serie, string $correlativo, string $motivo, string $descripcionMotivo): array
+    {
+        $company = $this->getCompanyData();
+        $client = $this->getClientData($invoice);
+        
+        return [
+            'tipoDoc' => '07', // Nota de crédito
+            'serie' => $serie,
+            'correlativo' => $correlativo,
+            'fechaEmision' => now()->format('Y-m-d'),
+            'tipoMoneda' => $invoice->currency_code ?? 'PEN',
+            'tipDocAfectado' => '01', // Factura
+            'numDocfectado' => $invoice->series . '-' . $invoice->number,
+            'codMotivo' => $motivo,
+            'desMotivo' => $descripcionMotivo,
+            'mtoOperGravadas' => $invoice->taxable_amount,
+            'mtoIGV' => $invoice->tax,
+            'totalImpuestos' => $invoice->tax,
+            'mtoImpVenta' => $invoice->total,
+            'company' => $company,
+            'client' => $client,
+            'details' => $this->buildCreditNoteDetails($invoice)
+        ];
+    }
+    
+    /**
+     * Generar XML para nota de crédito usando Greenter
+     */
+    private function generateCreditNoteXml(array $data): string
+    {
+        $note = new \Greenter\Model\Sale\Note();
+        $note->setUblVersion('2.1')
+            ->setTipoDoc($data['tipoDoc'])
+            ->setSerie($data['serie'])
+            ->setCorrelativo($data['correlativo'])
+            ->setFechaEmision(new \DateTime($data['fechaEmision']))
+            ->setTipDocAfectado($data['tipDocAfectado'])
+            ->setNumDocfectado($data['numDocfectado'])
+            ->setCodMotivo($data['codMotivo'])
+            ->setDesMotivo($data['desMotivo'])
+            ->setTipoMoneda($data['tipoMoneda'])
+            ->setMtoOperGravadas($data['mtoOperGravadas'])
+            ->setMtoIGV($data['mtoIGV'])
+            ->setTotalImpuestos($data['totalImpuestos'])
+            ->setMtoImpVenta($data['mtoImpVenta']);
+
+        // Configurar empresa
+        $company = new Company();
+        $company->setRuc($data['company']['ruc'])
+            ->setRazonSocial($data['company']['razonSocial'])
+            ->setNombreComercial($data['company']['nombreComercial'] ?? $data['company']['razonSocial']);
+
+        $address = new Address();
+        $address->setDireccion($data['company']['address']['direccion'])
+            ->setProvincia($data['company']['address']['provincia'])
+            ->setDepartamento($data['company']['address']['departamento'])
+            ->setDistrito($data['company']['address']['distrito'])
+            ->setUbigueo($data['company']['address']['ubigueo']);
+        $company->setAddress($address);
+        $note->setCompany($company);
+
+        // Configurar cliente
+        $client = new \Greenter\Model\Client\Client();
+        $client->setTipoDoc($data['client']['tipoDoc'])
+            ->setNumDoc($data['client']['numDoc'])
+            ->setRznSocial($data['client']['rznSocial']);
+        $note->setClient($client);
+
+        // Agregar detalles
+        $details = [];
+        foreach ($data['details'] as $detail) {
+            $saleDetail = new \Greenter\Model\Sale\SaleDetail();
+            $saleDetail->setCodProducto($detail['codProducto'])
+                ->setUnidad($detail['unidad'])
+                ->setCantidad($detail['cantidad'])
+                ->setDescripcion($detail['descripcion'])
+                ->setMtoBaseIgv($detail['mtoBaseIgv'])
+                ->setPorcentajeIgv($detail['porcentajeIgv'])
+                ->setIgv($detail['igv'])
+                ->setTipAfeIgv($detail['tipAfeIgv'])
+                ->setTotalImpuestos($detail['totalImpuestos'])
+                ->setMtoValorVenta($detail['mtoValorVenta'])
+                ->setMtoValorUnitario($detail['mtoValorUnitario'])
+                ->setMtoPrecioUnitario($detail['mtoPrecioUnitario']);
+            $details[] = $saleDetail;
+        }
+        $note->setDetails($details);
+
+        // Agregar leyendas
+        $legend = new \Greenter\Model\Sale\Legend();
+        $legend->setCode('1000')
+            ->setValue($this->convertNumberToWords($data['mtoImpVenta']) . ' SOLES');
+        $note->setLegends([$legend]);
+
+        // Generar XML usando Greenter
+        return $this->see->getXmlSigned($note);
+    }
+    
+    /**
+     * Construir nota de crédito para envío a SUNAT
+     */
+    private function buildCreditNoteForSunat(array $data): \Greenter\Model\Sale\Note
+    {
+        $note = new \Greenter\Model\Sale\Note();
+        $note->setUblVersion('2.1')
+            ->setTipoDoc($data['tipoDoc'])
+            ->setSerie($data['serie'])
+            ->setCorrelativo($data['correlativo'])
+            ->setFechaEmision(new \DateTime($data['fechaEmision']))
+            ->setTipDocAfectado($data['tipDocAfectado'])
+            ->setNumDocfectado($data['numDocfectado'])
+            ->setCodMotivo($data['codMotivo'])
+            ->setDesMotivo($data['desMotivo'])
+            ->setTipoMoneda($data['tipoMoneda'])
+            ->setMtoOperGravadas($data['mtoOperGravadas'])
+            ->setMtoIGV($data['mtoIGV'])
+            ->setTotalImpuestos($data['totalImpuestos'])
+            ->setMtoImpVenta($data['mtoImpVenta']);
+
+        // Configurar empresa
+        $company = new Company();
+        $company->setRuc($data['company']['ruc'])
+            ->setRazonSocial($data['company']['razonSocial'])
+            ->setNombreComercial($data['company']['nombreComercial'] ?? $data['company']['razonSocial']);
+
+        $address = new Address();
+        $address->setDireccion($data['company']['address']['direccion'])
+            ->setProvincia($data['company']['address']['provincia'])
+            ->setDepartamento($data['company']['address']['departamento'])
+            ->setDistrito($data['company']['address']['distrito'])
+            ->setUbigueo($data['company']['address']['ubigueo']);
+        $company->setAddress($address);
+        $note->setCompany($company);
+
+        // Configurar cliente
+        $client = new \Greenter\Model\Client\Client();
+        $client->setTipoDoc($data['client']['tipoDoc'])
+            ->setNumDoc($data['client']['numDoc'])
+            ->setRznSocial($data['client']['rznSocial']);
+        $note->setClient($client);
+
+        // Agregar detalles
+        $details = [];
+        foreach ($data['details'] as $detail) {
+            $saleDetail = new \Greenter\Model\Sale\SaleDetail();
+            $saleDetail->setCodProducto($detail['codProducto'])
+                ->setUnidad($detail['unidad'])
+                ->setDescripcion($detail['descripcion'])
+                ->setCantidad($detail['cantidad'])
+                ->setMtoValorUnitario($detail['mtoValorUnitario'])
+                ->setMtoValorVenta($detail['mtoValorVenta'])
+                ->setMtoBaseIgv($detail['mtoBaseIgv'])
+                ->setPorcentajeIgv($detail['porcentajeIgv'])
+                ->setIgv($detail['igv'])
+                ->setTipAfeIgv($detail['tipAfeIgv'])
+                ->setTotalImpuestos($detail['totalImpuestos'])
+                ->setMtoPrecioUnitario($detail['mtoPrecioUnitario']);
+            $details[] = $saleDetail;
+        }
+        $note->setDetails($details);
+
+        // Agregar leyendas
+        $legend = new \Greenter\Model\Sale\Legend();
+        $legend->setCode('1000')
+            ->setValue($this->convertNumberToWords($data['mtoImpVenta']) . ' SOLES');
+        $note->setLegends([$legend]);
+
+        return $note;
+    }
+    
+    /**
+     * Enviar nota de crédito a SUNAT via QPSE
+     */
+    private function sendCreditNoteToSunat(array $data, string $xml): array
+    {
+        try {
+            // Log de configuración QPS
+            \App\Helpers\CreditNoteLogger::logDebugData('Configuración QPS para Notas de Crédito', [
+                'metodo_envio' => 'QPS (qpse.pe)',
+                'ambiente' => $this->environment
+            ]);
+            
+            // Validar XML antes del envío
+            $xmlValid = !empty($xml) && strpos($xml, '<?xml') === 0;
+            \App\Helpers\CreditNoteLogger::logXmlValidation($xml, $xmlValid);
+            
+            if (!$xmlValid) {
+                throw new \Exception('XML inválido o vacío');
+            }
+            
+            // Crear instancia del servicio QPS
+            $qpsService = new \App\Services\QpsService();
+            
+            // Crear y configurar la nota de crédito completa para obtener el XML firmado
+            $note = $this->buildCreditNoteForSunat($data);
+            
+            \App\Helpers\CreditNoteLogger::logDebugData('Nota de crédito construida para SUNAT', [
+                'serie' => $note->getSerie(),
+                'correlativo' => $note->getCorrelativo(),
+                'tipo_doc' => $note->getTipoDoc(),
+                'total' => $note->getMtoImpVenta()
+            ]);
+            
+            // Medir tiempo de respuesta
+            $startTime = microtime(true);
+            
+            // Generar nombre del archivo XML (sin extensión para QPS)
+            $ruc = \App\Models\AppSetting::getSetting('Empresa', 'ruc');
+            $filename = "{$ruc}-07-{$note->getSerie()}-{$note->getCorrelativo()}";
+            
+            // Firmar XML usando QPS
+            \App\Helpers\CreditNoteLogger::logDebugData('Firmando XML con QPS', [
+                'filename' => $filename,
+                'xml_size' => strlen($xml)
+            ]);
+            
+            $signResult = $qpsService->signXml($xml, $filename);
+            
+            if (!$signResult['success']) {
+                throw new \Exception('Error al firmar XML: ' . $signResult['message']);
+            }
+            
+            $signedXml = $signResult['signed_xml'];
+            
+            // Enviar a SUNAT via QPS
+            \App\Helpers\CreditNoteLogger::logDebugData('Enviando a SUNAT via QPS', [
+                'filename' => $filename,
+                'signed_xml_size' => strlen($signedXml),
+                'hash_code' => $signResult['hash_code'] ?? 'N/A'
+            ]);
+            
+            $qpsResult = $qpsService->sendSignedXml($signedXml, $filename);
+            
+            $responseTime = microtime(true) - $startTime;
+            
+            // Log de comunicación detallada
+            \App\Helpers\CreditNoteLogger::logSunatCommunication(
+                'QPS Service (qpse.pe)',
+                ['Content-Type' => 'application/json', 'Authorization' => 'Bearer [TOKEN]'],
+                $responseTime
+            );
+            
+            if (!$qpsResult['success']) {
+                \App\Helpers\CreditNoteLogger::logDebugData('Error en respuesta de QPS', [
+                    'error_message' => $qpsResult['message'],
+                    'response_time' => $responseTime
+                ]);
+                throw new \Exception('Error QPS: ' . $qpsResult['message']);
+            }
+            
+            // Procesar respuesta exitosa
+            $sunatResponse = $qpsResult['sunat_response'] ?? [];
+            $cdrContent = $qpsResult['cdr_content'] ?? null;
+            
+            \App\Helpers\CreditNoteLogger::logDebugData('CDR recibido de SUNAT via QPS', [
+                'sunat_code' => $sunatResponse['codigo'] ?? 'N/A',
+                'sunat_description' => $sunatResponse['descripcion'] ?? 'N/A',
+                'cdr_size' => $cdrContent ? strlen($cdrContent) . ' bytes' : 'N/A',
+                'response_time' => $responseTime
+            ]);
+            
+            return [
+                'success' => true,
+                'xml' => $signedXml,
+                'cdr' => $cdrContent,
+                'sunat_code' => $sunatResponse['codigo'] ?? '0000',
+                'sunat_description' => $sunatResponse['descripcion'] ?? 'Nota de crédito enviada exitosamente via QPS',
+                'response_time' => $responseTime,
+                'hash_code' => $signResult['hash_code'] ?? null
+            ];
+            
+        } catch (\Exception $e) {
+            \App\Helpers\CreditNoteLogger::logSunatError($data, $e);
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'error_code' => $e->getCode(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine()
+            ];
+        }
+    }
+    
+    /**
+     * Guardar nota de crédito en base de datos
+     */
+    private function saveCreditNote(Invoice $invoice, array $data, array $response): \App\Models\CreditNote
+    {
+        $creditNote = new \App\Models\CreditNote();
+        $creditNote->invoice_id = $invoice->id;
+        $creditNote->series = $data['serie'];
+        $creditNote->number = $data['correlativo'];
+        $creditNote->issue_date = now()->toDateString();
+        $creditNote->motivo_codigo = $data['codMotivo'];
+        $creditNote->motivo_descripcion = $data['desMotivo'];
+        $creditNote->subtotal = $data['mtoOperGravadas'];
+        $creditNote->tax = $data['mtoIGV'];
+        $creditNote->total = $data['mtoImpVenta'];
+        
+        if ($response['success']) {
+            try {
+                $xmlPath = $this->saveCreditNoteXmlFile($data['serie'], $data['correlativo'], $response['xml']);
+                $creditNote->xml_path = $xmlPath;
+                \App\Helpers\CreditNoteLogger::logFileSave('XML', $xmlPath, true);
+            } catch (\Exception $e) {
+                \App\Helpers\CreditNoteLogger::logFileSave('XML', 'Error: ' . $e->getMessage(), false);
+            }
+            
+            try {
+                $cdrPath = $this->saveCreditNoteCdrFile($data['serie'], $data['correlativo'], $response['cdr']);
+                $creditNote->cdr_path = $cdrPath;
+                \App\Helpers\CreditNoteLogger::logFileSave('CDR', $cdrPath, true);
+            } catch (\Exception $e) {
+                \App\Helpers\CreditNoteLogger::logFileSave('CDR', 'Error: ' . $e->getMessage(), false);
+            }
+            
+            $creditNote->sunat_status = 'ACEPTADO';
+            $creditNote->sunat_code = $response['sunat_code'];
+            $creditNote->sunat_description = $response['sunat_description'];
+            $creditNote->sent_at = now();
+        } else {
+            $creditNote->sunat_status = 'RECHAZADO';
+            $creditNote->sunat_description = $response['error'];
+        }
+        
+        $creditNote->created_by = auth()->id();
+        $creditNote->save();
+        
+        \App\Helpers\CreditNoteLogger::logDebugData('Nota de crédito guardada en BD', [
+            'id' => $creditNote->id,
+            'series' => $creditNote->series,
+            'number' => $creditNote->number,
+            'status' => $creditNote->sunat_status
+        ]);
+        
+        return $creditNote;
+    }
+    
+    /**
+     * Obtener siguiente número de nota de crédito (DEPRECATED)
+     * Ahora se usa DocumentSeries->getNextNumber()
+     */
+    private function getNextCreditNoteNumber(string $serie): string
+    {
+        // Este método se mantiene por compatibilidad pero ya no se usa
+        // Se recomienda usar DocumentSeries->getNextNumber()
+        $lastCreditNote = \App\Models\CreditNote::where('serie', $serie)
+            ->orderBy('numero', 'desc')
+            ->first();
+            
+        $nextNumber = $lastCreditNote ? (int)$lastCreditNote->numero + 1 : 1;
+        
+        return str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+    }
+    
+    /**
+     * Construir detalles de la nota de crédito
+     */
+    private function buildCreditNoteDetails(Invoice $invoice): array
+    {
+        $details = [];
+        
+        foreach ($invoice->details as $detail) {
+            $details[] = [
+                'codProducto' => $detail->product_code ?? 'SERV001',
+                'unidad' => $detail->unit ?? 'NIU',
+                'cantidad' => $detail->quantity,
+                'descripcion' => $detail->description,
+                'mtoBaseIgv' => $detail->subtotal,
+                'porcentajeIgv' => 18.00,
+                'igv' => $detail->tax_amount,
+                'tipAfeIgv' => '10',
+                'totalImpuestos' => $detail->tax_amount,
+                'mtoValorVenta' => $detail->subtotal,
+                'mtoValorUnitario' => $detail->unit_price,
+                'mtoPrecioUnitario' => $detail->unit_price * 1.18
+            ];
+        }
+        
+        return $details;
+    }
+    
+    /**
+     * Convertir número a palabras para leyenda
+     */
+    private function convertNumberToWords(float $amount): string
+    {
+        // Implementación básica - en producción usar una librería especializada
+        $formatter = new \NumberFormatter('es', \NumberFormatter::SPELLOUT);
+        $words = strtoupper($formatter->format(floor($amount)));
+        $cents = str_pad(strval(($amount - floor($amount)) * 100), 2, '0', STR_PAD_LEFT);
+        return "SON {$words} CON {$cents}/100";
+    }
+    
+    /**
+     * Obtener datos de la empresa
+     */
+    private function getCompanyData(): array
+    {
+        return [
+            'ruc' => config('company.ruc', '20000000000'),
+            'razonSocial' => config('company.razon_social', 'EMPRESA DEMO'),
+            'nombreComercial' => config('company.nombre_comercial'),
+            'address' => [
+                'direccion' => config('company.direccion', 'AV. DEMO 123'),
+                'provincia' => config('company.provincia', 'LIMA'),
+                'departamento' => config('company.departamento', 'LIMA'),
+                'distrito' => config('company.distrito', 'LIMA'),
+                'ubigueo' => config('company.ubigueo', '150101')
+            ]
+        ];
+    }
+    
+    /**
+     * Obtener datos del cliente
+     */
+    private function getClientData(Invoice $invoice): array
+    {
+        return [
+            'tipoDoc' => $invoice->customer_document_type ?? '6',
+            'numDoc' => $invoice->customer_document_number ?? '20000000000',
+            'rznSocial' => $invoice->customer_name ?? 'CLIENTE DEMO'
+        ];
+    }
+    
+    /**
+     * Guardar archivo XML para notas de crédito
+     */
+    private function saveCreditNoteXmlFile(string $serie, string $numero, string $xml): string
+    {
+        $filename = "FC01-{$serie}-{$numero}.xml";
+        $path = storage_path("app/sunat/credit_notes/xml/{$filename}");
+        
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+        
+        file_put_contents($path, $xml);
+        
+        return "sunat/credit_notes/xml/{$filename}";
+    }
+    
+    /**
+     * Guardar archivo CDR para notas de crédito
+     */
+    private function saveCreditNoteCdrFile(string $serie, string $numero, string $cdr): string
+    {
+        $filename = "R-FC01-{$serie}-{$numero}.zip";
+        $path = storage_path("app/sunat/credit_notes/cdr/{$filename}");
+        
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+        
+        file_put_contents($path, $cdr);
+        
+        return "sunat/credit_notes/cdr/{$filename}";
     }
 }

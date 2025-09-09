@@ -324,14 +324,16 @@ class TableMap extends Page
 
             // Recalcular totales de la cuenta principal
             $cuentaPrincipal->refresh();
-            $subtotal = $cuentaPrincipal->orderDetails->sum('subtotal');
-            $tax = $subtotal * 0.18; // IGV 18%
-            $total = $subtotal + $tax;
-
+            
+            // CORRECCIÓN: Los precios YA INCLUYEN IGV
+            // El subtotal de orderDetails ya incluye IGV, necesitamos calcular el desglose
+            $totalWithIgv = $cuentaPrincipal->orderDetails->sum('subtotal');
+            
+            // Usar el método recalculateTotals() que ya maneja correctamente el IGV incluido
+            $cuentaPrincipal->recalculateTotals();
+            
+            // Actualizar número de huéspedes
             $cuentaPrincipal->update([
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'total' => $total,
                 'number_of_guests' => $cuentaPrincipal->orderDetails->sum('quantity')
             ]);
 

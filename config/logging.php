@@ -136,6 +136,32 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Canales específicos para Notas de Crédito
+        'credit_notes' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/credit-notes.log'),
+            'level' => env('CREDIT_NOTE_LOG_LEVEL', 'debug'),
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+        
+        'sunat_credit_notes' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/sunat-credit-notes.log'),
+            'level' => env('SUNAT_CREDIT_NOTE_LOG_LEVEL', 'info'),
+            'days' => 60,
+            'replace_placeholders' => true,
+        ],
+
+        // Canal específico para envío de notas de crédito via QPSE
+        'envionotacredito' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/envionotacredito.log'),
+            'level' => env('ENVIO_NOTA_CREDITO_LOG_LEVEL', 'debug'),
+            'days' => 90,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

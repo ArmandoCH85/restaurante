@@ -24,12 +24,17 @@ class QpsService
 
     public function __construct()
     {
-        // Configuración desde config/services.php
-        $this->baseUrl = config('services.qps.base_url', 'https://demo-cpe.qpse.pe');
-        $this->tokenUrl = config('services.qps.token_url', 'https://demo-cpe.qpse.pe/api/auth/cpe/token');
-        $this->apiUrl = config('services.qps.api_url', 'https://demo-cpe.qpse.pe/api/cpe');
-        $this->username = config('services.qps.username', 'soporte@sitech.site');
-        $this->password = config('services.qps.password', '},99,ordaNA');
+        // Verificar si usar configuración dinámica desde base de datos
+        $useDynamicConfig = config('services.qps.use_dynamic_config', true);
+        
+        if ($useDynamicConfig) {
+            // Configuración dinámica desde base de datos
+            $this->loadDynamicConfiguration();
+        } else {
+            // Configuración estática desde config/services.php
+            $this->loadStaticConfiguration();
+        }
+        
         $this->token = null;
         $this->tokenExpiry = null;
         
@@ -37,6 +42,61 @@ class QpsService
         $this->ruc = \App\Models\AppSetting::getSetting('Empresa', 'ruc');
         $this->usuarioSol = \App\Models\AppSetting::getSetting('Empresa', 'usuario_sol');
         $this->claveSol = \App\Models\AppSetting::getSetting('Empresa', 'clave_sol');
+    }
+
+    /**
+     * Cargar configuración dinámica desde la base de datos
+     */
+    private function loadDynamicConfiguration(): void
+    {
+        // Determinar el entorno actual (beta o production)
+        $isProduction = \App\Models\AppSetting::getSetting('FacturacionElectronica', 'sunat_production') === '1';
+        $environment = $isProduction ? 'production' : 'beta';
+        
+        // Obtener endpoint dinámico
+        $endpoint = \App\Models\AppSetting::getQpseEndpointByEnvironmentFromFacturacion($environment);
+        
+        if ($endpoint) {
+            $this->baseUrl = $endpoint;
+            $this->tokenUrl = $endpoint . '/api/auth/cpe/token';
+            $this->apiUrl = $endpoint . '/api/cpe';
+        } else {
+            // Fallback a configuración por defecto
+            $this->loadStaticConfiguration();
+            return;
+        }
+        
+        // Obtener credenciales dinámicas
+        $credentials = \App\Models\AppSetting::getQpseCredentialsFromFacturacion();
+        
+        if ($credentials['username'] && $credentials['password']) {
+            $this->username = $credentials['username'];
+            $this->password = $credentials['password'];
+        } else {
+            // Fallback a credenciales de configuración estática
+            $this->username = config('services.qps.username');
+            $this->password = config('services.qps.password');
+        }
+        
+        Log::channel('qps')->info('QPS: Configuración dinámica cargada', [
+            'environment' => $environment,
+            'endpoint' => $endpoint,
+            'has_credentials' => !empty($credentials['username']) && !empty($credentials['password'])
+        ]);
+    }
+
+    /**
+     * Cargar configuración estática desde config/services.php
+     */
+    private function loadStaticConfiguration(): void
+    {
+        $this->baseUrl = config('services.qps.base_url', 'https://demo-cpe.qpse.pe');
+        $this->tokenUrl = config('services.qps.token_url', 'https://demo-cpe.qpse.pe/api/auth/cpe/token');
+        $this->apiUrl = config('services.qps.api_url', 'https://demo-cpe.qpse.pe/api/cpe');
+        $this->username = config('services.qps.username');
+        $this->password = config('services.qps.password');
+        
+        Log::channel('qps')->info('QPS: Configuración estática cargada desde config/services.php');
     }
 
     /**
@@ -53,10 +113,17 @@ class QpsService
             return $this->token;
         }
 
-        Log::channel('qps')->info('QPS: Solicitando nuevo token de acceso');
+        // Validar configuración antes de solicitar token
+        $this->validateConfiguration();
+
+        Log::channel('qps')->info('QPS: Solicitando nuevo token de acceso', [
+            'url' => $this->tokenUrl,
+            'username' => $this->username ? substr($this->username, 0, 3) . '***' : 'NO_CONFIGURADO'
+        ]);
 
         try {
-            $response = Http::timeout(30)
+            $response = Http::timeout(90)
+                ->retry(3, 1000) // 3 reintentos con 1 segundo de espera
                 ->withHeaders([
                     'Accept' => 'application/json',
                     'Content-Type' => 'application/json'
@@ -66,14 +133,46 @@ class QpsService
                     'contraseña' => $this->password
                 ]);
 
+            // Manejo específico de códigos de error HTTP
             if (!$response->successful()) {
-                throw new Exception('Error al obtener token QPS: ' . $response->status() . ' - ' . $response->body());
+                $statusCode = $response->status();
+                $errorBody = $response->body();
+                
+                $errorMessage = match ($statusCode) {
+                    401 => 'Credenciales inválidas. Verifique usuario y contraseña QPSE.',
+                    403 => 'Acceso denegado. Verifique permisos de la cuenta QPSE.',
+                    404 => 'Endpoint no encontrado. Verifique la URL del servicio QPSE.',
+                    429 => 'Demasiadas solicitudes. Intente nuevamente en unos minutos.',
+                    500, 502, 503, 504 => 'Error del servidor QPSE. Intente nuevamente más tarde.',
+                    default => "Error HTTP {$statusCode} del servidor QPSE."
+                };
+                
+                Log::channel('qps')->error('QPS: Error HTTP al obtener token', [
+                    'status_code' => $statusCode,
+                    'error_message' => $errorMessage,
+                    'response_body' => $errorBody,
+                    'url' => $this->tokenUrl
+                ]);
+                
+                throw new Exception($errorMessage . " Código: {$statusCode}");
             }
 
             $data = $response->json();
 
-            if (!isset($data['token_acceso']) || !isset($data['expira_en'])) {
-                throw new Exception('Respuesta inválida del servidor QPS: ' . json_encode($data));
+            // Validar estructura de respuesta
+            if (!is_array($data)) {
+                throw new Exception('Respuesta inválida del servidor QPSE: no es un JSON válido.');
+            }
+
+            if (!isset($data['token_acceso'])) {
+                Log::channel('qps')->error('QPS: Respuesta sin token_acceso', ['response' => $data]);
+                throw new Exception('El servidor QPSE no devolvió un token de acceso válido.');
+            }
+
+            if (!isset($data['expira_en']) || !is_numeric($data['expira_en'])) {
+                Log::channel('qps')->warning('QPS: Respuesta sin tiempo de expiración válido', ['response' => $data]);
+                // Usar tiempo por defecto de 1 hora si no se especifica
+                $data['expira_en'] = 3600;
             }
 
             $this->token = $data['token_acceso'];
@@ -82,17 +181,66 @@ class QpsService
             Log::channel('qps')->info('QPS: Token obtenido exitosamente', [
                 'token_prefix' => substr($this->token, 0, 10) . '...',
                 'expira_en_segundos' => $data['expira_en'],
-                'expira_timestamp' => $this->tokenExpiry
+                'expira_timestamp' => $this->tokenExpiry,
+                'expira_datetime' => date('Y-m-d H:i:s', $this->tokenExpiry)
             ]);
 
             return $this->token;
 
-        } catch (Exception $e) {
-            Log::channel('qps')->error('QPS: Error al obtener token', [
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            $errorMsg = 'No se pudo conectar con el servidor QPSE. Verifique su conexión a internet y la URL del servicio.';
+            Log::channel('qps')->error('QPS: Error de conexión', [
                 'error' => $e->getMessage(),
                 'url' => $this->tokenUrl
             ]);
-            throw new Exception('No se pudo obtener el token de acceso QPS: ' . $e->getMessage());
+            throw new Exception($errorMsg);
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            $errorMsg = 'Error en la solicitud HTTP al servidor QPSE.';
+            Log::channel('qps')->error('QPS: Error de solicitud HTTP', [
+                'error' => $e->getMessage(),
+                'url' => $this->tokenUrl
+            ]);
+            throw new Exception($errorMsg . ' ' . $e->getMessage());
+        } catch (Exception $e) {
+            // Re-lanzar excepciones ya manejadas
+            if (str_contains($e->getMessage(), 'QPSE')) {
+                throw $e;
+            }
+            
+            Log::channel('qps')->error('QPS: Error inesperado al obtener token', [
+                'error' => $e->getMessage(),
+                'url' => $this->tokenUrl,
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw new Exception('Error inesperado al obtener token QPSE: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Validar que la configuración esté completa
+     * 
+     * @throws Exception Si falta configuración
+     */
+    private function validateConfiguration(): void
+    {
+        $errors = [];
+        
+        if (empty($this->tokenUrl)) {
+            $errors[] = 'URL del token QPSE no configurada';
+        }
+        
+        if (empty($this->username)) {
+            $errors[] = 'Usuario QPSE no configurado';
+        }
+        
+        if (empty($this->password)) {
+            $errors[] = 'Contraseña QPSE no configurada';
+        }
+        
+        if (!empty($errors)) {
+            $errorMessage = 'Configuración QPSE incompleta: ' . implode(', ', $errors);
+            Log::channel('qps')->error('QPS: Configuración incompleta', ['errors' => $errors]);
+            throw new Exception($errorMessage);
         }
     }
 
@@ -183,7 +331,7 @@ class QpsService
 
         $data = [
             'nombre_xml_firmado' => $filename,
-            'contenido_xml_firmado' => $xmlContent
+            'contenido_xml_firmado' => base64_encode($xmlContent)
         ];
 
         Log::channel('qps')->info('QPS: Enviando XML firmado a SUNAT', [
@@ -334,8 +482,7 @@ class QpsService
                 ]);
                 
                 try {
-                    $xmlBase64 = base64_encode($signResult['signed_xml']);
-                    $qpsResult = $this->sendSignedXml($xmlBase64, $filename);
+                    $qpsResult = $this->sendSignedXml($signResult['signed_xml'], $filename);
                 } catch (Exception $e) {
                     // Si hay error 0161, usar flujo integrado como fallback
                     if (strpos($e->getMessage(), '0161') !== false) {
@@ -371,7 +518,7 @@ class QpsService
                         $possible = $qpsData['cdr'];
                         if (is_string($possible) && preg_match('/^https?:\\/\\//i', $possible)) {
                             try {
-                                $resp = Http::timeout(30)->get($possible);
+                                $resp = Http::timeout(90)->get($possible);
                                 if ($resp->successful()) {
                                     $cdrBinary = $resp->body();
                                     Log::channel('qps')->info('QPS: CDR descargado desde URL', [
@@ -402,7 +549,7 @@ class QpsService
                         // Algunos retornan cdr_url
                         $url = $qpsData['cdr_url'];
                         try {
-                            $resp = Http::timeout(30)->get($url);
+                            $resp = Http::timeout(90)->get($url);
                             if ($resp->successful()) {
                                 $cdrBinary = $resp->body();
                                 Log::channel('qps')->info('QPS: CDR descargado desde cdr_url', [
@@ -642,7 +789,7 @@ class QpsService
                 'Authorization' => 'Bearer ' . $token,
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
-            ])->timeout(30)->post($this->apiUrl . '/generar', $data);
+            ])->timeout(90)->post($this->apiUrl . '/generar', $data);
 
             Log::channel('qps')->info('QPS: Respuesta de firma', [
                 'status' => $response->status(),

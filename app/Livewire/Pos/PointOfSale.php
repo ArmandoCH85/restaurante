@@ -252,6 +252,26 @@ class PointOfSale extends Component
         }
     }
 
+    /**
+     * Calcula el subtotal sin IGV del carrito
+     * Los precios en el carrito YA INCLUYEN IGV
+     */
+    public function getCartSubtotal(): float
+    {
+        // El total del carrito incluye IGV, calculamos el subtotal sin IGV
+        return $this->cartTotal / 1.18;
+    }
+
+    /**
+     * Calcula el IGV incluido en el carrito
+     * Los precios en el carrito YA INCLUYEN IGV
+     */
+    public function getCartTax(): float
+    {
+        // Calculamos el IGV incluido en el total
+        return $this->cartTotal - $this->getCartSubtotal();
+    }
+
     public function clearCart(): void
     {
         $this->cart = [];

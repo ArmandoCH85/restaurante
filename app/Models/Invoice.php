@@ -197,11 +197,42 @@ class Invoice extends Model
 
     /**
      * Anula el comprobante con el motivo indicado.
+     * Si el comprobante fue aceptado por SUNAT, genera automáticamente una nota de crédito.
      */
     public function void(string $reason): bool
     {
         if (!$this->canBeVoided()) {
             return false;
+        }
+
+        // Si el comprobante fue aceptado por SUNAT, generar nota de crédito
+        $shouldGenerateCreditNote = in_array($this->sunat_status, ['ACEPTADO', 'OBSERVADO']) && 
+                                   !$this->hasCreditNotes();
+
+        if ($shouldGenerateCreditNote) {
+            try {
+                $sunatService = new \App\Services\SunatService();
+                $creditNote = $sunatService->emitirNotaCredito(
+                    $this,
+                    '01', // Código 01: Anulación de la operación
+                    $reason
+                );
+                
+                \Log::info('Nota de crédito generada automáticamente', [
+                    'invoice_id' => $this->id,
+                    'credit_note_id' => $creditNote->id,
+                    'serie' => $creditNote->serie,
+                    'numero' => $creditNote->numero
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Error al generar nota de crédito automática', [
+                    'invoice_id' => $this->id,
+                    'error' => $e->getMessage()
+                ]);
+                
+                // No fallar la anulación si hay error en la nota de crédito
+                // Solo registrar el error para revisión posterior
+            }
         }
 
         $this->tax_authority_status = self::STATUS_VOIDED;
@@ -317,5 +348,31 @@ class Invoice extends Model
     public function getCorrectTaxBreakdown(): array
     {
         return $this->getIgvBreakdown($this->total);
+    }
+
+    /**
+     * Obtiene las notas de crédito asociadas a esta factura
+     */
+    public function creditNotes(): HasMany
+    {
+        return $this->hasMany(CreditNote::class);
+    }
+
+    /**
+     * Verifica si la factura tiene notas de crédito
+     */
+    public function hasCreditNotes(): bool
+    {
+        return $this->creditNotes()->exists();
+    }
+
+    /**
+     * Obtiene la nota de crédito de anulación si existe
+     */
+    public function getVoidCreditNote()
+    {
+        return $this->creditNotes()
+            ->where('motivo_codigo', CreditNote::MOTIVO_ANULACION)
+            ->first();
     }
 }

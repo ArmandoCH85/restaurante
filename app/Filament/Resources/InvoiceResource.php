@@ -537,6 +537,71 @@ class InvoiceResource extends Resource
                             Notification::make()->title('Error inesperado')->body($e->getMessage())->danger()->send();
                         }
                     }),
+                Action::make('crear_nota_credito')
+                    ->label('Crear Nota de Crédito')
+                    ->icon('heroicon-o-document-minus')
+                    ->color('danger')
+                    ->visible(fn (Invoice $record): bool => 
+                        $record->sunat_status === 'ACEPTADO' && 
+                        !$record->hasCreditNotes() &&
+                        in_array($record->invoice_type, ['invoice', 'receipt'])
+                    )
+                    ->form([
+                        Forms\Components\Select::make('motivo_codigo')
+                            ->label('Motivo de la Nota de Crédito')
+                            ->options([
+                                '01' => '01 - Anulación de la operación',
+                                '02' => '02 - Anulación por error en el RUC',
+                                '03' => '03 - Corrección por error en la descripción',
+                                '04' => '04 - Descuento global',
+                                '05' => '05 - Descuento por ítem',
+                                '06' => '06 - Devolución total',
+                                '07' => '07 - Devolución por ítem',
+                                '08' => '08 - Bonificación',
+                                '09' => '09 - Disminución en el valor',
+                                '10' => '10 - Otros conceptos',
+                            ])
+                            ->required()
+                            ->default('01'),
+                        Forms\Components\Textarea::make('motivo_descripcion')
+                            ->label('Descripción del Motivo')
+                            ->required()
+                            ->maxLength(500)
+                            ->default('Anulación de la operación')
+                            ->rows(3),
+                    ])
+                    ->action(function (Invoice $record, array $data): void {
+                        try {
+                            $sunatService = new \App\Services\SunatService();
+                            
+                            $result = $sunatService->emitirNotaCredito(
+                                $record,
+                                $data['motivo_codigo'],
+                                $data['motivo_descripcion']
+                            );
+
+                            if ($result['success']) {
+                                $creditNote = $result['credit_note'];
+                                Notification::make()
+                                    ->title('Nota de crédito creada exitosamente')
+                                    ->body("Serie: {$creditNote->serie}-{$creditNote->numero}")
+                                    ->success()
+                                    ->send();
+                            } else {
+                                throw new \Exception($result['error']);
+                            }
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Error al crear la nota de crédito')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->modalHeading('Crear Nota de Crédito')
+                    ->modalDescription('Genere una nota de crédito para esta factura.')
+                    ->modalSubmitActionLabel('Crear Nota de Crédito')
+                    ->modalWidth('lg'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -551,7 +616,7 @@ class InvoiceResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            \App\Filament\Resources\InvoiceResource\RelationManagers\CreditNotesRelationManager::class,
         ];
     }
 

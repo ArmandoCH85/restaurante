@@ -39,6 +39,7 @@ class DocumentSeriesResource extends Resource
                         'invoice' => 'Factura',
                         'receipt' => 'Boleta',
                         'sales_note' => 'Nota de Venta',
+                        'credit_note' => 'Nota de Crédito',
                     ])
                     ->required(),
                 Forms\Components\TextInput::make('series')
@@ -102,6 +103,7 @@ class DocumentSeriesResource extends Resource
                         'invoice' => 'Factura',
                         'receipt' => 'Boleta',
                         'sales_note' => 'Nota de Venta',
+                        'credit_note' => 'Nota de Crédito',
                     ]),
                 Tables\Filters\TernaryFilter::make('active')
                     ->label('Activo')

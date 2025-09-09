@@ -213,4 +213,68 @@ class AppSetting extends Model
             default => null,
         };
     }
+
+    /**
+     * Obtiene el usuario QPSE desde Facturación Electrónica.
+     *
+     * @return string|null
+     */
+    public static function getQpseUsernameFromFacturacion(): ?string
+    {
+        return self::getSetting('FacturacionElectronica', 'qpse_username');
+    }
+
+    /**
+     * Establece el usuario QPSE en Facturación Electrónica.
+     *
+     * @param string $username
+     * @return bool
+     */
+    public static function setQpseUsernameInFacturacion(string $username): bool
+    {
+        return self::setSetting('FacturacionElectronica', 'qpse_username', $username);
+    }
+
+    /**
+     * Obtiene la contraseña QPSE desde Facturación Electrónica (cifrada).
+     *
+     * @return string|null
+     */
+    public static function getQpsePasswordFromFacturacion(): ?string
+    {
+        $encrypted = self::getSetting('FacturacionElectronica', 'qpse_password');
+        if ($encrypted) {
+            try {
+                return \Illuminate\Support\Facades\Crypt::decryptString($encrypted);
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Establece la contraseña QPSE en Facturación Electrónica (se cifra automáticamente).
+     *
+     * @param string $password
+     * @return bool
+     */
+    public static function setQpsePasswordInFacturacion(string $password): bool
+    {
+        $encrypted = \Illuminate\Support\Facades\Crypt::encryptString($password);
+        return self::setSetting('FacturacionElectronica', 'qpse_password', $encrypted);
+    }
+
+    /**
+     * Obtiene las credenciales completas de QPSE desde Facturación Electrónica.
+     *
+     * @return array
+     */
+    public static function getQpseCredentialsFromFacturacion(): array
+    {
+        return [
+            'username' => self::getQpseUsernameFromFacturacion(),
+            'password' => self::getQpsePasswordFromFacturacion(),
+        ];
+    }
 }
