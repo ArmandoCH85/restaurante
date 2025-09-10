@@ -1888,7 +1888,7 @@ class SunatService
             'fechaEmision' => now()->format('Y-m-d'),
             'tipoMoneda' => $invoice->currency_code ?? 'PEN',
             'tipDocAfectado' => '01', // Factura
-            'numDocfectado' => $invoice->series . '-' . $invoice->number,
+            'numDocfectado' => $invoice->series . $invoice->number,
             'codMotivo' => $motivo,
             'desMotivo' => $descripcionMotivo,
             'mtoOperGravadas' => $invoice->taxable_amount,
