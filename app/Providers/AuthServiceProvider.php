@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\Quotation;
 use App\Policies\QuotationPolicy;
+use App\Models\CreditNote;
+use App\Policies\CreditNotePolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 use Illuminate\Support\Facades\Gate;
 
@@ -16,6 +18,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Quotation::class => QuotationPolicy::class,
+        CreditNote::class => CreditNotePolicy::class,
     ];
 
     /**

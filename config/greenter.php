@@ -3,26 +3,26 @@
 use Greenter\Ws\Services\SunatEndpoints;
 
 return [
-    'mode' => env('GREENTER_MODE', 'beta'), // beta o prod
+    'mode' => env('GREENTER_MODE', 'prod'), // beta o prod
 
     'company' => [
-        'ruc' => env('GREENTER_COMPANY_RUC', '20000000001'),
-        'razonSocial' => env('GREENTER_COMPANY_NAME', 'GREEN SAC'),
-        'nombreComercial' => env('GREENTER_COMPANY_COMMERCIAL_NAME', 'GREEN'),
+        'ruc' => env('GREENTER_COMPANY_RUC', '20613251988'),
+        'razonSocial' => env('GREENTER_COMPANY_NAME', 'Q\' RICO S.A.C.S'),
+        'nombreComercial' => env('GREENTER_COMPANY_COMMERCIAL_NAME', 'Q\' RICO'),
 
         'address' => [
             'ubigeo' => env('GREENTER_COMPANY_UBIGEO', '150101'),
             'departamento' => env('GREENTER_COMPANY_DEPARTMENT', 'LIMA'),
             'provincia' => env('GREENTER_COMPANY_PROVINCE', 'LIMA'),
-            'distrito' => env('GREENTER_COMPANY_DISTRICT', 'LIMA'),
-            'direccion' => env('GREENTER_COMPANY_ADDRESS', 'Av. Villa Nueva 221'),
+            'distrito' => env('GREENTER_COMPANY_DISTRICT', 'LOS OLIVOS'),
+            'direccion' => env('GREENTER_COMPANY_ADDRESS', 'Av. Carlos Izaguirre Nro. 539'),
         ],
 
         'certificate' => public_path('certs/certificate.pem'),
 
         'clave_sol' => [
-            'user' => env('GREENTER_SOL_USER', 'MODDATOS'),
-            'password' => env('GREENTER_SOL_PASS', 'MODDATOS'),
+            'user' => env('GREENTER_SOL_USER', 'IERCEST1'),
+            'password' => env('GREENTER_SOL_PASS', 'Qrico123'),
         ],
 
         'credentials' => [

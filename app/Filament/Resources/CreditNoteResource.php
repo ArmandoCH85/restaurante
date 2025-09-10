@@ -357,21 +357,21 @@ class CreditNoteResource extends Resource
 
     public static function canCreate(): bool
     {
-        return auth()->user()->can('create_credit_note');
+        return auth()->user()->can('create_credit::note');
     }
 
     public static function canEdit($record): bool
     {
-        return auth()->user()->can('edit_credit_note') && $record->sunat_status === 'PENDIENTE';
+        return auth()->user()->can('update_credit::note') && $record->sunat_status === 'PENDIENTE';
     }
 
     public static function canDelete($record): bool
     {
-        return auth()->user()->can('delete_credit_note') && $record->sunat_status === 'PENDIENTE';
+        return auth()->user()->can('delete_credit::note') && $record->sunat_status === 'PENDIENTE';
     }
 
     public static function canView($record): bool
     {
-        return auth()->user()->can('view_credit_note');
+        return auth()->user()->can('view_credit::note');
     }
 }
