@@ -51,7 +51,6 @@ class SummaryResource extends Resource
                             ->label('Fecha de Referencia')
                             ->required()
                             ->default(now()->subDay())
-                            ->maxDate(now())
                             ->helperText('Fecha de las boletas a incluir en el resumen')
                             ->live()
                             ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
@@ -571,7 +570,7 @@ class SummaryResource extends Resource
                                 };
                                 
                                 $bodyMessage = $result['descripcion'] ?? $result['message'] ?? '';
-                                if ($result['cdr_path']) {
+                                if (isset($result['cdr_path']) && $result['cdr_path']) {
                                     $bodyMessage .= ' (CDR descargado)';
                                 }
                                 
