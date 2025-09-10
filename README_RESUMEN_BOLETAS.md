@@ -127,7 +127,7 @@ Opciones:
 
 ### 📅 Fechas
 - **Fecha de referencia**: Debe ser anterior a hoy
-- **Solo boletas ACEPTADAS**: `sunat_status = 'ACEPTADO'`
+- **Boletas incluidas**: `sunat_status IN ('ACEPTADO', 'PENDIENTE')`
 
 ### 📋 Proceso
 1. **Envío asíncrono**: SUNAT devuelve un ticket
@@ -144,7 +144,7 @@ Opciones:
 2. **Certificados SUNAT válidos** ✓
 3. **Greenter con clases Summary** ✓
 4. **Permisos de escritura** en `storage/app/sunat/summaries/` ✓
-5. **Boletas en estado ACEPTADO** ✓
+5. **Boletas en estado ACEPTADO o PENDIENTE** ✓
 
 ---
 

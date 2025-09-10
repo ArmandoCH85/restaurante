@@ -28,12 +28,12 @@ class CreateSummary extends CreateRecord
         // Verificar que existan boletas para la fecha seleccionada
         $boletasCount = Invoice::where('invoice_type', 'receipt')
             ->whereDate('issue_date', $data['fecha_referencia'])
-            ->where('sunat_status', 'ACEPTADO')
+            ->whereIn('sunat_status', ['ACEPTADO', 'PENDIENTE'])
             ->count();
             
         if ($boletasCount === 0) {
             throw ValidationException::withMessages([
-                'fecha_referencia' => "No se encontraron boletas ACEPTADAS para la fecha {$data['fecha_referencia']}. Verifique que las boletas hayan sido enviadas y aceptadas por SUNAT antes de crear el resumen."
+                'fecha_referencia' => "No se encontraron boletas (aceptadas o pendientes) para la fecha {$data['fecha_referencia']}. Verifique que existan boletas para esa fecha."
             ]);
         }
         

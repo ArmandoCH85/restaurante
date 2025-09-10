@@ -63,12 +63,12 @@ class SummaryResource extends Resource
                                 // Contar boletas disponibles
                                 $boletasCount = Invoice::where('invoice_type', 'receipt')
                                     ->whereDate('issue_date', $state)
-                                    ->where('sunat_status', 'ACEPTADO')
+                                    ->whereIn('sunat_status', ['ACEPTADO', 'PENDIENTE'])
                                     ->count();
                                     
                                 $totalAmount = Invoice::where('invoice_type', 'receipt')
                                     ->whereDate('issue_date', $state)
-                                    ->where('sunat_status', 'ACEPTADO')
+                                    ->whereIn('sunat_status', ['ACEPTADO', 'PENDIENTE'])
                                     ->sum('total');
                                 
                                 // Actualizar campos informativos
@@ -89,7 +89,7 @@ class SummaryResource extends Resource
                                 if ($boletasCount === 0) {
                                     \Filament\Notifications\Notification::make()
                                         ->title('❌ Sin Boletas')
-                                        ->body("No hay boletas ACEPTADAS para la fecha {$state}")
+                                        ->body("No hay boletas (aceptadas o pendientes) para la fecha {$state}")
                                         ->danger()
                                         ->persistent()
                                         ->send();

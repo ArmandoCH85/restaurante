@@ -81,12 +81,12 @@ class SendDailySummary extends Command
             
             $boletasQuery = Invoice::where('invoice_type', 'receipt')
                 ->whereDate('issue_date', $fechaReferencia)
-                ->where('sunat_status', 'ACEPTADO')
+                ->whereIn('sunat_status', ['ACEPTADO', 'PENDIENTE'])
                 ->with(['customer'])
                 ->get();
             
             if ($boletasQuery->isEmpty()) {
-                $this->warn("⚠️ No se encontraron boletas aceptadas para la fecha {$fechaReferencia}");
+                $this->warn("⚠️ No se encontraron boletas (aceptadas o pendientes) para la fecha {$fechaReferencia}");
                 return Command::SUCCESS;
             }
             

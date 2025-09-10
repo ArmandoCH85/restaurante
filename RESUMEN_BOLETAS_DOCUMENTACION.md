@@ -202,7 +202,7 @@ storage/app/sunat/summaries/
 
 ### 📋 Boletas Incluidas
 - Solo boletas con `invoice_type = 'receipt'`
-- Solo boletas con `sunat_status = 'ACEPTADO'`
+- Boletas con `sunat_status IN ('ACEPTADO', 'PENDIENTE')`
 - Mínimo 1 boleta por resumen
 
 ---
@@ -240,7 +240,7 @@ grep "enviarResumenBoletas" storage/logs/laravel.log
 php artisan tinker
 >>> App\Models\Invoice::where('invoice_type', 'receipt')
     ->whereDate('issue_date', '2024-01-15')
-    ->where('sunat_status', 'ACEPTADO')
+    ->whereIn('sunat_status', ['ACEPTADO', 'PENDIENTE'])
     ->count()
 ```
 
