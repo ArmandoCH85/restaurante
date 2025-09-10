@@ -108,14 +108,14 @@
                         <div class="bg-gray-50 p-4 rounded-md">
                             <div class="space-y-2">
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="invoice_type" value="sales_note" class="mr-2" checked onchange="toggleRucValidation(); updateNextNumber();">
+                                    <input type="radio" name="invoice_type" value="sales_note" class="mr-2" onchange="toggleRucValidation(); updateNextNumber();">
                                     <div>
                                         <span class="font-medium">Nota de Venta</span>
                                         <p class="text-sm text-gray-500">Documento interno, no reportable a SUNAT</p>
                                     </div>
                                 </label>
                                 <label class="flex items-center cursor-pointer">
-                                    <input type="radio" name="invoice_type" value="receipt" class="mr-2" onchange="toggleRucValidation(); updateNextNumber();">
+                                    <input type="radio" name="invoice_type" value="receipt" class="mr-2" checked onchange="toggleRucValidation(); updateNextNumber();">
                                     <div>
                                         <span class="font-medium">Boleta de Venta</span>
                                         <p class="text-sm text-gray-500">Para clientes sin RUC (incluye IGV)</p>
@@ -136,7 +136,7 @@
                         <div class="bg-blue-50 p-3 rounded-md border border-blue-200">
                             <div class="flex justify-between items-center">
                                 <span class="text-sm font-medium text-blue-600">Próximo comprobante:</span>
-                                <span class="text-sm font-bold text-blue-700" id="next-document-number">{{ $nextNumbers['sales_note'] }}</span>
+                                <span class="text-sm font-bold text-blue-700" id="next-document-number">{{ $nextNumbers['receipt'] }}</span>
                             </div>
                         </div>
                     </div>

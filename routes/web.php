@@ -217,6 +217,14 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Descargar PDF del comprobante
     Route::get('/admin/invoices/{invoice}/download-pdf', [\App\Http\Controllers\InvoiceController::class, 'downloadPdf'])
         ->name('filament.admin.invoices.download-pdf');
+
+    // Descargar XML del resumen
+    Route::get('/admin/summaries/{summary}/download-xml', [\App\Http\Controllers\SummaryController::class, 'downloadXml'])
+        ->name('download.xml');
+
+    // Descargar CDR del resumen
+    Route::get('/admin/summaries/{summary}/download-cdr', [\App\Http\Controllers\SummaryController::class, 'downloadCdr'])
+        ->name('download.cdr');
 });
 
 Route::get('/invoices/{invoice}/download-pdf', function(Invoice $invoice) {
@@ -482,6 +490,11 @@ Route::middleware(['auth'])->group(function () {
     // Obtener logs del sistema en tiempo real
     Route::get('/sunat-test/logs', [\App\Http\Controllers\SunatTestController::class, 'logs'])
         ->name('sunat-test.logs');
+});
+
+// 📋 RUTAS DE RESÚMENES DE BOLETAS
+Route::middleware(['auth'])->group(function () {
+
 });
 
 

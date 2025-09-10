@@ -42,6 +42,13 @@ class DocumentSeriesSeeder extends Seeder
                 'active' => true,
                 'description' => 'Serie principal para Notas de Venta'
             ],
+            [
+                'document_type' => 'summary',
+                'series' => 'RC',
+                'current_number' => 1,
+                'active' => true,
+                'description' => 'Serie para Resúmenes de Boletas SUNAT'
+            ],
         ];
 
         foreach ($series as $serie) {

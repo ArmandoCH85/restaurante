@@ -91,6 +91,14 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\PaymentMethodsChart::class,
                 \App\Filament\Widgets\CashRegisterPerformanceChart::class,
             ])
+            // Agregar enlace personalizado para Resúmenes de Boletas
+            ->navigationItems([
+                NavigationItem::make('Resúmenes de Boletas')
+                    ->url('/admin/summaries')
+                    ->icon('heroicon-o-document-text')
+                    ->group('📄 Facturación y Ventas')
+                    ->sort(5)
+            ])
             // Eliminar grupos personalizados para que funcione con los recursos automáticos
             // Usar navegación automática de Filament
             ->middleware([EncryptCookies::class, AddQueuedCookiesToResponse::class, StartSession::class, AuthenticateSession::class, ShareErrorsFromSession::class, VerifyCsrfToken::class, SubstituteBindings::class, DisableBladeIconComponents::class, DispatchServingFilamentEvent::class])

@@ -60,6 +60,88 @@ class EditInvoice extends EditRecord
                         Notification::make()->title('Error inesperado')->body($e->getMessage())->danger()->send();
                     }
                 }),
+            Actions\Action::make('fix_stuck_invoice')
+                ->label('Corregir Envío')
+                ->icon('heroicon-o-wrench-screwdriver')
+                ->color('info')
+                ->visible(fn () => $this->record && in_array($this->record->sunat_status, ['ENVIANDO', 'ERROR']) && in_array($this->record->invoice_type, ['invoice','receipt']))
+                ->form([
+                    \Filament\Forms\Components\Select::make('method')
+                        ->label('Método de Reenvío')
+                        ->options([
+                            'qps' => 'QPS (Recomendado)',
+                            'sunat' => 'SUNAT Directo'
+                        ])
+                        ->default('qps')
+                        ->required()
+                        ->helperText('QPS es más estable y maneja mejor los errores de timeout'),
+                    \Filament\Forms\Components\Textarea::make('reason')
+                        ->label('Motivo de la Corrección')
+                        ->placeholder('Ej: Timeout de 30 segundos, error de conexión, etc.')
+                        ->rows(2)
+                        ->maxLength(255)
+                ])
+                ->modalHeading('Corregir Comprobante Atascado')
+                ->modalDescription('Este comprobante quedó en estado de envío. Se reseteará el estado y se reenviará.')
+                ->modalSubmitActionLabel('Corregir y Reenviar')
+                ->action(function (array $data) {
+                    try {
+                        $method = $data['method'];
+                        $reason = $data['reason'] ?? 'Corrección manual desde interfaz';
+                        
+                        // Log de la acción
+                        \Illuminate\Support\Facades\Log::info('Corrección manual de factura atascada', [
+                            'invoice_id' => $this->record->id,
+                            'series_number' => $this->record->series . '-' . $this->record->number,
+                            'old_status' => $this->record->sunat_status,
+                            'method' => $method,
+                            'reason' => $reason,
+                            'user_id' => auth()->id()
+                        ]);
+                        
+                        // Resetear estado
+                        $this->record->update([
+                            'sunat_status' => 'PENDIENTE',
+                            'sunat_code' => null,
+                            'sunat_description' => null,
+                            'sunat_response' => null
+                        ]);
+                        
+                        // Reenviar según método seleccionado
+                        if ($method === 'qps') {
+                            $qpsService = new \App\Services\QpsService();
+                            $result = $qpsService->sendInvoiceViaQps($this->record);
+                        } else {
+                            $sunatService = new \App\Services\SunatService();
+                            $result = $sunatService->emitirFactura($this->record->id);
+                        }
+                        
+                        if ($result['success'] ?? false) {
+                            Notification::make()
+                                ->title('✅ Comprobante Corregido')
+                                ->body("Reenviado exitosamente vía {$method}")
+                                ->success()
+                                ->duration(5000)
+                                ->send();
+                            $this->refreshRecord();
+                        } else {
+                            Notification::make()
+                                ->title('❌ Error en Corrección')
+                                ->body($result['message'] ?? 'Error desconocido al reenviar')
+                                ->danger()
+                                ->duration(8000)
+                                ->send();
+                        }
+                        
+                    } catch (\Exception $e) {
+                        Notification::make()
+                            ->title('🚨 Error Inesperado')
+                            ->body('Error: ' . $e->getMessage())
+                            ->danger()
+                            ->duration(10000)
+                            ->send();
+                    }
+                }),
             Actions\Action::make('void')
                 ->label('Anular')
                 ->icon('heroicon-o-x-mark')

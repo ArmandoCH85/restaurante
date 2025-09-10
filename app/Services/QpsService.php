@@ -736,10 +736,12 @@ class QpsService
      */
     private function validateFilename(string $filename): void
     {
-        // ✅ CORREGIDO: Formato esperado sin padding y SIN extensión .xml
-        // Formato: RUC-TipoDoc-Serie-Correlativo (sin padding en correlativo)
-        if (!preg_match('/^\d{11}-\d{2}-[A-Z0-9]+-\d+$/', $filename)) {
-            throw new Exception("Formato de nombre de archivo inválido: {$filename}");
+        // Validar formato según tipo de documento
+        $isInvoiceFormat = preg_match('/^\d{11}-\d{2}-[A-Z0-9]+-\d+$/', $filename); // RUC-TipoDoc-Serie-Correlativo
+        $isSummaryFormat = preg_match('/^\d{11}-RC-\d{8}-\d{3}$/', $filename); // RUC-RC-YYYYMMDD-XXX
+        
+        if (!$isInvoiceFormat && !$isSummaryFormat) {
+            throw new Exception("Formato de nombre de archivo inválido: {$filename}. Esperado: RUC-TipoDoc-Serie-Correlativo o RUC-RC-YYYYMMDD-XXX");
         }
         
         // Verificar longitud

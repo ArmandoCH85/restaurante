@@ -221,6 +221,11 @@ class RucLookupController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Verificar estado del servicio
+     */
+    public function checkServiceStatus()
     {
         try {
             $tokenInfo = $this->rucLookupService->getTokenInfo();

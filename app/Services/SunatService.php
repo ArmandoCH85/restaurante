@@ -16,6 +16,8 @@ use Greenter\Model\Sale\SaleDetail;
 use Greenter\Model\Sale\Legend;
 use Greenter\Model\Sale\PaymentTerms;
 use Greenter\Model\Sale\Cuota;
+use Greenter\Model\Summary\Summary;
+use Greenter\Model\Summary\SummaryDetail;
 use Greenter\See;
 use Greenter\Ws\Services\SunatEndpoints;
 use Greenter\XMLSecLibs\Certificate\X509Certificate;
@@ -2332,5 +2334,469 @@ class SunatService
         file_put_contents($path, $cdr);
         
         return "sunat/credit_notes/cdr/{$filename}";
+    }
+
+    /**
+     * Enviar resumen diario de boletas a SUNAT
+     * 
+     * @param array $boletas Array de boletas para incluir en el resumen
+     * @param string $fechaGeneracion Fecha de generación del resumen (Y-m-d)
+     * @param string $fechaReferencia Fecha de referencia de las boletas (Y-m-d)
+     * @return array Resultado del envío
+     */
+    public function enviarResumenBoletas(array $boletas, string $fechaGeneracion, string $fechaReferencia): array
+    {
+        $startTime = microtime(true);
+        
+        try {
+            // Log de inicio con el nuevo sistema
+            \App\Helpers\SummaryLogger::logProcessStart($fechaReferencia, count($boletas), [
+                'fecha_generacion' => $fechaGeneracion
+            ]);
+
+            // Validar que todas las boletas sean del tipo correcto
+            foreach ($boletas as $boleta) {
+                if ($boleta['invoice_type'] !== 'receipt') {
+                    throw new Exception("Solo se pueden incluir boletas en el resumen. Documento {$boleta['series']}-{$boleta['number']} es de tipo {$boleta['invoice_type']}");
+                }
+            }
+
+            // Crear el resumen usando Greenter
+            $summary = $this->createGreenterSummary($boletas, $fechaGeneracion, $fechaReferencia);
+            
+            // Log de correlativo generado
+            \App\Helpers\SummaryLogger::logCorrelativoGeneration(
+                $summary->getCorrelativo(), 
+                $fechaGeneracion
+            );
+            
+            // Generar XML del resumen
+            $xml = $this->see->getXmlSigned($summary);
+            
+            // Log de XML generado
+            \App\Helpers\SummaryLogger::logXmlGeneration(
+                $summary->getCorrelativo(),
+                strlen($xml)
+            );
+            
+            // Guardar XML
+            $xmlPath = $this->saveSummaryXmlFile($summary, $xml);
+            
+            // Log de archivo guardado
+            \App\Helpers\SummaryLogger::logFileSaved(
+                'XML_RESUMEN',
+                basename($xmlPath),
+                $xmlPath,
+                strlen($xml)
+            );
+
+            // Enviar a SUNAT usando QPS (como los demás comprobantes)
+            $qpsService = new \App\Services\QpsService();
+            
+            // Generar nombre del archivo para QPS (formato SUNAT completo para resúmenes)
+            $ruc = \App\Models\AppSetting::getSetting('Empresa', 'ruc') ?: '20000000000';
+            $fechaRef = \Carbon\Carbon::parse($fechaReferencia)->format('Ymd'); // YYYYMMDD
+            $filename = "{$ruc}-RC-{$fechaRef}-{$summary->getCorrelativo()}";
+            
+            \App\Helpers\SummaryLogger::logDebugData('Preparando envío QPS', [
+                'correlativo' => $summary->getCorrelativo(),
+                'filename' => $filename
+            ]);
+            
+            // Firmar XML usando QPS
+            $signResult = $qpsService->signXml($xml, $filename);
+            
+            // Log del proceso de firma
+            \App\Helpers\SummaryLogger::logSigningProcess(
+                $summary->getCorrelativo(),
+                $filename,
+                $signResult
+            );
+            
+            if (!$signResult['success']) {
+                throw new Exception('Error al firmar XML del resumen: ' . $signResult['message']);
+            }
+            
+            $signedXml = $signResult['signed_xml'];
+            
+            // Enviar a SUNAT via QPS
+            $qpsResult = $qpsService->sendSignedXml($signedXml, $filename);
+            
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            
+            // Log de comunicación con SUNAT
+            \App\Helpers\SummaryLogger::logSunatCommunication(
+                'QPS (qpse.pe)',
+                $summary->getCorrelativo(),
+                ['filename' => $filename, 'xml_size' => strlen($signedXml)],
+                $qpsResult,
+                $responseTime / 1000
+            );
+            
+            // Procesar respuesta
+            if ($qpsResult['success']) {
+                $ticket = $qpsResult['ticket'] ?? 'TICKET_QPS_' . time();
+                
+                // Log de resumen del proceso exitoso
+                \App\Helpers\SummaryLogger::logProcessSummary([
+                    'success' => true,
+                    'correlativo' => $summary->getCorrelativo(),
+                    'ticket' => $ticket,
+                    'tiempo_total_ms' => $responseTime,
+                    'xml_path' => $xmlPath,
+                    'metodo' => 'QPS (qpse.pe)',
+                    'cantidad_boletas' => count($boletas)
+                ]);
+                
+                return [
+                    'success' => true,
+                    'ticket' => $ticket,
+                    'correlativo' => $summary->getCorrelativo(),
+                    'fecha_generacion' => $fechaGeneracion,
+                    'fecha_referencia' => $fechaReferencia,
+                    'xml_path' => $xmlPath,
+                    'processing_time_ms' => $responseTime,
+                    'message' => 'Resumen de boletas enviado correctamente. Ticket: ' . $ticket
+                ];
+            } else {
+                $errorMessage = $qpsResult['message'] ?? 'Error desconocido en QPS';
+                $errorCode = $qpsResult['error_code'] ?? '9999';
+                
+                // Log de resumen del proceso con errores
+                \App\Helpers\SummaryLogger::logProcessSummary([
+                    'success' => false,
+                    'correlativo' => $summary->getCorrelativo(),
+                    'error_code' => $errorCode,
+                    'error_message' => $errorMessage,
+                    'tiempo_total_ms' => $responseTime,
+                    'metodo' => 'QPS (qpse.pe)',
+                    'cantidad_boletas' => count($boletas)
+                ]);
+                
+                return [
+                    'success' => false,
+                    'error_code' => $errorCode,
+                    'error_message' => $errorMessage,
+                    'correlativo' => $summary->getCorrelativo(),
+                    'processing_time_ms' => $responseTime,
+                    'message' => 'Error al enviar resumen: ' . $errorMessage
+                ];
+            }
+            
+        } catch (Exception $e) {
+            $responseTime = round((microtime(true) - $startTime) * 1000, 2);
+            
+            // Log de error crítico con SummaryLogger
+            \App\Helpers\SummaryLogger::logCriticalError(
+                'ENVÍO_RESUMEN_BOLETAS',
+                $e,
+                [
+                    'fecha_generacion' => $fechaGeneracion,
+                    'fecha_referencia' => $fechaReferencia,
+                    'cantidad_boletas' => count($boletas),
+                    'tiempo_total_ms' => $responseTime
+                ]
+            );
+            
+            return [
+                'success' => false,
+                'error_message' => $e->getMessage(),
+                'processing_time_ms' => $responseTime,
+                'message' => 'Error crítico: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Crear objeto Summary de Greenter para resumen de boletas
+     */
+    private function createGreenterSummary(array $boletas, string $fechaGeneracion, string $fechaReferencia)
+    {
+        // Obtener siguiente correlativo para resúmenes
+        $correlativo = $this->getNextSummaryCorrelativo($fechaGeneracion);
+        
+        // Crear el resumen
+        $summary = new \Greenter\Model\Summary\Summary();
+        $summary->setFecGeneracion(new \DateTime($fechaGeneracion))
+            ->setFecResumen(new \DateTime($fechaReferencia))
+            ->setCorrelativo($correlativo)
+            ->setCompany($this->company);
+        
+        // Agregar detalles de cada boleta
+        $details = [];
+        foreach ($boletas as $index => $boleta) {
+            $detail = new \Greenter\Model\Summary\SummaryDetail();
+            $detail->setTipoDoc('03') // 03 = Boleta
+                ->setSerieNro($boleta['series'] . '-' . $boleta['number'])
+                ->setEstado($boleta['estado'] ?? '1') // 1 = Adicionar, 2 = Modificar, 3 = Anular
+                ->setClienteTipo($boleta['customer_document_type'] === 'DNI' ? '1' : '6')
+                ->setClienteNro($boleta['customer_document_number'] ?? '00000000')
+                ->setTotal($boleta['total'])
+                ->setMtoOperGravadas($boleta['subtotal'] ?? 0)
+                ->setMtoIGV($boleta['igv'] ?? 0)
+                ->setMtoOtrosTributos(0)
+                ->setMtoOperExoneradas(0)
+                ->setMtoOperInafectas(0);
+            
+            $details[] = $detail;
+        }
+        
+        $summary->setDetails($details);
+        
+        return $summary;
+    }
+
+    /**
+     * Obtener siguiente correlativo para resúmenes
+     */
+    private function getNextSummaryCorrelativo(string $fecha): string
+    {
+        // Formato secuencial simple para resúmenes: 001, 002, 003, etc.
+        // Según documentación SUNAT, los resúmenes usan correlativo secuencial
+        
+        // Buscar archivos existentes para obtener el siguiente número
+        $summaryDir = storage_path('app/sunat/summaries/xml/');
+        $correlativo = '001'; // Por defecto
+        
+        if (is_dir($summaryDir)) {
+            $files = glob($summaryDir . 'RC-*.xml');
+            $maxNumber = 0;
+            
+            foreach ($files as $file) {
+                $filename = basename($file, '.xml');
+                if (preg_match('/RC-(\d+)$/', $filename, $matches)) {
+                    $number = intval($matches[1]);
+                    if ($number > $maxNumber) {
+                        $maxNumber = $number;
+                    }
+                }
+            }
+            
+            $correlativo = str_pad($maxNumber + 1, 3, '0', STR_PAD_LEFT);
+        }
+        
+        return $correlativo;
+    }
+
+    /**
+     * Guardar archivo XML del resumen
+     */
+    private function saveSummaryXmlFile($summary, string $xml): string
+    {
+        $correlativo = $summary->getCorrelativo();
+        $filename = "RC-{$correlativo}.xml";
+        $path = storage_path("app/sunat/summaries/xml/{$filename}");
+        
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0755, true);
+        }
+        
+        file_put_contents($path, $xml);
+        
+        return "sunat/summaries/xml/{$filename}";
+    }
+
+    /**
+     * Consultar estado de resumen por ticket
+     * 
+     * @param string $ticket Ticket devuelto por SUNAT
+     * @return array Estado del resumen
+     */
+    public function consultarEstadoResumen(string $ticket): array
+    {
+        try {
+            Log::info('🔍 CONSULTANDO ESTADO DE RESUMEN', [
+                'ticket' => $ticket,
+                'timestamp' => now()->toISOString()
+            ]);
+
+            // Configurar endpoint específico para consultas de estado
+            $statusEndpoint = $this->environment === 'produccion' 
+                ? 'https://e-factura.sunat.gob.pe/ol-ti-itcpfegem/billService'
+                : 'https://e-beta.sunat.gob.pe/ol-ti-itcpbegem/billService';
+            
+            $this->see->setService($statusEndpoint);
+            
+            Log::info('Endpoint configurado para consulta de estado', [
+                'endpoint' => $statusEndpoint,
+                'environment' => $this->environment
+            ]);
+
+            // Consultar estado usando Greenter
+            $result = $this->see->getStatus($ticket);
+            
+            // Validar que la respuesta sea válida
+            if (!$result) {
+                Log::error('❌ RESPUESTA NULA DEL SERVICIO getStatus', [
+                    'ticket' => $ticket,
+                    'endpoint' => $statusEndpoint
+                ]);
+                
+                return [
+                    'success' => false,
+                    'ticket' => $ticket,
+                    'error_message' => 'Invalid getStatus service response',
+                    'message' => 'Error crítico: Invalid getStatus service response'
+                ];
+            }
+            
+            if ($result->isSuccess()) {
+                $cdr = $result->getCdrResponse();
+                
+                // Validar que el CDR response sea válido
+                if (!$cdr) {
+                    Log::error('❌ CDR RESPONSE NULO', [
+                        'ticket' => $ticket,
+                        'endpoint' => $statusEndpoint
+                    ]);
+                    
+                    return [
+                        'success' => false,
+                        'ticket' => $ticket,
+                        'error_message' => 'Invalid CDR response',
+                        'message' => 'Error crítico: Invalid CDR response'
+                    ];
+                }
+                
+                // Validar que los métodos del CDR existan
+                if (!method_exists($cdr, 'getCode') || !method_exists($cdr, 'getDescription')) {
+                    Log::error('❌ CDR RESPONSE SIN MÉTODOS REQUERIDOS', [
+                        'ticket' => $ticket,
+                        'cdr_class' => get_class($cdr),
+                        'endpoint' => $statusEndpoint
+                    ]);
+                    
+                    return [
+                        'success' => false,
+                        'ticket' => $ticket,
+                        'error_message' => 'Invalid CDR response methods',
+                        'message' => 'Error crítico: Invalid CDR response methods'
+                    ];
+                }
+                
+                Log::info('✅ CONSULTA DE ESTADO EXITOSA', [
+                    'ticket' => $ticket,
+                    'codigo' => $cdr->getCode(),
+                    'descripcion' => $cdr->getDescription()
+                ]);
+                
+                // Intentar obtener el CDR ZIP
+                $cdrZip = null;
+                try {
+                    $cdrZip = $result->getCdrZip();
+                    if ($cdrZip) {
+                        // Guardar CDR en storage si está disponible
+                        $cdrPath = "sunat/cdr/RC-{$ticket}.zip";
+                        Storage::put($cdrPath, $cdrZip);
+                        
+                        Log::info('📄 CDR GUARDADO EXITOSAMENTE', [
+                            'ticket' => $ticket,
+                            'cdr_path' => $cdrPath,
+                            'cdr_size' => strlen($cdrZip) . ' bytes'
+                        ]);
+                    }
+                } catch (Exception $cdrException) {
+                    Log::warning('⚠️ NO SE PUDO OBTENER CDR', [
+                        'ticket' => $ticket,
+                        'cdr_error' => $cdrException->getMessage()
+                    ]);
+                }
+                
+                return [
+                    'success' => true,
+                    'ticket' => $ticket,
+                    'codigo' => $cdr->getCode(),
+                    'descripcion' => $cdr->getDescription(),
+                    'estado' => $this->interpretarCodigoEstado($cdr->getCode()),
+                    'cdr_content' => $cdrZip,
+                    'cdr_path' => isset($cdrPath) ? $cdrPath : null,
+                    'message' => 'Consulta exitosa: ' . $cdr->getDescription()
+                ];
+            } else {
+                $error = $result->getError();
+                
+                Log::warning('⚠️ ERROR EN CONSULTA DE ESTADO', [
+                    'ticket' => $ticket,
+                    'error_code' => $error->getCode(),
+                    'error_message' => $error->getMessage()
+                ]);
+                
+                return [
+                    'success' => false,
+                    'ticket' => $ticket,
+                    'error_code' => $error->getCode(),
+                    'error_message' => $error->getMessage(),
+                    'message' => 'Error en consulta: ' . $error->getMessage()
+                ];
+            }
+            
+        } catch (\SoapFault $e) {
+            Log::error('❌ ERROR SOAP EN CONSULTA DE ESTADO', [
+                'ticket' => $ticket,
+                'soap_fault_code' => $e->faultcode ?? 'N/A',
+                'soap_fault_string' => $e->faultstring ?? 'N/A',
+                'error_message' => $e->getMessage(),
+                'endpoint' => $statusEndpoint ?? 'N/A'
+            ]);
+            
+            // Mensajes más específicos para errores SOAP
+            $userMessage = match($e->faultcode ?? '') {
+                'HTTP' => 'Error de conexión con SUNAT. Verifique la conectividad a internet.',
+                'Server' => 'Error del servidor de SUNAT. Intente nuevamente más tarde.',
+                'Client' => 'Error en la solicitud. Verifique la configuración del certificado.',
+                default => 'Error de comunicación con SUNAT: ' . $e->getMessage()
+            };
+            
+            return [
+                'success' => false,
+                'ticket' => $ticket,
+                'error_code' => $e->faultcode ?? 'SOAP_ERROR',
+                'error_message' => $e->getMessage(),
+                'message' => $userMessage
+            ];
+            
+        } catch (Exception $e) {
+            Log::error('❌ ERROR CRÍTICO EN CONSULTA DE ESTADO', [
+                'ticket' => $ticket,
+                'error_message' => $e->getMessage(),
+                'error_file' => $e->getFile(),
+                'error_line' => $e->getLine(),
+                'error_class' => get_class($e)
+            ]);
+            
+            // Mensajes más específicos según el tipo de error
+            $userMessage = 'Error crítico: ';
+            if (strpos($e->getMessage(), 'certificate') !== false) {
+                $userMessage .= 'Problema con el certificado digital. Verifique la configuración.';
+            } elseif (strpos($e->getMessage(), 'connection') !== false || strpos($e->getMessage(), 'timeout') !== false) {
+                $userMessage .= 'Error de conexión con SUNAT. Verifique la conectividad.';
+            } elseif (strpos($e->getMessage(), 'Invalid getStatus service response') !== false) {
+                $userMessage .= 'Respuesta inválida del servicio SUNAT. El ticket puede no existir o estar mal formateado.';
+            } else {
+                $userMessage .= $e->getMessage();
+            }
+            
+            return [
+                'success' => false,
+                'ticket' => $ticket,
+                'error_message' => $e->getMessage(),
+                'message' => $userMessage
+            ];
+        }
+    }
+
+    /**
+     * Interpretar código de estado de SUNAT
+     */
+    private function interpretarCodigoEstado(string $codigo): string
+    {
+        $estados = [
+            '0' => 'ACEPTADO',
+            '98' => 'EN_PROCESO',
+            '99' => 'PROCESADO_CON_ERRORES',
+            // Agregar más códigos según documentación SUNAT
+        ];
+        
+        return $estados[$codigo] ?? 'DESCONOCIDO';
     }
 }

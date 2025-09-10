@@ -66,6 +66,7 @@ class DocumentSeries extends Model
             'receipt' => 'Boleta',
             'sales_note' => 'Nota de Venta',
             'credit_note' => 'Nota de Crédito',
+            'summary' => 'Resumen de Boletas',
             default => $this->document_type,
         };
     }
