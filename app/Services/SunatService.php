@@ -2083,7 +2083,9 @@ class SunatService
             $startTime = microtime(true);
             
             // Generar nombre del archivo XML (sin extensión para QPS)
-            $ruc = \App\Models\AppSetting::getSetting('Empresa', 'ruc');
+            // Usar la misma fuente de RUC que en el contenido del XML
+            $companyData = $this->getCompanyData();
+            $ruc = $companyData['ruc'];
             $filename = "{$ruc}-07-{$note->getSerie()}-{$note->getCorrelativo()}";
             
             // Firmar XML usando QPS
@@ -2185,12 +2187,17 @@ class SunatService
                 \App\Helpers\CreditNoteLogger::logFileSave('XML', 'Error: ' . $e->getMessage(), false);
             }
             
-            try {
-                $cdrPath = $this->saveCreditNoteCdrFile($data['serie'], $data['correlativo'], $response['cdr']);
-                $creditNote->cdr_path = $cdrPath;
-                \App\Helpers\CreditNoteLogger::logFileSave('CDR', $cdrPath, true);
-            } catch (\Exception $e) {
-                \App\Helpers\CreditNoteLogger::logFileSave('CDR', 'Error: ' . $e->getMessage(), false);
+            // Guardar CDR solo si existe
+            if (!empty($response['cdr'])) {
+                try {
+                    $cdrPath = $this->saveCreditNoteCdrFile($data['serie'], $data['correlativo'], $response['cdr']);
+                    $creditNote->cdr_path = $cdrPath;
+                    \App\Helpers\CreditNoteLogger::logFileSave('CDR', $cdrPath, true);
+                } catch (\Exception $e) {
+                    \App\Helpers\CreditNoteLogger::logFileSave('CDR', 'Error: ' . $e->getMessage(), false);
+                }
+            } else {
+                \App\Helpers\CreditNoteLogger::logFileSave('CDR', 'CDR no disponible en la respuesta', false);
             }
             
             $creditNote->sunat_status = 'ACEPTADO';
@@ -2277,15 +2284,15 @@ class SunatService
     private function getCompanyData(): array
     {
         return [
-            'ruc' => config('company.ruc', '20000000000'),
-            'razonSocial' => config('company.razon_social', 'EMPRESA DEMO'),
-            'nombreComercial' => config('company.nombre_comercial'),
+            'ruc' => \App\Models\AppSetting::getSetting('Empresa', 'ruc') ?: config('company.ruc', '20000000000'),
+            'razonSocial' => \App\Models\AppSetting::getSetting('Empresa', 'razon_social') ?: config('company.razon_social', 'EMPRESA DEMO'),
+            'nombreComercial' => \App\Models\AppSetting::getSetting('Empresa', 'nombre_comercial') ?: config('company.nombre_comercial'),
             'address' => [
-                'direccion' => config('company.direccion', 'AV. DEMO 123'),
-                'provincia' => config('company.provincia', 'LIMA'),
-                'departamento' => config('company.departamento', 'LIMA'),
-                'distrito' => config('company.distrito', 'LIMA'),
-                'ubigueo' => config('company.ubigueo', '150101')
+                'direccion' => \App\Models\AppSetting::getSetting('Empresa', 'direccion') ?: config('company.direccion', 'AV. DEMO 123'),
+                'provincia' => \App\Models\AppSetting::getSetting('Empresa', 'provincia') ?: config('company.provincia', 'LIMA'),
+                'departamento' => \App\Models\AppSetting::getSetting('Empresa', 'departamento') ?: config('company.departamento', 'LIMA'),
+                'distrito' => \App\Models\AppSetting::getSetting('Empresa', 'distrito') ?: config('company.distrito', 'LIMA'),
+                'ubigueo' => \App\Models\AppSetting::getSetting('Empresa', 'ubigueo') ?: config('company.ubigueo', '150101')
             ]
         ];
     }
@@ -2307,7 +2314,10 @@ class SunatService
      */
     private function saveCreditNoteXmlFile(string $serie, string $numero, string $xml): string
     {
-        $filename = "FC01-{$serie}-{$numero}.xml";
+        // Usar el formato correcto para notas de crédito: RUC-07-SERIE-NUMERO.xml
+        $companyData = $this->getCompanyData();
+        $ruc = $companyData['ruc'];
+        $filename = "{$ruc}-07-{$serie}-{$numero}.xml";
         $path = storage_path("app/sunat/credit_notes/xml/{$filename}");
         
         if (!file_exists(dirname($path))) {
@@ -2324,7 +2334,10 @@ class SunatService
      */
     private function saveCreditNoteCdrFile(string $serie, string $numero, string $cdr): string
     {
-        $filename = "R-FC01-{$serie}-{$numero}.zip";
+        // Usar el formato correcto para CDR de notas de crédito: R-RUC-07-SERIE-NUMERO.zip
+        $companyData = $this->getCompanyData();
+        $ruc = $companyData['ruc'];
+        $filename = "R-{$ruc}-07-{$serie}-{$numero}.zip";
         $path = storage_path("app/sunat/credit_notes/cdr/{$filename}");
         
         if (!file_exists(dirname($path))) {
