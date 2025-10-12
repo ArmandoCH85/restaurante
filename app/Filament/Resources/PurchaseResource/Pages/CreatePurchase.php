@@ -14,6 +14,11 @@ class CreatePurchase extends CreateRecord
 {
     protected static string $resource = PurchaseResource::class;
 
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
+
     /**
      * Convierte errores técnicos de base de datos en mensajes simples para usuarios
      */
