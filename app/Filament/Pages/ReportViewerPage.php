@@ -329,6 +329,12 @@ class ReportViewerPage extends Page implements HasForms
             'delivery_sales' => $this->getOrdersQueryWithoutFilters('delivery'),
             'sales_by_waiter' => $this->getSalesByWaiterWithoutFilters(),
             'products_by_channel' => $this->getProductsByChannelWithoutFilters(),
+            
+            // PURCHASES REPORTS - SIN FILTROS DE FECHA
+            'all_purchases' => $this->getAllPurchasesWithoutFilters(),
+            'purchases_by_supplier' => $this->getPurchasesBySupplierWithoutFilters(),
+            'purchases_by_category' => $this->getPurchasesByCategoryWithoutFilters(),
+            
             // Otros reportes también sin filtros...
             default => collect([])
         };
@@ -537,7 +543,7 @@ class ReportViewerPage extends Page implements HasForms
     protected function getAllPurchases($startDateTime, $endDateTime)
     {
         return \App\Models\Purchase::whereBetween('purchase_date', [$startDateTime, $endDateTime])
-            ->with(['supplier', 'user'])
+            ->with(['supplier', 'creator'])
             ->orderBy('purchase_date', 'desc')
             ->get();
     }
@@ -547,12 +553,12 @@ class ReportViewerPage extends Page implements HasForms
         return \App\Models\Purchase::join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
             ->whereBetween('purchases.purchase_date', [$startDateTime, $endDateTime])
             ->select(
-                'suppliers.name as supplier_name',
+                'suppliers.business_name as supplier_name',
                 \DB::raw('COUNT(purchases.id) as total_purchases'),
                 \DB::raw('SUM(purchases.total) as total_amount')
             )
-            ->groupBy('suppliers.id', 'suppliers.name')
-            ->orderBy('suppliers.name')
+            ->groupBy('suppliers.id', 'suppliers.business_name')
+            ->orderBy('suppliers.business_name')
             ->get();
     }
     
@@ -723,6 +729,42 @@ class ReportViewerPage extends Page implements HasForms
             
             default => 'Reporte'
         };
+    }
+
+    // MÉTODOS PARA REPORTES DE COMPRAS SIN FILTROS DE FECHA
+    protected function getAllPurchasesWithoutFilters()
+    {
+        return \App\Models\Purchase::with(['supplier', 'creator'])
+            ->orderBy('purchase_date', 'desc')
+            ->get();
+    }
+    
+    protected function getPurchasesBySupplierWithoutFilters()
+    {
+        return \App\Models\Purchase::join('suppliers', 'purchases.supplier_id', '=', 'suppliers.id')
+            ->select(
+                'suppliers.business_name as supplier_name',
+                \DB::raw('COUNT(purchases.id) as total_purchases'),
+                \DB::raw('SUM(purchases.total) as total_amount')
+            )
+            ->groupBy('suppliers.id', 'suppliers.business_name')
+            ->orderBy('suppliers.business_name')
+            ->get();
+    }
+    
+    protected function getPurchasesByCategoryWithoutFilters()
+    {
+        return \App\Models\PurchaseDetail::join('purchases', 'purchase_details.purchase_id', '=', 'purchases.id')
+            ->join('products', 'purchase_details.product_id', '=', 'products.id')
+            ->join('product_categories', 'products.category_id', '=', 'product_categories.id')
+            ->select(
+                'product_categories.name as category_name',
+                \DB::raw('SUM(purchase_details.quantity) as total_quantity'),
+                \DB::raw('SUM(purchase_details.subtotal) as total_amount')
+            )
+            ->groupBy('product_categories.id', 'product_categories.name')
+            ->orderBy('product_categories.name')
+            ->get();
     }
 
     public static function canAccess(): bool

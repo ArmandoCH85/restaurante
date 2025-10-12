@@ -499,8 +499,8 @@
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_sales, 2) }}</td>
                                                     @elseif($page->reportType === 'all_purchases')
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->purchase_date->format('d/m/Y') }}</td>
-                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->supplier?->name ?? 'Sin proveedor' }}</td>
-                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->user?->name ?? 'Sin usuario' }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->supplier?->business_name ?? 'Sin proveedor' }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->creator?->name ?? 'Sin usuario' }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total, 2) }}</td>
                                                     @elseif($page->reportType === 'purchases_by_supplier')
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->supplier_name }}</td>
