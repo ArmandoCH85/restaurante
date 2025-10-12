@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Order;
+use App\Models\CashRegister;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
@@ -22,30 +23,60 @@ class SalesOverviewWidget extends BaseWidget
         $startOfWeek = Carbon::now()->startOfWeek();
         $startOfMonth = Carbon::now()->startOfMonth();
 
-        // Ventas de hoy
+        // Ventas de hoy - Solo de cajas ABIERTAS (o sin caja asignada)
         $todaySales = Order::whereDate('order_datetime', $today)
             ->where('billed', true)
+            ->where(function($q) {
+                $q->whereHas('cashRegister', function ($subQ) {
+                    $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                })
+                ->orWhereNull('cash_register_id');
+            })
             ->sum('total');
             
-        // Ventas de ayer
-        $yesterdaySales = Order::whereDate('order_datetime', $yesterday)
-            ->where('billed', true)
-            ->sum('total');
+        // Ventas de ayer - Usar total_sales de cajas CERRADAS
+        $yesterdaySales = CashRegister::whereDate('closing_datetime', $yesterday)
+            ->where('status', 'closed')
+            ->sum('total_sales');
             
         // Calcular incremento/decremento
         $salesDiff = $yesterdaySales > 0 
             ? (($todaySales - $yesterdaySales) / $yesterdaySales) * 100 
             : 100;
             
-        // Ventas de la semana
-        $weekSales = Order::whereBetween('order_datetime', [$startOfWeek, Carbon::now()])
+        // Ventas de la semana - Combinar cajas ABIERTAS (hoy) + CERRADAS (fechas pasadas)
+        $weekSalesFromClosedRegisters = CashRegister::whereBetween('closing_datetime', [$startOfWeek, Carbon::yesterday()->endOfDay()])
+            ->where('status', 'closed')
+            ->sum('total_sales');
+            
+        $weekSalesFromOpenRegisters = Order::whereDate('order_datetime', $today)
             ->where('billed', true)
+            ->where(function($q) {
+                $q->whereHas('cashRegister', function ($subQ) {
+                    $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                })
+                ->orWhereNull('cash_register_id');
+            })
             ->sum('total');
             
-        // Ventas del mes
-        $monthSales = Order::whereBetween('order_datetime', [$startOfMonth, Carbon::now()])
+        $weekSales = $weekSalesFromClosedRegisters + $weekSalesFromOpenRegisters;
+            
+        // Ventas del mes - Combinar cajas ABIERTAS (hoy) + CERRADAS (fechas pasadas)
+        $monthSalesFromClosedRegisters = CashRegister::whereBetween('closing_datetime', [$startOfMonth, Carbon::yesterday()->endOfDay()])
+            ->where('status', 'closed')
+            ->sum('total_sales');
+            
+        $monthSalesFromOpenRegisters = Order::whereDate('order_datetime', $today)
             ->where('billed', true)
+            ->where(function($q) {
+                $q->whereHas('cashRegister', function ($subQ) {
+                    $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                })
+                ->orWhereNull('cash_register_id');
+            })
             ->sum('total');
+            
+        $monthSales = $monthSalesFromClosedRegisters + $monthSalesFromOpenRegisters;
             
         // Obtener tendencia de ventas para los últimos 7 días
         $salesTrend = $this->getSalesTrend();
@@ -73,21 +104,31 @@ class SalesOverviewWidget extends BaseWidget
     
     private function getSalesTrend(): array
     {
-        // Obtener ventas de los últimos 7 días
-        $sales = Order::where('billed', true)
-            ->where('order_datetime', '>=', Carbon::now()->subDays(7))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get([
-                DB::raw('DATE(order_datetime) as date'),
-                DB::raw('SUM(total) as total')
-            ])
-            ->pluck('total')
-            ->toArray();
+        $sales = [];
+        
+        // Obtener ventas de los últimos 7 días, evaluando cada día individualmente
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
             
-        // Si hay menos de 7 días de datos, rellenar con ceros
-        if (count($sales) < 7) {
-            $sales = array_pad($sales, 7, 0);
+            if ($date->isToday()) {
+                // Para hoy: usar órdenes de cajas abiertas o sin caja
+                $dailySales = Order::whereDate('order_datetime', $date)
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->sum('total');
+            } else {
+                // Para fechas pasadas: usar total_sales de cajas cerradas
+                $dailySales = CashRegister::whereDate('closing_datetime', $date)
+                    ->where('status', 'closed')
+                    ->sum('total_sales');
+            }
+            
+            $sales[] = $dailySales;
         }
         
         return $sales;

@@ -3698,8 +3698,8 @@
             })
             .then(procesarRespuesta)
             .then(orderId => {
-                // Abrir el formulario de factura en una ventana nueva con tamaño optimizado
-                const facturaWindow = window.open('{{ url("pos/invoice/form") }}/' + orderId, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+                // Abrir el formulario unificado de pago en una ventana nueva con tamaño optimizado
+                const facturaWindow = window.open('{{ url("pos/unified") }}/' + orderId, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
 
                 // Cuando la factura se complete, vaciar el carrito
                 if (facturaWindow) {

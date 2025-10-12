@@ -36,38 +36,79 @@ class SupplierResource extends Resource
                         Forms\Components\TextInput::make('business_name')
                             ->required()
                             ->maxLength(255)
-                            ->label('Razón Social'),
+                            ->label('Razón Social')
+                            ->validationMessages([
+                                'required' => '🏢 ¡Necesitamos el nombre de la empresa! Por favor, escribe la razón social completa.',
+                                'max' => '📝 El nombre de la empresa es muy largo. Máximo 255 caracteres.',
+                                'string' => '🔤 El nombre de la empresa debe ser texto válido.',
+                            ])
+                            ->helperText('Nombre oficial de la empresa o negocio'),
                         Forms\Components\TextInput::make('tax_id')
                             ->required()
                             ->maxLength(20)
-                            ->label('RUC'),
+                            ->label('RUC')
+                            ->validationMessages([
+                                'required' => '📄 ¡El RUC es obligatorio! Ingresa el número de identificación tributaria.',
+                                'max' => '🔢 El RUC es muy largo. Máximo 20 caracteres.',
+                                'string' => '🔤 El RUC debe contener solo números y letras válidas.',
+                            ])
+                            ->helperText('Número de RUC de 11 dígitos')
+                            ->mask('99999999999'),
                         Forms\Components\TextInput::make('address')
-                            ->required()
                             ->maxLength(255)
-                            ->label('Dirección'),
+                            ->label('Dirección')
+                            ->validationMessages([
+                                'max' => '📍 La dirección es muy larga. Máximo 255 caracteres.',
+                                'string' => '🔤 La dirección debe ser texto válido.',
+                            ])
+                            ->helperText('Dirección completa del proveedor (opcional)')
+                            ->placeholder('Av. Principal 123, Lima'),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Información de Contacto')
                     ->schema([
                         Forms\Components\TextInput::make('phone')
-                            ->required()
                             ->tel()
                             ->maxLength(20)
-                            ->label('Teléfono'),
+                            ->label('Teléfono')
+                            ->validationMessages([
+                                'max' => '📱 El número de teléfono es muy largo. Máximo 20 caracteres.',
+                            ])
+                            ->helperText('Número de teléfono principal (opcional)')
+                            ->mask('999-999-999')
+                            ->placeholder('999-999-999'),
                         Forms\Components\TextInput::make('email')
                             ->email()
                             ->maxLength(255)
-                            ->label('Correo Electrónico'),
+                            ->label('Correo Electrónico')
+                            ->validationMessages([
+                                'email' => '📧 ¡Formato de email incorrecto! Ejemplo: proveedor@empresa.com',
+                                'max' => '📮 El email es muy largo. Máximo 255 caracteres.',
+                            ])
+                            ->helperText('Email de contacto (opcional)')
+                            ->placeholder('proveedor@empresa.com'),
                         Forms\Components\TextInput::make('contact_name')
                             ->maxLength(255)
-                            ->label('Nombre de Contacto'),
+                            ->label('Nombre de Contacto')
+                            ->validationMessages([
+                                'max' => '👤 El nombre de contacto es muy largo. Máximo 255 caracteres.',
+                                'string' => '🔤 El nombre debe contener solo letras y espacios.',
+                            ])
+                            ->helperText('Persona de contacto (opcional)')
+                            ->placeholder('Juan Pérez'),
                         Forms\Components\TextInput::make('contact_phone')
                             ->tel()
                             ->maxLength(20)
-                            ->label('Teléfono de Contacto'),
+                            ->label('Teléfono de Contacto')
+                            ->validationMessages([
+                                'max' => '📱 El teléfono de contacto es muy largo. Máximo 20 caracteres.',
+                            ])
+                            ->helperText('Teléfono alternativo (opcional)')
+                            ->mask('999-999-999'),
                         Forms\Components\Toggle::make('active')
-                            ->required()
-                            ->label('Activo'),
+                            ->label('Activo')
+                            ->helperText('¿Este proveedor está activo?')
+                            ->default(true),
                     ])->columns(2),
             ]);
     }

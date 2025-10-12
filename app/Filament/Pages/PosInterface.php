@@ -1228,6 +1228,9 @@ class PosInterface extends Page
 
                 // ✅ CARGAR DATOS ORIGINALES DEL CLIENTE DE LA ORDEN DE DELIVERY
                 if ($activeOrder->customer) {
+                    // Verificar si es una orden de delivery
+                    $isDeliveryOrder = $activeOrder->deliveryOrder()->exists();
+                    
                     $this->originalCustomerData = [
                         'customer_id' => $activeOrder->customer->id,
                         'customer_name' => $activeOrder->customer->name,
@@ -1237,6 +1240,20 @@ class PosInterface extends Page
                         'customer_phone' => $activeOrder->customer->phone ?: '',
                         'customer_email' => $activeOrder->customer->email ?: '',
                     ];
+                    
+                    // Agregar service_type si es delivery
+                    if ($isDeliveryOrder) {
+                        $this->originalCustomerData['service_type'] = 'delivery';
+                        \Log::info('🚚 ORDEN DE DELIVERY DETECTADA AL CARGAR', [
+                            'order_id' => $activeOrder->id,
+                            'service_type' => 'delivery'
+                        ]);
+                    } else {
+                        \Log::info('👤 ORDEN NORMAL DETECTADA AL CARGAR', [
+                            'order_id' => $activeOrder->id,
+                            'service_type' => 'normal'
+                        ]);
+                    }
                 }
             }
         }
@@ -2428,8 +2445,8 @@ class PosInterface extends Page
                                     ->options(['sales_note' => '📝 Nota','receipt' => '🧾 Boleta','invoice' => '📋 Factura'])
                                     ->colors(['sales_note' => 'info','receipt' => 'warning','invoice' => 'success'])
                                     ->extraAttributes(['class' => 'w-full'])
-                                    ->default('sales_note')
-                                    ->live()->inline()->columnSpanFull(),
+                                    ->live()->inline()->columnSpanFull()
+                                    ->reactive(),
                             ])->columnSpan(['md' => 4,'lg' => 3])->extraAttributes(['class' => 'space-y-4']),
                             Forms\Components\Group::make([
                                 Forms\Components\Section::make('Método de Pago')
@@ -2437,7 +2454,13 @@ class PosInterface extends Page
                                     ->visible(fn(Get $get) => !$get('split_payment'))
                                     ->schema([
                                         Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
-                                            Forms\Components\Select::make('payment_method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food','rappi'=>'🚚 Rappi','bita_express'=>'🚛 Bita Express'])->default('cash')->live()->columnSpan(1),
+                                            Forms\Components\Select::make('payment_method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food','rappi'=>'🚚 Rappi','bita_express'=>'🚛 Bita Express'])->default('cash')->live()->columnSpan(1)
+                                                ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                                    // Auto-seleccionar Boleta cuando se selecciona Tarjeta
+                                                    if ($state === 'card') {
+                                                        $set('document_type', 'receipt');
+                                                    }
+                                                }),
                                             Forms\Components\TextInput::make('payment_amount')->label('Monto Recibido')->numeric()->prefix('S/')->live()->default((float)$this->total)->step(0.01)->minValue(fn(Get $get) => $get('payment_method')==='cash' ? (float)$this->total : 0.01)->rule(fn(Get $get) => function(string $a,$v,\Closure $fail) use($get){ if($get('payment_method')==='cash'){ $val=(float)$v; $total=(float)$this->total; if(round($val, 2) < round($total, 2)){ $fail('El monto recibido debe ser mayor o igual al total.'); } } })->columnSpan(1),
                                             Forms\Components\Placeholder::make('change_display')->label('Vuelto')->content(function (Get $get){ $amount=(float)($get('payment_amount')??0); $totalAmount = is_numeric($this->total) ? (float)$this->total : 0.0; $change=$amount-$totalAmount; if($change>0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-xs'>S/ ".number_format((float)$change,2)."</span></div>");} elseif($change<0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-xs'>Falta: S/ ".number_format(abs((float)$change),2)."</span></div>");} return new \Illuminate\Support\HtmlString("<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'><span class='text-blue-700 font-bold text-xs'>Exacto ✓</span></div>"); })->live()->visible(fn(Get $get)=>$get('payment_method')==='cash')->columnSpan(1),
                                         ]),
@@ -2457,7 +2480,13 @@ class PosInterface extends Page
                                         Forms\Components\Repeater::make('payment_methods')
                                             ->schema([
                                                 Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
-                                                    Forms\Components\Select::make('method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->required()->live()->columnSpan(1),
+                                                    Forms\Components\Select::make('method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->required()->live()->columnSpan(1)
+                                                        ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                                                            // Auto-seleccionar Boleta cuando se selecciona Tarjeta en pago múltiple
+                                                            if ($state === 'card') {
+                                                                $set('../../document_type', 'receipt');
+                                                            }
+                                                        }),
                                                     Forms\Components\TextInput::make('amount')->label('Monto')->numeric()->prefix('S/')->step(0.01)->minValue(0.01)->required()->live()->columnSpan(1),
                                                     Forms\Components\Placeholder::make('remaining')->label('Estado')->content(function (Get $get){ $payments=$get('../../payment_methods')??[]; $totalPaid=0; foreach($payments as $p){ if(isset($p['amount']) && is_numeric($p['amount'])) $totalPaid+=(float)$p['amount']; } $totalAmount = is_numeric($this->total) ? (float)$this->total : 0.0; $remaining=$totalAmount - $totalPaid; if(abs($remaining) < 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-[11px]'>Completo ✓</span></div>");} elseif($remaining > 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'><span class='text-orange-700 font-bold text-[11px]'>Falta: S/ ".number_format((float)$remaining,2)."</span></div>");} else {return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-[11px]'>Vuelto: S/ ".number_format(abs((float)$remaining),2)."</span></div>");} })->live()->columnSpan(1),
                                                 ]),
@@ -2778,16 +2807,36 @@ class PosInterface extends Page
             })
             ->fillForm(function () {
                 if ($this->originalCustomerData) {
+                    // Para delivery, usar Nota de Venta como default
+                    $serviceType = $this->originalCustomerData['service_type'] ?? 'no_service_type';
+                    $documentType = 'sales_note'; // Default para delivery
+                    
+                    if ($serviceType === 'delivery') {
+                        $documentType = 'sales_note'; // Nota de Venta para delivery
+                        \Log::info('🚚 FILLFORM: Configurando Nota de Venta para delivery', [
+                            'service_type' => $serviceType,
+                            'document_type' => $documentType
+                        ]);
+                    } else {
+                        $documentType = 'receipt'; // Boleta para otros casos con cliente
+                        \Log::info('👤 FILLFORM: Configurando Boleta para cliente normal', [
+                            'service_type' => $serviceType,
+                            'document_type' => $documentType
+                        ]);
+                    }
+                    
                     return [
                         'split_payment' => false,
                         'payment_method' => 'cash',
                         'payment_amount' => $this->total,
                         'payment_methods' => [ ['method' => 'cash','amount' => $this->total] ],
-                        'document_type' => 'receipt',
+                        'document_type' => $documentType,
                         'customer_id' => $this->originalCustomerData['customer_id'],
                         'new_customer_name' => '',
                     ];
                 }
+                
+                \Log::info('🎯 FILLFORM: Sin cliente original, usando Nota de Venta por defecto');
                 return [
                     'split_payment' => false,
                     'payment_method' => 'cash',

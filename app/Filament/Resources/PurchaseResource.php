@@ -330,17 +330,39 @@ class PurchaseResource extends Resource
                                     ->default(1)
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, $get, callable $set) {
-                                        $subtotal = $state * $get('unit_cost');
-                                        $set('subtotal', $subtotal);
-
+                                        // Calcular subtotal
+                                        $unitCost = $get('unit_cost') ?? 0;
+                                        $includeIgv = $get('include_igv') ?? false;
+                                        $baseSubtotal = $state * $unitCost;
+                                        
+                                        if ($includeIgv) {
+                                            $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                            $igvFactor = 1 + ($igvPercent / 100);
+                                            $subtotal = $baseSubtotal * $igvFactor;
+                                        } else {
+                                            $subtotal = $baseSubtotal;
+                                        }
+                                        
+                                        $set('subtotal', round($subtotal, 2));
+                                        
                                         // Actualizar totales generales
-                                        $totalSubtotal = collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0);
-                                        $taxRate = $get('../../tax') ?? 18;
-                                        $taxAmount = $totalSubtotal * ($taxRate / 100);
-                                        $total = $totalSubtotal + $taxAmount;
-
-                                        $set('../../subtotal', $totalSubtotal);
-                                        $set('../../total', $total);
+                                        $details = $get('../../details') ?? [];
+                                        $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
+                                        $totalTax = 0;
+                                        
+                                        // Calcular el IGV total basado en los items que tienen IGV incluido
+                                        foreach ($details as $detail) {
+                                            if ($detail['include_igv'] ?? false) {
+                                                $itemBaseSubtotal = ($detail['quantity'] ?? 0) * ($detail['unit_cost'] ?? 0);
+                                                $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
+                                                $totalTax += $itemTax;
+                                            }
+                                        }
+                                        
+                                        $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
+                                        $set('../../tax', round($totalTax, 2));
+                                        $set('../../total', round($totalSubtotal, 2));
                                     }),
 
                                 Forms\Components\TextInput::make('unit_cost')
@@ -351,17 +373,83 @@ class PurchaseResource extends Resource
                                     ->default(0)
                                     ->reactive()
                                     ->afterStateUpdated(function ($state, $get, callable $set) {
-                                        $subtotal = $get('quantity') * $state;
-                                        $set('subtotal', $subtotal);
-
+                                        // Calcular subtotal
+                                        $quantity = $get('quantity') ?? 0;
+                                        $includeIgv = $get('include_igv') ?? false;
+                                        $baseSubtotal = $quantity * $state;
+                                        
+                                        if ($includeIgv) {
+                                            $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                            $igvFactor = 1 + ($igvPercent / 100);
+                                            $subtotal = $baseSubtotal * $igvFactor;
+                                        } else {
+                                            $subtotal = $baseSubtotal;
+                                        }
+                                        
+                                        $set('subtotal', round($subtotal, 2));
+                                        
                                         // Actualizar totales generales
-                                        $totalSubtotal = collect($get('../../details'))->sum(fn($item) => $item['subtotal'] ?? 0);
-                                        $taxRate = $get('../../tax') ?? 18;
-                                        $taxAmount = $totalSubtotal * ($taxRate / 100);
-                                        $total = $totalSubtotal + $taxAmount;
+                                        $details = $get('../../details') ?? [];
+                                        $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
+                                        $totalTax = 0;
+                                        
+                                        // Calcular el IGV total basado en los items que tienen IGV incluido
+                                        foreach ($details as $detail) {
+                                            if ($detail['include_igv'] ?? false) {
+                                                $itemBaseSubtotal = ($detail['quantity'] ?? 0) * ($detail['unit_cost'] ?? 0);
+                                                $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
+                                                $totalTax += $itemTax;
+                                            }
+                                        }
+                                        
+                                        $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
+                                        $set('../../tax', round($totalTax, 2));
+                                        $set('../../total', round($totalSubtotal, 2));
+                                    }),
 
-                                        $set('../../subtotal', $totalSubtotal);
-                                        $set('../../total', $total);
+                                Forms\Components\Checkbox::make('include_igv')
+                                    ->label('Incluir IGV')
+                                    ->helperText(function () {
+                                        $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                        return "Aplicar IGV del {$igvPercent}% al subtotal";
+                                    })
+                                    ->default(true)
+                                    ->reactive()
+                                    ->afterStateUpdated(function ($state, $get, callable $set) {
+                                        // Calcular subtotal
+                                        $quantity = $get('quantity') ?? 0;
+                                        $unitCost = $get('unit_cost') ?? 0;
+                                        $baseSubtotal = $quantity * $unitCost;
+                                        
+                                        if ($state) {
+                                            $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                            $igvFactor = 1 + ($igvPercent / 100);
+                                            $subtotal = $baseSubtotal * $igvFactor;
+                                        } else {
+                                            $subtotal = $baseSubtotal;
+                                        }
+                                        
+                                        $set('subtotal', round($subtotal, 2));
+                                        
+                                        // Actualizar totales generales
+                                        $details = $get('../../details') ?? [];
+                                        $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
+                                        $totalTax = 0;
+                                        
+                                        // Calcular el IGV total basado en los items que tienen IGV incluido
+                                        foreach ($details as $detail) {
+                                            if ($detail['include_igv'] ?? false) {
+                                                $itemBaseSubtotal = ($detail['quantity'] ?? 0) * ($detail['unit_cost'] ?? 0);
+                                                $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
+                                                $totalTax += $itemTax;
+                                            }
+                                        }
+                                        
+                                        $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
+                                        $set('../../tax', round($totalTax, 2));
+                                        $set('../../total', round($totalSubtotal, 2));
                                     }),
 
                                 Forms\Components\TextInput::make('subtotal')
@@ -389,13 +477,24 @@ class PurchaseResource extends Resource
                                     : null
                             )
                             ->afterStateUpdated(function (callable $get, callable $set) {
-                                $subtotal = collect($get('details'))->sum(fn($item) => $item['subtotal'] ?? 0);
-                                $taxRate = $get('tax') ?? 18;
-                                $taxAmount = $subtotal * ($taxRate / 100);
-                                $total = $subtotal + $taxAmount;
-
-                                $set('subtotal', $subtotal);
-                                $set('total', $total);
+                                // Actualizar totales generales cuando se modifica el repeater
+                                $details = $get('details') ?? [];
+                                $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
+                                $totalTax = 0;
+                                
+                                // Calcular el IGV total basado en los items que tienen IGV incluido
+                                foreach ($details as $detail) {
+                                    if ($detail['include_igv'] ?? false) {
+                                        $itemBaseSubtotal = ($detail['quantity'] ?? 0) * ($detail['unit_cost'] ?? 0);
+                                        $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                        $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
+                                        $totalTax += $itemTax;
+                                    }
+                                }
+                                
+                                $set('subtotal', round($totalSubtotal - $totalTax, 2));
+                                $set('tax', round($totalTax, 2));
+                                $set('total', round($totalSubtotal, 2));
                             }),
                     ]),
 
@@ -408,30 +507,17 @@ class PurchaseResource extends Resource
                             ->default(0)
                             ->disabled()
                             ->dehydrated()
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                $taxRate = $get('tax') ?? 18;
-                                $taxAmount = $state * ($taxRate / 100);
-                                $total = $state + $taxAmount;
-                                $set('total', $total);
-                            }),
-
+                            ->reactive(),
+                            
                         Forms\Components\TextInput::make('tax')
-                            ->label('IGV (%)')
+                            ->label('IGV')
                             ->numeric()
-                            ->default(18)
-                            ->minValue(0)
-                            ->maxValue(100)
-                            ->suffix('%')
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, callable $get, callable $set) {
-                                $subtotal = $get('subtotal') ?? 0;
-                                $taxAmount = $subtotal * ($state / 100);
-                                $total = $subtotal + $taxAmount;
-                                $set('total', $total);
-                            })
-                            ->helperText('Porcentaje de IGV aplicado al subtotal'),
-
+                            ->prefix('S/')
+                            ->default(0)
+                            ->disabled()
+                            ->dehydrated()
+                            ->reactive(),
+                            
                         Forms\Components\TextInput::make('total')
                             ->label('Total')
                             ->numeric()

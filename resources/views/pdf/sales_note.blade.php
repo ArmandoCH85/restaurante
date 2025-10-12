@@ -211,19 +211,7 @@
                     $clientAddress = $invoice->client_address;
                     $deliveryAddress = $deliveryOrder->delivery_address;
                     $recipientAddress = $deliveryOrder->recipient_address;
-                    
-                    // Para sales_note mostrar dirección cliente si existe y es diferente
-                    $showClientAddress = $clientAddress && 
-                                       $clientAddress !== $deliveryAddress && 
-                                       $clientAddress !== 'Dirección pendiente de completar';
                 @endphp
-                
-                @if($showClientAddress)
-                <tr>
-                    <td><strong>Dirección:</strong></td>
-                    <td>{{ $clientAddress }}</td>
-                </tr>
-                @endif
                 
                 {{-- Separador visual para delivery --}}
                 <tr><td colspan="2" style="text-align: center; font-weight: bold; padding: 4px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000;">🚚 INFORMACIÓN DE CONTACTO</td></tr>

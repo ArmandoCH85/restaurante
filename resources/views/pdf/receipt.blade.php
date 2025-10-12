@@ -198,12 +198,6 @@
                 <td><strong>Cliente:</strong></td>
                 <td>{{ $invoice->client_name }}</td>
             </tr>
-            @if($invoice->client_document)
-            <tr>
-                <td><strong>DNI:</strong></td>
-                <td>{{ $invoice->client_document }}</td>
-            </tr>
-            @endif
             
             {{-- Para delivery: manejo inteligente de direcciones --}}
             @if($invoice->order && $invoice->order->service_type === 'delivery' && $invoice->order->deliveryOrder)
@@ -212,19 +206,7 @@
                     $clientAddress = $invoice->client_address;
                     $deliveryAddress = $deliveryOrder->delivery_address;
                     $recipientAddress = $deliveryOrder->recipient_address;
-                    
-                    // Mostrar dirección del cliente solo si es diferente a la de entrega
-                    $showClientAddress = $clientAddress && 
-                                       $clientAddress !== $deliveryAddress && 
-                                       $clientAddress !== 'Dirección pendiente de completar';
                 @endphp
-                
-                @if($showClientAddress)
-                <tr>
-                    <td><strong>Dirección:</strong></td>
-                    <td>{{ $clientAddress }}</td>
-                </tr>
-                @endif
                 
                 {{-- Separador visual para delivery --}}
                 <tr><td colspan="2" style="text-align: center; font-weight: bold; padding: 4px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000;">🚚 INFORMACIÓN DE CONTACTO</td></tr>

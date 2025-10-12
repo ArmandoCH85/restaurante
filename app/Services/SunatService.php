@@ -35,9 +35,39 @@ class SunatService
 
     public function __construct()
     {
+        // Evitar inicializar si estamos en un comando de Artisan
+        if (app()->runningInConsole() && !app()->runningUnitTests()) {
+            return;
+        }
+
         $this->environment = AppSetting::getSetting('FacturacionElectronica', 'environment') ?: 'beta';
-        $this->initializeGreenter();
-        $this->setupCompany();
+        
+        // Verificar si se está usando QPSE en lugar de certificados directos
+        $useQpse = AppSetting::getSetting('FacturacionElectronica', 'use_qpse') === 'true';
+        
+        if ($useQpse) {
+            Log::info('QPSE habilitado, omitiendo inicialización de Greenter');
+            $this->setupCompanyBasic();
+            return;
+        }
+        
+        try {
+            $this->initializeGreenter();
+            $this->setupCompany();
+        } catch (Exception $e) {
+            Log::warning('Error inicializando SunatService (modo degradado)', [
+                'error' => $e->getMessage(),
+                'environment' => $this->environment
+            ]);
+            
+            // En entorno local, continuar sin certificado
+            if (app()->environment('local')) {
+                $this->setupCompanyBasic();
+                return;
+            }
+            
+            throw $e;
+        }
     }
 
     /**
@@ -171,6 +201,58 @@ class SunatService
     }
 
     /**
+     * Configurar datos básicos de la empresa sin inicializar Greenter
+     * Para uso con QPSE o en entornos locales sin certificados
+     */
+    private function setupCompanyBasic()
+    {
+        // Obtener datos de la empresa desde app_settings
+        $ruc = AppSetting::getSetting('Empresa', 'ruc');
+        $razonSocial = AppSetting::getSetting('Empresa', 'razon_social');
+        $nombreComercial = AppSetting::getSetting('Empresa', 'nombre_comercial');
+        $direccion = AppSetting::getSetting('Empresa', 'direccion');
+        $ubigeo = AppSetting::getSetting('Empresa', 'ubigeo') ?: '150101'; // Lima por defecto
+        $distrito = AppSetting::getSetting('Empresa', 'distrito') ?: 'Lima';
+        $provincia = AppSetting::getSetting('Empresa', 'provincia') ?: 'Lima';
+        $departamento = AppSetting::getSetting('Empresa', 'departamento') ?: 'Lima';
+
+        // Log de configuración de empresa en modo básico
+        Log::info('Configurando empresa en modo básico (sin Greenter)', [
+            'ruc_empresa' => $ruc,
+            'razon_social' => $razonSocial,
+            'nombre_comercial' => $nombreComercial,
+            'use_qpse' => AppSetting::getSetting('FacturacionElectronica', 'use_qpse')
+        ]);
+
+        // Crear objetos básicos sin inicializar See
+        $address = new Address();
+        $address->setUbigueo($ubigeo)
+            ->setDistrito($distrito)
+            ->setProvincia($provincia)
+            ->setDepartamento($departamento)
+            ->setUrbanizacion('-')
+            ->setDireccion($direccion ?: 'Dirección no configurada');
+
+        $this->company = new Company();
+
+        // Asegurar que el RUC no esté vacío
+        if (empty($ruc)) {
+            $ruc = AppSetting::getSetting('FacturacionElectronica', 'ruc') ?: '20123456789';
+            Log::warning('RUC de empresa estaba vacío, usando fallback', ['ruc_fallback' => $ruc]);
+        }
+
+        $this->company->setRuc($ruc)
+            ->setRazonSocial($razonSocial ?: 'EMPRESA DEMO SAC')
+            ->setNombreComercial($nombreComercial ?: 'Empresa Demo')
+            ->setAddress($address);
+
+        Log::info('Empresa configurada en modo básico', [
+            'company_ruc' => $this->company->getRuc(),
+            'company_razon_social' => $this->company->getRazonSocial()
+        ]);
+    }
+
+    /**
      * Configurar datos de la empresa
      */
     private function setupCompany()
@@ -225,12 +307,45 @@ class SunatService
     }
 
     /**
+     * Verificar si se está usando QPSE en lugar de certificados directos
+     * 
+     * @return bool
+     */
+    public function isUsingQpse(): bool
+    {
+        return AppSetting::getSetting('FacturacionElectronica', 'use_qpse') === 'true';
+    }
+
+    /**
+     * Verificar si SunatService está completamente inicializado
+     * 
+     * @return bool
+     */
+    public function isFullyInitialized(): bool
+    {
+        return $this->see !== null && $this->company !== null;
+    }
+
+    /**
      * Obtener instancia de See (Greenter) para uso externo
      * 
-     * @return See
+     * @return See|null
+     * @throws Exception Si See no está inicializado y se requiere
      */
-    public function getSee(): See
+    public function getSee(): ?See
     {
+        if (!$this->see) {
+            Log::warning('Intentando obtener See cuando no está inicializado (probablemente usando QPSE)');
+            
+            // Si estamos usando QPSE, no necesitamos See
+            $useQpse = AppSetting::getSetting('FacturacionElectronica', 'use_qpse') === 'true';
+            if ($useQpse) {
+                return null;
+            }
+            
+            throw new Exception('SunatService no fue inicializado correctamente. Verifique la configuración de certificados.');
+        }
+        
         return $this->see;
     }
 

@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use Filament\Widgets\ChartWidget;
 use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use App\Models\Order;
+use App\Models\CashRegister;
 use Carbon\Carbon;
 use App\Filament\Widgets\Concerns\DateRangeFilterTrait;
 
@@ -91,49 +92,146 @@ class SalesChartWidget extends ChartWidget
         $directaData = [];
         $appsData = [];
 
-    $dates = $this->expandDailyDates();
+        $dates = $this->expandDailyDates();
 
         foreach ($dates as $date) {
             $labels[] = $date['label'];
 
-            // 🍽️ VENTAS MESA
-            $mesaSales = Order::whereDate('created_at', $date['date'])
-                ->where('service_type', 'dine_in')
-                ->where('billed', true)
-                ->sum('total');
-            $mesaData[] = (float) $mesaSales;
+            // Determinar si esta fecha es HOY o en el futuro
+            $isToday = $date['date']->isToday() || $date['date']->isFuture();
 
-            // 🚚 VENTAS DELIVERY
-            $deliverySales = Order::whereDate('created_at', $date['date'])
-                ->where('service_type', 'delivery')
-                ->where('billed', true)
-                ->sum('total');
-            $deliveryData[] = (float) $deliverySales;
+            if ($isToday) {
+                // Para hoy: usar órdenes de cajas abiertas o sin caja, manteniendo desglose por tipo
+                
+                // 🍽️ VENTAS MESA
+                $mesaSales = Order::whereDate('created_at', $date['date'])
+                    ->where('service_type', 'dine_in')
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->sum('total');
+                $mesaData[] = (float) $mesaSales;
 
-            // 📱 VENTAS APPS (Rappi, Bita Express, etc.)
-            $appsSales = Order::whereDate('created_at', $date['date'])
-                ->where('billed', true)
-                ->whereHas('payments', function($query) {
-                    $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
-                })
-                ->sum('total');
-            $appsData[] = (float) $appsSales;
+                // 🚚 VENTAS DELIVERY
+                $deliverySales = Order::whereDate('created_at', $date['date'])
+                    ->where('service_type', 'delivery')
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->sum('total');
+                $deliveryData[] = (float) $deliverySales;
 
-            // 🥡 VENTA DIRECTA (takeout + sin mesa, EXCLUYENDO Apps)
-            $directaSales = Order::whereDate('created_at', $date['date'])
-                ->where(function($query) {
-                    $query->where('service_type', 'takeout')
-                          ->orWhere(function($q) {
-                              $q->where('service_type', 'dine_in')
-                                ->whereNull('table_id');
-                          });
-                })
-                ->where('billed', true)
-                ->whereDoesntHave('payments', function($query) {
-                    $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
-                })
-                ->sum('total');
-            $directaData[] = (float) $directaSales;
+                // 📱 VENTAS APPS (Rappi, Bita Express, etc.)
+                $appsSales = Order::whereDate('created_at', $date['date'])
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->whereHas('payments', function($query) {
+                        $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                    })
+                    ->sum('total');
+                $appsData[] = (float) $appsSales;
+
+                // 🥡 VENTA DIRECTA (takeout + sin mesa, EXCLUYENDO Apps)
+                $directaSales = Order::whereDate('created_at', $date['date'])
+                    ->where(function($query) {
+                        $query->where('service_type', 'takeout')
+                              ->orWhere(function($q) {
+                                  $q->where('service_type', 'dine_in')
+                                    ->whereNull('table_id');
+                              });
+                    })
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_OPEN);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->whereDoesntHave('payments', function($query) {
+                        $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                    })
+                    ->sum('total');
+                $directaData[] = (float) $directaSales;
+                
+            } else {
+                // Para fechas pasadas: usar órdenes de cajas cerradas, manteniendo desglose por tipo
+                
+                // 🍽️ VENTAS MESA
+                $mesaSales = Order::whereDate('created_at', $date['date'])
+                    ->where('service_type', 'dine_in')
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_CLOSED);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->sum('total');
+                $mesaData[] = (float) $mesaSales;
+
+                // 🚚 VENTAS DELIVERY
+                $deliverySales = Order::whereDate('created_at', $date['date'])
+                    ->where('service_type', 'delivery')
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_CLOSED);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->sum('total');
+                $deliveryData[] = (float) $deliverySales;
+
+                // 📱 VENTAS APPS (Rappi, Bita Express, etc.)
+                $appsSales = Order::whereDate('created_at', $date['date'])
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_CLOSED);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->whereHas('payments', function($query) {
+                        $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                    })
+                    ->sum('total');
+                $appsData[] = (float) $appsSales;
+
+                // 🥡 VENTA DIRECTA (takeout + sin mesa, EXCLUYENDO Apps)
+                $directaSales = Order::whereDate('created_at', $date['date'])
+                    ->where(function($query) {
+                        $query->where('service_type', 'takeout')
+                              ->orWhere(function($q) {
+                                  $q->where('service_type', 'dine_in')
+                                    ->whereNull('table_id');
+                              });
+                    })
+                    ->where('billed', true)
+                    ->where(function($q) {
+                        $q->whereHas('cashRegister', function ($subQ) {
+                            $subQ->where('is_active', CashRegister::STATUS_CLOSED);
+                        })
+                        ->orWhereNull('cash_register_id');
+                    })
+                    ->whereDoesntHave('payments', function($query) {
+                        $query->whereIn('payment_method', ['rappi', 'bita_express', 'didi_food', 'pedidos_ya']);
+                    })
+                    ->sum('total');
+                $directaData[] = (float) $directaSales;
+            }
         }
 
         return [
