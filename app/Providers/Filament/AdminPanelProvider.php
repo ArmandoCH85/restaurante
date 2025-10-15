@@ -358,6 +358,22 @@ class AdminPanelProvider extends PanelProvider
                         white-space: nowrap !important;
                     }
 
+                    /* 🎨 DESTACAR "APERTURA Y CIERRE DE CAJA" */
+                    .fi-sidebar-item[href*="operaciones-caja"] .fi-sidebar-item-label {
+                        background-color: #EEF2FF !important;
+                        color: #2563EB !important;
+                        font-weight: 600 !important;
+                        padding: 0.375rem 0.625rem !important;
+                        border-radius: 0.375rem !important;
+                        display: inline-block !important;
+                    }
+
+                    /* Mantener el color en hover */
+                    .fi-sidebar-item[href*="operaciones-caja"]:hover .fi-sidebar-item-label {
+                        background-color: #DBEAFE !important;
+                        color: #1D4ED8 !important;
+                    }
+
                     /* 🌙 DARK MODE - MANTENER FONDO BLANCO */
                     .dark .fi-sidebar {
                         --tailadmin-sidebar-bg: #FFFFFF;

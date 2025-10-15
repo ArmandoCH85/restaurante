@@ -51,6 +51,10 @@ class CashRegister extends Model
         'manual_didi',
         'manual_pedidos_ya',
         'manual_otros',
+        // Campos de egresos
+        'total_expenses',
+        'expenses_notes',
+        'expense_method',
         // Campos de billetes y monedas
         'bill_200',
         'bill_100',
@@ -91,6 +95,8 @@ class CashRegister extends Model
         'manual_didi' => 'decimal:2',
         'manual_pedidos_ya' => 'decimal:2',
         'manual_otros' => 'decimal:2',
+        // Campos de egresos
+        'total_expenses' => 'decimal:2',
         // Campos de billetes y monedas
         'bill_200' => 'integer',
         'bill_100' => 'integer',
@@ -163,6 +169,14 @@ class CashRegister extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Obtiene los egresos detallados asociados a esta caja.
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(CashRegisterExpense::class);
     }
 
     /**

@@ -34,6 +34,22 @@ class CashRegisterResource extends Resource
 
     protected static ?int $navigationSort = 10;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return null;
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return 'primary';
+    }
+
+    // Aplicar color de fondo destacado al item de navegación
+    public static function getNavigationLabel(): string
+    {
+        return 'Apertura y Cierre de Caja';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -534,11 +550,6 @@ class CashRegisterResource extends Resource
                                     ])
                                     ->columnSpan('full'),
 
-                                // Separador visual
-                                Forms\Components\Placeholder::make('separator_1')
-                                    ->content('──────────────────────────────────────')
-                                    ->columnSpan('full'),
-
                                 // Comparativo de Yape
                                 Forms\Components\Grid::make(2)
                                     ->schema([
@@ -786,11 +797,6 @@ class CashRegisterResource extends Resource
                                     ->columnSpan('full'),
 
 
-                                // Separador visual
-                                Forms\Components\Placeholder::make('separator_2')
-                                    ->content('──────────────────────────────────────')
-                                    ->columnSpan('full'),
-
                                 // Totales comparativos
                                 Forms\Components\Grid::make(2)
                                     ->schema([
@@ -858,14 +864,150 @@ class CashRegisterResource extends Resource
                     ->columns(1)
                     ->visible(fn ($record) => $record && $record->is_active),
 
+                Forms\Components\Section::make('💸 Egresos / Salidas de Dinero')
+                    ->description('Registre las salidas de dinero realizadas durante el día de operación')
+                    ->icon('heroicon-o-arrow-trending-down')
+                    ->schema([
+                        // Selector de Método con cards visuales
+                        Forms\Components\Radio::make('expense_method')
+                            ->label('¿Cómo desea registrar los egresos?')
+                            ->options([
+                                'total' => '📊 Monto Total - Rápido y simple',
+                                'detailed' => '📝 Por Concepto - Detallado y preciso',
+                            ])
+                            ->descriptions([
+                                'total' => 'Ingrese solo el monto total de salidas',
+                                'detailed' => 'Registre cada salida con su concepto y monto',
+                            ])
+                            ->default('total')
+                            ->inline(false)
+                            ->reactive()
+                            ->columnSpan('full')
+                            ->live(),
+
+                        // Método Total (más simple)
+                        Forms\Components\Grid::make(1)
+                            ->schema([
+                                Forms\Components\Section::make()
+                                    ->schema([
+                                        Forms\Components\TextInput::make('total_expenses')
+                                            ->label('💵 Monto Total de Egresos')
+                                            ->prefix('S/')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->placeholder('0.00')
+                                            ->suffix('.00')
+                                            ->inputMode('decimal')
+                                            ->maxLength(10)
+                                            ->helperText('💡 Ingrese la suma de todas las salidas de dinero del día')
+                                            ->extraAttributes(['class' => 'text-lg'])
+                                            ->columnSpan('full'),
+                                        
+                                        Forms\Components\Textarea::make('expenses_notes')
+                                            ->label('📝 Observaciones')
+                                            ->placeholder('Describa brevemente los motivos de las salidas de dinero...')
+                                            ->rows(3)
+                                            ->helperText('Opcional: Agregue detalles sobre los egresos')
+                                            ->columnSpan('full'),
+                                    ])
+                                    ->columnSpan('full'),
+                            ])
+                            ->visible(fn ($get) => $get('expense_method') === 'total')
+                            ->columnSpan('full'),
+
+                        // Método Detallado (más completo)
+                        Forms\Components\Repeater::make('expenses_detailed')
+                            ->label('📋 Lista de Egresos')
+                            ->schema([
+                                Forms\Components\Grid::make(3)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('concept')
+                                            ->label('📌 Concepto')
+                                            ->placeholder('Ej: Pago a proveedor, Compra insumos...')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpan(1),
+                                            
+                                        Forms\Components\TextInput::make('amount')
+                                            ->label('💵 Monto')
+                                            ->prefix('S/')
+                                            ->numeric()
+                                            ->required()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->placeholder('0.00')
+                                            ->inputMode('decimal')
+                                            ->columnSpan(1),
+                                            
+                                        Forms\Components\TextInput::make('notes')
+                                            ->label('📝 Detalles')
+                                            ->placeholder('Observaciones adicionales...')
+                                            ->maxLength(500)
+                                            ->columnSpan(1),
+                                    ]),
+                            ])
+                            ->addActionLabel('➕ Agregar Egreso')
+                            ->reorderable()
+                            ->defaultItems(0)
+                            ->collapsible()
+                            ->itemLabel(fn (array $state): ?string => $state['concept'] ?? 'Nuevo egreso')
+                            ->visible(fn ($get) => $get('expense_method') === 'detailed')
+                            ->columnSpan('full')
+                            ->cloneable(),
+
+                        // Separador visual
+                        // Resumen de Egresos (destacado)
+                        Forms\Components\Grid::make(1)
+                            ->schema([
+                                Forms\Components\Placeholder::make('total_expenses_summary')
+                                    ->content(function ($get) {
+                                        if ($get('expense_method') === 'detailed') {
+                                            $expenses = $get('expenses_detailed') ?? [];
+                                            $total = collect($expenses)->sum('amount');
+                                            $count = count($expenses);
+                                            return new \Illuminate\Support\HtmlString("
+                                                <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.25rem; border-radius: 0.75rem; border-left: 4px solid #f59e0b;'>
+                                                    <div style='display: flex; align-items: center; gap: 0.75rem;'>
+                                                        <span style='font-size: 2rem;'>💸</span>
+                                                        <div style='flex: 1;'>
+                                                            <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos ({$count} concepto" . ($count != 1 ? 's' : '') . ")</div>
+                                                            <div style='font-size: 1.875rem; font-weight: 700; color: #b45309;'>S/ " . number_format($total, 2) . "</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ");
+                                        } else {
+                                            $total = floatval($get('total_expenses') ?? 0);
+                                            return new \Illuminate\Support\HtmlString("
+                                                <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.25rem; border-radius: 0.75rem; border-left: 4px solid #f59e0b;'>
+                                                    <div style='display: flex; align-items: center; gap: 0.75rem;'>
+                                                        <span style='font-size: 2rem;'>💸</span>
+                                                        <div style='flex: 1;'>
+                                                            <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos</div>
+                                                            <div style='font-size: 1.875rem; font-weight: 700; color: #b45309;'>S/ " . number_format($total, 2) . "</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ");
+                                        }
+                                    })
+                                    ->columnSpan('full'),
+                            ])
+                            ->columnSpan('full'),
+                    ])
+                    ->columns(1)
+                    ->collapsed(false)
+                    ->visible(fn ($record) => $record && $record->is_active),
+
                 Forms\Components\Section::make('Resumen Final del Cierre')
                     ->description('Cálculos automáticos del cierre de caja')
                     ->icon('heroicon-m-calculator')
                     ->schema([
-                        Forms\Components\Grid::make(3)
+                        Forms\Components\Grid::make(4)
                             ->schema([
                                 Forms\Components\Placeholder::make('monto_esperado')
-                                    ->label('💰 Monto Esperado')
+                                    ->label('💰 Total Ingresos')
                                     ->content(function ($record) {
                                         if (!$record) return 'S/ 0.00';
                                         $esperado = $record->getSystemCashSales() +
@@ -878,7 +1020,7 @@ class CashRegisterResource extends Resource
                                                    $record->getSystemOtherDigitalWalletSales();
                                         return 'S/ ' . number_format($esperado, 2);
                                     })
-                                    ->helperText('Sumatoria de todos los ingresos registrados en el sistema'),
+                                    ->helperText('Sumatoria de todos los ingresos del sistema'),
                                     
                                 Forms\Components\Placeholder::make('total_contado')
                                     ->label('👥 Total Manual')
@@ -950,6 +1092,64 @@ class CashRegisterResource extends Resource
                                         return $icon . ' S/ ' . number_format($diferencia, 2);
                                     })
                                     ->helperText('Total Manual - Monto Esperado'),
+                                    
+                                Forms\Components\Placeholder::make('total_egresos')
+                                    ->label('💸 Total Egresos')
+                                    ->content(function ($get) {
+                                        if ($get('expense_method') === 'detailed') {
+                                            $expenses = $get('expenses_detailed') ?? [];
+                                            $total = collect($expenses)->sum('amount');
+                                            return 'S/ ' . number_format($total, 2);
+                                        } else {
+                                            $total = floatval($get('total_expenses') ?? 0);
+                                            return 'S/ ' . number_format($total, 2);
+                                        }
+                                    })
+                                    ->helperText('Total de salidas de dinero'),
+                            ]),
+                            
+                        // Ganancia Real (destacado con gradiente)
+                        Forms\Components\Grid::make(1)
+                            ->schema([
+                                Forms\Components\Placeholder::make('ganancia_real')
+                                    ->content(function ($record, $get) {
+                                        if (!$record) return 'S/ 0.00';
+                                        
+                                        // Calcular ingresos totales
+                                        $ingresos = $record->getSystemCashSales() +
+                                                   $record->getSystemYapeSales() +
+                                                   $record->getSystemPlinSales() +
+                                                   $record->getSystemCardSales() +
+                                                   $record->getSystemDidiSales() +
+                                                   $record->getSystemPedidosYaSales() +
+                                                   $record->getSystemBankTransferSales() +
+                                                   $record->getSystemOtherDigitalWalletSales();
+                                        
+                                        // Calcular egresos totales
+                                        if ($get('expense_method') === 'detailed') {
+                                            $expenses = $get('expenses_detailed') ?? [];
+                                            $egresos = collect($expenses)->sum('amount');
+                                        } else {
+                                            $egresos = floatval($get('total_expenses') ?? 0);
+                                        }
+                                        
+                                        // Ganancia Real = Ingresos - Egresos
+                                        $ganancia = $ingresos - $egresos;
+                                        
+                                        return new \Illuminate\Support\HtmlString("
+                                            <div style='background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 1.75rem; border-radius: 1rem; border-left: 5px solid #10b981; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>
+                                                <div style='display: flex; align-items: center; gap: 1rem;'>
+                                                    <span style='font-size: 3rem;'>🏆</span>
+                                                    <div style='flex: 1;'>
+                                                        <div style='font-size: 1rem; color: #065f46; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;'>Ganancia Real del Día</div>
+                                                        <div style='font-size: 2.5rem; font-weight: 800; color: #047857; line-height: 1;'>S/ " . number_format($ganancia, 2) . "</div>
+                                                        <div style='font-size: 0.875rem; color: #059669; margin-top: 0.5rem; font-weight: 500;'>💰 Ingresos: S/ " . number_format($ingresos, 2) . " - 💸 Egresos: S/ " . number_format($egresos, 2) . "</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ");
+                                    })
+                                    ->columnSpan('full'),
                             ]),
                     ])
                     ->visible(fn ($record) => $record && $record->is_active),

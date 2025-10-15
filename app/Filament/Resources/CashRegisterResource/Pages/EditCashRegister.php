@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\CashRegisterResource\Pages;
 
 use App\Filament\Resources\CashRegisterResource;
+use App\Models\CashRegisterExpense;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
@@ -66,10 +67,32 @@ class EditCashRegister extends EditRecord
         $data['expected_amount'] = $expectedAmount;
         $data['difference'] = $difference;
 
+        // Calcular total de egresos
+        $totalExpenses = 0;
+        if (isset($data['expense_method']) && $data['expense_method'] === 'detailed') {
+            if (isset($data['expenses_detailed'])) {
+                $totalExpenses = collect($data['expenses_detailed'])->sum('amount');
+            }
+        } else {
+            $totalExpenses = $data['total_expenses'] ?? 0;
+        }
+        
+        // Guardar total de egresos y método
+        $data['total_expenses'] = $totalExpenses;
+        
+        // Calcular ganancia real (Ingresos - Egresos)
+        $totalIngresos = $this->record->total_sales;
+        $gananciaReal = $totalIngresos - $totalExpenses;
+        
         // Guardar el desglose completo en las observaciones
         $denominationDetails = "=== CIERRE DE CAJA - RESUMEN COMPLETO ===\n\n";
         
         // Información del cierre
+        $denominationDetails .= "💰 TOTAL INGRESOS: S/ " . number_format($totalIngresos, 2) . "\n";
+        $denominationDetails .= "💸 TOTAL EGRESOS: S/ " . number_format($totalExpenses, 2) . "\n";
+        $denominationDetails .= "🏆 GANANCIA REAL: S/ " . number_format($gananciaReal, 2) . "\n";
+        $denominationDetails .= "   (Ingresos - Egresos)\n\n";
+        
         $denominationDetails .= "💰 MONTO ESPERADO: S/ " . number_format($expectedAmount, 2) . "\n";
         $denominationDetails .= "   (Monto inicial: S/ " . number_format($this->record->opening_amount, 2);
         $denominationDetails .= " + Ventas del día: S/ " . number_format($this->record->total_sales, 2) . ")\n\n";
@@ -92,6 +115,26 @@ class EditCashRegister extends EditRecord
             if ($data['manual_didi'] > 0) $denominationDetails .= "Didi: S/ " . number_format($data['manual_didi'], 2) . " | ";
             if ($data['manual_pedidos_ya'] > 0) $denominationDetails .= "Pedidos Ya: S/ " . number_format($data['manual_pedidos_ya'], 2) . " | ";
             $denominationDetails .= "\n\n";
+        }
+        
+        // Desglose de egresos
+        if ($totalExpenses > 0) {
+            $denominationDetails .= "💸 EGRESOS REGISTRADOS:\n";
+            if (isset($data['expense_method']) && $data['expense_method'] === 'detailed' && isset($data['expenses_detailed'])) {
+                foreach ($data['expenses_detailed'] as $expense) {
+                    $denominationDetails .= "  - {$expense['concept']}: S/ " . number_format($expense['amount'], 2);
+                    if (!empty($expense['notes'])) {
+                        $denominationDetails .= " ({$expense['notes']})";
+                    }
+                    $denominationDetails .= "\n";
+                }
+            } else {
+                $denominationDetails .= "  Total: S/ " . number_format($totalExpenses, 2) . "\n";
+                if (!empty($data['expenses_notes'])) {
+                    $denominationDetails .= "  Notas: {$data['expenses_notes']}\n";
+                }
+            }
+            $denominationDetails .= "\n";
         }
         
         // Totales finales
@@ -153,6 +196,27 @@ class EditCashRegister extends EditRecord
             'user_id' => Auth::id(),
             'user_name' => $user->name,
         ]);
+    }
+    
+    protected function afterSave(): void
+    {
+        // Guardar egresos detallados si se seleccionó el método detallado
+        $data = $this->data;
+        
+        if (isset($data['expense_method']) && $data['expense_method'] === 'detailed' && isset($data['expenses_detailed'])) {
+            // Eliminar egresos existentes para evitar duplicados
+            CashRegisterExpense::where('cash_register_id', $this->record->id)->delete();
+            
+            // Crear nuevos egresos
+            foreach ($data['expenses_detailed'] as $expense) {
+                CashRegisterExpense::create([
+                    'cash_register_id' => $this->record->id,
+                    'concept' => $expense['concept'],
+                    'amount' => $expense['amount'],
+                    'notes' => $expense['notes'] ?? null,
+                ]);
+            }
+        }
     }
 
     protected function getSavedNotification(): ?Notification
