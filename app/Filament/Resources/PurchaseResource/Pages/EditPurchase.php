@@ -87,6 +87,7 @@ class EditPurchase extends EditRecord
                                 // Crear movimiento de inventario
                                 InventoryMovement::createPurchaseMovement(
                                     $product->id,
+                                    $purchase->warehouse_id,
                                     $detail->quantity,
                                     $detail->unit_cost,
                                     $purchase->id,
@@ -167,6 +168,7 @@ class EditPurchase extends EditRecord
                                     // Crear movimiento de inventario
                                     InventoryMovement::createPurchaseMovement(
                                         $product->id,
+                                        $purchase->warehouse_id,
                                         $detail->quantity,
                                         $detail->unit_cost,
                                         $purchase->id,

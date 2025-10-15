@@ -63,4 +63,12 @@ class Warehouse extends Model
     {
         return $this->hasMany(IngredientStock::class);
     }
+
+    /**
+     * Obtiene los stocks de productos asociados a este almacén.
+     */
+    public function productStocks(): HasMany
+    {
+        return $this->hasMany(ProductStock::class);
+    }
 }

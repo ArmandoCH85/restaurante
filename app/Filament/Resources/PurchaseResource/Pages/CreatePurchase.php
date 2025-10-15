@@ -82,7 +82,8 @@ class CreatePurchase extends CreateRecord
                 if ($product) {
                     // Crear movimiento de inventario
                     InventoryMovement::createPurchaseMovement(
-                        $product->id,
+                        $detail->product_id,
+                        $purchase->warehouse_id,
                         $detail->quantity,
                         $detail->unit_cost,
                         $purchase->id,

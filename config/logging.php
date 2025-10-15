@@ -162,6 +162,15 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // Canal específico para exportación de Excel
+        'excel_export' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/excel-export.log'),
+            'level' => env('EXCEL_EXPORT_LOG_LEVEL', 'debug'),
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];

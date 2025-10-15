@@ -186,17 +186,69 @@
                                 </div>
                             </div>
 
+                            <!-- Formulario de Filament -->
+                            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                                <p class="text-sm font-medium mb-3">🎛️ Filtros Avanzados</p>
+                                <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <input type="hidden" name="category" value="{{ $page->category }}">
+                                    <input type="hidden" name="reportType" value="{{ $page->reportType }}">
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Período de Tiempo</label>
+                                        <select name="dateRange" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="today" {{ $page->dateRange === 'today' ? 'selected' : '' }}>📅 Hoy</option>
+                                            <option value="yesterday" {{ $page->dateRange === 'yesterday' ? 'selected' : '' }}>📅 Ayer</option>
+                                            <option value="week" {{ $page->dateRange === 'week' ? 'selected' : '' }}>📅 Esta semana</option>
+                                            <option value="month" {{ $page->dateRange === 'month' ? 'selected' : '' }}>📅 Este mes</option>
+                                            <option value="custom" {{ $page->dateRange === 'custom' ? 'selected' : '' }}>📅 Personalizado</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">📄 Tipo Comprobante</label>
+                                        <select name="invoiceType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Todos los tipos</option>
+                                            <option value="sales_note" {{ request('invoiceType') === 'sales_note' ? 'selected' : '' }}>📝 Nota de Venta</option>
+                                            <option value="receipt" {{ request('invoiceType') === 'receipt' ? 'selected' : '' }}>🧾 Boleta</option>
+                                            <option value="invoice" {{ request('invoiceType') === 'invoice' ? 'selected' : '' }}>📋 Factura</option>
+                                        </select>
+                                    </div>
+                                    
+                                    @if($page->reportType === 'products_by_channel')
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">🛒 Canal de Venta</label>
+                                        <select name="channelFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Todos los canales</option>
+                                            <option value="dine_in" {{ request('channelFilter') === 'dine_in' ? 'selected' : '' }}>🍽️ En Mesa</option>
+                                            <option value="takeout" {{ request('channelFilter') === 'takeout' ? 'selected' : '' }}>📦 Para Llevar</option>
+                                            <option value="delivery" {{ request('channelFilter') === 'delivery' ? 'selected' : '' }}>🚚 Delivery</option>
+                                            <option value="drive_thru" {{ request('channelFilter') === 'drive_thru' ? 'selected' : '' }}>🚗 Auto Servicio</option>
+                                        </select>
+                                    </div>
+                                    @endif
+                                    
+                                    <!-- Botón de filtros rápidos oculto para evitar confusión -->
+                                    <div class="md:col-span-3" style="display: none;">
+                                        <button type="button" onclick="applyFilters()" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            🔍 Aplicar Filtros
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
                             <!-- Filtro Personalizado -->
                             <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                                 <p class="text-sm font-medium mb-3">🎯 Filtro Personalizado</p>
-                                <form method="GET" action="{{ $baseUrl }}" class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                                <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-5 gap-4" onsubmit="console.log('Formulario enviado - URL:', this.action, ' - Método:', this.method, ' - Parámetros:', new FormData(this))">
                                     <input type="hidden" name="dateRange" value="custom">
+                                    <input type="hidden" name="category" value="{{ $page->category }}">
+                                    <input type="hidden" name="reportType" value="{{ $page->reportType }}">
                                     
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">📅 Fecha Inicio</label>
                                         <input type="date" 
                                                name="startDate" 
-                                               value="{{ request('startDate', $page->startDate) }}"
+                                               value="{{ request('startDate', '2025-10-11') }}"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                                required>
                                     </div>
@@ -205,7 +257,7 @@
                                         <label class="block text-sm font-medium text-gray-700 mb-1">📅 Fecha Fin</label>
                                         <input type="date" 
                                                name="endDate" 
-                                               value="{{ request('endDate', $page->endDate) }}"
+                                               value="{{ request('endDate', '2025-10-11') }}"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                                                required>
                                     </div>
@@ -226,35 +278,15 @@
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
                                     
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">📄 Tipo Comprobante (opcional)</label>
-                                        <select name="invoiceType" 
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="">Todos los tipos</option>
-                                            <option value="sales_note" {{ request('invoiceType') === 'sales_note' ? 'selected' : '' }}>📝 Nota de Venta</option>
-                                            <option value="receipt" {{ request('invoiceType') === 'receipt' ? 'selected' : '' }}>🧾 Boleta</option>
-                                            <option value="invoice" {{ request('invoiceType') === 'invoice' ? 'selected' : '' }}>📋 Factura</option>
-                                        </select>
-                                    </div>
+
                                     
                                     <div class="md:col-span-5">
-                                        <button type="submit" 
+                                        <button type="button" onclick="applyCustomFilter()"
                                                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             🔍 Aplicar Filtro Personalizado
                                         </button>
                                     </div>
                                 </form>
-                            </div>
-
-                            <!-- Formulario de exportación -->
-                            <div class="flex gap-4 mt-6">
-                                <button 
-                                    type="button"
-                                    onclick="alert('Función de exportar en desarrollo')"
-                                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                >
-                                    📥 Exportar
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -262,22 +294,43 @@
                     <!-- Datos -->
                     <div class="bg-white overflow-hidden shadow rounded-lg">
                         <div class="px-4 py-5 sm:p-6">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">
-                                📊 Datos del Reporte ({{ $page->reportData->count() }} registros)
-                                <span class="text-sm text-gray-500 font-normal">
-                                    - Período: {{ $page->reportStats['period'] ?? 'N/A' }}
-                                    @if(request('invoiceType'))
-                                        @php
-                                            $typeLabels = [
-                                                'sales_note' => '📝 Notas de Venta',
-                                                'receipt' => '🧾 Boletas', 
-                                                'invoice' => '📋 Facturas'
-                                            ];
-                                        @endphp
-                                        - Filtro: {{ $typeLabels[request('invoiceType')] ?? 'Tipo desconocido' }}
-                                    @endif
-                                </span>
-                            </h3>
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                                    📊 Datos del Reporte ({{ $page->reportData->count() }} registros)
+                                    <span class="text-sm text-gray-500 font-normal">
+                                        - Período: {{ $page->reportStats['period'] ?? 'N/A' }}
+                                        @if(request('invoiceType'))
+                                            @php
+                                                $typeLabels = [
+                                                    'sales_note' => '📝 Notas de Venta',
+                                                    'receipt' => '🧾 Boletas', 
+                                                    'invoice' => '📋 Facturas'
+                                                ];
+                                            @endphp
+                                            - Filtro: {{ $typeLabels[request('invoiceType')] ?? 'Tipo desconocido' }}
+                                        @endif
+                                        @if(request('channelFilter') && $page->reportType === 'products_by_channel')
+                                            @php
+                                                $channelLabels = [
+                                                    'dine_in' => '🍽️ En Mesa',
+                                                    'takeout' => '📦 Para Llevar',
+                                                    'delivery' => '🚚 Delivery',
+                                                    'drive_thru' => '🚗 Auto Servicio'
+                                                ];
+                                            @endphp
+                                            - Canal: {{ $channelLabels[request('channelFilter')] ?? 'Canal desconocido' }}
+                                        @endif
+                                    </span>
+                                </h3>
+                                
+                                <button 
+                                    type="button"
+                                    onclick="exportToExcel()"
+                                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                >
+                                    📥 Exportar a Excel
+                                </button>
+                            </div>
 
                             @if($page->reportData->isNotEmpty())
                                 <div class="table-container">
@@ -477,14 +530,20 @@
                                                     @elseif($page->reportType === 'products_by_channel')
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->product_name }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">
-                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                                {{ $item->service_type === 'dine_in' ? 'bg-green-100 text-green-800' : 
-                                                                   ($item->service_type === 'delivery' ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800') }}">
-                                                                {{ $item->service_type === 'dine_in' ? 'En Local' : 
-                                                                   ($item->service_type === 'delivery' ? 'Delivery' : 'Para Llevar') }}
+                                                            @php
+                                                                $channelConfig = [
+                                                                    'dine_in' => ['label' => '🍽️ En Mesa', 'color' => 'bg-green-100 text-green-800'],
+                                                                    'takeout' => ['label' => '📦 Para Llevar', 'color' => 'bg-yellow-100 text-yellow-800'],
+                                                                    'delivery' => ['label' => '🚚 Delivery', 'color' => 'bg-blue-100 text-blue-800'],
+                                                                    'drive_thru' => ['label' => '🚗 Auto Servicio', 'color' => 'bg-purple-100 text-purple-800']
+                                                                ];
+                                                                $channel = $channelConfig[$item->service_type] ?? ['label' => $item->service_type, 'color' => 'bg-gray-100 text-gray-800'];
+                                                            @endphp
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $channel['color'] }}">
+                                                                {{ $channel['label'] }}
                                                             </span>
                                                         </td>
-                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->total_quantity) }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->total_quantity, 2) }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_sales, 2) }}</td>
                                                     @elseif($page->reportType === 'payment_methods')
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
@@ -595,6 +654,136 @@
     </div>
 
     <script>
+        // Función para aplicar filtros
+        function applyFilters() {
+            console.log('🟢 [FILTERS] Aplicando filtros...');
+            
+            // Obtener valores del formulario
+            const dateRange = document.querySelector('select[name="dateRange"]')?.value || '';
+            const invoiceType = document.querySelector('select[name="invoiceType"]')?.value || '';
+            const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
+            
+            console.log('🟢 [FILTERS] Valores obtenidos:', {
+                dateRange: dateRange,
+                invoiceType: invoiceType,
+                channelFilter: channelFilter
+            });
+            
+            // Construir URL con parámetros
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams();
+            
+            // Mantener parámetros existentes
+            params.set('category', currentUrl.searchParams.get('category') || 'sales');
+            params.set('reportType', currentUrl.searchParams.get('reportType') || 'products_by_channel');
+            
+            // Agregar filtros
+            if (dateRange) params.set('dateRange', dateRange);
+            if (invoiceType) params.set('invoiceType', invoiceType);
+            if (channelFilter) params.set('channelFilter', channelFilter);
+            
+            // Calcular fechas basadas en el rango seleccionado
+            const today = new Date();
+            let startDate, endDate;
+            
+            switch (dateRange) {
+                case 'today':
+                    startDate = endDate = today.toISOString().split('T')[0];
+                    break;
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    startDate = endDate = yesterday.toISOString().split('T')[0];
+                    break;
+                case 'week':
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay());
+                    startDate = weekStart.toISOString().split('T')[0];
+                    endDate = today.toISOString().split('T')[0];
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                    endDate = today.toISOString().split('T')[0];
+                    break;
+                default:
+                    startDate = today.toISOString().split('T')[0];
+                    endDate = today.toISOString().split('T')[0];
+            }
+            
+            params.set('startDate', startDate);
+            params.set('endDate', endDate);
+            
+            const newUrl = currentUrl.pathname + '?' + params.toString();
+            
+            console.log('🟢 [FILTERS] Nueva URL:', newUrl);
+            console.log('🟢 [FILTERS] Redirigiendo...');
+            
+            // Redirigir a la nueva URL
+            window.location.href = newUrl;
+        }
+        
+        // Función para aplicar filtro personalizado
+        function applyCustomFilter() {
+            console.log('🟢 [CUSTOM_FILTER] Aplicando filtro personalizado...');
+            
+            // Obtener valores del formulario personalizado
+            const startDate = document.querySelector('input[name="startDate"]')?.value || '';
+            const endDate = document.querySelector('input[name="endDate"]')?.value || '';
+            const startTime = document.querySelector('input[name="startTime"]')?.value || '';
+            const endTime = document.querySelector('input[name="endTime"]')?.value || '';
+            
+            console.log('🟢 [CUSTOM_FILTER] Valores obtenidos:', {
+                startDate: startDate,
+                endDate: endDate,
+                startTime: startTime,
+                endTime: endTime
+            });
+            
+            // Validar fechas
+            if (!startDate || !endDate) {
+                alert('Por favor, selecciona las fechas de inicio y fin.');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('La fecha de inicio no puede ser mayor que la fecha de fin.');
+                return;
+            }
+            
+            // Construir URL con parámetros
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams();
+            
+            // Mantener parámetros existentes
+            params.set('category', currentUrl.searchParams.get('category') || 'sales');
+            params.set('reportType', currentUrl.searchParams.get('reportType') || 'products_by_channel');
+            
+            // Agregar fechas
+            params.set('startDate', startDate);
+            params.set('endDate', endDate);
+            
+            // Agregar horas si están disponibles
+            if (startTime) params.set('startTime', startTime);
+            if (endTime) params.set('endTime', endTime);
+            
+            // Agregar otros filtros del formulario principal
+            const invoiceType = document.querySelector('select[name="invoiceType"]')?.value || '';
+            const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
+            
+            if (invoiceType) params.set('invoiceType', invoiceType);
+            if (channelFilter) params.set('channelFilter', channelFilter);
+            
+            params.set('dateRange', 'custom');
+            
+            const newUrl = currentUrl.pathname + '?' + params.toString();
+            
+            console.log('🟢 [CUSTOM_FILTER] Nueva URL:', newUrl);
+            console.log('🟢 [CUSTOM_FILTER] Redirigiendo...');
+            
+            // Redirigir a la nueva URL
+            window.location.href = newUrl;
+        }
+
         // Función para abrir el modal de detalle
         function openOrderModal(orderId) {
             const modal = document.getElementById('orderModal');
@@ -643,6 +832,244 @@
             if (e.key === 'Escape') {
                 closeOrderModal();
             }
+        });
+        
+
+        // Funciones para aplicar filtros
+        function applyFilters() {
+            console.log('🟢 [FILTERS] Aplicando filtros...');
+            
+            // Obtener valores de los filtros
+            const dateRange = document.querySelector('select[name="dateRange"]').value;
+            const invoiceType = document.querySelector('select[name="invoiceType"]').value;
+            const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
+            
+            console.log('🟢 [FILTERS] Valores obtenidos:', {
+                dateRange: dateRange,
+                invoiceType: invoiceType,
+                channelFilter: channelFilter
+            });
+            
+            // Calcular fechas basadas en el rango seleccionado
+            let startDate, endDate;
+            const today = new Date();
+            
+            switch (dateRange) {
+                case 'today':
+                    startDate = endDate = today.toISOString().split('T')[0];
+                    break;
+                case 'yesterday':
+                    const yesterday = new Date(today);
+                    yesterday.setDate(today.getDate() - 1);
+                    startDate = endDate = yesterday.toISOString().split('T')[0];
+                    break;
+                case 'week':
+                    const weekStart = new Date(today);
+                    weekStart.setDate(today.getDate() - today.getDay());
+                    startDate = weekStart.toISOString().split('T')[0];
+                    endDate = today.toISOString().split('T')[0];
+                    break;
+                case 'month':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                    endDate = today.toISOString().split('T')[0];
+                    break;
+                case 'custom':
+                    // Para custom, no aplicamos aquí, se usa el otro formulario
+                    console.log('🟢 [FILTERS] Rango personalizado seleccionado, usar el formulario de abajo');
+                    return;
+            }
+            
+            // Construir nueva URL con parámetros
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams();
+            
+            // Mantener parámetros existentes importantes
+            params.set('category', '{{ $page->category }}');
+            params.set('reportType', '{{ $page->reportType }}');
+            params.set('dateRange', dateRange);
+            
+            if (startDate) params.set('startDate', startDate);
+            if (endDate) params.set('endDate', endDate);
+            if (invoiceType) params.set('invoiceType', invoiceType);
+            if (channelFilter) params.set('channelFilter', channelFilter);
+            
+            const newUrl = currentUrl.pathname + '?' + params.toString();
+            console.log('🟢 [FILTERS] Redirigiendo a:', newUrl);
+            
+            // Redirigir a la nueva URL
+            window.location.href = newUrl;
+        }
+        
+        function applyCustomFilter() {
+            console.log('🟢 [CUSTOM_FILTER] Aplicando filtro personalizado...');
+            
+            // Obtener valores del formulario personalizado
+            const startDate = document.querySelector('input[name="startDate"]').value;
+            const endDate = document.querySelector('input[name="endDate"]').value;
+            const startTime = document.querySelector('input[name="startTime"]').value;
+            const endTime = document.querySelector('input[name="endTime"]').value;
+            
+            // También obtener los filtros de tipo y canal del formulario principal
+            const invoiceType = document.querySelector('select[name="invoiceType"]').value;
+            const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
+            
+            console.log('🟢 [CUSTOM_FILTER] Valores obtenidos:', {
+                startDate: startDate,
+                endDate: endDate,
+                startTime: startTime,
+                endTime: endTime,
+                invoiceType: invoiceType,
+                channelFilter: channelFilter
+            });
+            
+            // Validar fechas
+            if (!startDate || !endDate) {
+                alert('Por favor, selecciona las fechas de inicio y fin.');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('La fecha de inicio no puede ser mayor que la fecha de fin.');
+                return;
+            }
+            
+            // Construir nueva URL con parámetros
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams();
+            
+            // Mantener parámetros existentes importantes
+            params.set('category', '{{ $page->category }}');
+            params.set('reportType', '{{ $page->reportType }}');
+            params.set('dateRange', 'custom');
+            params.set('startDate', startDate);
+            params.set('endDate', endDate);
+            
+            if (startTime) params.set('startTime', startTime);
+            if (endTime) params.set('endTime', endTime);
+            if (invoiceType) params.set('invoiceType', invoiceType);
+            if (channelFilter) params.set('channelFilter', channelFilter);
+            
+            const newUrl = currentUrl.pathname + '?' + params.toString();
+            console.log('🟢 [CUSTOM_FILTER] Redirigiendo a:', newUrl);
+            
+            // Redirigir a la nueva URL
+            window.location.href = newUrl;
+        }
+        
+        // Listener para descarga de Excel
+        function exportToExcel() {
+            console.log('🟢 [EXPORT] Botón de exportar clickeado');
+            console.log('🟢 [EXPORT] Report Type:', '{{ $page->reportType }}');
+            console.log('🟢 [EXPORT] URL actual:', window.location.href);
+            
+            // Obtener parámetros actuales de la URL
+            const currentUrl = new URL(window.location.href);
+            const params = new URLSearchParams(currentUrl.search);
+            
+            // Obtener parámetros del formulario o de la URL actual
+            const startDate = params.get('startDate') || document.querySelector('input[name="startDate"]')?.value || '';
+            const endDate = params.get('endDate') || document.querySelector('input[name="endDate"]')?.value || '';
+            const invoiceType = params.get('invoiceType') || document.querySelector('select[name="invoiceType"]')?.value || 'all';
+            const channelFilter = params.get('channelFilter') || document.querySelector('select[name="channelFilter"]')?.value || '';
+            
+            // Construir parámetros para el controlador
+            const excelParams = new URLSearchParams();
+            if (startDate) excelParams.set('startDate', startDate);
+            if (endDate) excelParams.set('endDate', endDate);
+            if (invoiceType) excelParams.set('invoiceType', invoiceType);
+            if (channelFilter) excelParams.set('channelFilter', channelFilter);
+            
+            // Seleccionar la ruta específica según el tipo de reporte
+            const reportType = '{{ $page->reportType }}';
+            let baseUrl;
+            
+            switch (reportType) {
+                case 'sales':
+                    baseUrl = '/admin/reportes/sales/excel-download';
+                    break;
+                case 'products_by_channel':
+                    baseUrl = '/admin/reportes/products-by-channel/excel-download';
+                    break;
+                case 'purchases':
+                    baseUrl = '/admin/reportes/purchases/excel-download';
+                    break;
+                case 'payment_methods':
+                    baseUrl = '/admin/reportes/payment-methods/excel-download';
+                    break;
+                case 'cash_register':
+                    baseUrl = '/admin/reportes/cash-register/excel-download';
+                    break;
+                default:
+                    baseUrl = '/admin/reportes/sales/excel-download';
+            }
+            
+            const excelUrl = baseUrl + '?' + excelParams.toString();
+            
+            console.log('🟢 [EXPORT] URL de descarga generada:', excelUrl);
+            console.log('🟢 [EXPORT] Parámetros:', {
+                startDate: startDate,
+                endDate: endDate,
+                invoiceType: invoiceType,
+                channelFilter: channelFilter
+            });
+            console.log('🟢 [EXPORT] Iniciando descarga sin recargar página...');
+            
+            // Usar fetch para descargar el archivo de forma más confiable
+            fetch(excelUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la descarga: ' + response.status);
+                }
+                return response.blob();
+            })
+            .then(blob => {
+                // Crear URL del blob
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                // Crear enlace de descarga
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = 'reporte_caja_' + new Date().toISOString().slice(0, 10) + '.xlsx';
+                link.style.display = 'none';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Limpiar URL del blob
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(blobUrl);
+                }, 100);
+                
+                console.log('🟢 [EXPORT] Descarga completada exitosamente');
+            })
+            .catch(error => {
+                console.error('❌ [EXPORT] Error en la descarga:', error);
+                alert('Error al descargar el archivo: ' + error.message);
+            });
+        }
+        
+        // Listener para Livewire - descarga de archivo
+        document.addEventListener('livewire:load', function () {
+            Livewire.on('download-file', function(data) {
+                console.log('🟢 [LIVEWIRE] Evento download-file recibido:', data);
+                if (data.url) {
+                    console.log('🟢 [LIVEWIRE] Iniciando descarga desde:', data.url);
+                    // Crear enlace temporal y hacer clic automático
+                    const link = document.createElement('a');
+                    link.href = data.url;
+                    link.download = '';
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    console.log('🟢 [LIVEWIRE] Descarga iniciada');
+                }
+            });
         });
     </script>
 

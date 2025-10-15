@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\ProductStock;
 
 class Product extends Model
 {
@@ -195,9 +196,16 @@ class Product extends Model
     {
         // Si es un ingrediente, crear un nuevo registro de stock
         if ($this->isIngredient()) {
+            // Buscar el ingrediente correspondiente por código
+            $ingredient = Ingredient::where('code', $this->code)->first();
+            
+            if (!$ingredient) {
+                throw new \Exception("No se encontró el ingrediente correspondiente para el producto: {$this->name} (código: {$this->code})");
+            }
+            
             // Crear un nuevo registro de stock
             $stock = IngredientStock::create([
-                'ingredient_id' => $this->id,
+                'ingredient_id' => $ingredient->id,
                 'warehouse_id' => $warehouseId ?? Warehouse::where('is_default', true)->first()?->id,
                 'quantity' => $quantity,
                 'unit_cost' => $unitCost,
@@ -217,7 +225,17 @@ class Product extends Model
 
             return $stock;
         } else {
-            // Si es un producto normal, solo actualizar el stock y el costo
+            // Si es un producto normal, crear registro en ProductStock y actualizar el stock
+            $stock = ProductStock::create([
+                'product_id' => $this->id,
+                'warehouse_id' => $warehouseId ?? Warehouse::where('is_default', true)->first()?->id,
+                'quantity' => $quantity,
+                'unit_cost' => $unitCost,
+                'expiry_date' => $expiryDate,
+                'status' => 'available',
+                'purchase_id' => $purchaseId
+            ]);
+
             $this->current_stock += $quantity;
 
             // Calcular el nuevo costo promedio
@@ -226,7 +244,7 @@ class Product extends Model
 
             $this->save();
 
-            return null;
+            return $stock;
         }
     }
 }

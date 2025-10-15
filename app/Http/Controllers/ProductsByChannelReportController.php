@@ -1,0 +1,157 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use App\Models\OrderDetail;
+use Carbon\Carbon;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+class ProductsByChannelReportController extends Controller
+{
+    public function download(Request $request)
+    {
+        try {
+            Log::info('🛒 ProductsByChannelReportController - Descarga reporte productos por canal iniciada');
+            
+            // Validar parámetros
+            $startDate = $request->input('startDate', now()->format('Y-m-d'));
+            $endDate = $request->input('endDate', now()->format('Y-m-d'));
+            $channelFilter = $request->input('channelFilter');
+            
+            Log::info('🛒 Parámetros recibidos', [
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'channelFilter' => $channelFilter
+            ]);
+            
+            // Obtener datos de productos por canal
+            Log::info('📅 Procesando fechas');
+            $startDateTime = Carbon::parse($startDate)->startOfDay();
+            $endDateTime = Carbon::parse($endDate)->endOfDay();
+            
+            Log::info('🔍 Construyendo query de productos por canal');
+            $query = OrderDetail::join('orders', 'order_details.order_id', '=', 'orders.id')
+                ->join('products', 'order_details.product_id', '=', 'products.id')
+                ->whereBetween('orders.order_datetime', [$startDateTime, $endDateTime])
+                ->where('orders.billed', true);
+            
+            // Aplicar filtro por canal de venta si existe
+            if ($channelFilter) {
+                Log::info('🔍 Filtro channelFilter aplicado', ['channelFilter' => $channelFilter]);
+                $query->where('orders.service_type', $channelFilter);
+            }
+            
+            Log::info('📊 Ejecutando query');
+            $productsData = $query->select(
+                    'products.name as product_name',
+                    'orders.service_type',
+                    \DB::raw('SUM(order_details.quantity) as total_quantity'),
+                    \DB::raw('SUM(order_details.subtotal) as total_sales')
+                )
+                ->groupBy('products.name', 'orders.service_type')
+                ->orderBy('products.name')
+                ->orderBy('orders.service_type')
+                ->get();
+            
+            Log::info('✅ Query completada', ['count' => $productsData->count()]);
+            
+            // Crear el archivo Excel
+            Log::info('📊 Creando Excel');
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Configurar título y encabezados
+            $sheet->setCellValue('A1', 'REPORTE DE PRODUCTOS POR CANAL DE VENTA');
+            $sheet->setCellValue('A2', 'Período: ' . $startDate . ' - ' . $endDate);
+            
+            if ($channelFilter) {
+                $channelLabel = $this->getChannelLabel($channelFilter);
+                $sheet->setCellValue('A3', 'Canal: ' . $channelLabel);
+            }
+            
+            $sheet->setCellValue('A5', 'Producto');
+            $sheet->setCellValue('B5', 'Canal de Venta');
+            $sheet->setCellValue('C5', 'Cantidad');
+            $sheet->setCellValue('D5', 'Total Ventas (S/)');
+            
+            // Aplicar estilos
+            $sheet->mergeCells('A1:D1');
+            $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+            $sheet->getStyle('A5:D5')->getFont()->setBold(true);
+            $sheet->getStyle('A5:D5')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E0E0E0');
+            
+            // Llenar datos
+            $row = 6;
+            foreach ($productsData as $product) {
+                $sheet->setCellValue('A' . $row, $product->product_name);
+                
+                // Canal de Venta - Traducciones al español con emojis
+                $channelLabel = $this->getChannelLabel($product->service_type);
+                $sheet->setCellValue('B' . $row, $channelLabel);
+                
+                // Cantidad
+                $sheet->setCellValue('C' . $row, number_format($product->total_quantity, 2));
+                
+                // Total Ventas
+                $sheet->setCellValue('D' . $row, number_format($product->total_sales, 2));
+                
+                $row++;
+            }
+            
+            // Autoajustar columnas
+            foreach (range('A', 'D') as $column) {
+                $sheet->getColumnDimension($column)->setAutoSize(true);
+            }
+            
+            // Crear archivo temporal
+            $filename = 'productos_por_canal_' . date('Y-m-d_H-i-s') . '.xlsx';
+            $tempFile = storage_path('app/temp/' . $filename);
+            
+            // Crear directorio si no existe
+            if (!file_exists(dirname($tempFile))) {
+                mkdir(dirname($tempFile), 0755, true);
+            }
+            
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+            
+            Log::info('Excel generado exitosamente', ['file' => $tempFile]);
+            
+            // Retornar la respuesta de descarga
+            Log::info('📤 Retornando respuesta de descarga');
+            $response = response()->download($tempFile, $filename)->deleteFileAfterSend();
+            Log::info('✅ Descarga Excel completada exitosamente');
+            return $response;
+            
+        } catch (\Exception $e) {
+            Log::error('❌ Error en ProductsByChannelReportController: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Error al generar el archivo Excel: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Obtener etiqueta traducida del canal de venta
+     */
+    private function getChannelLabel($serviceType)
+    {
+        return match($serviceType) {
+            'dine_in' => '🍽️ En Mesa',
+            'delivery' => '🚚 Delivery',
+            'takeout' => '📦 Para Llevar',
+            'drive_thru' => '🚗 Auto Servicio',
+            default => ucfirst(str_replace('_', ' ', $serviceType))
+        };
+    }
+}

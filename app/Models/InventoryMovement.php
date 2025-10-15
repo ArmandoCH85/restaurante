@@ -94,6 +94,7 @@ class InventoryMovement extends Model
      * Crear un movimiento de ingreso por compra y actualizar el stock.
      *
      * @param int $productId ID del producto
+     * @param int $warehouseId ID del almacén
      * @param float $quantity Cantidad (positiva para ingresos)
      * @param float $unitCost Costo unitario
      * @param int $purchaseId ID de la compra
@@ -104,6 +105,7 @@ class InventoryMovement extends Model
      */
     public static function createPurchaseMovement(
         int $productId,
+        int $warehouseId,
         float $quantity,
         float $unitCost,
         int $purchaseId,
@@ -113,6 +115,7 @@ class InventoryMovement extends Model
     ): self {
         $movement = self::create([
             'product_id' => $productId,
+            'warehouse_id' => $warehouseId,
             'movement_type' => self::TYPE_PURCHASE,
             'quantity' => abs($quantity), // Asegurar que sea positivo para ingresos
             'unit_cost' => $unitCost,
@@ -131,7 +134,7 @@ class InventoryMovement extends Model
                 // Buscar el ingrediente correspondiente
                 $ingredient = Ingredient::where('code', $product->code)->first();
                 if ($ingredient) {
-                    $ingredient->updateStock(abs($quantity), $unitCost);
+                    $ingredient->updateStock(abs($quantity), $unitCost, $warehouseId);
                 }
             }
 
@@ -148,6 +151,7 @@ class InventoryMovement extends Model
      * Crear un movimiento de salida por venta y actualizar el stock.
      *
      * @param int $productId ID del producto
+     * @param int $warehouseId ID del almacén
      * @param float $quantity Cantidad (positiva, se convertirá a negativa para salidas)
      * @param int $orderId ID de la orden
      * @param string|null $referenceDocument Número de documento de referencia
@@ -157,6 +161,7 @@ class InventoryMovement extends Model
      */
     public static function createSaleMovement(
         int $productId,
+        int $warehouseId,
         float $quantity,
         int $orderId,
         ?string $referenceDocument = null,
@@ -169,6 +174,7 @@ class InventoryMovement extends Model
 
         $movement = self::create([
             'product_id' => $productId,
+            'warehouse_id' => $warehouseId,
             'movement_type' => self::TYPE_SALE,
             'quantity' => -1 * abs($quantity), // Siempre negativo para salidas
             'unit_cost' => $unitCost,
@@ -186,7 +192,7 @@ class InventoryMovement extends Model
                 // Buscar el ingrediente correspondiente
                 $ingredient = Ingredient::where('code', $product->code)->first();
                 if ($ingredient) {
-                    $ingredient->updateStock(-1 * abs($quantity));
+                    $ingredient->updateStock(-1 * abs($quantity), null, $warehouseId);
                 }
             }
 
@@ -202,6 +208,7 @@ class InventoryMovement extends Model
      * Crear un movimiento de ajuste de inventario.
      *
      * @param int $productId ID del producto
+     * @param int $warehouseId ID del almacén
      * @param float $quantity Cantidad (positiva para ingresos, negativa para salidas)
      * @param float|null $unitCost Costo unitario (opcional)
      * @param string|null $referenceDocument Documento de referencia
@@ -211,6 +218,7 @@ class InventoryMovement extends Model
      */
     public static function createAdjustmentMovement(
         int $productId,
+        int $warehouseId,
         float $quantity,
         ?float $unitCost = null,
         ?string $referenceDocument = null,
@@ -227,6 +235,7 @@ class InventoryMovement extends Model
 
         $movement = self::create([
             'product_id' => $productId,
+            'warehouse_id' => $warehouseId,
             'movement_type' => self::TYPE_ADJUSTMENT,
             'quantity' => $quantity, // Puede ser positivo o negativo
             'unit_cost' => $unitCost,
@@ -244,7 +253,7 @@ class InventoryMovement extends Model
                 // Buscar el ingrediente correspondiente
                 $ingredient = Ingredient::where('code', $product->code)->first();
                 if ($ingredient) {
-                    $ingredient->updateStock($quantity, $quantity > 0 ? $unitCost : null);
+                    $ingredient->updateStock($quantity, $quantity > 0 ? $unitCost : null, $warehouseId);
                 }
             }
 
@@ -263,6 +272,7 @@ class InventoryMovement extends Model
      * Crear un movimiento de desperdicio (merma).
      *
      * @param int $productId ID del producto
+     * @param int $warehouseId ID del almacén
      * @param float $quantity Cantidad (positiva, se convertirá a negativa)
      * @param string|null $reason Motivo del desperdicio
      * @param int|null $createdBy ID del usuario que crea el movimiento
@@ -270,6 +280,7 @@ class InventoryMovement extends Model
      */
     public static function createWasteMovement(
         int $productId,
+        int $warehouseId,
         float $quantity,
         ?string $reason = null,
         ?int $createdBy = null
@@ -282,6 +293,7 @@ class InventoryMovement extends Model
 
         $movement = self::create([
             'product_id' => $productId,
+            'warehouse_id' => $warehouseId,
             'movement_type' => self::TYPE_WASTE,
             'quantity' => -1 * abs($quantity), // Siempre negativo para desperdicios
             'unit_cost' => $unitCost,
@@ -299,7 +311,7 @@ class InventoryMovement extends Model
                 // Buscar el ingrediente correspondiente
                 $ingredient = Ingredient::where('code', $product->code)->first();
                 if ($ingredient) {
-                    $ingredient->updateStock(-1 * abs($quantity));
+                    $ingredient->updateStock(-1 * abs($quantity), null, $warehouseId);
                 }
             }
 

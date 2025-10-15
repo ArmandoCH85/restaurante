@@ -198,11 +198,63 @@ Route::middleware(['web', 'auth'])->group(function () {
     // RUTAS DE PDF DESHABILITADAS - SE USAN LAS PÁGINAS PERSONALIZADAS DE FILAMENT
     // Las rutas están manejadas por:
     // - app/Filament/Resources/InvoiceResource/Pages/PrintInvoice.php
-    // - app/Filament/Resources/InvoiceResource/Pages/DownloadInvoice.php
-    // URLs generadas automáticamente por Filament:
-    // - /admin/facturacion/comprobantes/{record}/print
-    // - /admin/facturacion/comprobantes/{record}/download
 });
+
+// Ruta para descargar archivos temporales (Excel, etc.)
+Route::get('/download/temp/{path}', function ($path) {
+    $tempDir = sys_get_temp_dir();
+    $fullPath = $tempDir . DIRECTORY_SEPARATOR . $path;
+    
+    // Verificar que el archivo exista y sea un archivo temporal válido
+    if (file_exists($fullPath) && strpos($fullPath, $tempDir) === 0) {
+        $fileName = request('name', 'archivo_descarga.xlsx');
+        
+        return response()->download($fullPath, $fileName, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0'
+        ])->deleteFileAfterSend(true);
+    }
+    
+    abort(404, 'Archivo no encontrado');
+})->name('download.temp.file')->middleware(['auth']);
+
+// Ruta para descarga directa de Excel de ventas
+// Rutas de reportes Excel - Principio KISS: cada reporte con su propio controlador
+Route::get('/admin/reportes/sales/excel-download', [\App\Http\Controllers\SalesReportController::class, 'download'])
+    ->name('admin.reportes.sales.excel');
+
+Route::get('/admin/reportes/products-by-channel/excel-download', [\App\Http\Controllers\ProductsByChannelReportController::class, 'download'])
+    ->name('admin.reportes.products-by-channel.excel');
+
+Route::get('/admin/reportes/purchases/excel-download', [\App\Http\Controllers\PurchaseReportController::class, 'downloadAll'])
+    ->name('admin.reportes.purchases.excel');
+
+Route::get('/admin/reportes/payment-methods/excel-download', [\App\Http\Controllers\PaymentMethodReportController::class, 'download'])
+    ->name('admin.reportes.payment-methods.excel');
+
+Route::get('/admin/reportes/cash-register/excel-download', [\App\Http\Controllers\CashRegisterReportController::class, 'download'])
+    ->name('admin.reportes.cash-register.excel')
+    ->middleware(['auth']);
+
+// Reporte de caja registradora SIMPLE (para pruebas)
+Route::get('/admin/reportes/cash-register/excel-simple', [\App\Http\Controllers\CashRegisterReportSimpleController::class, 'download'])
+    ->name('admin.reportes.cash-register.excel-simple')
+    ->middleware(['auth']);
+
+// Reporte de caja registradora DEBUG (para examinar archivo) - COMENTADO TEMPORALMENTE
+// Route::get('/admin/reportes/cash-register/excel-debug', [\App\Http\Controllers\CashRegisterReportDebugController::class, 'download'])
+//     ->name('admin.reportes.cash-register.excel-debug')
+//     ->middleware(['auth']);
+
+// Route::get('/download-debug/{filename}', [\App\Http\Controllers\CashRegisterReportDebugController::class, 'downloadFile'])
+//     ->name('download.debug')
+//     ->middleware(['auth']);
+
+
+
+
 
 // Rutas para descargas de comprobantes SUNAT
 Route::middleware(['web', 'auth'])->group(function () {
@@ -257,11 +309,7 @@ Route::get('/orders/{order}/download-comanda-pdf', function(Order $order) {
 
 // Ruta eliminada para evitar conflicto - se usa la ruta pos.prebill.pdf existente
 
-// RUTA DE PRUEBA SIMPLE (SIN AUTH) PARA DEBUGGING
-Route::get('/test-print/{invoice}', function(\App\Models\Invoice $invoice) {
-    Log::info('🧪 RUTA DE PRUEBA ACCEDIDA', ['invoice_id' => $invoice->id]);
-    return response('✅ Ruta funcionando - Factura ID: ' . $invoice->id);
-})->name('test.print');
+
 
 // Ruta optimizada para pre-cuentas
 Route::middleware(['web'])->group(function () {
@@ -396,19 +444,7 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
     }
 })->middleware(['web'])->name('print.invoice');
 
-// Ruta de prueba para verificar URL de imagen
-Route::get('/test-image-url', function() {
-    $product = \App\Models\Product::where('image_path', 'productos/01JXC0MBGKBM6V4WY9TMBQEDPT.png')->first();
-    if ($product) {
-        return [
-            'image_path' => $product->image_path,
-            'full_url' => asset('storage/' . $product->image_path),
-            'storage_path' => storage_path('app/public/' . $product->image_path),
-            'exists' => file_exists(storage_path('app/public/' . $product->image_path))
-        ];
-    }
-    return 'Producto no encontrado';
-});
+
 
 // Rutas para visualización individual de reportes
 Route::middleware(['web', 'auth'])->group(function () {
@@ -494,8 +530,13 @@ Route::middleware(['auth'])->group(function () {
 
 // 📋 RUTAS DE RESÚMENES DE BOLETAS
 Route::middleware(['auth'])->group(function () {
-
+    // Rutas de resúmenes se agregarán aquí
 });
+
+// Ruta de login requerida por Laravel para redirecciones de autenticación
+Route::get('/login', function () {
+    return redirect()->route('filament.admin.auth.login');
+})->name('login');
 
 
 

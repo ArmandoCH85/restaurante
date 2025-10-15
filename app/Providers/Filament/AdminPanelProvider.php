@@ -25,6 +25,7 @@ use Filament\Navigation\NavigationGroup;
 use Illuminate\Support\Facades\Auth;
 use App\Helpers\PermissionHelper;
 use App\Filament\Pages\TableMap;
+use App\Filament\Pages\InventarioPorAlmacen;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -70,6 +71,7 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\ReservationCalendar::class,
                 \App\Filament\Pages\ReportesPage::class,
                 \App\Filament\Pages\ReportViewerPage::class,
+                InventarioPorAlmacen::class, // ✅ Página de inventario por almacén
             ])
             // COMENTADO: Auto-descubrimiento de widgets deshabilitado para control granular
             // ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
