@@ -95,6 +95,8 @@ class ProductCategoryFactory extends Factory
             return [
                 'name' => 'Ingredientes',
                 'description' => 'Ingredientes y materias primas para la cocina',
+                // IMPORTANTE: visible_in_menu = false para evitar que los ingredientes aparezcan en el POS
+                // Los ingredientes deben manejarse únicamente en el sistema de inventario/almacén
                 'visible_in_menu' => false,
                 'display_order' => 100,
             ];
