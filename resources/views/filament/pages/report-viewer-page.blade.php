@@ -159,83 +159,8 @@
                         <div class="px-4 py-5 sm:p-6">
                             <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">🔍 Filtros de Reporte</h3>
 
-                            <!-- Botones rápidos -->
-                            <div class="mb-6">
-                                <p class="text-sm font-medium mb-3">🗓️ Filtros Rápidos</p>
-                                <div class="flex flex-wrap gap-2">
-                                    @php
-                                        $baseUrl = route('filament.admin.pages.report-viewer', ['category' => $page->category, 'reportType' => $page->reportType]);
-                                        $filters = [
-                                            'today' => '📅 Hoy',
-                                            'yesterday' => '📅 Ayer', 
-                                            'week' => '📅 Esta Semana',
-                                            'month' => '📅 Este Mes'
-                                        ];
-                                    @endphp
-                                    
-                                    @foreach($filters as $value => $label)
-                                        <a href="{{ $baseUrl }}?dateRange={{ $value }}"
-                                           class="inline-flex items-center px-3 py-2 text-sm font-medium rounded-lg border transition-colors duration-200
-                                                {{ $page->dateRange === $value 
-                                                    ? 'bg-blue-600 text-white border-blue-600' 
-                                                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50' 
-                                                }}">
-                                            {{ $label }}
-                                        </a>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <!-- Formulario de Filament -->
-                            <div class="mb-6 p-4 bg-blue-50 rounded-lg">
-                                <p class="text-sm font-medium mb-3">🎛️ Filtros Avanzados</p>
-                                <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    <input type="hidden" name="category" value="{{ $page->category }}">
-                                    <input type="hidden" name="reportType" value="{{ $page->reportType }}">
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">Período de Tiempo</label>
-                                        <select name="dateRange" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="today" {{ $page->dateRange === 'today' ? 'selected' : '' }}>📅 Hoy</option>
-                                            <option value="yesterday" {{ $page->dateRange === 'yesterday' ? 'selected' : '' }}>📅 Ayer</option>
-                                            <option value="week" {{ $page->dateRange === 'week' ? 'selected' : '' }}>📅 Esta semana</option>
-                                            <option value="month" {{ $page->dateRange === 'month' ? 'selected' : '' }}>📅 Este mes</option>
-                                            <option value="custom" {{ $page->dateRange === 'custom' ? 'selected' : '' }}>📅 Personalizado</option>
-                                        </select>
-                                    </div>
-                                    
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">📄 Tipo Comprobante</label>
-                                        <select name="invoiceType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="">Todos los tipos</option>
-                                            <option value="sales_note" {{ request('invoiceType') === 'sales_note' ? 'selected' : '' }}>📝 Nota de Venta</option>
-                                            <option value="receipt" {{ request('invoiceType') === 'receipt' ? 'selected' : '' }}>🧾 Boleta</option>
-                                            <option value="invoice" {{ request('invoiceType') === 'invoice' ? 'selected' : '' }}>📋 Factura</option>
-                                        </select>
-                                    </div>
-                                    
-                                    @if($page->reportType === 'products_by_channel')
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">🛒 Canal de Venta</label>
-                                        <select name="channelFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="">Todos los canales</option>
-                                            <option value="dine_in" {{ request('channelFilter') === 'dine_in' ? 'selected' : '' }}>🍽️ En Mesa</option>
-                                            <option value="takeout" {{ request('channelFilter') === 'takeout' ? 'selected' : '' }}>📦 Para Llevar</option>
-                                            <option value="delivery" {{ request('channelFilter') === 'delivery' ? 'selected' : '' }}>🚚 Delivery</option>
-                                            <option value="drive_thru" {{ request('channelFilter') === 'drive_thru' ? 'selected' : '' }}>🚗 Auto Servicio</option>
-                                        </select>
-                                    </div>
-                                    @endif
-                                    
-                                    <!-- Botón de filtros rápidos oculto para evitar confusión -->
-                                    <div class="md:col-span-3" style="display: none;">
-                                        <button type="button" onclick="applyFilters()" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                            🔍 Aplicar Filtros
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-
+                            <!-- Botones rápidos eliminados para dejar solo Filtro Personalizado -->
+                            <!-- Filtros avanzados eliminados para dejar solo Filtro Personalizado -->
                             <!-- Filtro Personalizado -->
                             <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                                 <p class="text-sm font-medium mb-3">🎯 Filtro Personalizado</p>
@@ -299,16 +224,7 @@
                                     📊 Datos del Reporte ({{ $page->reportData->count() }} registros)
                                     <span class="text-sm text-gray-500 font-normal">
                                         - Período: {{ $page->reportStats['period'] ?? 'N/A' }}
-                                        @if(request('invoiceType'))
-                                            @php
-                                                $typeLabels = [
-                                                    'sales_note' => '📝 Notas de Venta',
-                                                    'receipt' => '🧾 Boletas', 
-                                                    'invoice' => '📋 Facturas'
-                                                ];
-                                            @endphp
-                                            - Filtro: {{ $typeLabels[request('invoiceType')] ?? 'Tipo desconocido' }}
-                                        @endif
+
                                         @if(request('channelFilter') && $page->reportType === 'products_by_channel')
                                             @php
                                                 $channelLabels = [
@@ -669,76 +585,9 @@
     </div>
 
     <script>
-        // Función para aplicar filtros
-        function applyFilters() {
-            console.log('🟢 [FILTERS] Aplicando filtros...');
-            
-            // Obtener valores del formulario
-            const dateRange = document.querySelector('select[name="dateRange"]')?.value || '';
-            const invoiceType = document.querySelector('select[name="invoiceType"]')?.value || '';
-            const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
-            
-            console.log('🟢 [FILTERS] Valores obtenidos:', {
-                dateRange: dateRange,
-                invoiceType: invoiceType,
-                channelFilter: channelFilter
-            });
-            
-            // Construir URL con parámetros
-            const currentUrl = new URL(window.location.href);
-            const params = new URLSearchParams();
-            
-            // Mantener parámetros existentes
-            params.set('category', currentUrl.searchParams.get('category') || 'sales');
-            params.set('reportType', currentUrl.searchParams.get('reportType') || 'products_by_channel');
-            
-            // Agregar filtros
-            if (dateRange) params.set('dateRange', dateRange);
-            if (invoiceType) params.set('invoiceType', invoiceType);
-            if (channelFilter) params.set('channelFilter', channelFilter);
-            
-            // Calcular fechas basadas en el rango seleccionado
-            const today = new Date();
-            let startDate, endDate;
-            
-            switch (dateRange) {
-                case 'today':
-                    startDate = endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'yesterday':
-                    const yesterday = new Date(today);
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    startDate = endDate = yesterday.toISOString().split('T')[0];
-                    break;
-                case 'week':
-                    const weekStart = new Date(today);
-                    weekStart.setDate(today.getDate() - today.getDay());
-                    startDate = weekStart.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'month':
-                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                default:
-                    startDate = today.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-            }
-            
-            params.set('startDate', startDate);
-            params.set('endDate', endDate);
-            
-            const newUrl = currentUrl.pathname + '?' + params.toString();
-            
-            console.log('🟢 [FILTERS] Nueva URL:', newUrl);
-            console.log('🟢 [FILTERS] Redirigiendo...');
-            
-            // Redirigir a la nueva URL
-            window.location.href = newUrl;
-        }
         
-        // Función para aplicar filtro personalizado
-        function applyCustomFilter() {
+        // Función para aplicar filtro personalizado (única implementación vigente)
+        window.applyCustomFilter = function() {
             console.log('🟢 [CUSTOM_FILTER] Aplicando filtro personalizado...');
             
             // Obtener valores del formulario personalizado
@@ -781,11 +630,8 @@
             if (startTime) params.set('startTime', startTime);
             if (endTime) params.set('endTime', endTime);
             
-            // Agregar otros filtros del formulario principal
-            const invoiceType = document.querySelector('select[name="invoiceType"]')?.value || '';
+            // Agregar otros filtros opcionales
             const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
-            
-            if (invoiceType) params.set('invoiceType', invoiceType);
             if (channelFilter) params.set('channelFilter', channelFilter);
             
             params.set('dateRange', 'custom');
@@ -850,127 +696,6 @@
         });
         
 
-        // Funciones para aplicar filtros
-        function applyFilters() {
-            console.log('🟢 [FILTERS] Aplicando filtros...');
-            
-            // Obtener valores de los filtros
-            const dateRange = document.querySelector('select[name="dateRange"]').value;
-            const invoiceType = document.querySelector('select[name="invoiceType"]').value;
-            const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
-            
-            console.log('🟢 [FILTERS] Valores obtenidos:', {
-                dateRange: dateRange,
-                invoiceType: invoiceType,
-                channelFilter: channelFilter
-            });
-            
-            // Calcular fechas basadas en el rango seleccionado
-            let startDate, endDate;
-            const today = new Date();
-            
-            switch (dateRange) {
-                case 'today':
-                    startDate = endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'yesterday':
-                    const yesterday = new Date(today);
-                    yesterday.setDate(today.getDate() - 1);
-                    startDate = endDate = yesterday.toISOString().split('T')[0];
-                    break;
-                case 'week':
-                    const weekStart = new Date(today);
-                    weekStart.setDate(today.getDate() - today.getDay());
-                    startDate = weekStart.toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'month':
-                    startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
-                    endDate = today.toISOString().split('T')[0];
-                    break;
-                case 'custom':
-                    // Para custom, no aplicamos aquí, se usa el otro formulario
-                    console.log('🟢 [FILTERS] Rango personalizado seleccionado, usar el formulario de abajo');
-                    return;
-            }
-            
-            // Construir nueva URL con parámetros
-            const currentUrl = new URL(window.location.href);
-            const params = new URLSearchParams();
-            
-            // Mantener parámetros existentes importantes
-            params.set('category', '{{ $page->category }}');
-            params.set('reportType', '{{ $page->reportType }}');
-            params.set('dateRange', dateRange);
-            
-            if (startDate) params.set('startDate', startDate);
-            if (endDate) params.set('endDate', endDate);
-            if (invoiceType) params.set('invoiceType', invoiceType);
-            if (channelFilter) params.set('channelFilter', channelFilter);
-            
-            const newUrl = currentUrl.pathname + '?' + params.toString();
-            console.log('🟢 [FILTERS] Redirigiendo a:', newUrl);
-            
-            // Redirigir a la nueva URL
-            window.location.href = newUrl;
-        }
-        
-        function applyCustomFilter() {
-            console.log('🟢 [CUSTOM_FILTER] Aplicando filtro personalizado...');
-            
-            // Obtener valores del formulario personalizado
-            const startDate = document.querySelector('input[name="startDate"]').value;
-            const endDate = document.querySelector('input[name="endDate"]').value;
-            const startTime = document.querySelector('input[name="startTime"]').value;
-            const endTime = document.querySelector('input[name="endTime"]').value;
-            
-            // También obtener los filtros de tipo y canal del formulario principal
-            const invoiceType = document.querySelector('select[name="invoiceType"]').value;
-            const channelFilter = document.querySelector('select[name="channelFilter"]')?.value || '';
-            
-            console.log('🟢 [CUSTOM_FILTER] Valores obtenidos:', {
-                startDate: startDate,
-                endDate: endDate,
-                startTime: startTime,
-                endTime: endTime,
-                invoiceType: invoiceType,
-                channelFilter: channelFilter
-            });
-            
-            // Validar fechas
-            if (!startDate || !endDate) {
-                alert('Por favor, selecciona las fechas de inicio y fin.');
-                return;
-            }
-            
-            if (new Date(startDate) > new Date(endDate)) {
-                alert('La fecha de inicio no puede ser mayor que la fecha de fin.');
-                return;
-            }
-            
-            // Construir nueva URL con parámetros
-            const currentUrl = new URL(window.location.href);
-            const params = new URLSearchParams();
-            
-            // Mantener parámetros existentes importantes
-            params.set('category', '{{ $page->category }}');
-            params.set('reportType', '{{ $page->reportType }}');
-            params.set('dateRange', 'custom');
-            params.set('startDate', startDate);
-            params.set('endDate', endDate);
-            
-            if (startTime) params.set('startTime', startTime);
-            if (endTime) params.set('endTime', endTime);
-            if (invoiceType) params.set('invoiceType', invoiceType);
-            if (channelFilter) params.set('channelFilter', channelFilter);
-            
-            const newUrl = currentUrl.pathname + '?' + params.toString();
-            console.log('🟢 [CUSTOM_FILTER] Redirigiendo a:', newUrl);
-            
-            // Redirigir a la nueva URL
-            window.location.href = newUrl;
-        }
-        
         // Listener para descarga de Excel
         function exportToExcel() {
             console.log('🟢 [EXPORT] Botón de exportar clickeado');
@@ -1018,17 +743,12 @@
             if (!startDate) startDate = document.querySelector('input[name="startDate"]')?.value || '';
             if (!endDate) endDate = document.querySelector('input[name="endDate"]')?.value || '';
             
-            const invoiceType = params.get('invoiceType') || document.querySelector('select[name="invoiceType"]')?.value || '';
             const channelFilter = params.get('channelFilter') || document.querySelector('select[name="channelFilter"]')?.value || '';
             
             // Construir parámetros para el controlador
             const excelParams = new URLSearchParams();
             if (startDate) excelParams.set('startDate', startDate);
             if (endDate) excelParams.set('endDate', endDate);
-            // Solo agregar invoiceType si tiene un valor válido (no vacío)
-            if (invoiceType && invoiceType !== '' && invoiceType !== 'all') {
-                excelParams.set('invoiceType', invoiceType);
-            }
             // Solo agregar channelFilter si tiene un valor válido (no vacío)
             if (channelFilter && channelFilter !== '' && channelFilter !== 'all') {
                 excelParams.set('channelFilter', channelFilter);
@@ -1064,7 +784,6 @@
             console.log('🟢 [EXPORT] Parámetros:', {
                 startDate: startDate,
                 endDate: endDate,
-                invoiceType: invoiceType,
                 channelFilter: channelFilter
             });
             console.log('🟢 [EXPORT] Iniciando descarga sin recargar página...');
