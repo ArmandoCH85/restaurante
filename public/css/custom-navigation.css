@@ -1,0 +1,43 @@
+/* Estilos personalizados para el navigation item de Apertura y Cierre de Caja */
+
+/* Selector más específico para el texto del navigation item */
+.fi-sidebar-nav-item a[href*="cash-registers"] .fi-sidebar-nav-item-label,
+.fi-sidebar-nav-item a[href*="cash-registers"] span,
+.fi-sidebar-nav-item:has(a[href*="cash-registers"]) .fi-sidebar-nav-item-label,
+.fi-sidebar-nav-item:has(a[href*="cash-registers"]) span {
+    background-color: rgb(245 158 11) !important; /* bg-warning-500 */
+    color: white !important;
+    padding: 0.25rem 0.5rem !important; /* px-2 py-1 */
+    border-radius: 0.375rem !important; /* rounded */
+    font-weight: 600 !important; /* font-semibold */
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important; /* shadow-sm */
+    display: inline-block !important;
+}
+
+/* Hover effect */
+.fi-sidebar-nav-item a[href*="cash-registers"]:hover .fi-sidebar-nav-item-label,
+.fi-sidebar-nav-item a[href*="cash-registers"]:hover span,
+.fi-sidebar-nav-item:has(a[href*="cash-registers"]):hover .fi-sidebar-nav-item-label,
+.fi-sidebar-nav-item:has(a[href*="cash-registers"]):hover span {
+    background-color: rgb(217 119 6) !important; /* bg-warning-600 */
+}
+
+/* Active state */
+.fi-sidebar-nav-item.fi-active a[href*="cash-registers"] .fi-sidebar-nav-item-label,
+.fi-sidebar-nav-item.fi-active a[href*="cash-registers"] span,
+.fi-sidebar-nav-item:has(a[href*="cash-registers"]).fi-active .fi-sidebar-nav-item-label,
+.fi-sidebar-nav-item:has(a[href*="cash-registers"]).fi-active span {
+    background-color: rgb(180 83 9) !important; /* bg-warning-700 */
+}
+
+/* Fallback con texto específico */
+.fi-sidebar-nav-item-label:contains("Apertura y Cierre de Caja"),
+.fi-sidebar-nav-item span:contains("Apertura y Cierre de Caja") {
+    background-color: rgb(245 158 11) !important;
+    color: white !important;
+    padding: 0.25rem 0.5rem !important;
+    border-radius: 0.375rem !important;
+    font-weight: 600 !important;
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+    display: inline-block !important;
+}

@@ -600,6 +600,21 @@
                                                     @endif
                                                 </tr>
                                             @endforeach
+                                            
+                                            {{-- Fila de totales para products_by_channel --}}
+                                            @if($page->reportType === 'products_by_channel' && $page->reportData->isNotEmpty())
+                                                <tr class="bg-gray-100 border-t-2 border-gray-300">
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900" colspan="2">
+                                                        TOTAL GENERAL
+                                                    </td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                                                        {{ number_format($page->reportData->sum('total_quantity'), 2) }}
+                                                    </td>
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-green-700">
+                                                        S/ {{ number_format($page->reportData->sum('total_sales'), 2) }}
+                                                    </td>
+                                                </tr>
+                                            @endif
                                         </tbody>
                                     </table>
                                 </div>
@@ -966,18 +981,58 @@
             const currentUrl = new URL(window.location.href);
             const params = new URLSearchParams(currentUrl.search);
             
-            // Obtener parámetros del formulario o de la URL actual
-            const startDate = params.get('startDate') || document.querySelector('input[name="startDate"]')?.value || '';
-            const endDate = params.get('endDate') || document.querySelector('input[name="endDate"]')?.value || '';
-            const invoiceType = params.get('invoiceType') || document.querySelector('select[name="invoiceType"]')?.value || 'all';
+            // Obtener dateRange de la URL
+            const dateRange = params.get('dateRange');
+            let startDate = params.get('startDate') || '';
+            let endDate = params.get('endDate') || '';
+            
+            // Si hay dateRange pero no hay fechas explícitas, calcularlas
+            if (dateRange && (!startDate || !endDate)) {
+                console.log('🟢 [EXPORT] Calculando fechas desde dateRange:', dateRange);
+                const today = new Date();
+                
+                switch (dateRange) {
+                    case 'today':
+                        startDate = endDate = today.toISOString().split('T')[0];
+                        break;
+                    case 'yesterday':
+                        const yesterday = new Date(today);
+                        yesterday.setDate(today.getDate() - 1);
+                        startDate = endDate = yesterday.toISOString().split('T')[0];
+                        break;
+                    case 'week':
+                        const weekStart = new Date(today);
+                        weekStart.setDate(today.getDate() - today.getDay());
+                        startDate = weekStart.toISOString().split('T')[0];
+                        endDate = today.toISOString().split('T')[0];
+                        break;
+                    case 'month':
+                        startDate = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+                        endDate = today.toISOString().split('T')[0];
+                        break;
+                }
+                console.log('🟢 [EXPORT] Fechas calculadas:', { startDate, endDate });
+            }
+            
+            // Si aún no hay fechas, usar las del formulario
+            if (!startDate) startDate = document.querySelector('input[name="startDate"]')?.value || '';
+            if (!endDate) endDate = document.querySelector('input[name="endDate"]')?.value || '';
+            
+            const invoiceType = params.get('invoiceType') || document.querySelector('select[name="invoiceType"]')?.value || '';
             const channelFilter = params.get('channelFilter') || document.querySelector('select[name="channelFilter"]')?.value || '';
             
             // Construir parámetros para el controlador
             const excelParams = new URLSearchParams();
             if (startDate) excelParams.set('startDate', startDate);
             if (endDate) excelParams.set('endDate', endDate);
-            if (invoiceType) excelParams.set('invoiceType', invoiceType);
-            if (channelFilter) excelParams.set('channelFilter', channelFilter);
+            // Solo agregar invoiceType si tiene un valor válido (no vacío)
+            if (invoiceType && invoiceType !== '' && invoiceType !== 'all') {
+                excelParams.set('invoiceType', invoiceType);
+            }
+            // Solo agregar channelFilter si tiene un valor válido (no vacío)
+            if (channelFilter && channelFilter !== '' && channelFilter !== 'all') {
+                excelParams.set('channelFilter', channelFilter);
+            }
             
             // Seleccionar la ruta específica según el tipo de reporte
             const reportType = '{{ $page->reportType }}';

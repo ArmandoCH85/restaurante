@@ -12,6 +12,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Support\Colors\Color;
+use Filament\Navigation\NavigationItem;
 
 class CashRegisterResource extends Resource
 {
@@ -48,6 +49,17 @@ class CashRegisterResource extends Resource
     public static function getNavigationLabel(): string
     {
         return 'Apertura y Cierre de Caja';
+    }
+
+    public static function getNavigationIcon(): ?string
+    {
+        return 'heroicon-o-calculator';
+    }
+
+    // Añadir clases CSS personalizadas al navigation item
+    public static function getNavigationGroup(): ?string
+    {
+        return '📄 Facturación y Ventas';
     }
 
     public static function form(Form $form): Form

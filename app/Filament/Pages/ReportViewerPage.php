@@ -981,13 +981,11 @@ class ReportViewerPage extends Page implements HasForms
         \Log::info('getProductsByChannelWithoutFilters - Bindings: ' . json_encode($bindings));
             
         $results = $query->select(
-                'products.name as product_name',
                 'orders.service_type',
                 \DB::raw('SUM(order_details.quantity) as total_quantity'),
                 \DB::raw('SUM(order_details.subtotal) as total_sales')
             )
-            ->groupBy('products.name', 'orders.service_type')
-            ->orderBy('products.name')
+            ->groupBy('orders.service_type')
             ->orderBy('orders.service_type')
             ->get();
             
@@ -995,9 +993,9 @@ class ReportViewerPage extends Page implements HasForms
         
         // Log de muestra de los primeros 3 resultados
         if ($results->count() > 0) {
-            ReportViewerPageLog::writeRaw("MUESTRA DE PRIMEROS 3 RESULTADOS:\n");
+            ReportViewerPageLog::writeRaw("MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):\n");
             foreach ($results->take(3) as $index => $result) {
-                ReportViewerPageLog::writeRaw("  [$index] product_name: " . ($result->product_name ?? 'null') . ", service_type: " . ($result->service_type ?? 'null') . ", total_quantity: " . ($result->total_quantity ?? 'null') . ", total_sales: " . ($result->total_sales ?? 'null') . "\n");
+                ReportViewerPageLog::writeRaw("  [$index] service_type: " . ($result->service_type ?? 'null') . ", total_quantity: " . ($result->total_quantity ?? 'null') . ", total_sales: " . ($result->total_sales ?? 'null') . "\n");
             }
         }
         
@@ -1091,13 +1089,11 @@ class ReportViewerPage extends Page implements HasForms
         \Log::info('getProductsByChannel - Bindings: ' . json_encode($bindings));
             
         $results = $query->select(
-                'products.name as product_name',
                 'orders.service_type',
                 \DB::raw('SUM(order_details.quantity) as total_quantity'),
                 \DB::raw('SUM(order_details.subtotal) as total_sales')
             )
-            ->groupBy('products.name', 'orders.service_type')
-            ->orderBy('products.name')
+            ->groupBy('orders.service_type')
             ->orderBy('orders.service_type')
             ->get();
             
@@ -1105,9 +1101,9 @@ class ReportViewerPage extends Page implements HasForms
         
         // Log de muestra de los primeros 3 resultados
         if ($results->count() > 0) {
-            ReportViewerPageLog::writeRaw("MUESTRA DE PRIMEROS 3 RESULTADOS:\n");
+            ReportViewerPageLog::writeRaw("MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):\n");
             foreach ($results->take(3) as $index => $result) {
-                ReportViewerPageLog::writeRaw("  [$index] product_name: " . ($result->product_name ?? 'null') . ", service_type: " . ($result->service_type ?? 'null') . ", total_quantity: " . ($result->total_quantity ?? 'null') . ", total_sales: " . ($result->total_sales ?? 'null') . "\n");
+                ReportViewerPageLog::writeRaw("  [$index] service_type: " . ($result->service_type ?? 'null') . ", total_quantity: " . ($result->total_quantity ?? 'null') . ", total_sales: " . ($result->total_sales ?? 'null') . "\n");
             }
         }
         
@@ -1495,7 +1491,7 @@ class ReportViewerPage extends Page implements HasForms
     {
         switch ($this->reportType) {
             case 'products_by_channel':
-                return $this->reportData->map(function ($item) {
+                $data = $this->reportData->map(function ($item) {
                     return [
                         'product_name' => $item->product_name,
                         'channel_label' => $this->getChannelLabel($item->service_type),
@@ -1503,6 +1499,16 @@ class ReportViewerPage extends Page implements HasForms
                         'total_sales' => $item->total_sales,
                     ];
                 });
+                
+                // Agregar fila de totales
+                $data->push([
+                    'product_name' => 'TOTAL GENERAL',
+                    'channel_label' => '',
+                    'quantity' => $this->reportData->sum('total_quantity'),
+                    'total_sales' => $this->reportData->sum('total_sales'),
+                ]);
+                
+                return $data;
             case 'all_sales':
             case 'delivery_sales':
                 return $this->reportData->map(function ($item) {

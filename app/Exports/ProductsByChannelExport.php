@@ -31,7 +31,28 @@ class ProductsByChannelExport implements FromCollection, WithHeadings, WithMappi
         \Log::info('[EXPORT-CLASS] Método collection() llamado', [
             'total_items' => $this->data->count()
         ]);
-        return $this->data;
+        
+        // Calcular totales
+        $totalQuantity = $this->data->sum('total_quantity');
+        $totalSales = $this->data->sum('total_sales');
+        
+        // Crear objeto de totales con la misma estructura que los items
+        $totalsRow = (object) [
+            'product_name' => 'TOTAL GENERAL',
+            'service_type' => '',
+            'total_quantity' => $totalQuantity,
+            'total_sales' => $totalSales
+        ];
+        
+        // Agregar fila de totales al final
+        $dataWithTotals = $this->data->push($totalsRow);
+        
+        \Log::info('[EXPORT-CLASS] Totales agregados', [
+            'total_quantity' => $totalQuantity,
+            'total_sales' => $totalSales
+        ]);
+        
+        return $dataWithTotals;
     }
 
     public function headings(): array
@@ -72,6 +93,9 @@ class ProductsByChannelExport implements FromCollection, WithHeadings, WithMappi
 
     public function styles(Worksheet $sheet)
     {
+        // Calcular el número de la última fila (encabezado + datos + totales)
+        $lastRow = $this->data->count() + 2; // +1 por encabezado, +1 por fila de totales
+        
         return [
             // Estilo para la fila de encabezados
             1 => [
@@ -84,6 +108,23 @@ class ProductsByChannelExport implements FromCollection, WithHeadings, WithMappi
                     'startColor' => ['rgb' => '4472C4']
                 ],
                 'font' => ['color' => ['rgb' => 'FFFFFF']]
+            ],
+            // Estilo para la fila de totales
+            $lastRow => [
+                'font' => [
+                    'bold' => true,
+                    'size' => 11
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => ['rgb' => 'E7E6E6']
+                ],
+                'borders' => [
+                    'top' => [
+                        'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THICK,
+                        'color' => ['rgb' => '000000']
+                    ]
+                ]
             ],
         ];
     }
