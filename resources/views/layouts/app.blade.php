@@ -61,8 +61,22 @@
                     <span class="ml-4 text-sm md:text-base text-gray-600 dark:text-gray-300 font-bold hidden sm:inline">Software de gestión para restaurantes</span>
                 </div>
 
+                <!-- Desktop nav -->
+                <nav class="hidden md:flex items-center space-x-6">
+                    <a href="#herramientas" class="font-semibold text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">Soluciones</a>
+                    <a href="#mas-info" class="font-semibold text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">Beneficios</a>
+                    <a href="#demo" class="font-semibold text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">Contacto</a>
+                </nav>
+
+                <!-- Mobile hamburger -->
+                <button id="mobile-menu-button" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-controls="mobile-menu" aria-expanded="false" aria-label="Abrir menú">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
                 @auth
-                <div class="flex items-center space-x-4">
+                <div class="hidden md:flex items-center space-x-4">
                     <span class="text-gray-600 dark:text-gray-300">{{ Auth::user()->name }}</span>
                     <a href="{{ route('tables.map') }}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                         Mis Pedidos
@@ -76,6 +90,15 @@
                 </div>
                 @endauth
             </div>
+
+            <!-- Mobile menu panel -->
+            <div id="mobile-menu" class="md:hidden hidden mt-4">
+                <nav class="flex flex-col space-y-2">
+                    <a href="#herramientas" class="py-2 px-3 rounded font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700">Soluciones</a>
+                    <a href="#mas-info" class="py-2 px-3 rounded font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700">Beneficios</a>
+                    <a href="#demo" class="py-2 px-3 rounded font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700">Contacto</a>
+                </nav>
+            </div>
         </div>
     </header>
 
@@ -84,6 +107,25 @@
     </main>
 
     @stack('scripts')
+
+    <script>
+        (function() {
+            const btn = document.getElementById('mobile-menu-button');
+            const menu = document.getElementById('mobile-menu');
+            if (btn && menu) {
+                btn.addEventListener('click', () => {
+                    const isHidden = menu.classList.contains('hidden');
+                    if (isHidden) {
+                        menu.classList.remove('hidden');
+                        btn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        menu.classList.add('hidden');
+                        btn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        })();
+    </script>
 
     <footer class="py-4 mt-8 bg-white shadow dark:bg-gray-800">
         <div class="container px-4 mx-auto">
