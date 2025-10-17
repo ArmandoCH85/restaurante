@@ -231,6 +231,14 @@
         .hero-diagram { height: 220px; }
         .diagram-circle { width: 160px; height: 160px; }
     }
+    /* Imagen full-width previa a demo */
+    .image-fullwidth-section { padding: 0; }
+    .image-fullwidth-wrapper { width: 100%; background-color: #f2f6fc; }
+    .image-fullwidth { width: 100%; height: auto; object-fit: contain; display: block; }
+
+    @media (max-width: 768px) {
+        .image-fullwidth { height: auto; }
+    }
 </style>
 @endpush
 
@@ -349,6 +357,13 @@
 </section>
 
 
+
+<!-- Imagen full-width previa a la demo -->
+<section class="image-fullwidth-section" aria-hidden="true">
+    <div class="image-fullwidth-wrapper">
+        <img src="{{ asset('images/img6.png') }}" alt="Imagen representativa" class="image-fullwidth">
+    </div>
+</section>
 
 <!-- Demo / Contacto -->
 <section class="content-section" id="demo" aria-labelledby="demo-title">
