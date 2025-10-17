@@ -52,12 +52,13 @@
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900">
     <header class="bg-white shadow dark:bg-gray-800">
-        <div class="container px-4 py-4 mx-auto">
+        <div class="container px-4 py-6 md:py-5 sm:py-4 mx-auto">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <a href="{{ url('/') }}" class="text-xl font-bold text-gray-800 dark:text-white">
-                        {{ config('app.name', 'Restaurante') }}
+                    <a href="{{ url('/') }}" class="flex items-center" aria-label="Inicio">
+                        <img src="{{ asset('images/logoWayna.svg') }}" alt="Waynasoft" class="h-[96px] md:h-24 sm:h-14 w-auto">
                     </a>
+                    <span class="ml-4 text-sm md:text-base text-gray-600 dark:text-gray-300 font-bold hidden sm:inline">Software de gestión para restaurantes</span>
                 </div>
 
                 @auth

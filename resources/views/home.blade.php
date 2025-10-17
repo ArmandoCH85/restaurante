@@ -228,7 +228,7 @@
         <div class="hero-diagram" aria-hidden="true">
             <div class="diagram-circle">
                 <div class="diagram-center">
-                    <div class="logo"><img src="{{ asset('image/logoWayna.svg') }}" alt="Waynasoft" class="logo-image"></div>
+                    <div class="logo"><img src="{{ asset('images/logoWayna.svg') }}" alt="Waynasoft" class="logo-image"></div>
                 </div>
                 <div class="diagram-item franchises">🏪<br>FRANQUICIAS</div>
                 <div class="diagram-item point-of-sale">💳<br>PUNTO DE VENTA</div>
