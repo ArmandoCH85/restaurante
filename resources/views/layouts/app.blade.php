@@ -47,7 +47,8 @@
         }
     </style>
     <!-- Scripts de la aplicación -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <!-- CSS y JS en duro, sin Vite -->
+    @stack('styles')
 </head>
 <body class="min-h-screen bg-gray-100 dark:bg-gray-900">
     <header class="bg-white shadow dark:bg-gray-800">
@@ -80,6 +81,8 @@
     <main class="py-4">
         @yield('content')
     </main>
+
+    @stack('scripts')
 
     <footer class="py-4 mt-8 bg-white shadow dark:bg-gray-800">
         <div class="container px-4 mx-auto">

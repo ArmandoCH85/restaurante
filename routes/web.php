@@ -17,8 +17,8 @@ use Illuminate\Support\Facades\Blade;
 use App\Http\Controllers\PreBillPrintController;
 
 Route::get('/', function () {
-    // Redirección automática a /admin
-    return redirect('/admin');
+    // Mostrar la página principal del sitio
+    return view('home');
 });
 
 // Ruta para redirigir a los usuarios según su rol
