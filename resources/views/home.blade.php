@@ -218,11 +218,7 @@
                 <a href="#demo" class="btn-primary">Solicita tu demo <span>→</span></a>
                 <a href="#mas-info" class="btn-secondary">Más información <span>→</span></a>
             </div>
-            <div class="stats" aria-label="Estadísticas">
-                <div class="stat"><div class="stat-number">4000+</div><div class="stat-label">Restaurantes</div></div>
-                <div class="stat"><div class="stat-number">10+</div><div class="stat-label">Años de experiencia</div></div>
-                <div class="stat"><div class="stat-number">12+</div><div class="stat-label">Módulos disponibles</div></div>
-            </div>
+
         </div>
 
         <div class="hero-diagram" aria-hidden="true">

@@ -88,7 +88,7 @@
     <footer class="py-4 mt-8 bg-white shadow dark:bg-gray-800">
         <div class="container px-4 mx-auto">
             <div class="text-sm text-center text-gray-500 dark:text-gray-400">
-                &copy; {{ date('Y') }} {{ config('app.name', 'Restaurante') }}. Todos los derechos reservados.
+                &copy; {{ date('Y') }} Waynasoft. Todos los derechos reservados.
             </div>
         </div>
     </footer>
