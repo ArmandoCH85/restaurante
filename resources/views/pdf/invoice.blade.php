@@ -198,65 +198,14 @@
                 <td>{{ $invoice->client_name }}</td>
             </tr>
             
-            {{-- Para delivery: manejo inteligente de direcciones --}}
-            @if($invoice->order && $invoice->order->service_type === 'delivery' && $invoice->order->deliveryOrder)
-                @php
-                    $deliveryOrder = $invoice->order->deliveryOrder;
-                    $clientAddress = $invoice->client_address;
-                    $deliveryAddress = $deliveryOrder->delivery_address;
-                    $recipientAddress = $deliveryOrder->recipient_address;
-                @endphp
-                
-                {{-- Separador visual para delivery --}}
-                <tr><td colspan="2" style="text-align: center; font-weight: bold; padding: 4px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000;">🚚 INFORMACIÓN DE CONTACTO</td></tr>
-                
-                @if($deliveryAddress && $deliveryAddress !== 'Dirección pendiente de completar')
-                <tr>
-                    <td><strong>Dirección Entrega:</strong></td>
-                    <td>{{ $deliveryAddress }}</td>
-                </tr>
-                @endif
-                
-                @if($deliveryOrder->delivery_references)
-                <tr>
-                    <td><strong>Referencias:</strong></td>
-                    <td>{{ $deliveryOrder->delivery_references }}</td>
-                </tr>
-                @endif
-                
-                @if($deliveryOrder->recipient_name)
-                <tr>
-                    <td><strong>Recibe:</strong></td>
-                    <td>{{ $deliveryOrder->recipient_name }}</td>
-                </tr>
-                @endif
-                
-                @if($deliveryOrder->recipient_phone)
-                <tr>
-                    <td><strong>Teléfono:</strong></td>
-                    <td>{{ $deliveryOrder->recipient_phone }}</td>
-                </tr>
-                @endif
-                
-                {{-- Solo mostrar dirección del destinatario si es diferente a la de entrega --}}
-                @if($recipientAddress && $recipientAddress !== $deliveryAddress && $recipientAddress !== 'Dirección pendiente de completar')
-                <tr>
-                    <td><strong>Dirección Destinatario:</strong></td>
-                    <td>{{ $recipientAddress }}</td>
-                </tr>
-                @endif
-                
-                {{-- Separador de cierre --}}
-                <tr><td colspan="2" style="border-bottom: 1px dashed #000; padding: 2px 0;"></td></tr>
-            @else
-                {{-- Para no-delivery: mostrar dirección cliente normalmente --}}
-                @if($invoice->client_address)
-                <tr>
-                    <td><strong>Dirección:</strong></td>
-                    <td>{{ $invoice->client_address }}</td>
-                </tr>
-                @endif
+            {{-- Mostrar teléfono del cliente siempre que esté disponible --}}
+            @if($invoice->order && $invoice->order->customer && $invoice->order->customer->phone)
+            <tr>
+                <td><strong>Teléfono:</strong></td>
+                <td>{{ $invoice->order->customer->phone }}</td>
+            </tr>
             @endif
+            
             @php
                 $waiterName = null;
                 
@@ -296,6 +245,59 @@
                 <td><strong>Atendido por:</strong></td>
                 <td>{{ $waiterName }}</td>
             </tr>
+            
+            {{-- Para delivery: manejo inteligente de direcciones --}}
+            @if($invoice->order && $invoice->order->service_type === 'delivery' && $invoice->order->deliveryOrder)
+                @php
+                    $deliveryOrder = $invoice->order->deliveryOrder;
+                    $clientAddress = $invoice->client_address;
+                    $deliveryAddress = $deliveryOrder->delivery_address;
+                    $recipientAddress = $deliveryOrder->recipient_address;
+                @endphp
+                
+                {{-- Separador visual para delivery --}}
+                <tr><td colspan="2" style="text-align: center; font-weight: bold; padding: 4px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000;">🚚 INFORMACIÓN DE CONTACTO</td></tr>
+                
+                @if($deliveryAddress && $deliveryAddress !== 'Dirección pendiente de completar')
+                <tr>
+                    <td><strong>Dirección Entrega:</strong></td>
+                    <td>{{ $deliveryAddress }}</td>
+                </tr>
+                @endif
+                
+                @if($deliveryOrder->delivery_references)
+                <tr>
+                    <td><strong>Referencias:</strong></td>
+                    <td>{{ $deliveryOrder->delivery_references }}</td>
+                </tr>
+                @endif
+                
+                @if($deliveryOrder->recipient_name)
+                <tr>
+                    <td><strong>Recibe:</strong></td>
+                    <td>{{ $deliveryOrder->recipient_name }}</td>
+                </tr>
+                @endif
+                
+                {{-- Solo mostrar dirección del destinatario si es diferente a la de entrega --}}
+                @if($recipientAddress && $recipientAddress !== $deliveryAddress && $recipientAddress !== 'Dirección pendiente de completar')
+                <tr>
+                    <td><strong>Dirección Destinatario:</strong></td>
+                    <td>{{ $recipientAddress }}</td>
+                </tr>
+                @endif
+                
+                {{-- Separador de cierre --}}
+                <tr><td colspan="2" style="border-bottom: 1px dashed #000; padding: 2px 0;"></td></tr>
+            @else
+                {{-- Para no-delivery: mostrar dirección cliente normalmente --}}
+                @if($invoice->client_address)
+                <tr>
+                    <td><strong>Dirección:</strong></td>
+                    <td>{{ $invoice->client_address }}</td>
+                </tr>
+                @endif
+            @endif
         </table>
         <hr>
         <table class="items-table">

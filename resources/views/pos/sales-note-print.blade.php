@@ -289,6 +289,16 @@
                 @endif
             </span>
         </div>
+        @if($invoice->order->customer?->phone)
+        <div class="info-row">
+            <span class="label">Teléfono:</span>
+            <span>{{ $invoice->order->customer->phone }}</span>
+        </div>
+        @endif
+        <div class="info-row">
+            <span class="label">Atendido:</span>
+            <span>{{ $invoice->order->user->name ?? 'N/A' }}</span>
+        </div>
         @if(($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery' && !empty($direct_sale_customer_name))
         <div class="info-row">
             <span class="label">Contacto:</span>
@@ -319,6 +329,9 @@
             @endphp
 
             <!-- INFORMACIÓN DE DELIVERY -->
+            <div style="border-top: 1px dashed #000; margin: 10px 0; padding-top: 10px;">
+                <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">🚚 INFORMACIÓN DE CONTACTO</div>
+            </div>
             @if($deliveryAddress)
             <div class="info-row">
                 <span class="label">Dirección:</span>
@@ -329,12 +342,6 @@
             <div class="info-row">
                 <span class="label">Referencias:</span>
                 <span>{{ $deliveryReferences }}</span>
-            </div>
-            @endif
-            @if($invoice->customer?->phone)
-            <div class="info-row">
-                <span class="label">Teléfono:</span>
-                <span>{{ $invoice->customer->phone }}</span>
             </div>
             @endif
     @elseif($invoice->order->service_type === 'dine_in' && $invoice->order->table)

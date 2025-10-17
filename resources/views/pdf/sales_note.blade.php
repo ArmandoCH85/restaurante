@@ -197,12 +197,61 @@
                     @endif
                 </td>
             </tr>
+            
+            {{-- Mostrar teléfono del cliente siempre que esté disponible --}}
+            @if($invoice->order && $invoice->order->customer && $invoice->order->customer->phone)
+            <tr>
+                <td><strong>Teléfono:</strong></td>
+                <td>{{ $invoice->order->customer->phone }}</td>
+            </tr>
+            @endif
+            
             @if(($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery' && !empty($direct_sale_customer_name))
             <tr>
                 <td><strong>Contacto:</strong></td>
                 <td>{{ $direct_sale_customer_name }}</td>
             </tr>
             @endif
+            
+            @php
+                $waiterName = null;
+                
+                // Prioridad 1: Usuario de la orden
+                if ($invoice->order && $invoice->order->employee_id) {
+                    $orderUser = \App\Models\User::find($invoice->order->employee_id);
+                    if ($orderUser) {
+                        $waiterName = $orderUser->name;
+                    }
+                }
+                
+                // Prioridad 2: Usuario directo de la factura
+                if (!$waiterName && $invoice->employee_id) {
+                    $invoiceUser = \App\Models\User::find($invoice->employee_id);
+                    if ($invoiceUser) {
+                        $waiterName = $invoiceUser->name;
+                    }
+                }
+                
+                // Prioridad 3: Empleado relacionado
+                if (!$waiterName && $invoice->employee) {
+                    $waiterName = $invoice->employee->full_name;
+                }
+                
+                // Prioridad 4: Usuario actual como fallback
+                if (!$waiterName && auth()->user()) {
+                    $waiterName = auth()->user()->name . ' (Usuario actual)';
+                }
+                
+                // Prioridad 5: Mensaje por defecto
+                if (!$waiterName) {
+                    $waiterName = 'Sin información del mesero';
+                }
+            @endphp
+            
+            <tr>
+                <td><strong>Atendido por:</strong></td>
+                <td>{{ $waiterName }}</td>
+            </tr>
             
             {{-- Para delivery: manejo inteligente de direcciones --}}
             @if($invoice->order && $invoice->order->service_type === 'delivery' && $invoice->order->deliveryOrder)
@@ -243,55 +292,9 @@
                 </tr>
                 @endif
                 
-                @if($deliveryOrder->recipient_phone)
-                <tr>
-                    <td><strong>Teléfono:</strong></td>
-                    <td>{{ $deliveryOrder->recipient_phone }}</td>
-                </tr>
-                @endif
-                
                 {{-- Separador de cierre --}}
                 <tr><td colspan="2" style="border-bottom: 1px dashed #000; padding: 2px 0;"></td></tr>
             @endif
-            @php
-                $waiterName = null;
-                
-                // Prioridad 1: Usuario de la orden
-                if ($invoice->order && $invoice->order->employee_id) {
-                    $orderUser = \App\Models\User::find($invoice->order->employee_id);
-                    if ($orderUser) {
-                        $waiterName = $orderUser->name;
-                    }
-                }
-                
-                // Prioridad 2: Usuario directo de la factura
-                if (!$waiterName && $invoice->employee_id) {
-                    $invoiceUser = \App\Models\User::find($invoice->employee_id);
-                    if ($invoiceUser) {
-                        $waiterName = $invoiceUser->name;
-                    }
-                }
-                
-                // Prioridad 3: Empleado relacionado
-                if (!$waiterName && $invoice->employee) {
-                    $waiterName = $invoice->employee->full_name;
-                }
-                
-                // Prioridad 4: Usuario actual como fallback
-                if (!$waiterName && auth()->user()) {
-                    $waiterName = auth()->user()->name . ' (Usuario actual)';
-                }
-                
-                // Prioridad 5: Mensaje por defecto
-                if (!$waiterName) {
-                    $waiterName = 'Sin información del mesero';
-                }
-            @endphp
-            
-            <tr>
-                <td><strong>Atendido por:</strong></td>
-                <td>{{ $waiterName }}</td>
-            </tr>
         </table>
         <hr>
         <table class="items-table">
