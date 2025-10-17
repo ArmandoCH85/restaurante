@@ -65,10 +65,10 @@
     /* Content Sections */
     .content-section { 
         padding: 80px 20px; 
-        background-color: white; 
+        background-color: #f7fbff; /* suave azul muy claro */
     }
     .content-section:nth-child(even) { 
-        background-color: #fafafa; 
+        background-color: #f2f6fc; /* variante ligeramente más intensa */
     }
     .content-container { 
         max-width: 1400px; 
@@ -118,9 +118,10 @@
     }
     .content-image img { 
         width: 100%; 
-        height: 100%; 
+        height: auto; 
         object-fit: cover; 
         border-radius: 10px; 
+        display: block;
     }
 
     /* Hero Section */
@@ -153,7 +154,7 @@
     .label-delivery { bottom: 30%; left: -80px; }
 
     /* Features Section */
-    .features { padding: 80px 20px; background-color: white; }
+    .features { padding: 80px 20px; background-color: #f7fbff; }
     .features-container { max-width: 1400px; margin: 0 auto; }
     .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; margin-bottom: 60px; }
     .feature-card { text-align: center; }
@@ -162,7 +163,7 @@
     .feature-card p { font-size: 14px; color: #666; }
 
     /* Benefits Section */
-    .benefits { padding: 80px 20px; background-color: white; }
+    .benefits { padding: 80px 20px; background-color: #f7fbff; }
     .benefits-container { max-width: 1400px; margin: 0 auto; }
     .benefits-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
     .benefit-item { text-align: center; }
@@ -171,7 +172,7 @@
     .benefit-item p { font-size: 14px; color: #555; line-height: 1.8; }
 
     /* Pricing Section */
-    .pricing { padding: 80px 20px; background-color: #fafafa; }
+    .pricing { padding: 80px 20px; background-color: #f2f6fc; }
     .pricing-container { max-width: 1400px; margin: 0 auto; }
     .pricing-header { text-align: center; margin-bottom: 60px; }
     .pricing-header h2 { font-size: 36px; margin-bottom: 20px; color: #333; }
@@ -195,10 +196,40 @@
         .hero-content h1 { font-size: 40px; }
     }
     @media (max-width: 768px) {
-        .hero-buttons { flex-direction: column; }
-        .features-grid, .benefits-grid { grid-template-columns: 1fr; }
-        .hero-content h1 { font-size: 32px; }
-        .stats { flex-direction: column; gap: 20px; }
+        .hero {
+            padding: 48px 16px;
+        }
+        .hero-container {
+            gap: 24px;
+        }
+        .hero-content h1 { font-size: 28px; }
+        .hero-content p { font-size: 16px; }
+        .hero-buttons { flex-direction: column; gap: 12px; margin-bottom: 24px; }
+
+        .content-section { padding: 48px 16px; }
+        .content-container { grid-template-columns: 1fr; gap: 24px; }
+        .content-text h2 { font-size: 28px; }
+        .content-text p, .content-text li { font-size: 15px; }
+
+        /* Evitar imágenes demasiado grandes en móvil */
+        .content-image { height: auto; overflow: visible; }
+        .content-image img { width: 100%; height: auto; max-height: 60vh; object-fit: cover; }
+        /* Igualar comportamiento de img1 e img3 al de img2 en móvil */
+        .content-image--balanced img { object-fit: contain; max-height: 45vh; }
+
+        .hero-diagram { height: 240px; }
+        .diagram-circle { width: 180px; height: 180px; }
+        .diagram-item { width: 68px; height: 68px; font-size: 10px; }
+        .diagram-label { font-size: 12px; }
+    }
+
+    /* Extra pequeño (<=420px) */
+    @media (max-width: 420px) {
+        .hero-content h1 { font-size: 26px; }
+        .content-text h2 { font-size: 26px; }
+        .content-image img { max-height: 50vh; }
+        .hero-diagram { height: 220px; }
+        .diagram-circle { width: 160px; height: 160px; }
     }
 </style>
 @endpush
@@ -270,7 +301,7 @@
             </ul>
             <a href="#demo" class="btn-primary">MÁS INFORMACIÓN →</a>
         </div>
-        <div class="content-image"><img src="{{ asset('images/img1.png') }}" alt="Venta Online" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
+        <div class="content-image content-image--balanced"><img src="{{ asset('images/img1.png') }}" alt="Venta Online" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
     </div>
 </section>
 
@@ -296,7 +327,7 @@
             <p>Obtén información desde cualquier lugar y toma decisiones al instante.</p>
             <a href="#demo" class="btn-primary">MÁS INFORMACIÓN →</a>
         </div>
-        <div class="content-image"><img src="{{ asset('images/img3.png') }}" alt="Tiempo Real" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
+        <div class="content-image content-image--balanced"><img src="{{ asset('images/img3.png') }}" alt="Tiempo Real" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
     </div>
 </section>
 

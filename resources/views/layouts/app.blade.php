@@ -50,7 +50,7 @@
     <!-- CSS y JS en duro, sin Vite -->
     @stack('styles')
 </head>
-<body class="min-h-screen bg-gray-100 dark:bg-gray-900">
+<body class="min-h-screen dark:bg-gray-900" style="background: linear-gradient(180deg, #f7fbff 0%, #f2f6fc 100%);">
     <header class="bg-white shadow dark:bg-gray-800">
         <div class="container px-4 py-6 md:py-5 sm:py-4 mx-auto">
             <div class="flex items-center justify-between">
