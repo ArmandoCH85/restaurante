@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" style="scroll-behavior: smooth;">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,7 +51,7 @@
     @stack('styles')
 </head>
 <body class="min-h-screen dark:bg-gray-900" style="background: linear-gradient(180deg, #f7fbff 0%, #f2f6fc 100%);">
-    <header class="bg-white shadow dark:bg-gray-800">
+    <header class="bg-white sticky top-0 z-50 shadow-sm dark:bg-gray-800">
         <div class="container px-4 py-6 md:py-5 sm:py-4 mx-auto">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
@@ -66,6 +66,7 @@
                     <a href="#herramientas" class="font-semibold text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">Soluciones</a>
                     <a href="#mas-info" class="font-semibold text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">Beneficios</a>
                     <a href="#demo" class="font-semibold text-gray-700 hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400">Contacto</a>
+                    <a href="#demo" class="ml-2 inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm transition">Solicita demo</a>
                 </nav>
 
                 <!-- Mobile hamburger -->
@@ -97,6 +98,7 @@
                     <a href="#herramientas" class="py-2 px-3 rounded font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700">Soluciones</a>
                     <a href="#mas-info" class="py-2 px-3 rounded font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700">Beneficios</a>
                     <a href="#demo" class="py-2 px-3 rounded font-semibold text-gray-700 hover:text-blue-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-gray-700">Contacto</a>
+                    <a href="#demo" class="py-2 px-3 rounded-md bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-sm transition">Solicita demo</a>
                 </nav>
             </div>
         </div>
@@ -122,6 +124,14 @@
                         menu.classList.add('hidden');
                         btn.setAttribute('aria-expanded', 'false');
                     }
+                });
+
+                // Cerrar menú al hacer clic en cualquier enlace del menú móvil
+                menu.querySelectorAll('a').forEach((link) => {
+                    link.addEventListener('click', () => {
+                        menu.classList.add('hidden');
+                        btn.setAttribute('aria-expanded', 'false');
+                    });
                 });
             }
         })();

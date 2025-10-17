@@ -239,6 +239,12 @@
     @media (max-width: 768px) {
         .image-fullwidth { height: auto; }
     }
+    /* Compensación del header sticky para anclas */
+    #herramientas, #mas-info, #demo { scroll-margin-top: 120px; }
+
+    @media (max-width: 768px) {
+        #herramientas, #mas-info, #demo { scroll-margin-top: 96px; }
+    }
 </style>
 @endpush
 
