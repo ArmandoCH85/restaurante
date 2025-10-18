@@ -142,8 +142,9 @@ class ReportViewerPage extends Page implements HasForms
             ReportViewerPageLog::writeRaw("Tipo de reporte para exportar: " . $this->reportType . "\n");
             
             try {
-                // Para ventas, usar la nueva ruta de descarga directa
-                if ($this->category === 'sales' && $this->reportType === 'all_sales') {
+                // Para ventas y contabilidad, usar la nueva ruta de descarga directa
+                if (($this->category === 'sales' && $this->reportType === 'all_sales') ||
+                    ($this->category === 'finance' && $this->reportType === 'accounting_reports')) {
                     ReportViewerPageLog::writeRaw("Usando descarga directa con JavaScript...\n");
                     
                     $params = [
@@ -166,6 +167,7 @@ class ReportViewerPage extends Page implements HasForms
                         'all_purchases' => route('admin.reportes.purchases.excel', $params),
                         'payment_methods' => route('admin.reportes.payment-methods.excel', $params),
                         'cash_register' => route('admin.reportes.cash-register.excel', $params),
+                        'accounting_reports' => route('admin.reportes.accounting.excel', $params),
                         default => route('sales.excel.download', $params) // Fallback para compatibilidad
                     };
                     
@@ -348,7 +350,6 @@ class ReportViewerPage extends Page implements HasForms
                     ->label('📄 Tipo Comprobante (opcional)')
                     ->options([
                         '' => 'Todos los tipos',
-                        'sales_note' => '📝 Nota de Venta',
                         'receipt' => '🧾 Boleta',
                         'invoice' => '📋 Factura',
                     ])
@@ -724,6 +725,9 @@ class ReportViewerPage extends Page implements HasForms
             'purchases_by_supplier' => $this->getPurchasesBySupplierWithoutFilters(),
             'purchases_by_category' => $this->getPurchasesByCategoryWithoutFilters(),
             
+            // FINANCE REPORTS - SIN FILTROS DE FECHA
+            'accounting_reports' => $this->getAccountingReportsWithoutFilters(),
+            
             // Otros reportes también sin filtros...
             default => collect([])
         };
@@ -763,6 +767,7 @@ class ReportViewerPage extends Page implements HasForms
             'cash_register' => $this->getCashRegisterMovements($startDateTime, $endDateTime),
             'profits' => $this->getProfits($startDateTime, $endDateTime),
             'daily_closing' => $this->getDailyClosing($startDateTime, $endDateTime),
+            'accounting_reports' => $this->getAccountingReports($startDateTime, $endDateTime),
             
             // OPERATIONS REPORTS
             'sales_by_user' => $this->getSalesByUser($startDateTime, $endDateTime),
@@ -1509,6 +1514,55 @@ class ReportViewerPage extends Page implements HasForms
                 ]);
                 
                 return $data;
+            case 'accounting_reports':
+                // Para accounting_reports, recargar los datos para asegurar que se apliquen los mismos filtros
+                if ($this->startDate && $this->endDate) {
+                    $startDateTime = $this->getStartDateTime();
+                    $endDateTime = $this->getEndDateTime();
+                    $data = $this->getAccountingReports($startDateTime, $endDateTime);
+                } else {
+                    $data = $this->getAccountingReportsWithoutFilters();
+                }
+                
+                // DEBUG: Log para verificar qué datos están llegando al Excel
+                ReportViewerPageLog::writeRaw("\n=== DEBUG EXCEL ACCOUNTING REPORTS ===\n");
+                ReportViewerPageLog::writeRaw("Total de registros para Excel: " . $data->count() . "\n");
+                
+                // Mostrar primeros 5 registros para debugging
+                $data->take(5)->each(function ($item, $index) {
+                    ReportViewerPageLog::writeRaw("Registro [$index]:\n");
+                    ReportViewerPageLog::writeRaw("  ID: " . $item->id . "\n");
+                    ReportViewerPageLog::writeRaw("  Serie: " . $item->series . "\n");
+                    ReportViewerPageLog::writeRaw("  Número: " . $item->number . "\n");
+                    ReportViewerPageLog::writeRaw("  invoice_type: " . $item->invoice_type . "\n");
+                    ReportViewerPageLog::writeRaw("  sunat_status: " . ($item->sunat_status ?? 'null') . "\n");
+                    ReportViewerPageLog::writeRaw("  Tipo formateado: " . $this->getInvoiceTypeLabelForAccounting($item) . "\n");
+                    ReportViewerPageLog::writeRaw("  ---\n");
+                });
+                
+                // Contar tipos de comprobantes
+                $tiposContados = [];
+                $data->each(function ($item) use (&$tiposContados) {
+                    $tipoFormateado = $this->getInvoiceTypeLabelForAccounting($item);
+                    $tiposContados[$tipoFormateado] = ($tiposContados[$tipoFormateado] ?? 0) + 1;
+                });
+                
+                ReportViewerPageLog::writeRaw("RESUMEN DE TIPOS EN EXCEL:\n");
+                foreach ($tiposContados as $tipo => $cantidad) {
+                    ReportViewerPageLog::writeRaw("  $tipo: $cantidad\n");
+                }
+                ReportViewerPageLog::writeRaw("=== FIN DEBUG EXCEL ===\n");
+                
+                return $data->map(function ($item) {
+                    return [
+                        'issue_date' => $item->issue_date->format('d/m/Y'),
+                        'invoice_type' => $this->getInvoiceTypeLabelForAccounting($item),
+                        'series_number' => $item->series . '-' . $item->number,
+                        'customer' => $item->customer ? $item->customer->full_name : ($item->client_name ?? 'Cliente no registrado'),
+                        'total' => $item->total,
+                        'status' => $this->getInvoiceStatusLabel($item),
+                    ];
+                });
             case 'all_sales':
             case 'delivery_sales':
                 return $this->reportData->map(function ($item) {
@@ -1628,6 +1682,8 @@ class ReportViewerPage extends Page implements HasForms
         switch ($this->reportType) {
             case 'products_by_channel':
                 return ['Producto', 'Canal de Venta', 'Cantidad', 'Total Ventas'];
+            case 'accounting_reports':
+                return ['Fecha Emisión', 'Tipo Comprobante', 'Número', 'Cliente', 'Total', 'Estado'];
             case 'all_sales':
             case 'delivery_sales':
                 return ['Fecha | Hora', 'Caja', 'Cliente', 'Documento', 'Canal Venta', 'Tipo Pago', 'Total', 'Estado'];
@@ -1666,6 +1722,7 @@ class ReportViewerPage extends Page implements HasForms
     {
         $reportNames = [
             'products_by_channel' => 'productos_por_canal',
+            'accounting_reports' => 'reportes_de_contabilidad',
             'all_sales' => 'todas_las_ventas',
             'delivery_sales' => 'ventas_delivery',
             'sales_by_waiter' => 'ventas_por_mesero',
@@ -1895,6 +1952,7 @@ class ReportViewerPage extends Page implements HasForms
             'cash_register' => 'Reporte de Movimientos de Caja',
             'profits' => 'Reporte de Ganancias',
             'daily_closing' => 'Reporte de Cierres Diarios',
+            'accounting_reports' => 'Reportes de Contabilidad',
             
             // OPERATIONS REPORTS
             'sales_by_user' => 'Reporte de Ventas por Usuario',
@@ -1939,6 +1997,161 @@ class ReportViewerPage extends Page implements HasForms
             ->groupBy('product_categories.id', 'product_categories.name')
             ->orderBy('product_categories.name')
             ->get();
+    }
+
+    // MÉTODOS PARA REPORTES DE CONTABILIDAD
+    protected function getAccountingReports($startDateTime, $endDateTime)
+    {
+        ReportViewerPageLog::writeRaw("\n" . str_repeat("=", 60) . "\n");
+        ReportViewerPageLog::writeRaw("=== GET ACCOUNTING REPORTS - INICIO ===\n");
+        ReportViewerPageLog::writeRaw("TIMESTAMP: " . now()->format('Y-m-d H:i:s') . "\n");
+        ReportViewerPageLog::writeRaw("PARÁMETROS:\n");
+        ReportViewerPageLog::writeRaw("  startDateTime: " . $startDateTime->format('Y-m-d H:i:s') . "\n");
+        ReportViewerPageLog::writeRaw("  endDateTime: " . $endDateTime->format('Y-m-d H:i:s') . "\n");
+        ReportViewerPageLog::writeRaw("  invoiceType: " . ($this->invoiceType ?? 'null') . "\n");
+        
+        $query = \App\Models\Invoice::with(['customer', 'order'])
+            ->whereBetween('issue_date', [$startDateTime->format('Y-m-d'), $endDateTime->format('Y-m-d')])
+            // Por defecto, excluir Notas de Venta (series NV%)
+            ->where('series', 'NOT LIKE', 'NV%');
+        
+        // Aplicar filtro por tipo de comprobante si está presente
+        if ($this->invoiceType) {
+            ReportViewerPageLog::writeRaw("APLICANDO FILTRO invoiceType: " . $this->invoiceType . "\n");
+            // Usar el mismo método de filtrado que los otros reportes
+            switch ($this->invoiceType) {
+                case 'receipt':
+                    $query->where('series', 'LIKE', 'B%');
+                    break;
+                case 'invoice':
+                    $query->where('series', 'LIKE', 'F%');
+                    break;
+                default:
+                    $query->where('invoice_type', $this->invoiceType);
+                    break;
+            }
+        }
+        
+        $results = $query->orderBy('issue_date', 'desc')->orderBy('series')->orderBy('number')->get();
+        
+        ReportViewerPageLog::writeRaw("RESULTADOS: " . $results->count() . " registros\n");
+        
+        // DEBUG: Mostrar series encontradas para verificar que no haya NV%
+        $seriesEncontradas = $results->pluck('series')->unique()->values();
+        ReportViewerPageLog::writeRaw("SERIES ENCONTRADAS: " . json_encode($seriesEncontradas->toArray()) . "\n");
+        
+        // Contar por invoice_type para debugging
+        $tiposContados = [];
+        $results->each(function ($item) use (&$tiposContados) {
+            $tiposContados[$item->invoice_type] = ($tiposContados[$item->invoice_type] ?? 0) + 1;
+        });
+        
+        ReportViewerPageLog::writeRaw("CONTEO POR invoice_type:\n");
+        foreach ($tiposContados as $tipo => $cantidad) {
+            ReportViewerPageLog::writeRaw("  $tipo: $cantidad\n");
+        }
+        
+        ReportViewerPageLog::writeRaw("=== GET ACCOUNTING REPORTS - FIN ===\n");
+        
+        return $results;
+    }
+    
+    protected function getAccountingReportsWithoutFilters()
+    {
+        ReportViewerPageLog::writeRaw("\n" . str_repeat("=", 60) . "\n");
+        ReportViewerPageLog::writeRaw("=== GET ACCOUNTING REPORTS WITHOUT FILTERS - INICIO ===\n");
+        ReportViewerPageLog::writeRaw("TIMESTAMP: " . now()->format('Y-m-d H:i:s') . "\n");
+        ReportViewerPageLog::writeRaw("invoiceType: " . ($this->invoiceType ?? 'null') . "\n");
+        
+        $query = \App\Models\Invoice::with(['customer', 'order'])
+            // Por defecto, excluir Notas de Venta (series NV%)
+            ->where('series', 'NOT LIKE', 'NV%');
+        
+        // Aplicar filtro por tipo de comprobante si está presente
+        if ($this->invoiceType) {
+            ReportViewerPageLog::writeRaw("APLICANDO FILTRO invoiceType: " . $this->invoiceType . "\n");
+            // Usar el mismo método de filtrado que los otros reportes
+            switch ($this->invoiceType) {
+                case 'receipt':
+                    $query->where('series', 'LIKE', 'B%');
+                    break;
+                case 'invoice':
+                    $query->where('series', 'LIKE', 'F%');
+                    break;
+                default:
+                    $query->where('invoice_type', $this->invoiceType);
+                    break;
+            }
+        }
+        
+        $results = $query->orderBy('issue_date', 'desc')->orderBy('series')->orderBy('number')->get();
+        
+        ReportViewerPageLog::writeRaw("RESULTADOS: " . $results->count() . " registros\n");
+        
+        // DEBUG: Mostrar series encontradas para verificar que no haya NV%
+        $seriesEncontradas = $results->pluck('series')->unique()->values();
+        ReportViewerPageLog::writeRaw("SERIES ENCONTRADAS: " . json_encode($seriesEncontradas->toArray()) . "\n");
+        
+        // Contar por invoice_type para debugging
+        $tiposContados = [];
+        $results->each(function ($item) use (&$tiposContados) {
+            $tiposContados[$item->invoice_type] = ($tiposContados[$item->invoice_type] ?? 0) + 1;
+        });
+        
+        ReportViewerPageLog::writeRaw("CONTEO POR invoice_type:\n");
+        foreach ($tiposContados as $tipo => $cantidad) {
+            ReportViewerPageLog::writeRaw("  $tipo: $cantidad\n");
+        }
+        
+        ReportViewerPageLog::writeRaw("=== GET ACCOUNTING REPORTS WITHOUT FILTERS - FIN ===\n");
+        
+        return $results;
+    }
+    
+    /**
+     * Obtiene el tipo de comprobante formateado para reportes de contabilidad
+     */
+    private function getInvoiceTypeLabelForAccounting($invoice): string
+    {
+        // DEBUG: Log para depurar la clasificación
+        ReportViewerPageLog::writeRaw("DEBUG CLASIFICACIÓN:\n");
+        ReportViewerPageLog::writeRaw("  ID: " . $invoice->id . "\n");
+        ReportViewerPageLog::writeRaw("  Serie: " . $invoice->series . "\n");
+        ReportViewerPageLog::writeRaw("  invoice_type: " . $invoice->invoice_type . "\n");
+        ReportViewerPageLog::writeRaw("  sunat_status: " . ($invoice->sunat_status ?? 'null') . "\n");
+        
+        $resultado = match($invoice->invoice_type) {
+            'invoice' => 'Factura',
+            'receipt' => $invoice->sunat_status ? 'Boleta' : 'Nota de Venta',
+            'sales_note' => 'Nota de Venta',
+            'credit_note' => 'Nota de Crédito',
+            'debit_note' => 'Nota de Débito',
+            default => 'Desconocido'
+        };
+        
+        ReportViewerPageLog::writeRaw("  Resultado clasificación: $resultado\n");
+        
+        return $resultado;
+    }
+    
+    /**
+     * Obtiene el estado del comprobante formateado
+     */
+    private function getInvoiceStatusLabel($invoice): string
+    {
+        if ($invoice->tax_authority_status === 'voided') {
+            return 'Anulado';
+        }
+        
+        return match($invoice->sunat_status) {
+            null => 'Pendiente',
+            'PENDIENTE' => 'Pendiente',
+            'ACEPTADO' => 'Aceptado',
+            'RECHAZADO' => 'Rechazado',
+            'OBSERVADO' => 'Observado',
+            'NO_APLICA' => 'No aplica',
+            default => $invoice->tax_authority_status ?? 'Desconocido'
+        };
     }
 
     public static function canAccess(): bool

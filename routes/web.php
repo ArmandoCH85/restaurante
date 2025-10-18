@@ -238,6 +238,10 @@ Route::get('/admin/reportes/cash-register/excel-download', [\App\Http\Controller
     ->name('admin.reportes.cash-register.excel')
     ->middleware(['auth']);
 
+Route::get('/admin/reportes/accounting/excel-download', [\App\Http\Controllers\AccountingReportController::class, 'download'])
+    ->name('admin.reportes.accounting.excel')
+    ->middleware(['auth']);
+
 // Reporte de caja registradora SIMPLE (para pruebas)
 Route::get('/admin/reportes/cash-register/excel-simple', [\App\Http\Controllers\CashRegisterReportSimpleController::class, 'download'])
     ->name('admin.reportes.cash-register.excel-simple')

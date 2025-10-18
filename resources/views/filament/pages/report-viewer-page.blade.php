@@ -203,7 +203,17 @@
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
                                     
-
+                                    @if($page->reportType === 'accounting_reports')
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">📄 Tipo de Comprobante</label>
+                                        <select name="invoiceType"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Todos los tipos</option>
+                                            <option value="receipt" {{ request('invoiceType') === 'receipt' ? 'selected' : '' }}>🧾 Boleta</option>
+                                            <option value="invoice" {{ request('invoiceType') === 'invoice' ? 'selected' : '' }}>📋 Factura</option>
+                                        </select>
+                                    </div>
+                                    @endif
                                     
                                     <div class="md:col-span-5">
                                         <button type="button" onclick="applyCustomFilter()"
@@ -307,6 +317,13 @@
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Último Login</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Órdenes Creadas</th>
+                                                @elseif($page->reportType === 'accounting_reports')
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Emisión</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo Comprobante</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" style="min-width: 200px; max-width: 300px;">Cliente</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                                                 @elseif($page->reportType === 'system_logs')
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Evento</th>
@@ -508,6 +525,75 @@
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->email }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->last_login_at ? $item->last_login_at->format('d/m/Y H:i') : 'Nunca' }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->orders_created) }}</td>
+                                                    @elseif($page->reportType === 'accounting_reports')
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->issue_date->format('d/m/Y') }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                            @php
+                                                                $invoiceTypeLabel = match($item->invoice_type) {
+                                                                    'invoice' => 'Factura',
+                                                                    'receipt' => $item->sunat_status ? 'Boleta' : 'Nota de Venta',
+                                                                    'sales_note' => 'Nota de Venta',
+                                                                    'credit_note' => 'Nota de Crédito',
+                                                                    'debit_note' => 'Nota de Débito',
+                                                                    default => 'Desconocido'
+                                                                };
+                                                                
+                                                                $typeClass = match($item->invoice_type) {
+                                                                    'invoice' => 'bg-green-100 text-green-800',
+                                                                    'receipt' => $item->sunat_status ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800',
+                                                                    'sales_note' => 'bg-yellow-100 text-yellow-800',
+                                                                    'credit_note' => 'bg-red-100 text-red-800',
+                                                                    'debit_note' => 'bg-purple-100 text-purple-800',
+                                                                    default => 'bg-gray-100 text-gray-800'
+                                                                };
+                                                            @endphp
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $typeClass }}">
+                                                                {{ $invoiceTypeLabel }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->series }}-{{ str_pad($item->number, 6, '0', STR_PAD_LEFT) }}</td>
+                                                        <td class="px-4 py-4 text-sm" style="min-width: 200px; max-width: 300px;">
+                                                            @if($item->customer)
+                                                                <span class="font-medium">{{ $item->customer->full_name }}</span>
+                                                            @elseif($item->client_name)
+                                                                <span class="text-purple-600 font-medium">{{ $item->client_name }}</span>
+                                                            @else
+                                                                <span class="text-gray-500">Sin cliente</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total, 2) }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                            @php
+                                                                $statusLabel = match($item->tax_authority_status) {
+                                                                    'voided' => 'Anulado',
+                                                                    default => match($item->sunat_status) {
+                                                                        null => 'Pendiente',
+                                                                        'PENDIENTE' => 'Pendiente',
+                                                                        'ACEPTADO' => 'Aceptado',
+                                                                        'RECHAZADO' => 'Rechazado',
+                                                                        'OBSERVADO' => 'Observado',
+                                                                        'NO_APLICA' => 'No aplica',
+                                                                        default => $item->tax_authority_status ?? 'Desconocido'
+                                                                    }
+                                                                };
+                                                                
+                                                                $statusClass = match($item->tax_authority_status) {
+                                                                    'voided' => 'bg-red-100 text-red-800',
+                                                                    default => match($item->sunat_status) {
+                                                                        null => 'bg-yellow-100 text-yellow-800',
+                                                                        'PENDIENTE' => 'bg-yellow-100 text-yellow-800',
+                                                                        'ACEPTADO' => 'bg-green-100 text-green-800',
+                                                                        'RECHAZADO' => 'bg-red-100 text-red-800',
+                                                                        'OBSERVADO' => 'bg-orange-100 text-orange-800',
+                                                                        'NO_APLICA' => 'bg-gray-100 text-gray-800',
+                                                                        default => 'bg-gray-100 text-gray-800'
+                                                                    }
+                                                                };
+                                                            @endphp
+                                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">
+                                                                {{ $statusLabel }}
+                                                            </span>
+                                                        </td>
                                                     @elseif($page->reportType === 'system_logs')
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->date }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->event }}</td>
@@ -744,6 +830,7 @@
             if (!endDate) endDate = document.querySelector('input[name="endDate"]')?.value || '';
             
             const channelFilter = params.get('channelFilter') || document.querySelector('select[name="channelFilter"]')?.value || '';
+            const invoiceType = params.get('invoiceType') || document.querySelector('select[name="invoiceType"]')?.value || '';
             
             // Construir parámetros para el controlador
             const excelParams = new URLSearchParams();
@@ -752,6 +839,10 @@
             // Solo agregar channelFilter si tiene un valor válido (no vacío)
             if (channelFilter && channelFilter !== '' && channelFilter !== 'all') {
                 excelParams.set('channelFilter', channelFilter);
+            }
+            // Solo agregar invoiceType si tiene un valor válido (no vacío)
+            if (invoiceType && invoiceType !== '') {
+                excelParams.set('invoiceType', invoiceType);
             }
             
             // Seleccionar la ruta específica según el tipo de reporte
@@ -774,6 +865,9 @@
                 case 'cash_register':
                     baseUrl = '/admin/reportes/cash-register/excel-download';
                     break;
+                case 'accounting_reports':
+                    baseUrl = '/admin/reportes/accounting/excel-download';
+                    break;
                 default:
                     baseUrl = '/admin/reportes/sales/excel-download';
             }
@@ -784,7 +878,8 @@
             console.log('🟢 [EXPORT] Parámetros:', {
                 startDate: startDate,
                 endDate: endDate,
-                channelFilter: channelFilter
+                channelFilter: channelFilter,
+                invoiceType: invoiceType
             });
             console.log('🟢 [EXPORT] Iniciando descarga sin recargar página...');
             

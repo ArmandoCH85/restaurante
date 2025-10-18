@@ -923,7 +923,8 @@ class ReportesPage extends Page implements HasForms
             'finance' => [
                 'cash_register' => 'Movimientos de Caja',
                 'profits' => 'Reporte de Ganancias',
-                'daily_closing' => 'Cierres diarios'
+                'daily_closing' => 'Cierres diarios',
+                'accounting_reports' => 'Reportes de Contabilidad'
             ],
             'operations' => [
                 'sales_by_user' => 'Ventas por Usuario',
