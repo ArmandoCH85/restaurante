@@ -1,4 +1,16 @@
 <?php
+/*
+ * REPORTE: Sistema de Generación de Reportes del Restaurante
+ *
+ * Este archivo contiene la clase ReportesPage que implementa la interfaz principal
+ * para la generación de diversos tipos de reportes (ventas, productos, finanzas, etc.)
+ *
+ * CAMBIOS RECIENTES:
+ * - Se agregó redirección a la nueva página de visualización de reportes individuales
+ * - Se implementaron métodos para categorizar y seleccionar diferentes tipos de reportes
+ * - Se mejoró la estructura de navegación para facilitar el acceso a reportes específicos
+ * - Se optimizó la generación de reportes en formato PDF y Excel
+ */
 
 namespace App\Filament\Pages;
 

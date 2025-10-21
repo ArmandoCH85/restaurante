@@ -1,4 +1,13 @@
 <?php
+/*
+ * RUTAS: Sistema de Rutas de la Aplicación Restaurante
+ *
+ * CAMBIOS RECIENTES:
+ * - Se agregaron nuevas rutas para la visualización individual de reportes
+ * - Se implementaron rutas específicas para descarga de Excel por tipo de reporte
+ * - Se mejoró la estructura de rutas para los reportes de contabilidad
+ * - Se optimizaron las rutas de impresión y generación de comprobantes
+ */
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PosController;

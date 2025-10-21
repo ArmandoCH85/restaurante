@@ -1,4 +1,17 @@
 <!DOCTYPE html>
+<!--
+  VISTA: Plantilla de Visualización de Reportes
+  Esta vista implementa la interfaz de usuario para la visualización detallada
+  de reportes con filtros avanzados y exportación a Excel.
+  
+  CAMBIOS RECIENTES:
+  - Se implementó sistema de filtrado personalizado por fechas y horas
+  - Se agregaron filtros específicos para tipo de comprobante en reportes de contabilidad
+  - Se mejoró la visualización de datos con tabla responsive y columnas fijas
+  - Se optimizó la exportación a Excel con JavaScript asíncrono
+  - Se implementaron modales para visualización detallada de órdenes
+  - Se agregaron estadísticas visuales en la parte superior
+-->
 <html lang="es" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">

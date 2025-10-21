@@ -1,4 +1,16 @@
 <?php
+/*
+ * CONTROLADOR: Gestión de Reportes de Contabilidad
+ *
+ * Este controlador maneja la generación y descarga de reportes de contabilidad
+ * en formato Excel, incluyendo facturas, boletas y otros comprobantes fiscales.
+ *
+ * CAMBIOS RECIENTES:
+ * - Se implementó filtrado por tipo de comprobante (facturas, boletas)
+ * - Se optimizó la consulta para excluir Notas de Venta por defecto
+ * - Se mejoró el formato de exportación Excel con estilos y validación
+ * - Se agregaron logs detallados para depuración de consultas
+ */
 
 namespace App\Http\Controllers;
 
@@ -81,7 +93,7 @@ class AccountingReportController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         
         // Headers
-        $headers = ['Fecha Emisión', 'Tipo Comprobante', 'Número', 'Cliente', 'Total', 'Estado'];
+        $headers = ['Fecha Emisión', 'Tipo Comprobante', 'Número', 'Cliente', 'N° Documento', 'Total', 'Estado'];
         $column = 'A';
         foreach ($headers as $header) {
             $sheet->setCellValue($column . '1', $header);
@@ -102,9 +114,10 @@ class AccountingReportController extends Controller
             $sheet->setCellValue('A' . $row, $invoice->issue_date->format('d/m/Y'));
             $sheet->setCellValue('B' . $row, $this->getInvoiceTypeLabel($invoice));
             $sheet->setCellValue('C' . $row, $invoice->series . '-' . $invoice->number);
-            $sheet->setCellValue('D' . $row, $invoice->customer ? $invoice->customer->full_name : ($invoice->client_name ?? 'Cliente no registrado'));
-            $sheet->setCellValue('E' . $row, $invoice->total);
-            $sheet->setCellValue('F' . $row, $this->getInvoiceStatusLabel($invoice));
+            $sheet->setCellValue('D' . $row, $invoice->customer ? $invoice->customer->name : ($invoice->client_name ?? 'Cliente no registrado'));
+            $sheet->setCellValue('E' . $row, $this->getCustomerDocumentNumber($invoice));
+            $sheet->setCellValue('F' . $row, $invoice->total);
+            $sheet->setCellValue('G' . $row, $this->getInvoiceStatusLabel($invoice));
             $row++;
         }
         
@@ -159,5 +172,29 @@ class AccountingReportController extends Controller
             'NO_APLICA' => 'No aplica',
             default => $invoice->tax_authority_status ?? 'Desconocido'
         };
+    }
+    
+    private function getCustomerDocumentNumber($invoice): string
+    {
+        // Si no hay cliente, retornar vacío
+        if (!$invoice->customer) {
+            return '';
+        }
+        
+        // Obtener el tipo de comprobante para determinar qué documento mostrar
+        $invoiceTypeLabel = $this->getInvoiceTypeLabel($invoice);
+        
+        // Si es Boleta, mostrar DNI
+        if ($invoiceTypeLabel === 'Boleta') {
+            return $invoice->customer->document_type === 'DNI' ? $invoice->customer->document_number : '';
+        }
+        
+        // Si es Factura, mostrar RUC
+        if ($invoiceTypeLabel === 'Factura') {
+            return $invoice->customer->document_type === 'RUC' ? $invoice->customer->document_number : '';
+        }
+        
+        // Para otros tipos, mostrar el documento si existe
+        return $invoice->customer->document_number ?? '';
     }
 }

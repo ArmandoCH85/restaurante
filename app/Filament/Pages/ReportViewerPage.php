@@ -1,4 +1,18 @@
 <?php
+/*
+ * PÁGINA: Visualizador Individual de Reportes
+ *
+ * Esta clase implementa la página de visualización detallada para cada tipo de reporte
+ * con filtros avanzados, exportación a Excel y navegación optimizada.
+ *
+ * CAMBIOS RECIENTES:
+ * - Se implementó sistema de filtrado avanzado por fechas y horas
+ * - Se agregó soporte para diferentes tipos de comprobantes en reportes de contabilidad
+ * - Se optimizó la exportación a Excel con formato mejorado
+ * - Se implementaron métodos específicos para cada tipo de reporte
+ * - Se mejoró la gestión de canales de venta para reportes de productos
+ * - Se agregó logging detallado para depuración de consultas
+ */
 
 namespace App\Filament\Pages;
 
@@ -1558,7 +1572,8 @@ class ReportViewerPage extends Page implements HasForms
                         'issue_date' => $item->issue_date->format('d/m/Y'),
                         'invoice_type' => $this->getInvoiceTypeLabelForAccounting($item),
                         'series_number' => $item->series . '-' . $item->number,
-                        'customer' => $item->customer ? $item->customer->full_name : ($item->client_name ?? 'Cliente no registrado'),
+                        'customer' => $item->customer ? $item->customer->name : ($item->client_name ?? 'Cliente no registrado'),
+                        'document_number' => $this->getCustomerDocumentNumberForAccounting($item),
                         'total' => $item->total,
                         'status' => $this->getInvoiceStatusLabel($item),
                     ];
@@ -1569,7 +1584,7 @@ class ReportViewerPage extends Page implements HasForms
                     return [
                         'created_at' => $item->order_datetime->format('d/m/Y H:i'),
                         'cash_register' => $item->cashRegister->name ?? 'N/A',
-                        'customer' => $item->customer->full_name ?? ($item->client_name ?? 'Cliente no registrado'),
+                        'customer' => $item->customer->name ?? ($item->client_name ?? 'Cliente no registrado'),
                         'invoice_type' => $this->getInvoiceTypeLabel($item),
                         'channel_label' => $this->getChannelLabel($item->service_type),
                         'payment_method' => $this->getPaymentMethodLabel($item->payment_method),
@@ -1683,7 +1698,7 @@ class ReportViewerPage extends Page implements HasForms
             case 'products_by_channel':
                 return ['Producto', 'Canal de Venta', 'Cantidad', 'Total Ventas'];
             case 'accounting_reports':
-                return ['Fecha Emisión', 'Tipo Comprobante', 'Número', 'Cliente', 'Total', 'Estado'];
+                return ['Fecha Emisión', 'Tipo Comprobante', 'Número', 'Cliente', 'N° Documento', 'Total', 'Estado'];
             case 'all_sales':
             case 'delivery_sales':
                 return ['Fecha | Hora', 'Caja', 'Cliente', 'Documento', 'Canal Venta', 'Tipo Pago', 'Total', 'Estado'];
@@ -1748,7 +1763,7 @@ class ReportViewerPage extends Page implements HasForms
             return [
                 'created_at' => $order->order_datetime->format('d/m/Y H:i'),
                 'cash_register' => $order->cashRegister->name ?? 'N/A',
-                'customer' => $order->customer->full_name ?? ($order->client_name ?? 'Cliente no registrado'),
+                'customer' => $order->customer->name ?? ($order->client_name ?? 'Cliente no registrado'),
                 'invoice_type' => $this->getInvoiceTypeLabel($order),
                 'channel_label' => $this->getChannelLabel($order->service_type),
                 'payment_method' => $this->getPaymentMethodLabel($order->payment_method),
@@ -2157,5 +2172,32 @@ class ReportViewerPage extends Page implements HasForms
     public static function canAccess(): bool
     {
         return auth()->user()->hasRole(['super_admin', 'admin']);
+    }
+    
+    /**
+     * Obtiene el número de documento del cliente para reportes de contabilidad
+     */
+    private function getCustomerDocumentNumberForAccounting($invoice): string
+    {
+        // Si no hay cliente, retornar vacío
+        if (!$invoice->customer) {
+            return '';
+        }
+        
+        // Obtener el tipo de comprobante para determinar qué documento mostrar
+        $invoiceTypeLabel = $this->getInvoiceTypeLabelForAccounting($invoice);
+        
+        // Si es Boleta, mostrar DNI
+        if ($invoiceTypeLabel === 'Boleta') {
+            return $invoice->customer->document_type === 'DNI' ? $invoice->customer->document_number : '';
+        }
+        
+        // Si es Factura, mostrar RUC
+        if ($invoiceTypeLabel === 'Factura') {
+            return $invoice->customer->document_type === 'RUC' ? $invoice->customer->document_number : '';
+        }
+        
+        // Para otros tipos, mostrar el documento si existe
+        return $invoice->customer->document_number ?? '';
     }
 }
