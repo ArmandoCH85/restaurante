@@ -56,7 +56,7 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <a href="{{ url('/') }}" class="flex items-center" aria-label="Inicio">
-                        <img src="{{ asset('images/logoWayna.svg') }}" alt="Waynasoft" class="h-[96px] md:h-24 sm:h-14 w-auto">
+                        <img src="{{ asset('images/logo.jpg') }}" alt="Waynasoft" class="h-[120px] md:h-32 sm:h-20 w-auto">
                     </a>
                     <span class="ml-4 text-sm md:text-base text-gray-600 dark:text-gray-300 font-bold hidden sm:inline">Software de gestión para restaurantes</span>
                 </div>

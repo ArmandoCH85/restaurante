@@ -339,7 +339,7 @@
         <div class="hero-diagram" aria-hidden="true" style="position: relative;">
             <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); text-align: center;">
                 <div style="margin-bottom: 30px;">
-                    <img src="{{ asset('images/logoWayna.svg') }}" alt="Wayna" style="width: 120px; height: auto;">
+                    <img src="{{ asset('images/logo.jpg?v=' . time()) }}" alt="Wayna" style="width: 120px; height: auto;">
                     <h3 style="margin-top: 16px; color: #2c3e50; font-size: 24px; font-weight: 700;">WAYNA</h3>
                     <p style="color: #5a6c7d; margin-top: 8px; font-size: 16px;">La solución completa para tu restaurante</p>
                 </div>
