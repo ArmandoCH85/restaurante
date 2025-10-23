@@ -499,12 +499,74 @@
 
 
 
-<!-- Imagen full-width previa a la demo -->
+<!-- Imagen full-width previa a la demo con textos superpuestos -->
 <section class="image-fullwidth-section" aria-hidden="true">
-    <div class="image-fullwidth-wrapper">
-        <img src="{{ asset('images/img6.png') }}" alt="Imagen representativa" class="image-fullwidth">
+    <div class="image-fullwidth-wrapper" style="position: relative;">
+        <!-- Imagen de fondo -->
+        <img src="{{ asset('images/img7.png') }}" alt="Etapas del proceso" class="image-fullwidth">
+        
+        <!-- Contenedor de textos superpuestos -->
+        <div class="etapas-textos-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
+            
+            <!-- ETAPA 1 - Al final de la imagen -->
+            <div class="etapa-texto etapa-1" style="position: absolute; top: 77%; left: 12%; transform: translateX(-50%); background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); display: flex; align-items: center; justify-content: center;">
+                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
+                    Te enseñamos los primeros pasos para alcanzar el éxito.
+                </p>
+            </div>
+            
+            <!-- ETAPA 2 - Al final de la imagen -->
+            <div class="etapa-texto etapa-2" style="position: absolute; top: 77%; left: 37%; transform: translateX(-50%); background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center;">
+                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
+                    Analiza, ajusta y potencia resultados continuamente con información en tiempo real.
+                </p>
+            </div>
+            
+            <!-- ETAPA 3 - Al final de la imagen -->
+            <div class="etapa-texto etapa-3" style="position: absolute; top: 77%; left: 62%; transform: translateX(-50%); background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center;">
+                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
+                    Te ayudamos a multiplicar tus ventas y maximizar tus ingresos con nuevos canales de venta.
+                </p>
+            </div>
+            
+            <!-- ETAPA 4 - Al final de la imagen -->
+            <div class="etapa-texto etapa-4" style="position: absolute; top: 77%; left: 87%; transform: translateX(-50%); background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3); display: flex; align-items: center; justify-content: center;">
+                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
+                    ¿Listo para expandirte? Te acompañamos a crecer sin perder el control.
+                </p>
+            </div>
+        </div>
     </div>
 </section>
+
+<!-- Estilos responsive para los textos de etapas -->
+<style>
+@media (max-width: 768px) {
+    .etapa-texto {
+        width: 45% !important;
+        height: 70px !important;
+        padding: 6px 10px !important;
+        font-size: 14px !important;
+    }
+    .etapa-1 { top: 75% !important; left: 25% !important; }
+    .etapa-2 { top: 75% !important; left: 75% !important; }
+    .etapa-3 { top: 79% !important; left: 25% !important; }
+    .etapa-4 { top: 79% !important; left: 75% !important; }
+}
+
+@media (max-width: 480px) {
+    .etapa-texto {
+        width: 48% !important;
+        height: 65px !important;
+        padding: 5px 8px !important;
+        font-size: 14px !important;
+    }
+    .etapa-1 { top: 74% !important; left: 25% !important; }
+    .etapa-2 { top: 74% !important; left: 75% !important; }
+    .etapa-3 { top: 78% !important; left: 25% !important; }
+    .etapa-4 { top: 78% !important; left: 75% !important; }
+}
+</style>
 
 <!-- Demo / Contacto -->
 <section class="content-section" id="demo" aria-labelledby="demo-title">
