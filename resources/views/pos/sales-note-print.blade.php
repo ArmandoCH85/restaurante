@@ -291,7 +291,7 @@
         </div>
         @if($invoice->client_document)
         <div class="info-row">
-            <span class="label">RUC/DNI:</span>
+            <span class="label">DNI:</span>
             <span>{{ $invoice->client_document }}</span>
         </div>
         @endif
@@ -299,6 +299,13 @@
         <div class="info-row">
             <span class="label">Teléfono:</span>
             <span>{{ $invoice->order->customer->phone }}</span>
+        </div>
+        @endif
+        
+        @if($invoice->client_address)
+        <div class="info-row">
+            <span class="label">Dirección:</span>
+            <span>{{ $invoice->client_address }}</span>
         </div>
         @endif
         <div class="info-row">

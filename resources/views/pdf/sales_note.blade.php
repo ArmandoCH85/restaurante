@@ -183,10 +183,6 @@
         </div>
         <hr>
         <table class="info-table">
-            <tr>
-                <td><strong>Fecha:</strong></td>
-                <td>{{ now()->format('d/m/Y - H:i:s') }}</td>
-            </tr>
             {{-- Información del Cliente --}}
             <tr>
                 <td><strong>Cliente:</strong></td>
@@ -199,10 +195,10 @@
                 </td>
             </tr>
             
-            {{-- Mostrar RUC/DNI del cliente siempre que esté disponible --}}
+            {{-- Mostrar DNI del cliente siempre que esté disponible --}}
             @if($invoice->client_document)
             <tr>
-                <td><strong>RUC/DNI:</strong></td>
+                <td><strong>DNI:</strong></td>
                 <td>{{ $invoice->client_document }}</td>
             </tr>
             @endif
@@ -215,40 +211,70 @@
             </tr>
             @endif
             
+            {{-- Mostrar dirección del cliente siempre que esté disponible --}}
+            @if($invoice->client_address)
+            <tr>
+                <td><strong>Dirección:</strong></td>
+                <td>{{ $invoice->client_address }}</td>
+            </tr>
+            @endif
+            
             @if(($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery' && !empty($direct_sale_customer_name))
             <tr>
                 <td><strong>Contacto:</strong></td>
                 <td>{{ $direct_sale_customer_name }}</td>
             </tr>
             @endif
+        </table>
+        
+        {{-- Separador entre información del cliente y datos de transacción --}}
+        <hr>
+        
+        <table class="info-table">
+            <tr>
+                <td><strong>Fecha:</strong></td>
+                <td>{{ now()->format('d/m/Y - H:i:s') }}</td>
+            </tr>
             
             @php
                 $waiterName = null;
                 
-                // Prioridad 1: Usuario de la orden
+                // Prioridad 1: Usuario de la orden (buscando primero el empleado relacionado)
                 if ($invoice->order && $invoice->order->employee_id) {
-                    $orderUser = \App\Models\User::find($invoice->order->employee_id);
-                    if ($orderUser) {
-                        $waiterName = $orderUser->name;
+                    $orderEmployee = \App\Models\Employee::find($invoice->order->employee_id);
+                    if ($orderEmployee) {
+                        $waiterName = $orderEmployee->full_name;
+                    } else {
+                        // Si no encuentra empleado, buscar usuario
+                        $orderUser = \App\Models\User::find($invoice->order->employee_id);
+                        if ($orderUser) {
+                            $waiterName = $orderUser->name;
+                        }
                     }
                 }
                 
-                // Prioridad 2: Usuario directo de la factura
+                // Prioridad 2: Empleado directo de la factura
                 if (!$waiterName && $invoice->employee_id) {
-                    $invoiceUser = \App\Models\User::find($invoice->employee_id);
-                    if ($invoiceUser) {
-                        $waiterName = $invoiceUser->name;
+                    $invoiceEmployee = \App\Models\Employee::find($invoice->employee_id);
+                    if ($invoiceEmployee) {
+                        $waiterName = $invoiceEmployee->full_name;
+                    } else {
+                        // Si no encuentra empleado, buscar usuario
+                        $invoiceUser = \App\Models\User::find($invoice->employee_id);
+                        if ($invoiceUser) {
+                            $waiterName = $invoiceUser->name;
+                        }
                     }
                 }
                 
-                // Prioridad 3: Empleado relacionado
+                // Prioridad 3: Empleado relacionado (relación directa)
                 if (!$waiterName && $invoice->employee) {
                     $waiterName = $invoice->employee->full_name;
                 }
                 
                 // Prioridad 4: Usuario actual como fallback
                 if (!$waiterName && auth()->user()) {
-                    $waiterName = auth()->user()->name . ' (Usuario actual)';
+                    $waiterName = auth()->user()->name;
                 }
                 
                 // Prioridad 5: Mensaje por defecto
