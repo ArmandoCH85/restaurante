@@ -174,6 +174,7 @@
         <div class="header">
             <h1>NOTA DE VENTA</h1>
             <p><strong style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() ?? 'RESTAURANTE EJEMPLO' }}</strong></p>
+            <p style="font-size: 14px;">RUC: {{ $company['ruc'] ?? \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
             <p style="font-size: 14px;">{{ $company['direccion'] ?? \App\Models\CompanyConfig::getDireccion() ?? 'Av. Ejemplo 123, Ciudad' }}</p>
             @if(($company['telefono'] ?? \App\Models\CompanyConfig::getTelefono()))
                 <p style="font-size: 14px;">Tel: {{ $company['telefono'] ?? \App\Models\CompanyConfig::getTelefono() }}</p>
@@ -197,6 +198,14 @@
                     @endif
                 </td>
             </tr>
+            
+            {{-- Mostrar RUC/DNI del cliente siempre que esté disponible --}}
+            @if($invoice->client_document)
+            <tr>
+                <td><strong>RUC/DNI:</strong></td>
+                <td>{{ $invoice->client_document }}</td>
+            </tr>
+            @endif
             
             {{-- Mostrar teléfono del cliente siempre que esté disponible --}}
             @if($invoice->order && $invoice->order->customer && $invoice->order->customer->phone)

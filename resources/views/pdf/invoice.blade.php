@@ -174,11 +174,11 @@
     <div class="container">
         <div class="header">
             <h1>FACTURA ELECTRÓNICA</h1>
-            <p><strong style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
-            <p style="font-size: 14px;">RUC: {{ \App\Models\CompanyConfig::getRuc() }}</p>
-            <p style="font-size: 14px;">{{ \App\Models\CompanyConfig::getDireccion() }}</p>
-            @if(\App\Models\CompanyConfig::getTelefono())
-                <p style="font-size: 14px;">Tel: {{ \App\Models\CompanyConfig::getTelefono() }}</p>
+            <p><strong style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
+            <p style="font-size: 14px;">RUC: {{ $company['ruc'] ?? \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
+            <p style="font-size: 14px;">{{ $company['direccion'] ?? \App\Models\CompanyConfig::getDireccion() }}</p>
+            @if($company['telefono'] ?? \App\Models\CompanyConfig::getTelefono())
+                <p style="font-size: 14px;">Tel: {{ $company['telefono'] ?? \App\Models\CompanyConfig::getTelefono() }}</p>
             @endif
             <p><strong style="font-size: 15px;">F{{ $invoice->series }}-{{ str_pad($invoice->number, 8, '0', STR_PAD_LEFT) }}</strong></p>
         </div>
@@ -197,6 +197,14 @@
                 <td><strong>Cliente:</strong></td>
                 <td>{{ $invoice->client_name }}</td>
             </tr>
+            
+            {{-- Mostrar RUC del cliente siempre que esté disponible --}}
+            @if($invoice->client_document)
+            <tr>
+                <td><strong>RUC/DNI:</strong></td>
+                <td>{{ $invoice->client_document }}</td>
+            </tr>
+            @endif
             
             {{-- Mostrar teléfono del cliente siempre que esté disponible --}}
             @if($invoice->order && $invoice->order->customer && $invoice->order->customer->phone)
@@ -412,7 +420,7 @@
             <p>N° 203-2015/SUNAT</p>
             <p>Consulte su comprobante en www.sunat.gob.pe</p>
             <p>Gracias por su preferencia</p>
-            <p><strong style="font-size: 16px;">{{ \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
+            <p><strong style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
         </div>
     </div>
     <script>

@@ -289,6 +289,12 @@
                 @endif
             </span>
         </div>
+        @if($invoice->client_document)
+        <div class="info-row">
+            <span class="label">RUC/DNI:</span>
+            <span>{{ $invoice->client_document }}</span>
+        </div>
+        @endif
         @if($invoice->order->customer?->phone)
         <div class="info-row">
             <span class="label">Teléfono:</span>
