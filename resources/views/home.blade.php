@@ -406,6 +406,193 @@
             height: 40px !important;
         }
     }
+
+    /* ===== RESPONSIVE PARA CONTENT SECTIONS (Venta Online, Velocidad, etc) ===== */
+    @media (max-width: 768px) {
+        /* Content sections con padding y layout */
+        section[style*="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"],
+        section[style*="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%)"],
+        section[style*="background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%)"],
+        section[style*="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)"] {
+            padding: 60px 16px !important;
+        }
+        
+        /* Content container a 1 columna */
+        div[style*="display: grid; grid-template-columns: 1fr 1fr; gap: 60px"] {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+        }
+        
+        /* Headings de content sections */
+        section[style*="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"] h2,
+        section[style*="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%)"] h2,
+        section[style*="background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%)"] h2,
+        section[style*="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)"] h2 {
+            font-size: 36px !important;
+            margin-bottom: 16px !important;
+        }
+        
+        /* Párrafos de content */
+        section[style*="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"] p,
+        section[style*="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%)"] p,
+        section[style*="background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%)"] p,
+        section[style*="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)"] p {
+            font-size: 15px !important;
+        }
+        
+        /* Content image altura */
+        div[style*="position: relative; min-height: 450px"] {
+            min-height: 300px !important;
+        }
+        
+        /* Features grid en content */
+        div[style*="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px"] {
+            grid-template-columns: 1fr !important;
+        }
+        
+        /* Padding de content-text */
+        div[style*="padding-right: 40px"],
+        div[style*="padding-left: 40px"] {
+            padding-right: 0 !important;
+            padding-left: 0 !important;
+        }
+        
+        /* Badges en content */
+        div[style*="display: inline-block; padding: 8px 16px; background: rgba"] {
+            margin-bottom: 16px !important;
+        }
+        
+        /* Numbered badges */
+        div[style*="display: flex; align-items: flex-start; gap: 16px"] {
+            gap: 12px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        section[style*="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"],
+        section[style*="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%)"],
+        section[style*="background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%)"],
+        section[style*="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)"] {
+            padding: 40px 16px !important;
+        }
+        
+        section[style*="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)"] h2,
+        section[style*="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%)"] h2,
+        section[style*="background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%)"] h2,
+        section[style*="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)"] h2 {
+            font-size: 28px !important;
+        }
+        
+        div[style*="position: relative; min-height: 450px"] {
+            min-height: 250px !important;
+        }
+    }
+
+    /* ===== RESPONSIVE PARA TESTIMONIOS Y PASOS ===== */
+    @media (max-width: 768px) {
+        /* Testimonios section */
+        section[style*="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)"] {
+            padding: 80px 16px !important;
+        }
+        section[style*="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)"] > div > div:first-child {
+            margin-bottom: 60px !important;
+        }
+        section[style*="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)"] h2 {
+            font-size: 36px !important;
+        }
+        
+        /* Testimonios grid */
+        div[style*="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px"] {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+        }
+        
+        /* Testimonios cards */
+        div[style*="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0"] {
+            padding: 24px !important;
+        }
+        
+        /* Texto testimonios */
+        div[style*="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0"] p {
+            font-size: 14px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        section[style*="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)"] {
+            padding: 60px 16px !important;
+        }
+        section[style*="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%)"] h2 {
+            font-size: 28px !important;
+        }
+        div[style*="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0"] {
+            padding: 20px !important;
+        }
+    }
+
+    /* ===== RESPONSIVE PARA SECCIÓN DE PASOS (Comienza en 4 Pasos) ===== */
+    @media (max-width: 768px) {
+        /* Steps section */
+        section[style*="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+        }
+        
+        /* Steps header */
+        div[style*="text-align: center; margin-bottom: 100px"] h2 {
+            font-size: 36px !important;
+        }
+        div[style*="text-align: center; margin-bottom: 100px"] p {
+            font-size: 16px !important;
+        }
+        
+        /* Step circles */
+        div[style*="width: 120px; height: 120px; background: linear-gradient"] {
+            width: 100px !important;
+            height: 100px !important;
+            font-size: 40px !important;
+        }
+        
+        /* CTA section */
+        div[style*="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 20px; padding: 60px 40px"] {
+            padding: 40px 24px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        section[style*="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px"] {
+            grid-template-columns: 1fr !important;
+        }
+        div[style*="text-align: center; margin-bottom: 100px"] h2 {
+            font-size: 28px !important;
+        }
+        div[style*="width: 120px; height: 120px; background: linear-gradient"] {
+            width: 90px !important;
+            height: 90px !important;
+            font-size: 36px !important;
+        }
+        div[style*="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 20px; padding: 60px 40px"] {
+            padding: 32px 16px !important;
+        }
+        div[style*="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 20px; padding: 60px 40px"] h3 {
+            font-size: 22px !important;
+        }
+    }
+
+    /* ===== RESPONSIVE PARA BENEFICIOS POR ROL ===== */
+    @media (max-width: 768px) {
+        /* Roles section */
+        div[style*="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px"] {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        div[style*="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px"] {
+            grid-template-columns: 1fr !important;
+        }
+    }
 </style>
 @endpush
 
