@@ -125,9 +125,9 @@
     }
 
     /* Hero Section */
-    .hero { background: linear-gradient(135deg, #e3f2fd 0%, #f0f4ff 50%, #e8f5e9 100%); padding: 80px 20px; position: relative; overflow: hidden; }
+    .hero { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 140px 20px 100px; position: relative; overflow: hidden; }
     .hero::before { content: ''; position: absolute; top: -50%; left: -10%; width: 600px; height: 600px; background: rgba(255,255,255,0.3); border-radius: 50%; transform: rotate(45deg); }
-    .hero-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1; }
+    .hero-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center; position: relative; z-index: 1; }
     .hero-content h1 { font-size: 56px; line-height: 1.2; margin-bottom: 30px; color: #333; }
     .hero-content h1 .blue { color: #1e88e5; }
     .hero-content p { font-size: 18px; color: #555; margin-bottom: 30px; line-height: 1.8; }
@@ -157,36 +157,14 @@
     .features { padding: 80px 20px; background-color: #f7fbff; }
     .features-container { max-width: 1400px; margin: 0 auto; }
     .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; margin-bottom: 60px; }
-    .feature-card {
-        text-align: center;
-        background: white;
-        padding: 30px 24px;
-        border-radius: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
+    
+    @media (max-width: 1024px) {
+        .features-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
     }
-    .feature-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    @media (max-width: 768px) {
+        .features { padding: 60px 16px; }
+        .features-grid { grid-template-columns: 1fr; gap: 20px; }
     }
-    .feature-icon {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 20px;
-        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 36px;
-        color: white;
-        transition: transform 0.3s ease;
-    }
-    .feature-card:hover .feature-icon {
-        transform: scale(1.1);
-    }
-    .feature-card h3 { font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600; }
-    .feature-card p { font-size: 15px; color: #5a6c7d; line-height: 1.5; }
 
     /* Benefits Section */
     .benefits { padding: 80px 20px; background-color: #f7fbff; }
@@ -213,49 +191,53 @@
     .pricing-features li::before { content: '✓ '; color: #4caf50; font-weight: bold; margin-right: 10px; }
     .pricing-card .btn-primary { width: 100%; justify-content: center; }
 
-    /* Responsive */
     @media (max-width: 1024px) {
-        .hero-container { grid-template-columns: 1fr; }
-        .features-grid { grid-template-columns: repeat(2, 1fr); }
-        .benefits-grid { grid-template-columns: repeat(2, 1fr); }
-        .pricing-grid { grid-template-columns: 1fr; }
-        .hero-content h1 { font-size: 40px; }
+        .hero-container { grid-template-columns: 1fr; gap: 60px; }
+        .hero-content h1 { font-size: 48px; }
     }
     @media (max-width: 768px) {
         .hero {
-            padding: 48px 16px;
+            padding: 80px 20px 60px;
         }
         .hero-container {
-            gap: 24px;
+            grid-template-columns: 1fr;
+            gap: 48px;
         }
+        .hero-content h1 { font-size: 36px; line-height: 1.25; }
+        .hero-content p { font-size: 16px; line-height: 1.7; }
+        .hero-buttons { flex-direction: column; gap: 12px; margin-bottom: 60px; }
+        .hero-buttons a { width: 100%; justify-content: center; }
+        .hero-diagram { height: 400px; }
+        .stats { flex-direction: column; gap: 24px; }
+    }
+    @media (max-width: 420px) {
+        .hero { padding: 60px 16px 48px; }
         .hero-content h1 { font-size: 28px; }
-        .hero-content p { font-size: 16px; }
-        .hero-buttons { flex-direction: column; gap: 12px; margin-bottom: 24px; }
-
+        .hero-content p { font-size: 15px; }
+    }
+    /* Responsive - Features y otros componentes */
+    @media (max-width: 1024px) {
+        .features-grid { grid-template-columns: repeat(2, 1fr); }
+        .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+        .pricing-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
         .content-section { padding: 48px 16px; }
         .content-container { grid-template-columns: 1fr; gap: 24px; }
         .content-text h2 { font-size: 28px; }
         .content-text p, .content-text li { font-size: 15px; }
-
+        
         /* Evitar imágenes demasiado grandes en móvil */
         .content-image { height: auto; overflow: visible; }
         .content-image img { width: 100%; height: auto; max-height: 60vh; object-fit: cover; }
         /* Igualar comportamiento de img1 e img3 al de img2 en móvil */
         .content-image--balanced img { object-fit: contain; max-height: 45vh; }
-
-        .hero-diagram { height: 240px; }
-        .diagram-circle { width: 180px; height: 180px; }
-        .diagram-item { width: 68px; height: 68px; font-size: 10px; }
-        .diagram-label { font-size: 12px; }
     }
 
     /* Extra pequeño (<=420px) */
     @media (max-width: 420px) {
-        .hero-content h1 { font-size: 26px; }
         .content-text h2 { font-size: 26px; }
         .content-image img { max-height: 50vh; }
-        .hero-diagram { height: 220px; }
-        .diagram-circle { width: 160px; height: 160px; }
     }
     /* Imagen full-width previa a demo */
     .image-fullwidth-section { padding: 0; }
@@ -275,271 +257,844 @@
 @endpush
 
 @section('content')
-<!-- Hero Section Moderno -->
-<section class="hero" aria-labelledby="hero-title">
-    <div class="hero-container">
-        <div class="hero-content">
-            <!-- Trust Badges -->
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 6px 16px; background: rgba(255,255,255,0.95); border-radius: 50px; width: fit-content; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                <span style="background: #10b981; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">✓ CERTIFICADO SUNAT</span>
-                <span style="background: #3b82f6; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">✓ 500+ RESTAURANTES</span>
-                <span style="background: #f59e0b; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600;">✓ 24/7 SOPORTE</span>
+<!-- HERO SECTION ULTRA PROFESIONAL - Diseño SaaS 2025 Premium -->
+<section style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%); padding: 160px 20px 120px; position: relative; overflow: hidden;">
+    <!-- Elementos decorativos de fondo -->
+    <div style="position: absolute; top: -40%; right: -10%; width: 700px; height: 700px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -20%; left: -5%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+    
+    <div style="max-width: 1400px; margin: 0 auto; position: relative; z-index: 1;">
+        <!-- Micro-copy de credibilidad con badges premium -->
+        <div style="display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 48px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981"><path d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span style="font-size: 12px; font-weight: 700; color: #10b981;">CERTIFICADO SUNAT</span>
             </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#3b82f6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+                <span style="font-size: 12px; font-weight: 700; color: #3b82f6;">500+ RESTAURANTES</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(245, 158, 11, 0.1); border-radius: 20px; border: 1px solid rgba(245, 158, 11, 0.2);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b"><path d="M9 12l2 2 4-4m6 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span style="font-size: 12px; font-weight: 700; color: #f59e0b;">SOPORTE 24/7</span>
+            </div>
+        </div>
 
-            <h1 id="hero-title">
-                <span class="blue">Software Restaurant</span><br>
-                <span class="blue">Wayna</span><br>
-                <span style="color: #2c3e50; font-size: 48px; font-weight: 800;">Todo en Uno</span>
+        <!-- Heading principal ultra impactante -->
+        <div style="text-align: center; margin-bottom: 48px;">
+            <h1 id="hero-title" style="font-size: 72px; line-height: 1.15; margin-bottom: 24px; color: #0f172a; font-weight: 900; letter-spacing: -1px;">
+                El Software que tus <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Clientes Aman</span>
             </h1>
             
-            <p style="font-size: 20px; color: #5a6c7d; margin-bottom: 32px; line-height: 1.6; font-weight: 500;">
-                Gestión completa de pedidos, inventario, facturación SUNAT y delivery.
-                <strong>Optimiza tu restaurante y duplica tus ganancias en 90 días.</strong>
+            <!-- Subheading con propuesta de valor clara -->
+            <p style="font-size: 20px; line-height: 1.7; color: #475569; margin-bottom: 56px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                Gestiona pedidos, facturación SUNAT, inventario, caja y delivery en una plataforma inteligente y moderna. <strong style="color: #0f172a;">Reduce errores en 50%, aumenta eficiencia 30%, y multiplica ingresos en 90 días.</strong>
             </p>
 
-            <!-- CTA Buttons mejorados -->
-            <div class="hero-buttons" style="margin-bottom: 40px;">
+            <!-- CTA Buttons profesionales y responsivos -->
+            <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 80px;">
                 @if (Route::has('filament.admin.auth.login'))
                     @auth
-                        <a href="{{ url('/admin') }}" class="btn-primary" style="font-size: 18px; padding: 16px 32px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);">
-                            <i class="fas fa-tachometer-alt"></i>
-                            Ir al Panel <span>→</span>
+                        <a href="{{ url('/admin') }}" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 12px 32px rgba(59, 130, 246, 0.3); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Ir al Panel
                         </a>
                     @else
-                        <a href="{{ route('filament.admin.auth.login') }}" class="btn-primary" style="font-size: 18px; padding: 16px 32px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);">
-                            <i class="fas fa-rocket"></i>
-                            Probar Gratis <span>→</span>
+                        <a href="{{ route('filament.admin.auth.login') }}" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 12px 32px rgba(59, 130, 246, 0.3); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Probar Gratis
                         </a>
                     @endauth
                 @endif
-                <a href="#demo" class="btn-secondary" style="font-size: 18px; padding: 16px 32px;">
-                    <i class="fas fa-calendar-check"></i>
-                    Agendar Demo <span>→</span>
+                <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: white; color: #3b82f6; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); border: 2px solid #3b82f6; cursor: pointer; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);" onmouseover="this.style.backgroundColor='#eff6ff'; this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.25)';" onmouseout="this.style.backgroundColor='white'; this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.15)';">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    Agendar Demo Gratuita
                 </a>
             </div>
-            
-            <!-- Stats mejorados -->
-            <div class="stats" style="background: white; padding: 32px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); gap: 40px;">
-                <div class="stat">
-                    <div class="stat-number" style="font-size: 48px; color: #3b82f6; font-weight: 800;">50%</div>
-                    <div class="stat-label" style="font-size: 16px; color: #5a6c7d; font-weight: 600;">Reducción de Errores</div>
+        </div>
+
+        <!-- Sección de Imagen - Visual Premium con Efecto Glassmorphism -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 100px;">
+            <!-- Left: Dashboard Screenshot Mockup -->
+            <div style="position: relative; height: 500px;">
+                <div style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 24px; padding: 2px; position: absolute; inset: 0; overflow: hidden;">
+                    <div style="background: white; border-radius: 22px; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <!-- Dashboard Placeholder Profesional -->
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%); display: flex; flex-direction: column; padding: 24px;">
+                            <!-- Header del Dashboard -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 10px;"></div>
+                                    <div>
+                                        <div style="font-size: 13px; font-weight: 700; color: #0f172a;">Dashboard WAYNA</div>
+                                        <div style="font-size: 11px; color: #64748b;">Restaurante Premium</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                                    <div style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></div>
+                                    <div style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Stats Grid -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                                <div style="background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                    <div style="font-size: 11px; color: #64748b; margin-bottom: 8px; font-weight: 600;">Ventas Hoy</div>
+                                    <div style="font-size: 24px; font-weight: 800; color: #3b82f6;">$3,284</div>
+                                </div>
+                                <div style="background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                    <div style="font-size: 11px; color: #64748b; margin-bottom: 8px; font-weight: 600;">Pedidos</div>
+                                    <div style="font-size: 24px; font-weight: 800; color: #10b981;">42</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Activity Chart Placeholder -->
+                            <div style="flex: 1; background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 12px; display: flex; align-items: flex-end; gap: 6px;">
+                                <div style="flex: 1; height: 40%; background: rgba(59, 130, 246, 0.2); border-radius: 6px;"></div>
+                                <div style="flex: 1; height: 70%; background: rgba(59, 130, 246, 0.4); border-radius: 6px;"></div>
+                                <div style="flex: 1; height: 50%; background: rgba(59, 130, 246, 0.25); border-radius: 6px;"></div>
+                                <div style="flex: 1; height: 85%; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 6px;"></div>
+                                <div style="flex: 1; height: 60%; background: rgba(59, 130, 246, 0.3); border-radius: 6px;"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat">
-                    <div class="stat-number" style="font-size: 48px; color: #10b981; font-weight: 800;">30%</div>
-                    <div class="stat-label" style="font-size: 16px; color: #5a6c7d; font-weight: 600;">Más Eficiencia</div>
-                </div>
-                <div class="stat">
-                    <div class="stat-number" style="font-size: 48px; color: #f59e0b; font-weight: 800;">24/7</div>
-                    <div class="stat-label" style="font-size: 16px; color: #5a6c7d; font-weight: 600;">Soporte Técnico</div>
+            </div>
+
+            <!-- Right: Beneficios y Características -->
+            <div>
+                <h2 style="font-size: 48px; font-weight: 800; color: #0f172a; margin-bottom: 32px; line-height: 1.2;">
+                    Todo lo que necesitas<br><span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">en un solo lugar</span>
+                </h2>
+
+                <!-- Beneficios con iconos -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Facturación SUNAT 100%</h3>
+                            <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Emisión automática y segura de facturas y boletas electrónicas. Totalmente validado por SUNAT.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Gestión Completa de Pedidos</h3>
+                            <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Control total de mesas, comandas, tiempos de preparación. Reduce errores y acelera el servicio.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M12 2v20m10-10H2"></path></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Inventario en Tiempo Real</h3>
+                            <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Control de stock automático, alertas de productos agotados y reportes de rentabilidad.</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round"><path d="M18.364 5.636l-3.536 3.536m9.172-9.172l-21 21M9 3a6 6 0 100 12 6 6 0 000-12z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Delivery Integrado</h3>
+                            <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Integración con apps de delivery y seguimiento en tiempo real. Múltiples canales de venta.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Hero Visual mejorado -->
-        <div class="hero-diagram" aria-hidden="true" style="position: relative;">
-            <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); text-align: center;">
-                <div style="margin-bottom: 30px;">
-                    <img src="{{ asset('images/logo.jpg?v=' . time()) }}" alt="Wayna" style="width: 120px; height: auto;">
-                    <h3 style="margin-top: 16px; color: #2c3e50; font-size: 24px; font-weight: 700;">WAYNA</h3>
-                    <p style="color: #5a6c7d; margin-top: 8px; font-size: 16px;">La solución completa para tu restaurante</p>
-                </div>
-                
-                <!-- Features Grid inside hero -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
-                    <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border-left: 4px solid #3b82f6; transition: transform 0.3s ease;">
-                        <div style="font-size: 32px; margin-bottom: 8px;">🧾</div>
-                        <h4 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin-bottom: 4px;">Facturación SUNAT</h4>
-                        <p style="color: #5a6c7d; font-size: 14px;">100% compatible</p>
-                    </div>
-                    <div style="background: #f0fdf4; padding: 20px; border-radius: 12px; border-left: 4px solid #10b981; transition: transform 0.3s ease;">
-                        <div style="font-size: 32px; margin-bottom: 8px;">📱</div>
-                        <h4 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin-bottom: 4px;">Gestión Pedidos</h4>
-                        <p style="color: #5a6c7d; font-size: 14px;">Control total</p>
-                    </div>
-                    <div style="background: #fef3c7; padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b; transition: transform 0.3s ease;">
-                        <div style="font-size: 32px; margin-bottom: 8px;">📦</div>
-                        <h4 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin-bottom: 4px;">Inventario</h4>
-                        <p style="color: #5a6c7d; font-size: 14px;">En tiempo real</p>
-                    </div>
-                    <div style="background: #fce7f3; padding: 20px; border-radius: 12px; border-left: 4px solid #ec4899; transition: transform 0.3s ease;">
-                        <div style="font-size: 32px; margin-bottom: 8px;">🚚</div>
-                        <h4 style="color: #2c3e50; font-size: 16px; font-weight: 600; margin-bottom: 4px;">Delivery</h4>
-                        <p style="color: #5a6c7d; font-size: 14px;">Integrado</p>
-                    </div>
-                </div>
+        <!-- Estadísticas y Números finales -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 24px;">
+            <div style="text-align: center;">
+                <div style="font-size: 56px; font-weight: 900; color: white; margin-bottom: 12px;">500+</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.5;">Restaurantes<br>Activos</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 56px; font-weight: 900; color: white; margin-bottom: 12px;">2.3M+</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.5;">Facturas<br>Procesadas</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 56px; font-weight: 900; color: white; margin-bottom: 12px;">99.98%</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.5;">Tasa de<br>Éxito</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 56px; font-weight: 900; color: white; margin-bottom: 12px;">4.9★</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255,255,255,0.9); line-height: 1.5;">Calificación<br>Promedio</div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Features Section Moderna -->
-<section class="features" id="herramientas" style="background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); padding: 100px 20px;">
-    <div class="features-container">
-        <div style="text-align: center; margin-bottom: 80px;">
-            <h2 class="section-title" style="font-size: 42px; color: #2c3e50; font-weight: 700; margin-bottom: 20px;">
+<!-- Features Section Profesional 2024 -->
+<section class="features" id="herramientas" style="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 120px 20px;">
+    <div class="features-container" style="max-width: 1400px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 100px;">
+            <h2 class="section-title" style="font-size: 48px; color: #0f172a; font-weight: 800; margin-bottom: 16px;">
                 Características <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Principales</span>
             </h2>
-            <p style="font-size: 20px; color: #5a6c7d; max-width: 600px; margin: 0 auto; line-height: 1.6;">
-                Todo lo que necesitas para gestionar tu restaurante de manera eficiente y profesional
+            <p style="font-size: 18px; color: #64748b; max-width: 650px; margin: 0 auto; line-height: 1.7;">
+                Todas las herramientas que tu restaurante necesita para crecer: facturación SUNAT, pedidos, inventario, delivery y mucho más
             </p>
         </div>
         
-        <div class="features-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px;">
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">🧾</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Facturación SUNAT</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">100% compatible con normativas digitales</p>
+        <!-- Features Grid - Bento Style -->
+        <div class="features-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
+            <!-- 1. Facturación SUNAT -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 64, 175, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
+                        <polyline points="13 2 13 9 20 9"></polyline>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                        <line x1="9" y1="19" x2="15" y2="19"></line>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Facturación SUNAT</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Emisión automática 100% compatible con normativas digitales</p>
             </div>
             
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">📱</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Gestión Pedidos</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">Control total de mesas y comandas</p>
+            <!-- 2. Gestión Pedidos -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(16, 185, 129, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"></path>
+                        <path d="M12 7v5l4.25 2.5"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Gestión Pedidos</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Control total de mesas, comandas y tiempo de preparación</p>
             </div>
             
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">📦</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Inventario</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">Control de stock en tiempo real</p>
+            <!-- 3. Inventario -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(245, 158, 11, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 2L5.12 6.88a2 2 0 0 0-.5 1.66L5 12H2v2h21V2H9z"></path>
+                        <path d="M4 22h14a2 2 0 0 0 2-2v-6H4v8a2 2 0 0 0 2 2z"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Inventario</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Control de stock en tiempo real y alertas de productos</p>
             </div>
             
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">🚚</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Delivery</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">Gestión de entregas integrada</p>
+            <!-- 4. Delivery -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(236, 72, 153, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(219, 39, 119, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <path d="M12 8V4M16 12h4M12 16v4M8 12H4M14.828 9.172l2.828-2.828M14.828 14.828l2.828 2.828M9.172 9.172L6.344 6.344M9.172 14.828l-2.828 2.828"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Delivery</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Gestión integrada de entregas y seguimiento en tiempo real</p>
             </div>
             
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">💰</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Control Caja</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">Gestión completa de transacciones</p>
+            <!-- 5. Control Caja -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(139, 92, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(124, 58, 237, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                        <path d="M16 4V2M8 4V2M2 11h20"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Control Caja</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Gestión completa de transacciones y cuadratura diaria</p>
             </div>
             
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">📊</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Reportes</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">Análisis y estadísticas en vivo</p>
+            <!-- 6. Reportes -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(6, 182, 212, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#06b6d4" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 6 13.5 15.5 8.5 10.5 1 17"></polyline>
+                        <polyline points="17 6 23 6 23 12"></polyline>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Reportes</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Análisis y estadísticas detalladas en tiempo real</p>
             </div>
             
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">🏪</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Múltiples Locales</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">Gestión centralizada de sucursales</p>
+            <!-- 7. Múltiples Locales -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(249, 115, 22, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(234, 88, 12, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Múltiples Locales</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Gestión centralizada de todas tus sucursales</p>
             </div>
             
-            <div class="feature-card" style="background: white; padding: 30px 24px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); transition: all 0.3s ease; text-align: center;">
-                <div class="feature-icon" style="width: 80px; height: 80px; margin: 0 auto 20px; background: linear-gradient(135deg, #84cc16 0%, #65a30d 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;">👥</div>
-                <h3 style="font-size: 18px; margin-bottom: 12px; color: #2c3e50; font-weight: 600;">Clientes</h3>
-                <p style="font-size: 15px; color: #5a6c7d; line-height: 1.5;">Base de datos y fidelización</p>
+            <!-- 8. Gestión Clientes -->
+            <div class="feature-card" style="background: white; padding: 32px 28px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); transition: all 0.3s ease; text-align: center; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(132, 204, 22, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; margin: 0 auto 24px; background: linear-gradient(135deg, rgba(132, 204, 22, 0.1) 0%, rgba(101, 163, 13, 0.05) 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#84cc16" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 16px; margin-bottom: 8px; color: #0f172a; font-weight: 700;">Gestión Clientes</h3>
+                <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Base de datos y programas de fidelización avanzados</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Content Section 1 -->
-<section class="content-section" id="mas-info">
+<!-- Content Section 1 - Venta Online Mejorada -->
+<section class="content-section" id="mas-info" style="background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);">
     <div class="content-container">
-        <div class="content-text">
-            <h2>VENTA <span class="highlight">ONLINE</span></h2>
-            <h3 style="font-size: 18px; color: #666; margin-bottom: 20px;">Integra tecnología a tu negocio.</h3>
-            <p>Aumenta tus ventas a través de nuestros canales de venta en línea:</p>
-            <ul style="margin-left: 20px; margin-bottom: 20px;">
-                <li>✓ Menú online</li>
-                <li>✓ Carta QR</li>
-                <li>✓ Integraciones con App de delivery</li>
-            </ul>
-            <a href="#demo" class="btn-primary">MÁS INFORMACIÓN →</a>
-        </div>
-        <div class="content-image content-image--balanced"><img src="{{ asset('images/img1.png') }}" alt="Venta Online" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
-    </div>
-</section>
-
-<!-- Content Section 2 -->
-<section class="content-section">
-    <div class="content-container reverse">
-        <div class="content-text">
-            <h2>MEJORA TUS <span class="highlight">TIEMPOS</span></h2>
-            <h3 style="font-size: 18px; color: #666; margin-bottom: 20px;">Realiza pedidos, emite comprobantes rápido y sencillo.</h3>
-            <p>Reduce el tiempo de atención y ten el control de todos tus pedidos. Con ventas rápidas y avanzadas en un instante.</p>
-            <a href="#demo" class="btn-primary">MÁS INFORMACIÓN →</a>
-        </div>
-        <div class="content-image"><img src="{{ asset('images/img2.png') }}" alt="Mejora de Tiempos" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
-    </div>
-</section>
-
-<!-- Content Section 3 -->
-<section class="content-section">
-    <div class="content-container">
-        <div class="content-text">
-            <h2>TODO EN <span class="highlight">TIEMPO REAL</span></h2>
-            <h3 style="font-size: 18px; color: #666; margin-bottom: 20px;">Visualiza tus ventas, deliverys y stock.</h3>
-            <p>Obtén información desde cualquier lugar y toma decisiones al instante.</p>
-            <a href="#demo" class="btn-primary">MÁS INFORMACIÓN →</a>
-        </div>
-        <div class="content-image content-image--balanced"><img src="{{ asset('images/img3.png') }}" alt="Tiempo Real" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
-    </div>
-</section>
-
-<!-- Content Section 4 -->
-<section class="content-section">
-    <div class="content-container reverse">
-        <div class="content-text">
-            <h2>Software para restaurante con <span class="highlight">Facturación electrónica</span></h2>
-            <p>Reduce procesos manuales y súmate a las nuevas normativas tributarias de la SUNAT.</p>
-            <ul style="margin-left: 20px; margin-bottom: 20px;">
-                <li>✓ Ahorra tiempo y dinero (recupera horas de trabajo)</li>
-                <li>✓ Mejora el control de tu restaurante</li>
-                <li>✓ Disminuye errores contables</li>
-            </ul>
-            <a href="#demo" class="btn-primary">MÁS INFORMACIÓN →</a>
-        </div>
-        <div class="content-image"><img src="{{ asset('images/img4.png') }}" alt="Facturación Electrónica" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
-    </div>
-</section>
-
-
-
-<!-- Imagen full-width previa a la demo con textos superpuestos -->
-<section class="image-fullwidth-section" aria-hidden="true">
-    <div class="image-fullwidth-wrapper" style="position: relative;">
-        <!-- Imagen de fondo -->
-        <img src="{{ asset('images/img7.png') }}" alt="Etapas del proceso" class="image-fullwidth">
-        
-        <!-- Contenedor de textos superpuestos -->
-        <div class="etapas-textos-container" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;">
-            
-            <!-- ETAPA 1 - Al final de la imagen -->
-            <div class="etapa-texto etapa-1" style="position: absolute; top: 77%; left: 12%; transform: translateX(-50%); background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3); display: flex; align-items: center; justify-content: center;">
-                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
-                    Te enseñamos los primeros pasos para alcanzar el éxito.
-                </p>
+        <div class="content-text" style="padding-right: 40px;">
+            <div style="display: inline-block; padding: 8px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; margin-bottom: 24px;">
+                <span style="font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px;">💰 Incrementa Ingresos</span>
             </div>
-            
-            <!-- ETAPA 2 - Al final de la imagen -->
-            <div class="etapa-texto etapa-2" style="position: absolute; top: 77%; left: 37%; transform: translateX(-50%); background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center;">
-                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
-                    Analiza, ajusta y potencia resultados continuamente con información en tiempo real.
-                </p>
+            <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; color: #0f172a; line-height: 1.2;">
+                Expande tus Canales de <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Venta</span>
+            </h2>
+            <p style="font-size: 18px; color: #475569; margin-bottom: 32px; line-height: 1.8; max-width: 550px;">
+                Multiplica tus canales de venta con nuestras soluciones integradas de e-commerce, llegando a más clientes y aumentando tus ingresos sin complicaciones operacionales.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.1)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 0 0 transparent'; this.style.transform='translateY(0)';">
+                    <div style="font-size: 24px; margin-bottom: 12px;">📱</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Menú Online Dinámico</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Actualiza tu menú en tiempo real, ajusta precios y promociones al instante</p>
+                </div>
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.1)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 0 0 transparent'; this.style.transform='translateY(0)';">
+                    <div style="font-size: 24px; margin-bottom: 12px;">🔗</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Carta QR Inteligente</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Código QR con análisis, mejora la experiencia del cliente sin contacto</p>
+                </div>
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.1)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 0 0 transparent'; this.style.transform='translateY(0)';">
+                    <div style="font-size: 24px; margin-bottom: 12px;">🚚</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Apps de Delivery</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Integración con Uber Eats, Glovo, Rappi y más en un solo lugar</p>
+                </div>
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.1)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 0 0 transparent'; this.style.transform='translateY(0)';">
+                    <div style="font-size: 24px; margin-bottom: 12px;">📊</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Reportes en Tiempo Real</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Analiza las ventas de cada canal y toma decisiones estratégicas</p>
+                </div>
             </div>
-            
-            <!-- ETAPA 3 - Al final de la imagen -->
-            <div class="etapa-texto etapa-3" style="position: absolute; top: 77%; left: 62%; transform: translateX(-50%); background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3); display: flex; align-items: center; justify-content: center;">
-                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
-                    Te ayudamos a multiplicar tus ventas y maximizar tus ingresos con nuevos canales de venta.
-                </p>
-            </div>
-            
-            <!-- ETAPA 4 - Al final de la imagen -->
-            <div class="etapa-texto etapa-4" style="position: absolute; top: 77%; left: 87%; transform: translateX(-50%); background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); padding: 8px 12px; border-radius: 12px; width: 22%; height: 80px; text-align: center; box-shadow: 0 4px 20px rgba(236, 72, 153, 0.3); display: flex; align-items: center; justify-content: center;">
-                <p style="margin: 0; font-size: 14px; font-weight: 800; color: white; line-height: 1.3;">
-                    ¿Listo para expandirte? Te acompañamos a crecer sin perder el control.
-                </p>
+            <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 10px 28px rgba(59, 130, 246, 0.25); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 16px 40px rgba(59, 130, 246, 0.35)'; this.style.transform='translateY(-3px)';" onmouseout="this.style.boxShadow='0 10px 28px rgba(59, 130, 246, 0.25)'; this.style.transform='translateY(0)';">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Activar Venta Online
+            </a>
+        </div>
+        <div class="content-image" style="position: relative; min-height: 450px; background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 120px; margin-bottom: 16px;">🛍️</div>
+                <h3 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Múltiples Canales</h3>
+                <p style="font-size: 14px; color: #64748b; max-width: 300px;">Manage all your sales channels from one unified dashboard</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Estilos responsive para los textos de etapas -->
+<!-- Content Section 2 - Velocidad y Eficiencia -->
+<section class="content-section" style="background: linear-gradient(135deg, #fef3c7 0%, #fef9e7 100%);">
+    <div class="content-container reverse" style="grid-template-columns: 1fr 1fr;">
+        <div class="content-image" style="position: relative; min-height: 450px; background: linear-gradient(135deg, #fef3c7 0%, #fffbeb 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; order: 1;">
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 120px; margin-bottom: 16px;">⚡</div>
+                <h3 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Velocidad Extrema</h3>
+                <p style="font-size: 14px; color: #64748b; max-width: 300px;">Procesa más pedidos en menos tiempo, aumenta rentabilidad</p>
+            </div>
+        </div>
+        <div class="content-text" style="padding-left: 40px; order: 2;">
+            <div style="display: inline-block; padding: 8px 16px; background: rgba(245, 158, 11, 0.1); border-radius: 20px; margin-bottom: 24px;">
+                <span style="font-size: 12px; font-weight: 700; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px;">⏱️ Optimiza Procesos</span>
+            </div>
+            <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; color: #0f172a; line-height: 1.2;">
+                Acelera Tus <span style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Operaciones</span>
+            </h2>
+            <p style="font-size: 18px; color: #475569; margin-bottom: 32px; line-height: 1.8; max-width: 550px;">
+                Reduce tiempos de atención en 60%, procesa pedidos al instante y emite comprobantes electrónicos automáticamente sin errores.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px;">
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="flex-shrink: 0; width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">1</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Pedidos al Instante</h4>
+                        <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Sistema POS optimizado que procesa órdenes en millisegundos</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="flex-shrink: 0; width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">2</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Emisión Automática de Facturas</h4>
+                        <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Genera comprobantes SUNAT sin intervención manual, 100% validado</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="flex-shrink: 0; width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: 700;">3</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Cero Errores</h4>
+                        <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Validación inteligente en cada paso, previene problemas tributarios</p>
+                    </div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
+                <div style="padding: 20px; background: white; border-left: 4px solid #f59e0b; border-radius: 8px;">
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Tiempo Promedio Pedido</p>
+                    <p style="font-size: 28px; font-weight: 800; color: #0f172a;">12 seg</p>
+                </div>
+                <div style="padding: 20px; background: white; border-left: 4px solid #f59e0b; border-radius: 8px;">
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Aumento Capacidad</p>
+                    <p style="font-size: 28px; font-weight: 800; color: #0f172a;">+60%</p>
+                </div>
+            </div>
+            <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 10px 28px rgba(245, 158, 11, 0.25); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 16px 40px rgba(245, 158, 11, 0.35)'; this.style.transform='translateY(-3px)';" onmouseout="this.style.boxShadow='0 10px 28px rgba(245, 158, 11, 0.25)'; this.style.transform='translateY(0)';">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Acelera tu Operación
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Content Section 3 - Inteligencia en Tiempo Real -->
+<section class="content-section" style="background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%);">
+    <div class="content-container" style="grid-template-columns: 1fr 1fr;">
+        <div class="content-text" style="padding-right: 40px;">
+            <div style="display: inline-block; padding: 8px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; margin-bottom: 24px;">
+                <span style="font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px;">📊 Datos en Vivo</span>
+            </div>
+            <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; color: #0f172a; line-height: 1.2;">
+                Control Total en Cada <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Momento</span>
+            </h2>
+            <p style="font-size: 18px; color: #475569; margin-bottom: 32px; line-height: 1.8; max-width: 550px;">
+                Accede a dashboards inteligentes que te muestran todo: ventas, inventario, estado de entregas y más. Desde tu celular, tablet o computadora, en tiempo real.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">📱</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Mobile Optimizado</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">App nativa para iOS y Android con sincronización instantánea</p>
+                </div>
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">🔔</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Alertas Inteligentes</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Notificaciones personalizadas de eventos importantes</p>
+                </div>
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">📈</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Gráficos Inteligentes</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Visualiza tendencias y métricas clave de tu negocio</p>
+                </div>
+                <div style="padding: 24px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <div style="font-size: 28px; margin-bottom: 12px;">🛡️</div>
+                    <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Seguridad Enterprise</h4>
+                    <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Encriptación end-to-end, backups automáticos</p>
+                </div>
+            </div>
+            <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 10px 28px rgba(59, 130, 246, 0.25); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 16px 40px rgba(59, 130, 246, 0.35)'; this.style.transform='translateY(-3px)';" onmouseout="this.style.boxShadow='0 10px 28px rgba(59, 130, 246, 0.25)'; this.style.transform='translateY(0)';">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Ver Dashboard en Vivo
+            </a>
+        </div>
+        <div class="content-image" style="position: relative; min-height: 450px; background: linear-gradient(135deg, #dbeafe 0%, #f0f9ff 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 120px; margin-bottom: 16px;">📊</div>
+                <h3 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Dashboard Inteligente</h3>
+                <p style="font-size: 14px; color: #64748b; max-width: 300px;">Monitorea todo tu negocio desde un solo lugar</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Content Section 4 - Facturación Electrónica Premium -->
+<section class="content-section" style="background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%);">
+    <div class="content-container reverse" style="grid-template-columns: 1fr 1fr;">
+        <div class="content-image" style="position: relative; min-height: 450px; background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; overflow: hidden; order: 1;">
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 120px; margin-bottom: 16px;">🏛️</div>
+                <h3 style="font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 8px;">Compliance SUNAT</h3>
+                <p style="font-size: 14px; color: #64748b; max-width: 300px;">100% Certificado y Validado por SUNAT</p>
+            </div>
+        </div>
+        <div class="content-text" style="padding-left: 40px; order: 2;">
+            <div style="display: inline-block; padding: 8px 16px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; margin-bottom: 24px;">
+                <span style="font-size: 12px; font-weight: 700; color: #10b981; text-transform: uppercase; letter-spacing: 0.5px;">✅ Cumple Normativa</span>
+            </div>
+            <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; color: #0f172a; line-height: 1.2;">
+                Facturación <span style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">100% SUNAT</span>
+            </h2>
+            <p style="font-size: 18px; color: #475569; margin-bottom: 32px; line-height: 1.8; max-width: 550px;">
+                Emite facturas, boletas y comprobantes electrónicos totalmente validados por SUNAT. Sin riesgos tributarios, sin multas, sin sorpresas.
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px;">
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="flex-shrink: 0; width: 44px; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px;">✓</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Certificado Oficial SUNAT</h4>
+                        <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Aprobado y certificado directamente por la Superintendencia Nacional de Aduanas</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="flex-shrink: 0; width: 44px; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px;">✓</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Emisión Automática e Instantánea</h4>
+                        <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Los comprobantes se generan sin retrasos, listos para entregar al cliente</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="flex-shrink: 0; width: 44px; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px;">✓</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Cero Multas y Riesgos</h4>
+                        <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Garantizamos cumplimiento total. Si algo falla, nosotros asumimos el riesgo</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 16px;">
+                    <div style="flex-shrink: 0; width: 44px; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 22px;">✓</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Reportes Automáticos</h4>
+                        <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Envíos automáticos de comprobantes a SUNAT sin intervención manual</p>
+                    </div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px;">
+                <div style="padding: 20px; background: white; border-left: 4px solid #10b981; border-radius: 8px;">
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Facturas Procesadas</p>
+                    <p style="font-size: 28px; font-weight: 800; color: #0f172a;">+2.3M</p>
+                </div>
+                <div style="padding: 20px; background: white; border-left: 4px solid #10b981; border-radius: 8px;">
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; font-weight: 600; text-transform: uppercase;">Tasa de Éxito</p>
+                    <p style="font-size: 28px; font-weight: 800; color: #0f172a;">99.98%</p>
+                </div>
+            </div>
+            <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 32px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 15px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 10px 28px rgba(16, 185, 129, 0.25); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 16px 40px rgba(16, 185, 129, 0.35)'; this.style.transform='translateY(-3px)';" onmouseout="this.style.boxShadow='0 10px 28px rgba(16, 185, 129, 0.25)'; this.style.transform='translateY(0)';">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Configurar Facturación
+            </a>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Sección Testimonios y Casos de Éxito -->
+<section style="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);">
+    <div style="max-width: 1400px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 80px;">
+            <div style="display: inline-block; padding: 8px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; margin-bottom: 24px;">
+                <span style="font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px;">⭐ Lo Que Dicen Nuestros Clientes</span>
+            </div>
+            <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; color: #0f172a; line-height: 1.2;">
+                Historias de <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Éxito Real</span>
+            </h2>
+            <p style="font-size: 18px; color: #64748b; max-width: 650px; margin: 0 auto; line-height: 1.7;">
+                Restaurantes que utilizan Wayna han transformado su operación y aumentado significativamente sus ingresos
+            </p>
+        </div>
+
+        <!-- Testimonios Grid -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 80px;">
+            <!-- Testimonial 1 -->
+            <div style="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.05)';">
+                <div style="display: flex; gap: 2px; margin-bottom: 16px;">
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                </div>
+                <p style="font-size: 16px; color: #0f172a; margin-bottom: 24px; line-height: 1.8; font-weight: 500;">
+                    "Con Wayna redujimos el tiempo de atención en un 60%. Nuestros clientes ahora reciben sus pedidos mucho más rápido y eso se reflejó en nuestras ventas."
+                </p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">MC</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Marco Cabrera</h4>
+                        <p style="font-size: 14px; color: #64748b; margin: 0;">Restaurante El Buen Sabor, Lima</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 2 -->
+            <div style="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.05)';">
+                <div style="display: flex; gap: 2px; margin-bottom: 16px;">
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                </div>
+                <p style="font-size: 16px; color: #0f172a; margin-bottom: 24px; line-height: 1.8; font-weight: 500;">
+                    "No tenía que preocuparme más por la facturación. Wayna lo hace automáticamente y con total cumplimiento SUNAT. He ahorrado muchas horas."
+                </p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">AR</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Andrea Rodríguez</h4>
+                        <p style="font-size: 14px; color: #64748b; margin: 0;">Restaurante Las Brumas, Arequipa</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 3 -->
+            <div style="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.05)';">
+                <div style="display: flex; gap: 2px; margin-bottom: 16px;">
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                    <span style="color: #f59e0b; font-size: 20px;">★</span>
+                </div>
+                <p style="font-size: 16px; color: #0f172a; margin-bottom: 24px; line-height: 1.8; font-weight: 500;">
+                    "Triplicamos nuestros ingresos en 90 días. Con el menú online y las integraciones con apps de delivery, ahora vendemos tanto en local como online."
+                </p>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 20px;">JL</div>
+                    <div>
+                        <h4 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Juan López</h4>
+                        <p style="font-size: 14px; color: #64748b; margin: 0;">Restaurante Costa Azul, Cusco</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 60px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 20px;">
+            <div style="text-align: center;">
+                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 8px;">500+</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Restaurantes Activos</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 8px;">2.3M+</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Facturas Procesadas</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 8px;">99.98%</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Tasa de Éxito</div>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 48px; font-weight: 800; color: white; margin-bottom: 8px;">4.9★</div>
+                <div style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9);">Calificación Promedio</div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Sección de Pasos para Empezar - Profesional -->
+<section style="padding: 120px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+    <div style="max-width: 1400px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 100px;">
+            <div style="display: inline-block; padding: 8px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; margin-bottom: 24px;">
+                <span style="font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px;">🚀 Comienza en 4 Pasos</span>
+            </div>
+            <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; color: #0f172a; line-height: 1.2;">
+                Tu Transformación Digital <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Comienza Aquí</span>
+            </h2>
+            <p style="font-size: 18px; color: #64748b; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+                Implementa Wayna en tu restaurante en menos de una hora. Nuestro proceso es simple, rápido y totalmente guiado por expertos
+            </p>
+        </div>
+
+        <!-- Steps Grid -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-bottom: 80px;">
+            <!-- Step 1 -->
+            <div style="position: relative;">
+                <div style="text-align: center;">
+                    <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 48px; font-weight: 800; box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2); position: relative; z-index: 2;">
+                        1
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Regístrate Gratis</h3>
+                    <p style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 16px;">
+                        Crea tu cuenta en 2 minutos. No requerimos tarjeta de crédito ni datos complicados.
+                    </p>
+                    <div style="padding: 12px; background: rgba(59, 130, 246, 0.08); border-radius: 8px; text-align: center;">
+                        <p style="font-size: 13px; color: #3b82f6; font-weight: 600; margin: 0;">⚡ 2 minutos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div style="position: relative;">
+                <div style="text-align: center;">
+                    <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 48px; font-weight: 800; box-shadow: 0 20px 40px rgba(16, 185, 129, 0.2); position: relative; z-index: 2;">
+                        2
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Configura Básicos</h3>
+                    <p style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 16px;">
+                        Tu nombre, ubicación y datos del restaurante. Un asistente te guía en cada paso.
+                    </p>
+                    <div style="padding: 12px; background: rgba(16, 185, 129, 0.08); border-radius: 8px; text-align: center;">
+                        <p style="font-size: 13px; color: #10b981; font-weight: 600; margin: 0;">⚡ 5 minutos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div style="position: relative;">
+                <div style="text-align: center;">
+                    <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 48px; font-weight: 800; box-shadow: 0 20px 40px rgba(245, 158, 11, 0.2); position: relative; z-index: 2;">
+                        3
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Carga tu Menú</h3>
+                    <p style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 16px;">
+                        Importa tus productos en lotes o créalos uno a uno. Opción para cargar desde Excel.
+                    </p>
+                    <div style="padding: 12px; background: rgba(245, 158, 11, 0.08); border-radius: 8px; text-align: center;">
+                        <p style="font-size: 13px; color: #f59e0b; font-weight: 600; margin: 0;">⚡ 10 minutos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div style="position: relative;">
+                <div style="text-align: center;">
+                    <div style="width: 120px; height: 120px; background: linear-gradient(135deg, #ec4899 0%, #db2777 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; color: white; font-size: 48px; font-weight: 800; box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2); position: relative; z-index: 2;">
+                        4
+                    </div>
+                    <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">¡Listo a Vender!</h3>
+                    <p style="font-size: 15px; color: #64748b; line-height: 1.6; margin-bottom: 16px;">
+                        Comienza a recibir órdenes. Tu equipo tendrá acceso inmediato al sistema.
+                    </p>
+                    <div style="padding: 12px; background: rgba(236, 72, 153, 0.08); border-radius: 8px; text-align: center;">
+                        <p style="font-size: 13px; color: #ec4899; font-weight: 600; margin: 0;">⚡ Activación inmediata</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 20px; padding: 60px 40px; text-align: center;">
+            <h3 style="font-size: 28px; font-weight: 800; color: white; margin-bottom: 16px;">¿Listo para Transformar tu Restaurante?</h3>
+            <p style="font-size: 18px; color: rgba(255, 255, 255, 0.9); margin-bottom: 32px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                Únete a más de 500 restaurantes que ya están generando más ingresos con Wayna
+            </p>
+            <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; background: white; color: #3b82f6; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15); border: none; cursor: pointer;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 16px 40px rgba(0, 0, 0, 0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 28px rgba(0, 0, 0, 0.15)';">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Solicitar Demo Gratuita
+            </a>
+        </div>
+    </div>
+</section>
+
+
+<!-- Sección Beneficios por Rol -->
+<section style="padding: 120px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+    <div style="max-width: 1400px; margin: 0 auto;">
+        <!-- Header -->
+        <div style="text-align: center; margin-bottom: 80px;">
+            <div style="display: inline-block; padding: 8px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; margin-bottom: 24px;">
+                <span style="font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px;">👩‍💼 Personas y Roles</span>
+            </div>
+            <h2 style="font-size: 48px; font-weight: 800; margin-bottom: 16px; color: #0f172a; line-height: 1.2;">
+                Solución Completa para Tu <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Equipo</span>
+            </h2>
+            <p style="font-size: 18px; color: #64748b; max-width: 650px; margin: 0 auto; line-height: 1.7;">
+                Cada miembro de tu equipo tiene acceso a las herramientas que necesita para hacer su trabajo más fácil y eficiente
+            </p>
+        </div>
+
+        <!-- Roles Grid -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px;">
+            <!-- Role 1: Dueno -->
+            <div style="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <span style="font-size: 40px;">💼</span>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 16px;">Para el Dueño</h3>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #3b82f6; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Dashboard ejecutivo con KPIs</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #3b82f6; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Proyecciones de ingresos</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #3b82f6; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Control de múltiples locales</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #3b82f6; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Reportes avanzados</span>
+                    </li>
+                    <li style="padding: 12px 0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #3b82f6; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Gestin de equipo y permisos</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Role 2: Camarero -->
+            <div style="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <span style="font-size: 40px;">👧‍�쵺</span>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 16px;">Para el Mesero</h3>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #10b981; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">POS intuitivo y rápido</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #10b981; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Control de mesas con un click</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #10b981; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Gestuión de pagos simple</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #10b981; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Acceso desde tablet</span>
+                    </li>
+                    <li style="padding: 12px 0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #10b981; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Soporte en tiempo real</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Role 3: Cocinero -->
+            <div style="padding: 40px; background: white; border-radius: 16px; border: 1px solid #e2e8f0; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.05)';">
+                <div style="width: 70px; height: 70px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border-radius: 16px; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                    <span style="font-size: 40px;">👨‍🍳</span>
+                </div>
+                <h3 style="font-size: 20px; font-weight: 800; color: #0f172a; margin-bottom: 16px;">Para la Cocina</h3>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #f59e0b; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Monitor de órdenes en tiempo real</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #f59e0b; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Prioridad de pedidos</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #f59e0b; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Control de inventario</span>
+                    </li>
+                    <li style="padding: 12px 0; border-bottom: 1px solid #f0f0f0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #f59e0b; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Alertas de ingredientes</span>
+                    </li>
+                    <li style="padding: 12px 0; display: flex; align-items: start; gap: 12px;">
+                        <span style="color: #f59e0b; font-weight: 700; margin-top: 2px;">✓</span>
+                        <span style="font-size: 14px; color: #475569;">Gestin de recetas</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
 <style>
 @media (max-width: 768px) {
     .etapa-texto {
@@ -568,50 +1123,147 @@
 }
 </style>
 
-<!-- Demo / Contacto -->
-<section class="content-section" id="demo" aria-labelledby="demo-title">
-    <div class="content-container">
-        <div class="content-text">
-            <h2 id="demo-title">Solicita una <span class="highlight">demo</span></h2>
-            <p>Déjanos tus datos y un asesor te contactará.</p>
-            <form id="demo-form" action="#" method="post" style="display:grid; gap:16px; max-width: 450px; background: white; padding: 32px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
-                @csrf
-                <div style="text-align: center; margin-bottom: 24px;">
-                    <h3 style="color: #2c3e50; font-size: 24px; font-weight: 700; margin-bottom: 8px;">Comienza Gratis</h3>
-                    <p style="color: #5a6c7d; font-size: 16px;">Un experto te contactará en menos de 24 horas</p>
+<!-- SECCIÓN DEMO/CONTACTO - PREMIUM Y PROFESIONAL -->
+<section id="demo" style="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%); position: relative; overflow: hidden;">
+    <!-- Decoración de fondo -->
+    <div style="position: absolute; top: -30%; right: -15%; width: 800px; height: 800px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+    <div style="position: absolute; bottom: -20%; left: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+    
+    <div style="max-width: 1400px; margin: 0 auto; position: relative; z-index: 1;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
+            <!-- LADO IZQUIERDO: CONTENIDO -->
+            <div>
+                <!-- Badge -->
+                <div style="display: inline-block; padding: 8px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; margin-bottom: 24px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                    <span style="font-size: 12px; font-weight: 700; color: #3b82f6; text-transform: uppercase; letter-spacing: 0.5px;">📅 Agenda tu Demo</span>
                 </div>
-                
-                <label style="display: block;">
-                    <span style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block;">Nombre completo</span>
-                    <input type="text" name="name" required placeholder="Juan Pérez" style="width:100%; padding:14px; border:2px solid #e5e7eb; border-radius:8px; font-size: 16px; transition: border-color 0.3s;">
-                </label>
-                
-                <label style="display: block;">
-                    <span style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block;">Email profesional</span>
-                    <input type="email" name="email" required placeholder="juan@restaurante.com" style="width:100%; padding:14px; border:2px solid #e5e7eb; border-radius:8px; font-size: 16px; transition: border-color 0.3s;">
-                </label>
-                
-                <label style="display: block;">
-                    <span style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block;">WhatsApp</span>
-                    <input type="tel" name="phone" required placeholder="+51 999 888 777" style="width:100%; padding:14px; border:2px solid #e5e7eb; border-radius:8px; font-size: 16px; transition: border-color 0.3s;">
-                </label>
-                
-                <label style="display: block;">
-                    <span style="font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: block;">Nombre del restaurante (opcional)</span>
-                    <textarea name="message" rows="3" placeholder="Mi Restaurante - 50 empleados" style="width:100%; padding:14px; border:2px solid #e5e7eb; border-radius:8px; font-size: 16px; transition: border-color 0.3s; resize: vertical;"></textarea>
-                </label>
-                
-                <button type="submit" class="btn-primary" style="justify-content:center; padding: 16px 32px; font-size: 18px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); width: 100%;">
-                    <i class="fas fa-paper-plane"></i>
-                    Enviar Solicitud
-                </button>
-                
-                <p style="text-align: center; color: #6b7280; font-size: 14px; margin-top: 16px;">
-                    <i class="fas fa-lock"></i> Tus datos están seguros. No compartimos tu información.
+
+                <!-- Heading -->
+                <h2 style="font-size: 56px; font-weight: 900; color: #0f172a; margin-bottom: 24px; line-height: 1.15;">
+                    Solicita una <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Demo Personalizada</span>
+                </h2>
+
+                <!-- Description -->
+                <p style="font-size: 18px; color: #475569; margin-bottom: 48px; line-height: 1.8; max-width: 550px;">
+                    Descubre cómo Wayna puede transformar tu restaurante. Un especialista te mostrará exactamente cómo funciona y responderá todas tus preguntas sin compromiso.
                 </p>
-            </form>
+
+                <!-- Beneficios -->
+                <div style="display: flex; flex-direction: column; gap: 20px; margin-bottom: 48px;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Demo en Vivo</h3>
+                            <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Sesión personalizada mostrando exactamente tu caso de uso</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Experto Dedicado</h3>
+                            <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Especialista en restaurantes responderá todas tus dudas</p>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 16px; align-items: flex-start;">
+                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+                        </div>
+                        <div>
+                            <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Sin Compromiso</h3>
+                            <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Prueba gratis 14 días sin requerir tarjeta de crédito</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Social Proof -->
+                <div style="padding: 24px; background: rgba(59, 130, 246, 0.05); border-left: 4px solid #3b82f6; border-radius: 12px;">
+                    <p style="font-size: 14px; color: #0f172a; margin: 0; font-weight: 600;">
+                        "Implementamos Wayna en 2 horas. Nuestro equipo está completamente capacitado y productivo."
+                    </p>
+                    <p style="font-size: 13px; color: #64748b; margin: 12px 0 0 0; font-weight: 500;">
+                        — Carlos Mendez, Propietario de 3 restaurantes
+                    </p>
+                </div>
+            </div>
+
+            <!-- LADO DERECHO: FORMULARIO -->
+            <div>
+                <!-- Card del Formulario con Glassmorphism -->
+                <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(59, 130, 246, 0.1); padding: 60px 48px; border-radius: 24px; box-shadow: 0 20px 60px rgba(59, 130, 246, 0.1); position: relative; overflow: hidden;">
+                    <!-- Decoración interior -->
+                    <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+                    
+                    <div style="position: relative; z-index: 1;">
+                        <!-- Header del Formulario -->
+                        <div style="text-align: center; margin-bottom: 40px;">
+                            <h3 style="font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 12px;">Comienza Gratis</h3>
+                            <p style="font-size: 15px; color: #64748b; line-height: 1.6;">
+                                Un experto te contactará<br>en menos de 24 horas
+                            </p>
+                        </div>
+
+                        <!-- Formulario -->
+                        <form id="demo-form" action="#" method="post" style="display: grid; gap: 20px;">
+                            @csrf
+
+                            <!-- Nombre Completo -->
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #0f172a; margin-bottom: 10px; font-size: 14px;">Nombre Completo *</label>
+                                <input type="text" name="name" required placeholder="Juan Pérez García" style="width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; transition: all 0.3s; background: white; color: #0f172a;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #0f172a; margin-bottom: 10px; font-size: 14px;">Email Profesional *</label>
+                                <input type="email" name="email" required placeholder="juan@restaurante.com" style="width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; transition: all 0.3s; background: white; color: #0f172a;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+
+                            <!-- WhatsApp -->
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #0f172a; margin-bottom: 10px; font-size: 14px;">WhatsApp *</label>
+                                <input type="tel" name="phone" required placeholder="+51 999 888 777" style="width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; transition: all 0.3s; background: white; color: #0f172a;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+
+                            <!-- Nombre del Restaurante -->
+                            <div>
+                                <label style="display: block; font-weight: 600; color: #0f172a; margin-bottom: 10px; font-size: 14px;">Nombre del Restaurante (Opcional)</label>
+                                <input type="text" name="restaurant_name" placeholder="Ej: Mi Restaurante - 50 empleados" style="width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 15px; transition: all 0.3s; background: white; color: #0f172a;" onfocus="this.style.borderColor='#3b82f6'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';" onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';">
+                            </div>
+
+                            <!-- Botón Submit -->
+                            <button type="submit" style="display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; padding: 16px 24px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 10px 28px rgba(59, 130, 246, 0.3); margin-top: 8px;" onmouseover="this.style.boxShadow='0 16px 40px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.boxShadow='0 10px 28px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                Solicitar Demo Ahora
+                            </button>
+
+                            <!-- Privacy Notice -->
+                            <p style="font-size: 12px; color: #64748b; text-align: center; margin-top: 16px; line-height: 1.6;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display: inline; margin-right: 6px; vertical-align: middle;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                Tus datos están seguros con nosotros. No compartimos tu información.
+                            </p>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Trust Badge -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 32px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
+                    <div style="display: flex; gap: 6px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                    </div>
+                    <span style="font-size: 13px; color: #64748b; font-weight: 600;">4.9/5 de 500+ clientes</span>
+                </div>
+            </div>
         </div>
-        <div class="content-image"><img src="{{ asset('images/img5.png') }}" alt="Demo del software" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;"></div>
     </div>
 </section>
 @endsection
