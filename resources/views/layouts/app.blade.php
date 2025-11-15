@@ -51,44 +51,56 @@
     @stack('styles')
 </head>
 <body class="min-h-screen dark:bg-gray-900" style="background: linear-gradient(180deg, #f7fbff 0%, #f2f6fc 100%);">
-    <header class="bg-white sticky top-0 z-50 border-b border-gray-200 dark:bg-gray-900 dark:border-gray-700 shadow-xs">
-        <div class="container px-4 py-3 mx-auto">
-            <div class="flex items-center justify-between h-16">
-                <!-- Logo and Brand -->
-                <div class="flex items-center gap-3 flex-shrink-0">
-                    <a href="{{ url('/') }}" class="flex items-center transition-opacity hover:opacity-80" aria-label="Inicio">
-                        <img src="{{ asset('images/logo.jpg') }}" alt="Waynasoft" class="h-10 w-10 object-contain">
+    <header class="bg-white sticky top-0 z-50" style="background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%); border-bottom: 1px solid rgba(226, 232, 240, 0.6); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo y Brand Premium -->
+                <div class="flex items-center flex-shrink-0">
+                    <a href="{{ url('/') }}" class="flex items-center transition-all duration-300 hover:opacity-85 group" aria-label="Inicio" style="gap: 12px;">
+                        <!-- Logo Container -->
+                        <div style="width: 42px; height: 42px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);" class="group-hover:shadow-lg group-hover:scale-105">
+                            <img src="{{ asset('images/logo.jpg') }}" alt="Wayna" style="width: 38px; height: 38px; border-radius: 8px; object-fit: contain;">
+                        </div>
+                        <!-- Brand Text -->
+                        <div style="display: flex; flex-direction: column; gap: 1px;">
+                            <span style="font-size: 16px; font-weight: 900; color: #0f172a; letter-spacing: -0.4px;">WAYNA</span>
+                            <span style="font-size: 11px; color: #94a3b8; font-weight: 600; letter-spacing: 0.5px;">SOFTWARE</span>
+                        </div>
                     </a>
-                    <div class="hidden sm:flex flex-col gap-0.5">
-                        <span class="text-sm font-bold text-gray-900 dark:text-white leading-none">WAYNA</span>
-                        <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Restaurant</span>
-                    </div>
                 </div>
 
-                <!-- Desktop Navigation -->
-                <nav class="hidden md:flex items-center gap-8 flex-1 px-8">
-                    <a href="#herramientas" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 relative group">
-                        Soluciones
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                <!-- Desktop Navigation Premium -->
+                <nav class="hidden lg:flex items-center" style="gap: 4px;">
+                    <a href="#herramientas" style="padding: 10px 18px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 8px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); position: relative; letter-spacing: 0.3px; text-transform: uppercase;" class="hover:text-#0f172a group" onmouseover="this.style.color='#0f172a'; this.style.background='rgba(59, 130, 246, 0.08)';" onmouseout="this.style.color='#475569'; this.style.background='transparent';">
+                        Características
+                        <span style="position: absolute; bottom: 8px; left: 18px; width: 0; height: 2px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); transition: all 0.3s ease; border-radius: 1px;" class="group-hover:w-[calc(100%-36px)]"></span>
                     </a>
-                    <a href="#mas-info" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 relative group">
+                    <a href="#mas-info" style="padding: 10px 18px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 8px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); position: relative; letter-spacing: 0.3px; text-transform: uppercase;" class="hover:text-#0f172a group" onmouseover="this.style.color='#0f172a'; this.style.background='rgba(59, 130, 246, 0.08)';" onmouseout="this.style.color='#475569'; this.style.background='transparent';">
                         Beneficios
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                        <span style="position: absolute; bottom: 8px; left: 18px; width: 0; height: 2px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); transition: all 0.3s ease; border-radius: 1px;" class="group-hover:w-[calc(100%-36px)]"></span>
                     </a>
-                    <a href="#demo" class="text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 relative group">
-                        Contacto
-                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                    <a href="#testimonios" style="padding: 10px 18px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 8px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); position: relative; letter-spacing: 0.3px; text-transform: uppercase;" class="hover:text-#0f172a group" onmouseover="this.style.color='#0f172a'; this.style.background='rgba(59, 130, 246, 0.08)';" onmouseout="this.style.color='#475569'; this.style.background='transparent';">
+                        Casos de Éxito
+                        <span style="position: absolute; bottom: 8px; left: 18px; width: 0; height: 2px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); transition: all 0.3s ease; border-radius: 1px;" class="group-hover:w-[calc(100%-36px)]"></span>
+                    </a>
+                    <a href="#pasos" style="padding: 10px 18px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 8px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); position: relative; letter-spacing: 0.3px; text-transform: uppercase;" class="hover:text-#0f172a group" onmouseover="this.style.color='#0f172a'; this.style.background='rgba(59, 130, 246, 0.08)';" onmouseout="this.style.color='#475569'; this.style.background='transparent';">
+                        Cómo Empezar
+                        <span style="position: absolute; bottom: 8px; left: 18px; width: 0; height: 2px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); transition: all 0.3s ease; border-radius: 1px;" class="group-hover:w-[calc(100%-36px)]"></span>
+                    </a>
+                    <a href="#demo" style="padding: 10px 18px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 8px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); position: relative; letter-spacing: 0.3px; text-transform: uppercase;" class="hover:text-#0f172a group" onmouseover="this.style.color='#0f172a'; this.style.background='rgba(59, 130, 246, 0.08)';" onmouseout="this.style.color='#475569'; this.style.background='transparent';">
+                        Demo
+                        <span style="position: absolute; bottom: 8px; left: 18px; width: 0; height: 2px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); transition: all 0.3s ease; border-radius: 1px;" class="group-hover:w-[calc(100%-36px)]"></span>
                     </a>
                 </nav>
 
                 <!-- Right side: CTA and Auth -->
-                <div class="flex items-center gap-4">
-                    <!-- CTA Button -->
-                    <a href="#demo" class="hidden md:inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 transform hover:scale-105">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    <!-- CTA Button Premium -->
+                    <a href="#demo" style="padding: 12px 28px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; font-size: 13px; font-weight: 700; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 10px 28px rgba(59, 130, 246, 0.3); cursor: pointer; text-transform: uppercase; letter-spacing: 0.3px; display: none;" class="lg:inline-flex lg:items-center lg:gap-2" onmouseover="this.style.boxShadow='0 16px 40px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 10px 28px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)'">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="display: inline;">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                         </svg>
-                        Demo
+                        Solicitar Demo
                     </a>
 
                     <!-- User Menu (Auth) -->
@@ -114,39 +126,37 @@
                     </div>
                     @endauth
 
-                    <!-- Mobile Menu Button -->
-                    <button id="mobile-menu-button" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" aria-controls="mobile-menu" aria-expanded="false" aria-label="Abrir menú">
-                        <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <!-- Mobile Menu Button Premium -->
+                    <button id="mobile-menu-button" style="display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 10px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border: 1px solid rgba(59, 130, 246, 0.2); cursor: pointer; transition: all 0.3s ease; color: #3b82f6;" class="lg:hidden" onmouseover="this.style.background='rgba(59, 130, 246, 0.15)'; this.style.borderColor='rgba(59, 130, 246, 0.3)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)'; this.style.borderColor='rgba(59, 130, 246, 0.2)';" aria-label="Abrir menú">
+                        <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16"></path>
                         </svg>
                     </button>
                 </div>
             </div>
 
             <!-- Mobile menu panel -->
-            <div id="mobile-menu" class="md:hidden hidden pt-4 pb-4 border-t border-gray-200 dark:border-gray-700">
-                <nav class="flex flex-col space-y-1">
-                    <a href="#herramientas" class="px-4 py-3 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Soluciones</a>
-                    <a href="#mas-info" class="px-4 py-3 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Beneficios</a>
-                    <a href="#demo" class="px-4 py-3 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Contacto</a>
-                    <div class="px-4 py-3">
-                        <a href="#demo" class="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white text-sm font-semibold hover:shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div id="mobile-menu" class="lg:hidden hidden" style="padding: 20px 0; border-top: 1px solid rgba(226, 232, 240, 0.6); background: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);">
+                <nav style="display: flex; flex-direction: column; gap: 6px;">
+                    <a href="#herramientas" style="padding: 12px 20px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#475569';">Características</a>
+                    <a href="#mas-info" style="padding: 12px 20px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#475569';">Beneficios</a>
+                    <a href="#testimonios" style="padding: 12px 20px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#475569';">Casos de Éxito</a>
+                    <a href="#pasos" style="padding: 12px 20px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#475569';">Cómo Empezar</a>
+                    <a href="#demo" style="padding: 12px 20px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#475569';">Demo</a>
+                    <div style="padding: 16px 20px; margin-top: 12px; border-top: 1px solid rgba(226, 232, 240, 0.6); padding-top: 20px;">
+                        <a href="#demo" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 14px 20px; border-radius: 10px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; font-size: 13px; font-weight: 700; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.boxShadow='0 12px 24px rgba(59, 130, 246, 0.3)';" onmouseout="this.style.boxShadow='0 8px 16px rgba(59, 130, 246, 0.15)';">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                             </svg>
                             Solicitar Demo
                         </a>
                     </div>
                     @auth
-                    <div class="border-t border-gray-200 dark:border-gray-700 mt-4 pt-4 space-y-1">
-                        <a href="{{ route('tables.map') }}" class="block px-4 py-3 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                            Mis Pedidos
-                        </a>
-                        <form method="POST" action="{{ auth()->user()?->hasRole('waiter') ? route('filament.waiter.auth.logout') : route('filament.admin.auth.logout') }}" class="block">
+                    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(226, 232, 240, 0.6);">
+                        <a href="{{ route('tables.map') }}" style="display: block; padding: 12px 20px; font-size: 13px; font-weight: 700; color: #475569; text-decoration: none; border-radius: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.background='rgba(59, 130, 246, 0.1)'; this.style.color='#0f172a';" onmouseout="this.style.background='transparent'; this.style.color='#475569';">&#x1F4CB; Mis Pedidos</a>
+                        <form method="POST" action="{{ auth()->user()?->hasRole('waiter') ? route('filament.waiter.auth.logout') : route('filament.admin.auth.logout') }}" style="margin-top: 8px;">
                             @csrf
-                            <button type="submit" class="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                                Cerrar Sesión
-                            </button>
+                            <button type="submit" style="width: 100%; text-align: left; padding: 12px 20px; font-size: 13px; font-weight: 700; color: #ef4444; background: none; border: none; cursor: pointer; border-radius: 10px; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.3px;" onmouseover="this.style.background='rgba(239, 68, 68, 0.1)';" onmouseout="this.style.background='transparent';">&#x1F6AA; Cerrar Sesión</button>
                         </form>
                     </div>
                     @endauth

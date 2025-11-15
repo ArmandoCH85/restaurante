@@ -1125,7 +1125,7 @@
 
 
 <!-- Sección Testimonios y Casos de Éxito -->
-<section style="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);">
+<section id="testimonios" style="padding: 120px 20px; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);">
     <div style="max-width: 1400px; margin: 0 auto;">
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 80px;">
@@ -1228,7 +1228,7 @@
     </div>
 </section>
 <!-- Sección de Pasos para Empezar - Profesional -->
-<section style="padding: 120px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
+<section id="pasos" style="padding: 120px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);">
     <div style="max-width: 1400px; margin: 0 auto;">
         <!-- Header -->
         <div style="text-align: center; margin-bottom: 100px;">
