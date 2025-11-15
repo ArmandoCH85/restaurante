@@ -593,162 +593,292 @@
             grid-template-columns: 1fr !important;
         }
     }
+
+    /* Animaciones para Hero Section */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInLeft {
+        from {
+            opacity: 0;
+            transform: translateX(-30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes fadeInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
+    }
+
+    @keyframes countUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes barGrow {
+        from {
+            transform: scaleY(0);
+            opacity: 0;
+        }
+        to {
+            transform: scaleY(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-20px);
+        }
+    }
 </style>
 @endpush
 
 @section('content')
 <!-- HERO SECTION ULTRA PROFESIONAL - Diseño SaaS 2025 Premium -->
 <section style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%); padding: 160px 20px 120px; position: relative; overflow: hidden;">
-    <!-- Elementos decorativos de fondo -->
-    <div style="position: absolute; top: -40%; right: -10%; width: 700px; height: 700px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
-    <div style="position: absolute; bottom: -20%; left: -5%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%); border-radius: 50%; pointer-events: none;"></div>
+    <!-- Elementos decorativos de fondo mejorados -->
+    <div style="position: absolute; top: -40%; right: -10%; width: 700px; height: 700px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%); border-radius: 50%; pointer-events: none; animation: float 6s ease-in-out infinite;"></div>
+    <div style="position: absolute; bottom: -20%; left: -5%; width: 500px; height: 500px; background: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0%, transparent 70%); border-radius: 50%; pointer-events: none; animation: float 8s ease-in-out infinite reverse;"></div>
+    
+    <!-- Nuevo: Elemento de video/simulación de fondo -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.03; background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="%233b82f6" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>'); pointer-events: none;"></div>
     
     <div style="max-width: 1400px; margin: 0 auto; position: relative; z-index: 1;">
-        <!-- Micro-copy de credibilidad con badges premium -->
+        <!-- Micro-copy de credibilidad con badges premium - MEJORADO -->
         <div style="display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 48px; flex-wrap: wrap;">
-            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(16, 185, 129, 0.1); border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(16, 185, 129, 0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981"><path d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span style="font-size: 12px; font-weight: 700; color: #10b981;">CERTIFICADO SUNAT</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.2);">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 20px; border: 1px solid rgba(59, 130, 246, 0.2); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#3b82f6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
                 <span style="font-size: 12px; font-weight: 700; color: #3b82f6;">500+ RESTAURANTES</span>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(245, 158, 11, 0.1); border-radius: 20px; border: 1px solid rgba(245, 158, 11, 0.2);">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: rgba(245, 158, 11, 0.1); border-radius: 20px; border: 1px solid rgba(245, 158, 11, 0.2); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(245, 158, 11, 0.2)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="#f59e0b"><path d="M9 12l2 2 4-4m6 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <span style="font-size: 12px; font-weight: 700; color: #f59e0b;">SOPORTE 24/7</span>
             </div>
         </div>
 
-        <!-- Heading principal ultra impactante -->
+        <!-- Heading principal ultra impactante - MEJORADO CON ANIMACIÓN -->
         <div style="text-align: center; margin-bottom: 48px;">
-            <h1 id="hero-title" style="font-size: 72px; line-height: 1.15; margin-bottom: 24px; color: #0f172a; font-weight: 900; letter-spacing: -1px;">
+            <h1 id="hero-title" style="font-size: 72px; line-height: 1.15; margin-bottom: 24px; color: #0f172a; font-weight: 900; letter-spacing: -1px; animation: fadeInUp 0.8s ease-out;">
                 El Software que tus <span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Clientes Aman</span>
             </h1>
             
-            <!-- Subheading con propuesta de valor clara -->
-            <p style="font-size: 20px; line-height: 1.7; color: #475569; margin-bottom: 56px; max-width: 800px; margin-left: auto; margin-right: auto;">
-                Gestiona pedidos, facturación SUNAT, inventario, caja y delivery en una plataforma inteligente y moderna. <strong style="color: #0f172a;">Reduce errores en 50%, aumenta eficiencia 30%, y multiplica ingresos en 90 días.</strong>
-            </p>
+            <!-- Nuevo: Subtítulo con animación escalonada -->
+            <div style="animation: fadeInUp 1s ease-out 0.2s both;">
+                <p style="font-size: 20px; line-height: 1.7; color: #475569; margin-bottom: 24px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                    Gestiona pedidos, facturación SUNAT, inventario, caja y delivery en una plataforma inteligente y moderna.
+                </p>
+                <p style="font-size: 18px; line-height: 1.6; color: #64748b; margin-bottom: 56px; max-width: 700px; margin-left: auto; margin-right: auto;">
+                    <strong style="color: #0f172a; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 64, 175, 0.1) 100%); padding: 8px 16px; border-radius: 8px;">Reduce errores en 50%, aumenta eficiencia 30%, y multiplica ingresos en 90 días.</strong>
+                </p>
+            </div>
 
-            <!-- CTA Buttons profesionales y responsivos -->
+            <!-- CTA Buttons profesionales y responsivos - MEJORADOS -->
             <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 80px;">
                 @if (Route::has('filament.admin.auth.login'))
                     @auth
-                        <a href="{{ url('/admin') }}" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 12px 32px rgba(59, 130, 246, 0.3); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';">
+                        <a href="{{ url('/admin') }}" class="hero-cta-primary" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 12px 32px rgba(59, 130, 246, 0.3); border: none; cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(-1px)';" onmouseup="this.style.transform='translateY(-4px)';" onfocus="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onblur="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             Ir al Panel
+                            <span style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.6s;"></span>
                         </a>
                     @else
-                        <a href="{{ route('filament.admin.auth.login') }}" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 12px 32px rgba(59, 130, 246, 0.3); border: none; cursor: pointer;" onmouseover="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';">
+                        <a href="{{ route('filament.admin.auth.login') }}" class="hero-cta-primary" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); color: white; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); box-shadow: 0 12px 32px rgba(59, 130, 246, 0.3); border: none; cursor: pointer; position: relative; overflow: hidden; animation: pulse 2s infinite;" onmouseover="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onmouseout="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';" onmousedown="this.style.transform='translateY(-1px)';" onmouseup="this.style.transform='translateY(-4px)';" onfocus="this.style.boxShadow='0 20px 48px rgba(59, 130, 246, 0.4)'; this.style.transform='translateY(-4px)';" onblur="this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.3)'; this.style.transform='translateY(0)';">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                             Probar Gratis
+                            <span style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: left 0.6s;"></span>
                         </a>
                     @endauth
                 @endif
-                <a href="#demo" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: white; color: #3b82f6; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); border: 2px solid #3b82f6; cursor: pointer; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);" onmouseover="this.style.backgroundColor='#eff6ff'; this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.25)';" onmouseout="this.style.backgroundColor='white'; this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.15)';">
+                <a href="#demo" class="hero-cta-secondary" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 40px; background: white; color: #3b82f6; text-decoration: none; border-radius: 14px; font-weight: 700; font-size: 16px; transition: all 0.3s cubic-bezier(0.23, 1, 0.320, 1); border: 2px solid #3b82f6; cursor: pointer; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15); position: relative; overflow: hidden;" onmouseover="this.style.backgroundColor='#eff6ff'; this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.25)';" onmouseout="this.style.backgroundColor='white'; this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.15)';" onmousedown="this.style.transform='translateY(-1px)';" onmouseup="this.style.transform='translateY(-4px)';" onfocus="this.style.backgroundColor='#eff6ff'; this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 32px rgba(59, 130, 246, 0.25)';" onblur="this.style.backgroundColor='white'; this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(59, 130, 246, 0.15)';">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     Agendar Demo Gratuita
+                    <span style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent); transition: left 0.6s;"></span>
                 </a>
             </div>
         </div>
 
-        <!-- Sección de Imagen - Visual Premium con Efecto Glassmorphism -->
+        <!-- Sección de Imagen - Visual Premium con Efecto Glassmorphism - MEJORADO -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-bottom: 100px;">
-            <!-- Left: Dashboard Screenshot Mockup -->
-            <div style="position: relative; height: 500px;">
-                <div style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 24px; padding: 2px; position: absolute; inset: 0; overflow: hidden;">
+            <!-- Left: Dashboard Screenshot Mockup - INTERACTIVO -->
+            <div style="position: relative; height: 500px; animation: fadeInLeft 1s ease-out 0.4s both;">
+                <div style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 24px; padding: 2px; position: absolute; inset: 0; overflow: hidden; box-shadow: 0 25px 50px rgba(59, 130, 246, 0.25); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 35px 70px rgba(59, 130, 246, 0.35)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 25px 50px rgba(59, 130, 246, 0.25)';">
                     <div style="background: white; border-radius: 22px; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                        <!-- Dashboard Placeholder Profesional -->
-                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%); display: flex; flex-direction: column; padding: 24px;">
+                        <!-- Dashboard Placeholder Profesional - CON ANIMACIONES -->
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%); display: flex; flex-direction: column; padding: 24px; position: relative;">
+                            <!-- Nuevo: Indicador de tiempo real -->
+                            <div style="position: absolute; top: 16px; right: 16px; display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 12px; font-size: 11px; color: #10b981; font-weight: 600;">
+                                <div style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                                En Vivo
+                            </div>
+                            
                             <!-- Header del Dashboard -->
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">
                                 <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 10px;"></div>
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">W</div>
                                     <div>
                                         <div style="font-size: 13px; font-weight: 700; color: #0f172a;">Dashboard WAYNA</div>
                                         <div style="font-size: 11px; color: #64748b;">Restaurante Premium</div>
                                     </div>
                                 </div>
                                 <div style="display: flex; gap: 8px;">
-                                    <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                                    <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite;"></div>
                                     <div style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%;"></div>
                                     <div style="width: 8px; height: 8px; background: #3b82f6; border-radius: 50%;"></div>
                                 </div>
                             </div>
                             
-                            <!-- Stats Grid -->
+                            <!-- Stats Grid - CON ANIMACIÓN DE NÚMEROS -->
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
-                                <div style="background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <div style="background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(59, 130, 246, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                     <div style="font-size: 11px; color: #64748b; margin-bottom: 8px; font-weight: 600;">Ventas Hoy</div>
-                                    <div style="font-size: 24px; font-weight: 800; color: #3b82f6;">$3,284</div>
+                                    <div style="font-size: 24px; font-weight: 800; color: #3b82f6; animation: countUp 2s ease-out;">$3,284</div>
+                                    <div style="font-size: 10px; color: #10b981; margin-top: 4px;">↑ 12% vs ayer</div>
                                 </div>
-                                <div style="background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <div style="background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(16, 185, 129, 0.15)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                                     <div style="font-size: 11px; color: #64748b; margin-bottom: 8px; font-weight: 600;">Pedidos</div>
-                                    <div style="font-size: 24px; font-weight: 800; color: #10b981;">42</div>
+                                    <div style="font-size: 24px; font-weight: 800; color: #10b981; animation: countUp 2s ease-out 0.2s both;">42</div>
+                                    <div style="font-size: 10px; color: #10b981; margin-top: 4px;">↑ 8% vs ayer</div>
                                 </div>
                             </div>
                             
-                            <!-- Activity Chart Placeholder -->
-                            <div style="flex: 1; background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 12px; display: flex; align-items: flex-end; gap: 6px;">
-                                <div style="flex: 1; height: 40%; background: rgba(59, 130, 246, 0.2); border-radius: 6px;"></div>
-                                <div style="flex: 1; height: 70%; background: rgba(59, 130, 246, 0.4); border-radius: 6px;"></div>
-                                <div style="flex: 1; height: 50%; background: rgba(59, 130, 246, 0.25); border-radius: 6px;"></div>
-                                <div style="flex: 1; height: 85%; background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); border-radius: 6px;"></div>
-                                <div style="flex: 1; height: 60%; background: rgba(59, 130, 246, 0.3); border-radius: 6px;"></div>
+                            <!-- Nuevo: Mini gráfico de tendencia -->
+                            <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 12px; margin-bottom: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 11px; color: #64748b; font-weight: 600;">Tendencia de Ventas</span>
+                                    <span style="font-size: 10px; color: #10b981;">↑ 15%</span>
+                                </div>
+                                <div style="display: flex; align-items: flex-end; gap: 4px; height: 40px;">
+                                    <div style="flex: 1; height: 60%; background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0.1) 100%); border-radius: 2px; animation: barGrow 1s ease-out;"></div>
+                                    <div style="flex: 1; height: 80%; background: linear-gradient(135deg, rgba(59, 130, 246, 0.5) 0%, rgba(59, 130, 246, 0.2) 100%); border-radius: 2px; animation: barGrow 1s ease-out 0.1s both;"></div>
+                                    <div style="flex: 1; height: 70%; background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0.15) 100%); border-radius: 2px; animation: barGrow 1s ease-out 0.2s both;"></div>
+                                    <div style="flex: 1; height: 90%; background: linear-gradient(135deg, #3b82f6 0%, rgba(59, 130, 246, 0.3) 100%); border-radius: 2px; animation: barGrow 1s ease-out 0.3s both;"></div>
+                                    <div style="flex: 1; height: 85%; background: linear-gradient(135deg, rgba(59, 130, 246, 0.6) 0%, rgba(59, 130, 246, 0.2) 100%); border-radius: 2px; animation: barGrow 1s ease-out 0.4s both;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Nuevo: Estado del sistema -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(16, 185, 129, 0.05); padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.1);">
+                                <span style="font-size: 11px; color: #64748b;">Sistema</span>
+                                <div style="display: flex; align-items: center; gap: 4px;">
+                                    <div style="width: 6px; height: 6px; background: #10b981; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                                    <span style="font-size: 10px; color: #10b981; font-weight: 600;">Operativo</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Right: Beneficios y Características -->
-            <div>
+            <!-- Right: Beneficios y Características - MEJORADO CON ANIMACIONES -->
+            <div style="animation: fadeInRight 1s ease-out 0.6s both;">
                 <h2 style="font-size: 48px; font-weight: 800; color: #0f172a; margin-bottom: 32px; line-height: 1.2;">
                     Todo lo que necesitas<br><span style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">en un solo lugar</span>
                 </h2>
 
-                <!-- Beneficios con iconos -->
+                <!-- Beneficios con iconos - AHORA INTERACTIVOS -->
                 <div style="display: flex; flex-direction: column; gap: 20px;">
-                    <div style="display: flex; gap: 16px; align-items: flex-start;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start; padding: 16px; border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(59, 130, 246, 0.05)'; this.style.transform='translateX(8px)';" onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateX(0)';">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'; this.style.background='linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%)';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0.05) 100%)';">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path></svg>
                         </div>
                         <div>
                             <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Facturación SUNAT 100%</h3>
                             <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Emisión automática y segura de facturas y boletas electrónicas. Totalmente validado por SUNAT.</p>
+                            <div style="margin-top: 8px;">
+                                <span style="font-size: 11px; color: #10b981; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 4px;">✓ Compliant</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 16px; align-items: flex-start;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start; padding: 16px; border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.05)'; this.style.transform='translateX(8px)';" onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateX(0)';">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'; this.style.background='linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%)';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%)';">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
                         </div>
                         <div>
                             <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Gestión Completa de Pedidos</h3>
                             <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Control total de mesas, comandas, tiempos de preparación. Reduce errores y acelera el servicio.</p>
+                            <div style="margin-top: 8px;">
+                                <span style="font-size: 11px; color: #3b82f6; background: rgba(59, 130, 246, 0.1); padding: 2px 8px; border-radius: 4px;">⚡ 30% más rápido</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 16px; align-items: flex-start;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start; padding: 16px; border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(245, 158, 11, 0.05)'; this.style.transform='translateX(8px)';" onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateX(0)';">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'; this.style.background='linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%)';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%)';">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round"><path d="M12 2v20m10-10H2"></path></svg>
                         </div>
                         <div>
                             <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Inventario en Tiempo Real</h3>
                             <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Control de stock automático, alertas de productos agotados y reportes de rentabilidad.</p>
+                            <div style="margin-top: 8px;">
+                                <span style="font-size: 11px; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 2px 8px; border-radius: 4px;">📊 Automatizado</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 16px; align-items: flex-start;">
-                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <div style="display: flex; gap: 16px; align-items: flex-start; padding: 16px; border-radius: 12px; transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.backgroundColor='rgba(236, 72, 153, 0.05)'; this.style.transform='translateX(8px)';" onmouseout="this.style.backgroundColor='transparent'; this.style.transform='translateX(0)';">
+                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.3s ease;" onmouseover="this.style.transform='scale(1.1)'; this.style.background='linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(236, 72, 153, 0.1) 100%)';" onmouseout="this.style.transform='scale(1)'; this.style.background='linear-gradient(135deg, rgba(236, 72, 153, 0.1) 0%, rgba(236, 72, 153, 0.05) 100%)';">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round"><path d="M18.364 5.636l-3.536 3.536m9.172-9.172l-21 21M9 3a6 6 0 100 12 6 6 0 000-12z"></path></svg>
                         </div>
                         <div>
                             <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 4px;">Delivery Integrado</h3>
                             <p style="font-size: 14px; color: #64748b; line-height: 1.6;">Integración con apps de delivery y seguimiento en tiempo real. Múltiples canales de venta.</p>
+                            <div style="margin-top: 8px;">
+                                <span style="font-size: 11px; color: #ec4899; background: rgba(236, 72, 153, 0.1); padding: 2px 8px; border-radius: 4px;">🚀 Multi-canal</span>
+                            </div>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Nuevo: CTA adicional para ver más características -->
+                <div style="margin-top: 32px; text-align: center;">
+                    <a href="#herramientas" style="display: inline-flex; align-items: center; gap: 8px; color: #3b82f6; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.3s ease;" onmouseover="this.style.gap='12px'; this.style.color='#1e40af';" onmouseout="this.style.gap='8px'; this.style.color='#3b82f6';">
+                        Ver todas las características
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14m-7-7l7 7-7 7"/>
+                        </svg>
+                    </a>
                 </div>
             </div>
         </div>
