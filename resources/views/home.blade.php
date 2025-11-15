@@ -191,53 +191,32 @@
     .pricing-features li::before { content: '✓ '; color: #4caf50; font-weight: bold; margin-right: 10px; }
     .pricing-card .btn-primary { width: 100%; justify-content: center; }
 
-    @media (max-width: 1024px) {
-        .hero-container { grid-template-columns: 1fr; gap: 60px; }
-        .hero-content h1 { font-size: 48px; }
-    }
     @media (max-width: 768px) {
-        .hero {
-            padding: 80px 20px 60px;
-        }
-        .hero-container {
-            grid-template-columns: 1fr;
-            gap: 48px;
-        }
-        .hero-content h1 { font-size: 36px; line-height: 1.25; }
+        .hero-container { grid-template-columns: 1fr; gap: 60px; }
+        .hero-content h1 { font-size: 36px; }
         .hero-content p { font-size: 16px; line-height: 1.7; }
         .hero-buttons { flex-direction: column; gap: 12px; margin-bottom: 60px; }
         .hero-buttons a { width: 100%; justify-content: center; }
         .hero-diagram { height: 400px; }
         .stats { flex-direction: column; gap: 24px; }
-    }
-    @media (max-width: 420px) {
-        .hero { padding: 60px 16px 48px; }
-        .hero-content h1 { font-size: 28px; }
-        .hero-content p { font-size: 15px; }
-    }
-    /* Responsive - Features y otros componentes */
-    @media (max-width: 1024px) {
-        .features-grid { grid-template-columns: repeat(2, 1fr); }
-        .benefits-grid { grid-template-columns: repeat(2, 1fr); }
-        .pricing-grid { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 768px) {
         .content-section { padding: 48px 16px; }
         .content-container { grid-template-columns: 1fr; gap: 24px; }
         .content-text h2 { font-size: 28px; }
         .content-text p, .content-text li { font-size: 15px; }
-        
-        /* Evitar imágenes demasiado grandes en móvil */
         .content-image { height: auto; overflow: visible; }
         .content-image img { width: 100%; height: auto; max-height: 60vh; object-fit: cover; }
-        /* Igualar comportamiento de img1 e img3 al de img2 en móvil */
         .content-image--balanced img { object-fit: contain; max-height: 45vh; }
+        .features-grid { grid-template-columns: repeat(2, 1fr); }
+        .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+        .pricing-grid { grid-template-columns: 1fr; }
     }
-
-    /* Extra pequeño (<=420px) */
-    @media (max-width: 420px) {
+    @media (max-width: 480px) {
+        .hero { padding: 60px 16px 48px; }
+        .hero-content h1 { font-size: 28px; }
+        .hero-content p { font-size: 15px; }
         .content-text h2 { font-size: 26px; }
         .content-image img { max-height: 50vh; }
+        .image-fullwidth { height: auto; }
     }
     /* Imagen full-width previa a demo */
     .image-fullwidth-section { padding: 0; }
@@ -252,6 +231,180 @@
 
     @media (max-width: 768px) {
         #herramientas, #mas-info, #demo { scroll-margin-top: 96px; }
+    }
+
+    /* ===== RESPONSIVE PARA HERO SECTION NUEVO ===== */
+    @media (max-width: 1024px) {
+        /* Hero principal */
+        section[style*="padding: 160px"] {
+            padding: 120px 20px 80px !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        /* Hero section */
+        section[style*="padding: 160px"] {
+            padding: 80px 16px 60px !important;
+        }
+        section[style*="padding: 160px"] h1 {
+            font-size: 42px !important;
+            margin-bottom: 16px !important;
+        }
+        section[style*="padding: 160px"] > div > div:nth-child(2) p {
+            font-size: 16px !important;
+            margin-bottom: 32px !important;
+        }
+        /* Grid de imagen y beneficios */
+        div[style*="display: grid; grid-template-columns: 1fr 1fr; gap: 60px"] {
+            grid-template-columns: 1fr !important;
+            gap: 40px !important;
+        }
+        /* Dashboard mockup altura */
+        div[style*="position: relative; height: 500px"] {
+            height: 300px !important;
+        }
+        /* Heading de beneficios */
+        div[style*="display: grid; grid-template-columns: 1fr 1fr; gap: 60px"] h2 {
+            font-size: 36px !important;
+            margin-bottom: 24px !important;
+        }
+        /* Stats grid */
+        div[style*="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 60px"] {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 20px !important;
+            padding: 40px 20px !important;
+        }
+        div[style*="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 60px"] > div {
+            font-size: 14px !important;
+        }
+        div[style*="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 60px"] > div > div:first-child {
+            font-size: 40px !important;
+        }
+        /* Badges */
+        div[style*="display: flex; justify-content: center; align-items: center; gap: 24px"] {
+            gap: 12px !important;
+        }
+        div[style*="display: flex; justify-content: center; align-items: center; gap: 24px"] > div {
+            font-size: 11px !important;
+            padding: 8px 12px !important;
+        }
+        /* CTA buttons */
+        div[style*="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap"] {
+            flex-direction: column !important;
+            gap: 12px !important;
+        }
+        div[style*="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap"] a {
+            width: 100% !important;
+            padding: 14px 24px !important;
+            font-size: 14px !important;
+        }
+        /* Beneficios flex */
+        div[style*="display: flex; flex-direction: column; gap: 20px"] {
+            gap: 16px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        section[style*="padding: 160px"] {
+            padding: 60px 16px 40px !important;
+        }
+        section[style*="padding: 160px"] h1 {
+            font-size: 32px !important;
+        }
+        section[style*="padding: 160px"] > div > div:nth-child(2) p {
+            font-size: 15px !important;
+        }
+        div[style*="position: relative; height: 500px"] {
+            height: 250px !important;
+        }
+        div[style*="display: grid; grid-template-columns: 1fr 1fr; gap: 60px"] h2 {
+            font-size: 28px !important;
+        }
+        div[style*="display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; padding: 60px"] {
+            grid-template-columns: 1fr !important;
+        }
+        div[style*="display: flex; justify-content: center; align-items: center; gap: 24px"] {
+            flex-direction: column !important;
+        }
+    }
+
+    /* ===== RESPONSIVE PARA FEATURES SECTION ===== */
+    @media (max-width: 768px) {
+        section[style*="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 120px"] {
+            padding: 80px 16px !important;
+        }
+        section[style*="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 120px"] > div > div:first-child {
+            margin-bottom: 60px !important;
+        }
+        section[style*="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 120px"] h2 {
+            font-size: 36px !important;
+        }
+        section[style*="background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%); padding: 120px"] p {
+            font-size: 16px !important;
+        }
+        .features-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+
+    /* ===== RESPONSIVE PARA DEMO SECTION ===== */
+    @media (max-width: 1024px) {
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] {
+            padding: 100px 20px !important;
+        }
+    }
+
+    @media (max-width: 768px) {
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] {
+            padding: 80px 16px !important;
+        }
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] > div > div {
+            grid-template-columns: 1fr !important;
+            gap: 60px !important;
+        }
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] h2 {
+            font-size: 40px !important;
+            margin-bottom: 20px !important;
+        }
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] > div > div > div:first-child p {
+            font-size: 16px !important;
+            margin-bottom: 32px !important;
+        }
+        /* Formulario */
+        div[style*="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px)"] {
+            padding: 40px 24px !important;
+        }
+        div[style*="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px)"] h3 {
+            font-size: 24px !important;
+        }
+        div[style*="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px)"] input,
+        div[style*="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px)"] button {
+            font-size: 14px !important;
+        }
+    }
+
+    @media (max-width: 480px) {
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] {
+            padding: 60px 16px !important;
+        }
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] h2 {
+            font-size: 32px !important;
+        }
+        section[style*="padding: 140px 20px; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%)"] > div > div > div:first-child {
+            margin-bottom: 40px !important;
+        }
+        div[style*="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(16px)"] {
+            padding: 32px 16px !important;
+        }
+        /* Beneficios */
+        div[style*="display: flex; gap: 16px; align-items: flex-start"] {
+            gap: 12px !important;
+        }
+        div[style*="display: flex; gap: 16px; align-items: flex-start"] > div:first-child {
+            min-width: 40px !important;
+            width: 40px !important;
+            height: 40px !important;
+        }
     }
 </style>
 @endpush
