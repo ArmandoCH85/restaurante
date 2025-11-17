@@ -39,61 +39,90 @@ class PurchaseResource extends Resource
                         // SECCIÓN 1: DATOS DEL PROVEEDOR
                         Forms\Components\Section::make('🏢 PROVEEDOR')
                             ->schema([
-                                Forms\Components\Select::make('supplier_id')
-                                    ->label('Proveedor')
-                                    ->placeholder('Seleccione...')
-                                    ->relationship('supplier', 'business_name')
-                                    ->required()
-                                    ->searchable()
-                                    ->preload()
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
-                                        if ($state) {
-                                            $supplier = \App\Models\Supplier::find($state);
-                                            if ($supplier) {
-                                                $set('supplier_info', "📋 RUC: {$supplier->tax_id}<br>🏢 Razón Social: {$supplier->business_name}<br>📍 Dirección: {$supplier->address}");
-                                            }
-                                        } else {
-                                            $set('supplier_info', 'Seleccione un proveedor para ver su información');
-                                        }
-                                    })
-                                    ->columnSpanFull(),
-
-                                Forms\Components\Fieldset::make('supplier_info')
-                                    ->label('Información del Proveedor')
+                                Forms\Components\Grid::make(2)
                                     ->schema([
-                                        Forms\Components\Placeholder::make('ruc')
-                                            ->label('📋 RUC')
-                                            ->content(function ($get) {
-                                                $supplierId = $get('supplier_id');
-                                                if ($supplierId) {
-                                                    $supplier = \App\Models\Supplier::find($supplierId);
-                                                    return $supplier ? $supplier->tax_id : '';
+                                        Forms\Components\Select::make('supplier_id')
+                                            ->label('Proveedor')
+                                            ->placeholder('Seleccione...')
+                                            ->relationship('supplier', 'business_name')
+                                            ->required()
+                                            ->searchable()
+                                            ->preload()
+                                            ->reactive()
+                                            ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                                if ($state) {
+                                                    $supplier = \App\Models\Supplier::find($state);
+                                                    if ($supplier) {
+                                                        $set('supplier_ruc', $supplier->tax_id);
+                                                        $set('supplier_business_name', $supplier->business_name);
+                                                        $set('supplier_address', $supplier->address);
+                                                    }
+                                                } else {
+                                                    $set('supplier_ruc', '');
+                                                    $set('supplier_business_name', '');
+                                                    $set('supplier_address', '');
                                                 }
-                                                return '';
-                                            }),
-                                        Forms\Components\Placeholder::make('business_name')
-                                            ->label('🏢 Razón Social')
-                                            ->content(function ($get) {
-                                                $supplierId = $get('supplier_id');
-                                                if ($supplierId) {
-                                                    $supplier = \App\Models\Supplier::find($supplierId);
-                                                    return $supplier ? $supplier->business_name : '';
+                                            })
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\TextInput::make('search_ruc')
+                                            ->label('🔢 Búsqueda por RUC')
+                                            ->placeholder('Ingrese RUC (11 dígitos)')
+                                            ->numeric()
+                                            ->maxLength(11)
+                                            ->minLength(11)
+                                            ->helperText('Ingrese RUC y presione Enter o Tab para buscar')
+                                            ->reactive()
+                                            ->afterStateUpdated(function ($state, callable $set) {
+                                                if (strlen($state) === 11) {
+                                                    $ruc = $state;
+                                                    
+                                                    try {
+                                                        // Buscar usando RucLookupService (servicio correcto para consultar RUC)
+                                                        $rucService = app(\App\Services\RucLookupService::class);
+                                                        $rucInfo = $rucService->lookupRuc($ruc);
+                                                        
+                                                        if ($rucInfo) {
+                                                            // Guardar en la base de datos
+                                                            $supplier = \App\Models\Supplier::updateOrCreate(
+                                                                ['tax_id' => $ruc],
+                                                                [
+                                                                    'business_name' => $rucInfo['razon_social'],
+                                                                    'address' => $rucInfo['direccion'] ?? '',
+                                                                    'phone' => $rucInfo['telefono'] ?? '',
+                                                                    'email' => $rucInfo['email'] ?? '',
+                                                                    'active' => true,
+                                                                ]
+                                                            );
+
+                                                            // Actualizar el selector y mostrar información
+                                                            $set('supplier_id', $supplier->id);
+                                                            $set('supplier_ruc', $supplier->tax_id);
+                                                            $set('supplier_business_name', $supplier->business_name);
+                                                            $set('supplier_address', $supplier->address);
+
+                                                            \Filament\Notifications\Notification::make()
+                                                                ->title('✅ Proveedor Encontrado')
+                                                                ->body("Se encontró y guardó el proveedor: {$supplier->business_name}")
+                                                                ->success()
+                                                                ->send();
+                                                        } else {
+                                                            \Filament\Notifications\Notification::make()
+                                                                ->title('❌ Proveedor No Encontrado')
+                                                                ->body('No se encontró información para el RUC proporcionado')
+                                                                ->warning()
+                                                                ->send();
+                                                        }
+                                                    } catch (\Exception $e) {
+                                                        \Filament\Notifications\Notification::make()
+                                                            ->title('⚠️ Error en Búsqueda')
+                                                            ->body('Ocurrió un error al buscar el proveedor: ' . $e->getMessage())
+                                                            ->danger()
+                                                            ->send();
+                                                    }
                                                 }
-                                                return '';
                                             }),
-                                        Forms\Components\Placeholder::make('address')
-                                            ->label('📍 Dirección')
-                                            ->content(function ($get) {
-                                                $supplierId = $get('supplier_id');
-                                                if ($supplierId) {
-                                                    $supplier = \App\Models\Supplier::find($supplierId);
-                                                    return $supplier ? $supplier->address : '';
-                                                }
-                                                return '';
-                                            }),
-                                    ])
-                                    ->columns(1),
+                                    ]),
                             ])
                             ->columnSpan(1),
 
@@ -171,6 +200,35 @@ class PurchaseResource extends Resource
                             ->columnSpan(1),
                     ])
                     ->columns(2),
+
+                // SECCIÓN DE INFORMACIÓN DEL PROVEEDOR (OCULTA)
+                // Forms\Components\Fieldset::make('supplier_info')
+                //     ->label('📋 Información del Proveedor')
+                //     ->schema([
+                //         Forms\Components\Placeholder::make('ruc')
+                //             ->label('📋 RUC')
+                //             ->content(function ($get) {
+                //                 return $get('supplier_ruc') ?? '';
+                //             }),
+                //         Forms\Components\Placeholder::make('business_name')
+                //             ->label('🏢 Razón Social')
+                //             ->content(function ($get) {
+                //                 return $get('supplier_business_name') ?? '';
+                //             }),
+                //         Forms\Components\Placeholder::make('address')
+                //             ->label('📍 Dirección')
+                //             ->content(function ($get) {
+                //                 return $get('supplier_address') ?? '';
+                //             }),
+                //     ])
+                //     ->columns(1)
+                //     ->visible(function ($get) {
+                //         return !empty($get('supplier_ruc'));
+                //     })
+                //     ->columnSpan(1)
+                //     ->extraAttributes([
+                //         'class' => '-mt-6 mb-2'
+                //     ]),
 
                 // SECCIÓN 3: DETALLE DE PRODUCTOS
                 Forms\Components\Section::make('🛒 DETALLE DE PRODUCTOS')
