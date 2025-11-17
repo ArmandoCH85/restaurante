@@ -33,152 +33,147 @@ class PurchaseResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('📋 DATOS GENERALES DE LA COMPRA')
-                    ->description('Complete la información principal de la compra')
-                    ->icon('heroicon-o-shopping-cart')
+                // GRID PRINCIPAL PARA PROVEEDOR Y COMPROBANTE EN LA MISMA FILA
+                Forms\Components\Grid::make(2)
                     ->schema([
-                        Forms\Components\Grid::make(2)
+                        // SECCIÓN 1: DATOS DEL PROVEEDOR
+                        Forms\Components\Section::make('🏢 PROVEEDOR')
                             ->schema([
                                 Forms\Components\Select::make('supplier_id')
-                                    ->label('🏢 PROVEEDOR')
-                                    ->placeholder('Seleccione un proveedor...')
+                                    ->label('Proveedor')
+                                    ->placeholder('Seleccione...')
                                     ->relationship('supplier', 'business_name')
                                     ->required()
                                     ->searchable()
                                     ->preload()
-                                    ->createOptionForm([
-                                        Forms\Components\Section::make('📝 DATOS DEL PROVEEDOR')
-                                            ->description('Ingrese la información del nuevo proveedor')
-                                            ->schema([
-                                                Forms\Components\Grid::make(2)
-                                                    ->schema([
-                                                        Forms\Components\TextInput::make('business_name')
-                                                            ->label('Razón Social')
-                                                            ->placeholder('Ej: Distribuidora Central S.A.')
-                                                            ->required()
-                                                            ->maxLength(255),
-                                                        Forms\Components\TextInput::make('tax_id')
-                                                            ->label('RUC')
-                                                            ->placeholder('Ej: 20123456789')
-                                                            ->required()
-                                                            ->maxLength(20),
-                                                    ]),
-                                                Forms\Components\TextInput::make('address')
-                                                    ->label('Dirección')
-                                                    ->placeholder('Ej: Av. Principal 123')
-                                                    ->required()
-                                                    ->maxLength(255)
-                                                    ->columnSpanFull(),
-                                                Forms\Components\Grid::make(2)
-                                                    ->schema([
-                                                        Forms\Components\TextInput::make('phone')
-                                                            ->label('Teléfono')
-                                                            ->placeholder('Ej: 01-2345678')
-                                                            ->required()
-                                                            ->tel()
-                                                            ->maxLength(20),
-                                                        Forms\Components\TextInput::make('email')
-                                                            ->label('Correo Electrónico')
-                                                            ->placeholder('Ej: contacto@proveedor.com')
-                                                            ->email()
-                                                            ->maxLength(255),
-                                                    ]),
-                                                Forms\Components\Toggle::make('active')
-                                                    ->label('🟢 Proveedor Activo')
-                                                    ->helperText('Marque si el proveedor está operativo')
-                                                    ->default(true)
-                                                    ->columnSpanFull(),
-                                            ])
-                                            ->columns(2),
-                                    ])
-                                    ->createOptionAction(function (Forms\Components\Actions\Action $action) {
-                                        return $action
-                                            ->label('➕ NUEVO PROVEEDOR')
-                                            ->icon('heroicon-m-building-storefront')
-                                            ->color('success')
-                                            ->modalHeading('🏢 REGISTRAR NUEVO PROVEEDOR')
-                                            ->modalDescription('Complete los datos para agregar un nuevo proveedor al sistema')
-                                            ->modalWidth('2xl');
-                                    }),
-
-                                Forms\Components\Select::make('warehouse_id')
-                                    ->label('🏭 ALMACÉN DESTINO')
-                                    ->placeholder('Seleccione el almacén...')
-                                    ->relationship('warehouse', 'name')
-                                    ->required()
-                                    ->searchable()
-                                    ->preload()
-                                    ->default(function() {
-                                        return \App\Models\Warehouse::where('is_default', true)->first()?->id;
-                                    })
-                                    ->helperText('El almacén donde se registrará el stock'),
-                            ]),
-                        
-                        Forms\Components\Grid::make(3)
-                            ->schema([
-                                Forms\Components\DatePicker::make('purchase_date')
-                                    ->label('📅 FECHA COMPRA')
-                                    ->placeholder('Seleccione fecha...')
-                                    ->required()
-                                    ->default(now())
-                                    ->helperText('Fecha en que se realizó la compra'),
-
-                                Forms\Components\Select::make('document_type')
-                                    ->label('📄 TIPO DOCUMENTO')
-                                    ->placeholder('Seleccione tipo...')
-                                    ->options([
-                                        'invoice' => '🧾 FACTURA',
-                                        'receipt' => '🧾 BOLETA',
-                                        'ticket' => '🎫 TICKET',
-                                        'dispatch_guide' => '🚚 GUÍA REMISIÓN',
-                                        'other' => '📄 OTRO',
-                                    ])
-                                    ->required()
-                                    ->default('invoice')
                                     ->reactive()
-                                    ->afterStateUpdated(function (callable $set, $state) {
-                                        // Si es guía de remisión, sugerir formato
-                                        if ($state === 'dispatch_guide') {
-                                            $set('document_number', 'T001-');
+                                    ->afterStateUpdated(function ($state, callable $set, callable $get) {
+                                        if ($state) {
+                                            $supplier = \App\Models\Supplier::find($state);
+                                            if ($supplier) {
+                                                $set('supplier_info', "📋 RUC: {$supplier->tax_id}<br>🏢 Razón Social: {$supplier->business_name}<br>📍 Dirección: {$supplier->address}");
+                                            }
+                                        } else {
+                                            $set('supplier_info', 'Seleccione un proveedor para ver su información');
                                         }
-                                    }),
+                                    })
+                                    ->columnSpanFull(),
 
-                                Forms\Components\TextInput::make('document_number')
-                                    ->label('🔢 N° DOCUMENTO')
-                                    ->placeholder('Ej: F001-12345')
-                                    ->required()
-                                    ->maxLength(50)
-                                    ->helperText('Número único del documento de compra'),
-                            ]),
-
-                        Forms\Components\Grid::make(2)
-                            ->schema([
-                                Forms\Components\Select::make('status')
-                                    ->label('📊 ESTADO')
-                                    ->placeholder('Seleccione estado...')
-                                    ->options([
-                                        'pending' => '⏳ PENDIENTE',
-                                        'completed' => '✅ COMPLETADO',
-                                        'cancelled' => '❌ ANULADO',
+                                Forms\Components\Fieldset::make('supplier_info')
+                                    ->label('Información del Proveedor')
+                                    ->schema([
+                                        Forms\Components\Placeholder::make('ruc')
+                                            ->label('📋 RUC')
+                                            ->content(function ($get) {
+                                                $supplierId = $get('supplier_id');
+                                                if ($supplierId) {
+                                                    $supplier = \App\Models\Supplier::find($supplierId);
+                                                    return $supplier ? $supplier->tax_id : '';
+                                                }
+                                                return '';
+                                            }),
+                                        Forms\Components\Placeholder::make('business_name')
+                                            ->label('🏢 Razón Social')
+                                            ->content(function ($get) {
+                                                $supplierId = $get('supplier_id');
+                                                if ($supplierId) {
+                                                    $supplier = \App\Models\Supplier::find($supplierId);
+                                                    return $supplier ? $supplier->business_name : '';
+                                                }
+                                                return '';
+                                            }),
+                                        Forms\Components\Placeholder::make('address')
+                                            ->label('📍 Dirección')
+                                            ->content(function ($get) {
+                                                $supplierId = $get('supplier_id');
+                                                if ($supplierId) {
+                                                    $supplier = \App\Models\Supplier::find($supplierId);
+                                                    return $supplier ? $supplier->address : '';
+                                                }
+                                                return '';
+                                            }),
                                     ])
-                                    ->required()
-                                    ->default('completed')
-                                    ->helperText('Estado actual de la compra'),
+                                    ->columns(1),
+                            ])
+                            ->columnSpan(1),
 
-                                Forms\Components\Textarea::make('notes')
-                                    ->label('📝 NOTAS ADICIONALES')
-                                    ->placeholder('Ingrese observaciones importantes...')
-                                    ->rows(3)
-                                    ->columnSpanFull()
-                                    ->helperText('Comentarios o detalles relevantes de la compra'),
-                            ]),
+                        // SECCIÓN 2: DATOS DEL COMPROBANTE
+                        Forms\Components\Section::make('📄 COMPROBANTE')
+                            ->schema([
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Select::make('document_type')
+                                            ->label('Tipo')
+                                            ->placeholder('Seleccione...')
+                                            ->options([
+                                                'invoice' => 'FACTURA',
+                                                'receipt' => 'BOLETA',
+                                                'ticket' => 'TICKET',
+                                                'dispatch_guide' => 'GUÍA',
+                                                'other' => 'OTRO',
+                                            ])
+                                            ->required()
+                                            ->default('invoice')
+                                            ->reactive()
+                                            ->afterStateUpdated(function (callable $set, $state) {
+                                                if ($state === 'dispatch_guide') {
+                                                    $set('document_number', 'T001-');
+                                                }
+                                            }),
+
+                                        Forms\Components\TextInput::make('document_number')
+                                            ->label('Número')
+                                            ->placeholder('Ej: F001-12345')
+                                            ->required()
+                                            ->maxLength(50),
+                                    ]),
+
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\DatePicker::make('purchase_date')
+                                            ->label('Fecha')
+                                            ->placeholder('Seleccione...')
+                                            ->required()
+                                            ->default(now()),
+
+                                        Forms\Components\Select::make('warehouse_id')
+                                            ->label('Almacén')
+                                            ->placeholder('Seleccione...')
+                                            ->relationship('warehouse', 'name')
+                                            ->required()
+                                            ->searchable()
+                                            ->preload()
+                                            ->default(function() {
+                                                return \App\Models\Warehouse::where('is_default', true)->first()?->id;
+                                            }),
+                                    ]),
+
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\Select::make('status')
+                                            ->label('Estado')
+                                            ->placeholder('Seleccione...')
+                                            ->options([
+                                                'pending' => 'PENDIENTE',
+                                                'completed' => 'COMPLETADO',
+                                                'cancelled' => 'ANULADO',
+                                            ])
+                                            ->required()
+                                            ->default('completed'),
+
+                                        Forms\Components\Textarea::make('notes')
+                                            ->label('Notas')
+                                            ->placeholder('Observaciones...')
+                                            ->rows(2)
+                                            ->columnSpanFull(),
+                                    ]),
+                            ])
+                            ->columnSpan(1),
                     ])
-                    ->columns(2)
-                    ->extraAttributes([
-                        'class' => 'lg:columns-2 md:columns-1 sm:columns-1'
-                    ]),
+                    ->columns(2),
 
-                Forms\Components\Section::make('🛒 DETALLES DE LA COMPRA')
+                // SECCIÓN 3: DETALLE DE PRODUCTOS
+                Forms\Components\Section::make('🛒 DETALLE DE PRODUCTOS')
                     ->description('Agregue los productos e ingredientes comprados')
                     ->icon('heroicon-o-shopping-bag')
                     ->schema([
@@ -194,7 +189,7 @@ class PurchaseResource extends Resource
                                     : null
                             )
                             ->schema([
-                                Forms\Components\Grid::make(4)
+                                Forms\Components\Grid::make(5)
                                     ->schema([
                                         Forms\Components\Select::make('product_id')
                                             ->label('🥫 Producto')
@@ -503,6 +498,15 @@ class PurchaseResource extends Resource
                                                 $set('../../tax', round($totalTax, 2));
                                                 $set('../../total', round($totalSubtotal, 2));
                                             }),
+
+                                        Forms\Components\TextInput::make('subtotal')
+                                            ->label('💰 Total')
+                                            ->placeholder('0.00')
+                                            ->numeric()
+                                            ->prefix('S/')
+                                            ->disabled()
+                                            ->dehydrated()
+                                            ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 2, '.', '') : '0.00'),
                                     ]),
                             ])
                             ->columns(1)
@@ -532,6 +536,7 @@ class PurchaseResource extends Resource
                             }),
                     ]),
 
+                // SECCIÓN 4: RESUMEN FINANCIERO
                 Forms\Components\Section::make('💰 RESUMEN FINANCIERO')
                     ->description('Totales calculados automáticamente de la compra')
                     ->icon('heroicon-o-calculator')
@@ -569,10 +574,7 @@ class PurchaseResource extends Resource
                                     ->helperText('Monto total incluyendo impuestos'),
                             ]),
                     ])
-                    ->columns(3)
-                    ->extraAttributes([
-                        'class' => 'xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1'
-                    ]),
+                    ->columns(3),
             ]);
     }
 
