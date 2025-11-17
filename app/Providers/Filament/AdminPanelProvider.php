@@ -92,7 +92,10 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Widgets\CashRegisterStatsWidget::class,
                 \App\Filament\Widgets\PaymentMethodsChart::class,
                 \App\Filament\Widgets\CashRegisterPerformanceChart::class,
+                \App\Filament\Widgets\PurchaseStatsWidget::class, // ✅ Widget de estadísticas de compras agregado
             ])
+            // Habilitar descubrimiento automático de widgets como alternativa
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             // Agregar enlace personalizado para Resúmenes de Boletas
             ->navigationItems([
                 NavigationItem::make('Resúmenes de Boletas')
