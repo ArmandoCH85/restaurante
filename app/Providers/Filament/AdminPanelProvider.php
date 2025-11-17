@@ -46,7 +46,7 @@ class AdminPanelProvider extends PanelProvider
                 }
                 return '/admin';
             })
-            ->maxContentWidth('7xl')
+            ->maxContentWidth('full')
             ->sidebarFullyCollapsibleOnDesktop()
             ->brandName('')
             ->brandLogo(asset('images/logoWayna.svg'))
@@ -414,6 +414,336 @@ class AdminPanelProvider extends PanelProvider
                         width: 12px !important;
                         height: 12px !important;
                     }
+                </style>
+                
+                <style>
+                /* Maximizar uso del espacio disponible */
+                .fi-content {
+                    max-width: 100% !important;
+                    padding: 1rem !important;
+                    width: 100% !important;
+                }
+
+                /* Tablas responsivas que usan todo el ancho */
+                .fi-table {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                }
+
+                /* Formularios de ancho completo */
+                .fi-form {
+                    max-width: 100% !important;
+                    width: 100% !important;
+                }
+
+                /* Grid responsive para formularios - más columnas en pantallas grandes */
+                @media (min-width: 1536px) {
+                    .fi-grid-cols-2 {
+                        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                    }
+                }
+
+                @media (min-width: 1920px) {
+                    .fi-grid-cols-2 {
+                        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+                    }
+                }
+
+                /* Repeater de detalles con más espacio */
+                .fi-repeater .fi-repeater-item {
+                    width: 100% !important;
+                }
+
+                /* Secciones de formulario más anchas */
+                .fi-section {
+                    max-width: 100% !important;
+                }
+
+                /* Contenedor principal sin límites de ancho */
+                .fi-panel-content {
+                    max-width: none !important;
+                }
+                </style>
+                
+                <style>
+                /* Empty state optimizado para usar todo el espacio */
+                .fi-empty-state,
+                .filament-empty-state {
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    padding: 3rem 2rem !important;
+                    min-height: 60vh !important;
+                    display: flex !important;
+                    flex-direction: column !important;
+                    justify-content: center !important;
+                    align-items: center !important;
+                }
+
+                .fi-empty-state-content,
+                .filament-empty-state-content {
+                    max-width: 800px !important;
+                    text-align: center !important;
+                }
+
+                .fi-empty-state-heading,
+                .filament-empty-state-heading {
+                    font-size: 1.5rem !important;
+                    font-weight: 600 !important;
+                    margin-bottom: 1rem !important;
+                    color: #374151 !important;
+                }
+
+                .fi-empty-state-description,
+                .filament-empty-state-description {
+                    font-size: 1.1rem !important;
+                    color: #6b7280 !important;
+                    margin-bottom: 2rem !important;
+                    line-height: 1.6 !important;
+                }
+
+                .fi-empty-state-actions,
+                .filament-empty-state-actions {
+                    display: flex !important;
+                    gap: 1rem !important;
+                    justify-content: center !important;
+                    flex-wrap: wrap !important;
+                }
+
+                /* Responsive para empty state */
+                @media (max-width: 768px) {
+                    .fi-empty-state,
+                    .filament-empty-state {
+                        padding: 2rem 1rem !important;
+                        min-height: 50vh !important;
+                    }
+                    
+                    .fi-empty-state-heading,
+                    .filament-empty-state-heading {
+                        font-size: 1.25rem !important;
+                    }
+                    
+                    .fi-empty-state-description,
+                    .filament-empty-state-description {
+                        font-size: 1rem !important;
+                    }
+                }
+
+                @media (min-width: 1920px) {
+                    .fi-empty-state,
+                    .filament-empty-state {
+                        min-height: 70vh !important;
+                        padding: 4rem 2rem !important;
+                    }
+                    
+                    .fi-empty-state-content,
+                    .filament-empty-state-content {
+                        max-width: 1000px !important;
+                    }
+                    
+                    .fi-empty-state-heading,
+                    .filament-empty-state-heading {
+                        font-size: 1.75rem !important;
+                    }
+                    
+                    .fi-empty-state-description,
+                    .filament-empty-state-description {
+                        font-size: 1.25rem !important;
+                    }
+                }
+                </style>
+                
+                <style>
+                /* Resaltar contornos de listas desplegables (Selects) - SELECTORES FIAMENT 3 */
+                
+                /* Selects principales - Selectores más específicos */
+                div[data-type="select"] > div > button,
+                .fi-ta-select-trigger,
+                .filament-forms-select-trigger,
+                button[role="combobox"],
+                .fi-select-trigger {
+                    border: 2px solid #e5e7eb !important;
+                    border-radius: 0.5rem !important;
+                    transition: all 0.2s ease-in-out !important;
+                    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+                    background-color: #ffffff !important;
+                }
+
+                div[data-type="select"] > div > button:hover,
+                .fi-ta-select-trigger:hover,
+                .filament-forms-select-trigger:hover,
+                button[role="combobox"]:hover,
+                .fi-select-trigger:hover {
+                    border-color: #3b82f6 !important;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+                    background-color: #f8fafc !important;
+                }
+
+                div[data-type="select"] > div > button:focus,
+                .fi-ta-select-trigger:focus,
+                .filament-forms-select-trigger:focus,
+                button[role="combobox"]:focus,
+                .fi-select-trigger:focus {
+                    border-color: #3b82f6 !important;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+                    outline: none !important;
+                    background-color: #ffffff !important;
+                }
+
+                /* Selects dentro de repeaters */
+                .fi-repeater div[data-type="select"] > div > button,
+                .fi-repeater .fi-ta-select-trigger,
+                .fi-repeater .filament-forms-select-trigger,
+                .fi-repeater button[role="combobox"],
+                .fi-repeater .fi-select-trigger {
+                    border-color: #d1d5db !important;
+                    background-color: #ffffff !important;
+                }
+
+                .fi-repeater div[data-type="select"] > div > button:hover,
+                .fi-repeater .fi-ta-select-trigger:hover,
+                .fi-repeater .filament-forms-select-trigger:hover,
+                .fi-repeater button[role="combobox"]:hover,
+                .fi-repeater .fi-select-trigger:hover {
+                    border-color: #60a5fa !important;
+                    background-color: #f0f9ff !important;
+                }
+
+                /* Selects con estado de error */
+                div[data-type="select"].error > div > button,
+                .fi-ta-select-trigger.error,
+                .filament-forms-select-trigger.error,
+                button[role="combobox"].error,
+                .fi-select-trigger.error {
+                    border-color: #ef4444 !important;
+                    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+                }
+
+                /* Selects deshabilitados */
+                div[data-type="select"] > div > button:disabled,
+                .fi-ta-select-trigger:disabled,
+                .filament-forms-select-trigger:disabled,
+                button[role="combobox"]:disabled,
+                .fi-select-trigger:disabled {
+                    border-color: #e5e7eb !important;
+                    background-color: #f9fafb !important;
+                    opacity: 0.7 !important;
+                    cursor: not-allowed !important;
+                }
+
+                /* Dropdown menu styling */
+                div[data-type="select"] + div[role="listbox"],
+                .fi-ta-select-dropdown,
+                .filament-forms-select-dropdown,
+                .fi-select-dropdown {
+                    border: 2px solid #e5e7eb !important;
+                    border-radius: 0.5rem !important;
+                    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+                    margin-top: 0.25rem !important;
+                    background-color: #ffffff !important;
+                    z-index: 50 !important;
+                }
+
+                div[data-type="select"] + div[role="listbox"] > div,
+                .fi-ta-select-dropdown-item,
+                .filament-forms-select-dropdown-item,
+                .fi-select-dropdown-item {
+                    border-radius: 0.375rem !important;
+                    margin: 0.125rem !important;
+                    transition: all 0.15s ease-in-out !important;
+                    padding: 0.5rem 0.75rem !important;
+                }
+
+                div[data-type="select"] + div[role="listbox"] > div:hover,
+                .fi-ta-select-dropdown-item:hover,
+                .filament-forms-select-dropdown-item:hover,
+                .fi-select-dropdown-item:hover {
+                    background-color: #eff6ff !important;
+                    color: #1d4ed8 !important;
+                }
+
+                div[data-type="select"] + div[role="listbox"] > div.selected,
+                .fi-ta-select-dropdown-item.selected,
+                .filament-forms-select-dropdown-item.selected,
+                .fi-select-dropdown-item.selected {
+                    background-color: #dbeafe !important;
+                    color: #1e40af !important;
+                    font-weight: 500 !important;
+                }
+
+                /* Selects con estado abierto */
+                div[data-type="select"][data-state="open"] > div > button,
+                .fi-ta-select[data-state="open"] .fi-ta-select-trigger,
+                .filament-forms-select[data-state="open"] .filament-forms-select-trigger,
+                .fi-select[data-state="open"] .fi-select-trigger {
+                    border-color: #3b82f6 !important;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+                }
+
+                /* Iconos de selects */
+                div[data-type="select"] > div > button svg,
+                .fi-ta-select-trigger svg,
+                .filament-forms-select-trigger svg,
+                .fi-select-trigger svg {
+                    color: #6b7280 !important;
+                    transition: color 0.2s ease-in-out !important;
+                }
+
+                div[data-type="select"] > div > button:hover svg,
+                .fi-ta-select-trigger:hover svg,
+                .filament-forms-select-trigger:hover svg,
+                .fi-select-trigger:hover svg {
+                    color: #3b82f6 !important;
+                }
+
+                div[data-type="select"] > div > button:focus svg,
+                .fi-ta-select-trigger:focus svg,
+                .filament-forms-select-trigger:focus svg,
+                .fi-select-trigger:focus svg {
+                    color: #3b82f6 !important;
+                }
+
+                /* Selectors universales para todos los selects */
+                select {
+                    border: 2px solid #e5e7eb !important;
+                    border-radius: 0.5rem !important;
+                    transition: all 0.2s ease-in-out !important;
+                    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+                    background-color: #ffffff !important;
+                }
+
+                select:hover {
+                    border-color: #3b82f6 !important;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+                    background-color: #f8fafc !important;
+                }
+
+                select:focus {
+                    border-color: #3b82f6 !important;
+                    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+                    outline: none !important;
+                    background-color: #ffffff !important;
+                }
+
+                /* Responsive para selects */
+                @media (max-width: 768px) {
+                    div[data-type="select"] > div > button,
+                    .fi-ta-select-trigger,
+                    .filament-forms-select-trigger,
+                    button[role="combobox"],
+                    .fi-select-trigger,
+                    select {
+                        border-width: 1px !important;
+                        font-size: 0.875rem !important;
+                    }
+                    
+                    div[data-type="select"] + div[role="listbox"] > div,
+                    .fi-ta-select-dropdown-item,
+                    .filament-forms-select-dropdown-item,
+                    .fi-select-dropdown-item {
+                        padding: 0.375rem 0.5rem !important;
+                        font-size: 0.875rem !important;
+                    }
+                }
                 </style>
 
                 <script>

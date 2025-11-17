@@ -33,466 +33,488 @@ class PurchaseResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Información de Compra')
+                Forms\Components\Section::make('📋 DATOS GENERALES DE LA COMPRA')
+                    ->description('Complete la información principal de la compra')
+                    ->icon('heroicon-o-shopping-cart')
                     ->schema([
-                        Forms\Components\Select::make('supplier_id')
-                            ->label('Proveedor')
-                            ->relationship('supplier', 'business_name')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->createOptionForm([
-                                Forms\Components\TextInput::make('business_name')
-                                    ->label('Razón Social')
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('supplier_id')
+                                    ->label('🏢 PROVEEDOR')
+                                    ->placeholder('Seleccione un proveedor...')
+                                    ->relationship('supplier', 'business_name')
                                     ->required()
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('tax_id')
-                                    ->label('RUC')
+                                    ->searchable()
+                                    ->preload()
+                                    ->createOptionForm([
+                                        Forms\Components\Section::make('📝 DATOS DEL PROVEEDOR')
+                                            ->description('Ingrese la información del nuevo proveedor')
+                                            ->schema([
+                                                Forms\Components\Grid::make(2)
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('business_name')
+                                                            ->label('Razón Social')
+                                                            ->placeholder('Ej: Distribuidora Central S.A.')
+                                                            ->required()
+                                                            ->maxLength(255),
+                                                        Forms\Components\TextInput::make('tax_id')
+                                                            ->label('RUC')
+                                                            ->placeholder('Ej: 20123456789')
+                                                            ->required()
+                                                            ->maxLength(20),
+                                                    ]),
+                                                Forms\Components\TextInput::make('address')
+                                                    ->label('Dirección')
+                                                    ->placeholder('Ej: Av. Principal 123')
+                                                    ->required()
+                                                    ->maxLength(255)
+                                                    ->columnSpanFull(),
+                                                Forms\Components\Grid::make(2)
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('phone')
+                                                            ->label('Teléfono')
+                                                            ->placeholder('Ej: 01-2345678')
+                                                            ->required()
+                                                            ->tel()
+                                                            ->maxLength(20),
+                                                        Forms\Components\TextInput::make('email')
+                                                            ->label('Correo Electrónico')
+                                                            ->placeholder('Ej: contacto@proveedor.com')
+                                                            ->email()
+                                                            ->maxLength(255),
+                                                    ]),
+                                                Forms\Components\Toggle::make('active')
+                                                    ->label('🟢 Proveedor Activo')
+                                                    ->helperText('Marque si el proveedor está operativo')
+                                                    ->default(true)
+                                                    ->columnSpanFull(),
+                                            ])
+                                            ->columns(2),
+                                    ])
+                                    ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                        return $action
+                                            ->label('➕ NUEVO PROVEEDOR')
+                                            ->icon('heroicon-m-building-storefront')
+                                            ->color('success')
+                                            ->modalHeading('🏢 REGISTRAR NUEVO PROVEEDOR')
+                                            ->modalDescription('Complete los datos para agregar un nuevo proveedor al sistema')
+                                            ->modalWidth('2xl');
+                                    }),
+
+                                Forms\Components\Select::make('warehouse_id')
+                                    ->label('🏭 ALMACÉN DESTINO')
+                                    ->placeholder('Seleccione el almacén...')
+                                    ->relationship('warehouse', 'name')
                                     ->required()
-                                    ->maxLength(20),
-                                Forms\Components\TextInput::make('address')
-                                    ->label('Dirección')
+                                    ->searchable()
+                                    ->preload()
+                                    ->default(function() {
+                                        return \App\Models\Warehouse::where('is_default', true)->first()?->id;
+                                    })
+                                    ->helperText('El almacén donde se registrará el stock'),
+                            ]),
+                        
+                        Forms\Components\Grid::make(3)
+                            ->schema([
+                                Forms\Components\DatePicker::make('purchase_date')
+                                    ->label('📅 FECHA COMPRA')
+                                    ->placeholder('Seleccione fecha...')
                                     ->required()
-                                    ->maxLength(255),
-                                Forms\Components\TextInput::make('phone')
-                                    ->label('Teléfono')
+                                    ->default(now())
+                                    ->helperText('Fecha en que se realizó la compra'),
+
+                                Forms\Components\Select::make('document_type')
+                                    ->label('📄 TIPO DOCUMENTO')
+                                    ->placeholder('Seleccione tipo...')
+                                    ->options([
+                                        'invoice' => '🧾 FACTURA',
+                                        'receipt' => '🧾 BOLETA',
+                                        'ticket' => '🎫 TICKET',
+                                        'dispatch_guide' => '🚚 GUÍA REMISIÓN',
+                                        'other' => '📄 OTRO',
+                                    ])
                                     ->required()
-                                    ->tel()
-                                    ->maxLength(20),
-                                Forms\Components\TextInput::make('email')
-                                    ->label('Correo Electrónico')
-                                    ->email()
-                                    ->maxLength(255),
-                                Forms\Components\Toggle::make('active')
-                                    ->label('Activo')
-                                    ->default(true),
-                            ])
-                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
-                                return $action
-                                    ->label('Nuevo Proveedor')
-                                    ->icon('heroicon-m-plus-circle')
-                                    ->modalHeading('Crear Nuevo Proveedor')
-                                    ->modalWidth('lg');
-                            }),
+                                    ->default('invoice')
+                                    ->reactive()
+                                    ->afterStateUpdated(function (callable $set, $state) {
+                                        // Si es guía de remisión, sugerir formato
+                                        if ($state === 'dispatch_guide') {
+                                            $set('document_number', 'T001-');
+                                        }
+                                    }),
 
-                        Forms\Components\Select::make('warehouse_id')
-                            ->label('Almacén')
-                            ->relationship('warehouse', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->default(function() {
-                                return \App\Models\Warehouse::where('is_default', true)->first()?->id;
-                            }),
+                                Forms\Components\TextInput::make('document_number')
+                                    ->label('🔢 N° DOCUMENTO')
+                                    ->placeholder('Ej: F001-12345')
+                                    ->required()
+                                    ->maxLength(50)
+                                    ->helperText('Número único del documento de compra'),
+                            ]),
 
-                        Forms\Components\DatePicker::make('purchase_date')
-                            ->label('Fecha de Compra')
-                            ->required()
-                            ->default(now()),
+                        Forms\Components\Grid::make(2)
+                            ->schema([
+                                Forms\Components\Select::make('status')
+                                    ->label('📊 ESTADO')
+                                    ->placeholder('Seleccione estado...')
+                                    ->options([
+                                        'pending' => '⏳ PENDIENTE',
+                                        'completed' => '✅ COMPLETADO',
+                                        'cancelled' => '❌ ANULADO',
+                                    ])
+                                    ->required()
+                                    ->default('completed')
+                                    ->helperText('Estado actual de la compra'),
 
-                        Forms\Components\TextInput::make('document_number')
-                            ->label('Número de Documento')
-                            ->required()
-                            ->maxLength(50),
-
-                        Forms\Components\Select::make('document_type')
-                            ->label('Tipo de Documento')
-                            ->options([
-                                'invoice' => 'Factura',
-                                'receipt' => 'Boleta',
-                                'ticket' => 'Ticket',
-                                'dispatch_guide' => 'Guía de Remisión',
-                                'other' => 'Otro',
-                            ])
-                            ->required()
-                            ->default('invoice')
-                            ->reactive()
-                            ->afterStateUpdated(function (callable $set, $state) {
-                                // Si es guía de remisión, sugerir formato
-                                if ($state === 'dispatch_guide') {
-                                    $set('document_number', 'T001-');
-                                }
-                            }),
-
-                        Forms\Components\Select::make('status')
-                            ->label('Estado')
-                            ->options([
-                                'pending' => 'Pendiente',
-                                'completed' => 'Completado',
-                                'cancelled' => 'Cancelado',
-                            ])
-                            ->required()
-                            ->default('completed'),
-
-                        Forms\Components\Textarea::make('notes')
-                            ->label('Notas')
-                            ->columnSpanFull(),
+                                Forms\Components\Textarea::make('notes')
+                                    ->label('📝 NOTAS ADICIONALES')
+                                    ->placeholder('Ingrese observaciones importantes...')
+                                    ->rows(3)
+                                    ->columnSpanFull()
+                                    ->helperText('Comentarios o detalles relevantes de la compra'),
+                            ]),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->extraAttributes([
+                        'class' => 'lg:columns-2 md:columns-1 sm:columns-1'
+                    ]),
 
-                Forms\Components\Section::make('Detalles de la Compra')
+                Forms\Components\Section::make('🛒 DETALLES DE LA COMPRA')
+                    ->description('Agregue los productos e ingredientes comprados')
+                    ->icon('heroicon-o-shopping-bag')
                     ->schema([
                         Forms\Components\Repeater::make('details')
                             ->label('')
                             ->relationship()
+                            ->addActionLabel('➕ AGREGAR PRODUCTO')
+                            ->collapsible()
+                            ->collapsed()
+                            ->itemLabel(fn (array $state): ?string =>
+                                $state['product_id']
+                                    ? '📦 ' . \App\Models\Product::find($state['product_id'])?->name . ' - ' . ($state['quantity'] ?? '?') . ' x S/' . ($state['unit_cost'] ?? '0')
+                                    : null
+                            )
                             ->schema([
-                                Forms\Components\Select::make('product_id')
-                                    ->label('Ingredientes')
-                                    ->options(\App\Models\Product::whereIn('product_type', ['ingredient', 'both'])->pluck('name', 'id'))
-                                    ->required()
-                                    ->searchable()
-                                    ->reactive()
-                                    ->afterStateUpdated(function (callable $set, $state) {
-                                        if ($state) {
-                                            $product = \App\Models\Product::find($state);
-                                            if ($product) {
-                                                $set('unit_cost', $product->current_cost ?? 0);
-                                            }
-                                        }
-                                    })
-                                    ->createOptionForm([
-                                        Forms\Components\Section::make('Información Básica')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('code')
-                                                    ->label('Código')
-                                                    ->required()
-                                                    ->unique('products', 'code')
-                                                    ->maxLength(20),
-                                                Forms\Components\TextInput::make('name')
-                                                    ->label('Nombre')
-                                                    ->required()
-                                                    ->maxLength(255),
-                                                Forms\Components\Select::make('product_type')
-                                                    ->label('Tipo de Producto')
-                                                    ->required()
-                                                    ->options([
-                                                        'ingredient' => 'Ingrediente (insumo de cocina)',
-                                                        'both' => 'Producto para venta e ingrediente (ej: gaseosas)'
+                                Forms\Components\Grid::make(4)
+                                    ->schema([
+                                        Forms\Components\Select::make('product_id')
+                                            ->label('🥫 Producto')
+                                            ->placeholder('Buscar...')
+                                            ->options(\App\Models\Product::whereIn('product_type', ['ingredient', 'both'])->pluck('name', 'id'))
+                                            ->required()
+                                            ->searchable()
+                                            ->reactive()
+                                            ->afterStateUpdated(function (callable $set, $state) {
+                                                if ($state) {
+                                                    $product = \App\Models\Product::find($state);
+                                                    if ($product) {
+                                                        $set('unit_cost', $product->current_cost ?? 0);
+                                                    }
+                                                }
+                                            })
+                                            ->createOptionForm([
+                                                Forms\Components\Section::make('🆕 NUEVO PRODUCTO')
+                                                    ->description('Complete los datos básicos del producto')
+                                                    ->schema([
+                                                        Forms\Components\Grid::make(2)
+                                                            ->schema([
+                                                                Forms\Components\TextInput::make('code')
+                                                                    ->label('🏷️ Código')
+                                                                    ->placeholder('PROD001')
+                                                                    ->required()
+                                                                    ->unique('products', 'code')
+                                                                    ->maxLength(20),
+                                                                Forms\Components\TextInput::make('name')
+                                                                    ->label('📝 Nombre')
+                                                                    ->placeholder('Ej: Harina de trigo')
+                                                                    ->required()
+                                                                    ->maxLength(255),
+                                                            ]),
+                                                        Forms\Components\Grid::make(2)
+                                                            ->schema([
+                                                                Forms\Components\Select::make('product_type')
+                                                                    ->label('📂 Tipo')
+                                                                    ->required()
+                                                                    ->options([
+                                                                        'ingredient' => '🥫 Ingrediente',
+                                                                        'both' => '🥤 Producto/Ingrediente'
+                                                                    ])
+                                                                    ->default('ingredient'),
+                                                                Forms\Components\Select::make('category_id')
+                                                                    ->label('📁 Categoría')
+                                                                    ->placeholder('Seleccione...')
+                                                                    ->options(\App\Models\ProductCategory::pluck('name', 'id'))
+                                                                    ->searchable()
+                                                                    ->preload()
+                                                                    ->createOptionForm([
+                                                                        Forms\Components\TextInput::make('name')
+                                                                            ->label('Nombre')
+                                                                            ->placeholder('Ej: Bebidas')
+                                                                            ->required()
+                                                                            ->maxLength(50),
+                                                                    ])
+                                                                    ->createOptionUsing(function (array $data) {
+                                                                        return \App\Models\ProductCategory::create([
+                                                                            'name' => $data['name'],
+                                                                            'description' => $data['description'] ?? null,
+                                                                        ])->id;
+                                                                    }),
+                                                            ]),
+                                                        Forms\Components\Grid::make(2)
+                                                            ->schema([
+                                                                Forms\Components\TextInput::make('current_cost')
+                                                                    ->label('💵 Costo Unitario')
+                                                                    ->placeholder('0.00')
+                                                                    ->required()
+                                                                    ->numeric()
+                                                                    ->prefix('S/')
+                                                                    ->default(0),
+                                                                Forms\Components\TextInput::make('current_stock')
+                                                                    ->label('📦 Stock Inicial')
+                                                                    ->placeholder('1.000')
+                                                                    ->numeric()
+                                                                    ->default(1)
+                                                                    ->required()
+                                                                    ->minValue(0.001)
+                                                                    ->step(0.001),
+                                                            ]),
+                                                        Forms\Components\Textarea::make('description')
+                                                            ->label('📝 Descripción')
+                                                            ->placeholder('Descripción del producto...')
+                                                            ->maxLength(255)
+                                                            ->rows(2)
+                                                            ->columnSpanFull(),
+                                                        Forms\Components\Hidden::make('sale_price')
+                                                            ->default(0),
+                                                        Forms\Components\Hidden::make('active')
+                                                            ->default(true),
                                                     ])
-                                                    ->default('ingredient')
-                                                    ->reactive()
-                                                    ->afterStateUpdated(function (callable $set, $state) {
-                                                        // Solo mostrar categoría para productos tipo 'both' (gaseosas)
-                                                        $set('show_category', $state === 'both');
-                                                    }),
-                                                Forms\Components\Select::make('category_id')
-                                                    ->label('Categoría (solo para gaseosas)')
-                                                    ->options(\App\Models\ProductCategory::pluck('name', 'id'))
-                                                    ->searchable()
-                                                    ->preload()
-                                                    ->visible(fn (callable $get) => $get('show_category') === true)
-                                                    ->createOptionForm([
-                                                        Forms\Components\TextInput::make('name')
-                                                            ->label('Nombre')
-                                                            ->required()
-                                                            ->maxLength(50),
-                                                        Forms\Components\TextInput::make('description')
-                                                            ->label('Descripción')
-                                                            ->maxLength(255),
-                                                    ])
-                                                    ->createOptionUsing(function (array $data) {
-                                                        return \App\Models\ProductCategory::create([
-                                                            'name' => $data['name'],
-                                                            'description' => $data['description'] ?? null,
-                                                        ])->id;
-                                                    }),
-                                                Forms\Components\Hidden::make('show_category')
-                                                    ->default(false),
+                                                    ->columns(2)
                                             ])
-                                            ->columns(2),
+                                            ->createOptionAction(function (Forms\Components\Actions\Action $action) {
+                                                return $action
+                                                    ->label('➕ CREAR PRODUCTO')
+                                                    ->icon('heroicon-m-plus-circle')
+                                                    ->color('success')
+                                                    ->modalHeading('🆕 REGISTRAR NUEVO PRODUCTO')
+                                                    ->modalDescription('Complete los datos para agregar un nuevo producto')
+                                                    ->modalWidth('2xl');
+                                            })
+                                            ->createOptionUsing(function (array $data) {
+                                                // Asegurarse de que solo se creen ingredientes o productos de tipo "both"
+                                                if (!in_array($data['product_type'], ['ingredient', 'both'])) {
+                                                    $data['product_type'] = 'ingredient';
+                                                }
 
-                                        Forms\Components\Textarea::make('description')
-                                            ->label('Descripción')
-                                            ->maxLength(255)
-                                            ->columnSpanFull(),
+                                                // Preparar los datos para crear el producto
+                                                $productData = [
+                                                    'code' => $data['code'],
+                                                    'name' => $data['name'],
+                                                    'description' => $data['description'] ?? null,
+                                                    'product_type' => $data['product_type'],
+                                                    'current_cost' => $data['current_cost'],
+                                                    'sale_price' => $data['sale_price'] ?? 0,
+                                                    'current_stock' => $data['current_stock'] ?? 0,
+                                                    'active' => $data['active'] ?? true,
+                                                    'available' => true,
+                                                ];
 
-                                        Forms\Components\Section::make('Costo y Stock')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('current_cost')
-                                                    ->label('Costo Unitario')
-                                                    ->required()
-                                                    ->numeric()
-                                                    ->default(0),
-                                                Forms\Components\TextInput::make('current_stock')
-                                                    ->label('Stock Inicial')
-                                                    ->helperText('Cantidad inicial del ingrediente que se registrará en el inventario')
-                                                    ->numeric()
-                                                    ->default(1)
-                                                    ->required()
-                                                    ->minValue(0.001)
-                                                    ->step(0.001),
-                                                Forms\Components\DatePicker::make('expiry_date')
-                                                    ->label('Fecha de Vencimiento')
-                                                    ->helperText('Opcional: Recomendado para ingredientes perecederos')
-                                                    ->minDate(now())
-                                                    ->displayFormat('d/m/Y'),
-                                                Forms\Components\Toggle::make('active')
-                                                    ->label('Activo')
-                                                    ->default(true),
-                                                Forms\Components\Hidden::make('sale_price')
-                                                    ->default(0),
-                                            ])
-                                            ->columns(2),
+                                                // Solo agregar category_id si es un producto tipo 'both' (gaseosas)
+                                                if ($data['product_type'] === 'both' && isset($data['category_id'])) {
+                                                    $productData['category_id'] = $data['category_id'];
+                                                } else {
+                                                    // Para ingredientes, usar una categoría por defecto
+                                                    $ingredientCategory = \App\Models\ProductCategory::firstOrCreate(
+                                                        ['name' => 'Ingredientes'],
+                                                        ['description' => 'Categoría para ingredientes de cocina']
+                                                    );
+                                                    $productData['category_id'] = $ingredientCategory->id;
+                                                }
 
-                                        Forms\Components\Section::make('Información Adicional')
-                                            ->schema([
-                                                Forms\Components\Placeholder::make('help')
-                                                    ->label('Ayuda')
-                                                    ->content('- Seleccione "Ingrediente" para insumos de cocina que solo se usan en recetas.\n- Seleccione "Producto para venta e ingrediente" solo para productos como gaseosas que se venden directamente.\n- La categoría solo es necesaria para productos tipo gaseosas.\n- El precio de venta se calculará automáticamente en el módulo de recetas para los productos finales.\n- La fecha de vencimiento es importante para el sistema FIFO (primero en entrar, primero en salir) y para ingredientes perecederos.\n- El stock inicial es obligatorio y se registrará automáticamente en el inventario del almacén predeterminado.')
-                                            ])
-                                            ->collapsed(),
-                                    ])
-                                    ->createOptionUsing(function (array $data) {
-                                        // Asegurarse de que solo se creen ingredientes o productos de tipo "both"
-                                        if (!in_array($data['product_type'], ['ingredient', 'both'])) {
-                                            $data['product_type'] = 'ingredient';
-                                        }
+                                                // Crear el producto
+                                                $product = \App\Models\Product::create($productData);
 
-                                        // Preparar los datos para crear el producto
-                                        $productData = [
-                                            'code' => $data['code'],
-                                            'name' => $data['name'],
-                                            'description' => $data['description'] ?? null,
-                                            'product_type' => $data['product_type'],
-                                            'current_cost' => $data['current_cost'],
-                                            'sale_price' => $data['sale_price'] ?? 0, // Valor por defecto
-                                            'current_stock' => $data['current_stock'] ?? 0,
-                                            'active' => $data['active'] ?? true,
-                                            'available' => true,
-                                        ];
+                                                // Cuando se crea un ingrediente desde compras, siempre se debe crear con stock inicial
+                                                if ($product->isIngredient()) {
+                                                    // Crear el registro correspondiente en la tabla ingredients
+                                                    $ingredient = \App\Models\Ingredient::create([
+                                                        'name' => $data['name'],
+                                                        'code' => $data['code'],
+                                                        'description' => $data['description'] ?? null,
+                                                        'unit_of_measure' => 'unidad',
+                                                        'min_stock' => 0,
+                                                        'current_stock' => $data['current_stock'] ?? 0,
+                                                        'current_cost' => $data['current_cost'],
+                                                        'supplier_id' => null,
+                                                        'active' => $data['active'] ?? true
+                                                    ]);
 
-                                        // Solo agregar category_id si es un producto tipo 'both' (gaseosas)
-                                        if ($data['product_type'] === 'both' && isset($data['category_id'])) {
-                                            $productData['category_id'] = $data['category_id'];
-                                        } else {
-                                            // Para ingredientes, usar una categoría por defecto o null
-                                            // Buscar o crear una categoría "Ingredientes" para agrupar todos los ingredientes
-                                            $ingredientCategory = \App\Models\ProductCategory::firstOrCreate(
-                                                ['name' => 'Ingredientes'],
-                                                ['description' => 'Categoría para ingredientes de cocina']
-                                            );
-                                            $productData['category_id'] = $ingredientCategory->id;
-                                        }
+                                                    // Obtener el almacén predeterminado
+                                                    $defaultWarehouse = \App\Models\Warehouse::where('is_default', true)->first();
 
-                                        // Crear el producto
-                                        $product = \App\Models\Product::create($productData);
+                                                    if ($defaultWarehouse) {
+                                                        // Crear un registro de stock para el ingrediente
+                                                        \App\Models\IngredientStock::create([
+                                                            'ingredient_id' => $ingredient->id,
+                                                            'warehouse_id' => $defaultWarehouse->id,
+                                                            'quantity' => $data['current_stock'] ?? 0,
+                                                            'unit_cost' => $data['current_cost'],
+                                                            'expiry_date' => $data['expiry_date'] ?? null,
+                                                            'status' => 'available'
+                                                        ]);
+                                                    }
+                                                }
 
-                                        // Cuando se crea un ingrediente desde compras, siempre se debe crear con stock inicial
-                                        // El stock inicial se establece en el campo current_stock del formulario
-                                        // y se registra en la tabla ingredient_stock
-                                        if ($product->isIngredient()) {
-                                            // Crear el registro correspondiente en la tabla ingredients
-                                            $ingredient = \App\Models\Ingredient::create([
-                                                'name' => $data['name'],
-                                                'code' => $data['code'],
-                                                'description' => $data['description'] ?? null,
-                                                'unit_of_measure' => 'unidad', // valor por defecto
-                                                'min_stock' => 0,
-                                                'current_stock' => $data['current_stock'] ?? 0,
-                                                'current_cost' => $data['current_cost'],
-                                                'supplier_id' => null, // se puede asignar después si es necesario
-                                                'active' => $data['active'] ?? true
-                                            ]);
+                                                return $product->id;
+                                            }),
 
-                                            // Obtener el almacén predeterminado
-                                            $defaultWarehouse = \App\Models\Warehouse::where('is_default', true)->first();
+                                        Forms\Components\TextInput::make('quantity')
+                                            ->label('📊 Cantidad')
+                                            ->placeholder('1.000')
+                                            ->required()
+                                            ->numeric()
+                                            ->minValue(0.001)
+                                            ->step(0.001)
+                                            ->default(1)
+                                            ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 3, '.', '') : '1')
+                                            ->reactive()
+                                            ->afterStateUpdated(function ($state, $get, callable $set) {
+                                                $quantity = (float) ($state ?? 0);
+                                                $unitCost = (float) ($get('unit_cost') ?? 0);
+                                                $includeIgv = $get('include_igv') ?? false;
+                                                $baseSubtotal = $quantity * $unitCost;
+                                                
+                                                if ($includeIgv) {
+                                                    $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                    $igvFactor = 1 + ($igvPercent / 100);
+                                                    $subtotal = $baseSubtotal * $igvFactor;
+                                                } else {
+                                                    $subtotal = $baseSubtotal;
+                                                }
+                                                
+                                                $set('subtotal', round($subtotal, 2));
+                                                
+                                                // Actualizar totales generales
+                                                $details = $get('../../details') ?? [];
+                                                $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
+                                                $totalTax = 0;
+                                                
+                                                foreach ($details as $detail) {
+                                                    if ($detail['include_igv'] ?? false) {
+                                                        $quantity = (float) ($detail['quantity'] ?? 0);
+                                                        $unitCost = (float) ($detail['unit_cost'] ?? 0);
+                                                        $itemBaseSubtotal = $quantity * $unitCost;
+                                                        $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                        $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
+                                                        $totalTax += $itemTax;
+                                                    }
+                                                }
+                                                
+                                                $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
+                                                $set('../../tax', round($totalTax, 2));
+                                                $set('../../total', round($totalSubtotal, 2));
+                                            }),
 
-                                            if ($defaultWarehouse) {
-                                                // Crear un registro de stock para el ingrediente usando el ID correcto
-                                                \App\Models\IngredientStock::create([
-                                                    'ingredient_id' => $ingredient->id, // Usar ID del ingrediente, no del producto
-                                                    'warehouse_id' => $defaultWarehouse->id,
-                                                    'quantity' => $data['current_stock'] ?? 0,
-                                                    'unit_cost' => $data['current_cost'],
-                                                    'expiry_date' => $data['expiry_date'] ?? null,
-                                                    'status' => 'available'
-                                                ]);
-                                            }
-                                        }
+                                        Forms\Components\TextInput::make('unit_cost')
+                                            ->label('💵 Costo Unit.')
+                                            ->placeholder('0.00')
+                                            ->required()
+                                            ->numeric()
+                                            ->prefix('S/')
+                                            ->default(0)
+                                            ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 2, '.', '') : '0.00')
+                                            ->reactive()
+                                            ->afterStateUpdated(function ($state, $get, callable $set) {
+                                                $quantity = (float) ($get('quantity') ?? 0);
+                                                $unitCost = (float) ($state ?? 0);
+                                                $includeIgv = $get('include_igv') ?? false;
+                                                $baseSubtotal = $quantity * $unitCost;
+                                                
+                                                if ($includeIgv) {
+                                                    $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                    $igvFactor = 1 + ($igvPercent / 100);
+                                                    $subtotal = $baseSubtotal * $igvFactor;
+                                                } else {
+                                                    $subtotal = $baseSubtotal;
+                                                }
+                                                
+                                                $set('subtotal', round($subtotal, 2));
+                                                
+                                                // Actualizar totales generales
+                                                $details = $get('../../details') ?? [];
+                                                $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
+                                                $totalTax = 0;
+                                                
+                                                foreach ($details as $detail) {
+                                                    if ($detail['include_igv'] ?? false) {
+                                                        $quantity = (float) ($detail['quantity'] ?? 0);
+                                                        $unitCost = (float) ($detail['unit_cost'] ?? 0);
+                                                        $itemBaseSubtotal = $quantity * $unitCost;
+                                                        $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                        $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
+                                                        $totalTax += $itemTax;
+                                                    }
+                                                }
+                                                
+                                                $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
+                                                $set('../../tax', round($totalTax, 2));
+                                                $set('../../total', round($totalSubtotal, 2));
+                                            }),
 
-                                        return $product->id;
-                                    })
-                                    ->createOptionAction(function (Forms\Components\Actions\Action $action) {
-                                        return $action
-                                            ->label('Nuevo Ingrediente/Insumo')
-                                            ->icon('heroicon-m-plus-circle')
-                                            ->modalHeading('Crear Nuevo Ingrediente o Insumo')
-                                            ->modalDescription('Registre un nuevo ingrediente para cocina o un producto que se compra (como gaseosas, agua, etc.)')
-                                            ->modalWidth('lg');
-                                    }),
-
-                                Forms\Components\TextInput::make('quantity')
-                                    ->label('Cantidad')
-                                    ->required()
-                                    ->numeric()
-                                    ->minValue(0.001)
-                                    ->step(0.001)
-                                    ->default(1)
-                                    ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 3, '.', '') : '1')
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, $get, callable $set) {
-                                        // Calcular subtotal
-                                        $quantity = (float) ($state ?? 0);
-                                        $unitCost = (float) ($get('unit_cost') ?? 0);
-                                        $includeIgv = $get('include_igv') ?? false;
-                                        $baseSubtotal = $quantity * $unitCost;
-                                        
-                                        if ($includeIgv) {
-                                            $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
-                                            $igvFactor = 1 + ($igvPercent / 100);
-                                            $subtotal = $baseSubtotal * $igvFactor;
-                                        } else {
-                                            $subtotal = $baseSubtotal;
-                                        }
-                                        
-                                        $set('subtotal', round($subtotal, 2));
-                                        
-                                        // Actualizar totales generales
-                                        $details = $get('../../details') ?? [];
-                                        $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
-                                        $totalTax = 0;
-                                        
-                                        // Calcular el IGV total basado en los items que tienen IGV incluido
-                                        foreach ($details as $detail) {
-                                            if ($detail['include_igv'] ?? false) {
-                                                $quantity = (float) ($detail['quantity'] ?? 0);
-                                                $unitCost = (float) ($detail['unit_cost'] ?? 0);
-                                                $itemBaseSubtotal = $quantity * $unitCost;
+                                        Forms\Components\Checkbox::make('include_igv')
+                                            ->label('🧾 IGV')
+                                            ->helperText(function () {
                                                 $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
-                                                $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
-                                                $totalTax += $itemTax;
-                                            }
-                                        }
-                                        
-                                        $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
-                                        $set('../../tax', round($totalTax, 2));
-                                        $set('../../total', round($totalSubtotal, 2));
-                                    }),
-
-                                Forms\Components\TextInput::make('unit_cost')
-                                    ->label('Costo Unitario')
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('S/')
-                                    ->default(0)
-                                    ->formatStateUsing(fn ($state) => $state ? number_format((float)$state, 2, '.', '') : '0.00')
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, $get, callable $set) {
-                                        // Calcular subtotal
-                                        $quantity = (float) ($get('quantity') ?? 0);
-                                        $unitCost = (float) ($state ?? 0);
-                                        $includeIgv = $get('include_igv') ?? false;
-                                        $baseSubtotal = $quantity * $unitCost;
-                                        
-                                        if ($includeIgv) {
-                                            $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
-                                            $igvFactor = 1 + ($igvPercent / 100);
-                                            $subtotal = $baseSubtotal * $igvFactor;
-                                        } else {
-                                            $subtotal = $baseSubtotal;
-                                        }
-                                        
-                                        $set('subtotal', round($subtotal, 2));
-                                        
-                                        // Actualizar totales generales
-                                        $details = $get('../../details') ?? [];
-                                        $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
-                                        $totalTax = 0;
-                                        
-                                        // Calcular el IGV total basado en los items que tienen IGV incluido
-                                        foreach ($details as $detail) {
-                                            if ($detail['include_igv'] ?? false) {
-                                                $quantity = (float) ($detail['quantity'] ?? 0);
-                                                $unitCost = (float) ($detail['unit_cost'] ?? 0);
-                                                $itemBaseSubtotal = $quantity * $unitCost;
-                                                $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
-                                                $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
-                                                $totalTax += $itemTax;
-                                            }
-                                        }
-                                        
-                                        $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
-                                        $set('../../tax', round($totalTax, 2));
-                                        $set('../../total', round($totalSubtotal, 2));
-                                    }),
-
-                                Forms\Components\Checkbox::make('include_igv')
-                                    ->label('Incluir IGV')
-                                    ->helperText(function () {
-                                        $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
-                                        return "Aplicar IGV del {$igvPercent}% al subtotal";
-                                    })
-                                    ->default(true)
-                                    ->reactive()
-                                    ->afterStateUpdated(function ($state, $get, callable $set) {
-                                        // Calcular subtotal
-                                        $quantity = (float) ($get('quantity') ?? 0);
-                                        $unitCost = (float) ($get('unit_cost') ?? 0);
-                                        $baseSubtotal = $quantity * $unitCost;
-                                        
-                                        if ($state) {
-                                            $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
-                                            $igvFactor = 1 + ($igvPercent / 100);
-                                            $subtotal = $baseSubtotal * $igvFactor;
-                                        } else {
-                                            $subtotal = $baseSubtotal;
-                                        }
-                                        
-                                        $set('subtotal', round($subtotal, 2));
-                                        
-                                        // Actualizar totales generales
-                                        $details = $get('../../details') ?? [];
-                                        $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
-                                        $totalTax = 0;
-                                        
-                                        // Calcular el IGV total basado en los items que tienen IGV incluido
-                                        foreach ($details as $detail) {
-                                            if ($detail['include_igv'] ?? false) {
-                                                $quantity = (float) ($detail['quantity'] ?? 0);
-                                                $unitCost = (float) ($detail['unit_cost'] ?? 0);
-                                                $itemBaseSubtotal = $quantity * $unitCost;
-                                                $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
-                                                $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
-                                                $totalTax += $itemTax;
-                                            }
-                                        }
-                                        
-                                        $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
-                                        $set('../../tax', round($totalTax, 2));
-                                        $set('../../total', round($totalSubtotal, 2));
-                                    }),
-
-                                Forms\Components\TextInput::make('subtotal')
-                                    ->label('Subtotal')
-                                    ->required()
-                                    ->numeric()
-                                    ->prefix('S/')
-                                    ->disabled()
-                                    ->default(0),
-
-                                Forms\Components\DatePicker::make('expiry_date')
-                                    ->label('Fecha de Vencimiento')
-                                    ->helperText('Opcional: Recomendado para ingredientes perecederos')
-                                    ->minDate(now())
-                                    ->displayFormat('d/m/Y')
-                                    ->columnSpan(2),
+                                                return "IGV {$igvPercent}%";
+                                            })
+                                            ->default(true)
+                                            ->reactive()
+                                            ->afterStateUpdated(function ($state, $get, callable $set) {
+                                                $quantity = (float) ($get('quantity') ?? 0);
+                                                $unitCost = (float) ($get('unit_cost') ?? 0);
+                                                $baseSubtotal = $quantity * $unitCost;
+                                                
+                                                if ($state) {
+                                                    $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                    $igvFactor = 1 + ($igvPercent / 100);
+                                                    $subtotal = $baseSubtotal * $igvFactor;
+                                                } else {
+                                                    $subtotal = $baseSubtotal;
+                                                }
+                                                
+                                                $set('subtotal', round($subtotal, 2));
+                                                
+                                                // Actualizar totales generales
+                                                $details = $get('../../details') ?? [];
+                                                $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
+                                                $totalTax = 0;
+                                                
+                                                foreach ($details as $detail) {
+                                                    if ($detail['include_igv'] ?? false) {
+                                                        $quantity = (float) ($detail['quantity'] ?? 0);
+                                                        $unitCost = (float) ($detail['unit_cost'] ?? 0);
+                                                        $itemBaseSubtotal = $quantity * $unitCost;
+                                                        $igvPercent = \App\Models\ElectronicBillingConfig::getIgvPercent();
+                                                        $itemTax = $itemBaseSubtotal * ($igvPercent / 100);
+                                                        $totalTax += $itemTax;
+                                                    }
+                                                }
+                                                
+                                                $set('../../subtotal', round($totalSubtotal - $totalTax, 2));
+                                                $set('../../tax', round($totalTax, 2));
+                                                $set('../../total', round($totalSubtotal, 2));
+                                            }),
+                                    ]),
                             ])
-                            ->columns(4)
+                            ->columns(1)
                             ->defaultItems(1)
                             ->reorderable(false)
                             ->collapsible()
-                            ->itemLabel(fn (array $state): ?string =>
-                                $state['product_id']
-                                    ? \App\Models\Product::find($state['product_id'])?->name . ' - ' . ($state['quantity'] ?? '?') . ' x S/' . ($state['unit_cost'] ?? '0')
-                                    : null
-                            )
                             ->afterStateUpdated(function (callable $get, callable $set) {
                                 // Actualizar totales generales cuando se modifica el repeater
                                 $details = $get('details') ?? [];
                                 $totalSubtotal = collect($details)->sum(fn($item) => $item['subtotal'] ?? 0);
                                 $totalTax = 0;
                                 
-                                // Calcular el IGV total basado en los items que tienen IGV incluido
                                 foreach ($details as $detail) {
                                     if ($detail['include_igv'] ?? false) {
                                         $quantity = (float) ($detail['quantity'] ?? 0);
@@ -510,36 +532,47 @@ class PurchaseResource extends Resource
                             }),
                     ]),
 
-                Forms\Components\Section::make('Totales')
+                Forms\Components\Section::make('💰 RESUMEN FINANCIERO')
+                    ->description('Totales calculados automáticamente de la compra')
+                    ->icon('heroicon-o-calculator')
                     ->schema([
-                        Forms\Components\TextInput::make('subtotal')
-                            ->label('Subtotal')
-                            ->numeric()
-                            ->prefix('S/')
-                            ->default(0)
-                            ->disabled()
-                            ->dehydrated()
-                            ->reactive(),
-                            
-                        Forms\Components\TextInput::make('tax')
-                            ->label('IGV')
-                            ->numeric()
-                            ->prefix('S/')
-                            ->default(0)
-                            ->disabled()
-                            ->dehydrated()
-                            ->reactive(),
-                            
-                        Forms\Components\TextInput::make('total')
-                            ->label('Total')
-                            ->numeric()
-                            ->prefix('S/')
-                            ->default(0)
-                            ->disabled()
-                            ->dehydrated()
-                            ->reactive(),
+                        Forms\Components\Grid::make(3)
+                            ->schema([
+                                Forms\Components\TextInput::make('subtotal')
+                                    ->label('📋 SUBTOTAL')
+                                    ->numeric()
+                                    ->prefix('S/')
+                                    ->default(0)
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->reactive()
+                                    ->helperText('Monto sin impuestos'),
+                                    
+                                Forms\Components\TextInput::make('tax')
+                                    ->label('🧾 IGV')
+                                    ->numeric()
+                                    ->prefix('S/')
+                                    ->default(0)
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->reactive()
+                                    ->helperText('Impuesto General a las Ventas'),
+                                    
+                                Forms\Components\TextInput::make('total')
+                                    ->label('💰 TOTAL A PAGAR')
+                                    ->numeric()
+                                    ->prefix('S/')
+                                    ->default(0)
+                                    ->disabled()
+                                    ->dehydrated()
+                                    ->reactive()
+                                    ->helperText('Monto total incluyendo impuestos'),
+                            ]),
                     ])
-                    ->columns(3),
+                    ->columns(3)
+                    ->extraAttributes([
+                        'class' => 'xl:grid-cols-3 lg:grid-cols-3 md:grid-cols-2 sm:grid-cols-1'
+                    ]),
             ]);
     }
 
@@ -548,89 +581,145 @@ class PurchaseResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
-                    ->sortable(),
+                    ->label('CÓDIGO')
+                    ->sortable()
+                    ->alignCenter()
+                    ->size('xs')
+                    ->color('primary')
+                    ->weight('bold'),
 
                 Tables\Columns\TextColumn::make('purchase_date')
-                    ->label('Fecha')
-                    ->date()
-                    ->sortable(),
+                    ->label('FECHA COMPRA')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->alignCenter()
+                    ->weight('semibold')
+                    ->color('gray-700'),
 
                 Tables\Columns\TextColumn::make('supplier.business_name')
-                    ->label('Proveedor')
+                    ->label('PROVEEDOR')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('medium')
+                    ->color('gray-800')
+                    ->copyable()
+                    ->copyMessage('Proveedor copiado al portapapeles')
+                    ->copyMessageDuration(1500),
 
                 Tables\Columns\TextColumn::make('warehouse.name')
-                    ->label('Almacén')
+                    ->label('ALMACÉN')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->alignCenter()
+                    ->badge()
+                    ->color('info'),
 
                 Tables\Columns\TextColumn::make('document_type')
-                    ->label('Tipo Doc.')
+                    ->label('TIPO DOCUMENTO')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'invoice' => 'Factura',
-                        'receipt' => 'Boleta',
-                        'ticket' => 'Ticket',
-                        default => 'Otro',
+                        'invoice' => 'FACTURA',
+                        'receipt' => 'BOLETA',
+                        'ticket' => 'TICKET',
+                        'dispatch_guide' => 'GUÍA REMISIÓN',
+                        'other' => 'OTRO',
+                        default => $state,
                     })
-                    ->sortable(),
+                    ->sortable()
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'invoice' => 'primary',
+                        'receipt' => 'success',
+                        'ticket' => 'warning',
+                        'dispatch_guide' => 'info',
+                        'other' => 'gray',
+                        default => 'gray',
+                    })
+                    ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('document_number')
-                    ->label('Núm. Doc.')
+                    ->label('N° DOCUMENTO')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->weight('semibold')
+                    ->color('gray-700')
+                    ->copyable()
+                    ->copyMessage('Número de documento copiado')
+                    ->copyMessageDuration(1500),
 
                 Tables\Columns\TextColumn::make('total')
-                    ->label('Total')
+                    ->label('MONTO TOTAL')
                     ->money('PEN')
-                    ->sortable(),
+                    ->sortable()
+                    ->alignEnd()
+                    ->weight('bold')
+                    ->color(fn ($record): string => $record->status === 'completed' ? 'success' : 'gray-600')
+                    ->size('lg'),
 
                 Tables\Columns\TextColumn::make('status')
-                    ->label('Estado')
+                    ->label('ESTADO COMPRA')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => 'Pendiente',
-                        'completed' => 'Completado',
-                        'cancelled' => 'Cancelado',
+                        'pending' => 'PENDIENTE',
+                        'completed' => 'COMPLETADO',
+                        'cancelled' => 'ANULADO',
                         default => $state,
                     })
                     ->badge()
+                    ->icon(fn (string $state): string => match ($state) {
+                        'pending' => 'heroicon-o-clock',
+                        'completed' => 'heroicon-o-check-circle',
+                        'cancelled' => 'heroicon-o-x-circle',
+                        default => 'heroicon-o-question-mark-circle',
+                    })
                     ->color(fn (string $state): string => match ($state) {
                         'pending' => 'warning',
                         'completed' => 'success',
                         'cancelled' => 'danger',
                         default => 'gray',
-                    }),
+                    })
+                    ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Creado')
-                    ->dateTime()
+                    ->label('FECHA REGISTRO')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->alignCenter()
+                    ->color('gray-600'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')
-                    ->label('Estado')
+                    ->label('ESTADO COMPRA')
                     ->options([
-                        'pending' => 'Pendiente',
-                        'completed' => 'Completado',
-                        'cancelled' => 'Cancelado',
+                        'pending' => '⏳ PENDIENTE',
+                        'completed' => '✅ COMPLETADO',
+                        'cancelled' => '❌ ANULADO',
                     ]),
 
                 Tables\Filters\SelectFilter::make('supplier_id')
-                    ->label('Proveedor')
-                    ->relationship('supplier', 'business_name'),
+                    ->label('PROVEEDOR')
+                    ->relationship('supplier', 'business_name')
+                    ->searchable()
+                    ->preload()
+                    ->placeholder('TODOS LOS PROVEEDORES'),
 
                 Tables\Filters\SelectFilter::make('warehouse_id')
-                    ->label('Almacén')
-                    ->relationship('warehouse', 'name'),
+                    ->label('ALMACÉN')
+                    ->relationship('warehouse', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->placeholder('TODOS LOS ALMACENES'),
 
                 Tables\Filters\Filter::make('purchase_date')
+                    ->label('PERÍODO DE BÚSQUEDA')
                     ->form([
                         Forms\Components\DatePicker::make('from_date')
-                            ->label('Desde'),
+                            ->label('FECHA INICIAL')
+                            ->placeholder('Seleccionar fecha inicial')
+                            ->displayFormat('d/m/Y'),
                         Forms\Components\DatePicker::make('to_date')
-                            ->label('Hasta'),
+                            ->label('FECHA FINAL')
+                            ->placeholder('Seleccionar fecha final')
+                            ->displayFormat('d/m/Y'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -642,19 +731,129 @@ class PurchaseResource extends Resource
                                 $data['to_date'],
                                 fn (Builder $query, $date): Builder => $query->whereDate('purchase_date', '<=', $date),
                             );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['from_date'] ?? null) {
+                            $indicators[] = 'DESDE: ' . $data['from_date'];
+                        }
+                        if ($data['to_date'] ?? null) {
+                            $indicators[] = 'HASTA: ' . $data['to_date'];
+                        }
+                        return $indicators;
                     }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->label('MODIFICAR')
+                    ->icon('heroicon-o-pencil')
+                    ->color('primary')
+                    ->size('sm')
+                    ->tooltip('Modificar datos de la compra'),
+
+                Tables\Actions\Action::make('view_details')
+                    ->label('DETALLES')
+                    ->icon('heroicon-o-eye')
+                    ->color('info')
+                    ->size('sm')
+                    ->tooltip('Ver detalles completos de la compra')
+                    ->action(function ($record) {
+                        // Redirigir a página de detalles o mostrar modal
+                        return redirect()->to(route('filament.admin.resources.purchases.edit', $record));
+                    })
+                    ->visible(fn ($record): bool => $record->details()->count() > 0),
+
+                Tables\Actions\Action::make('duplicate_purchase')
+                    ->label('DUPLICAR')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('warning')
+                    ->size('sm')
+                    ->tooltip('Duplicar esta compra')
+                    ->action(function ($record) {
+                        // Lógica para duplicar compra
+                        $newPurchase = $record->replicate();
+                        $newPurchase->document_number = $record->document_number . ' (COPIA)';
+                        $newPurchase->status = 'pending';
+                        $newPurchase->save();
+                        
+                        // Duplicar detalles
+                        foreach ($record->details as $detail) {
+                            $newDetail = $detail->replicate();
+                            $newDetail->purchase_id = $newPurchase->id;
+                            $newDetail->save();
+                        }
+                        
+                        \Filament\Notifications\Notification::make()
+                            ->title('COMPRA DUPLICADA')
+                            ->body('La compra ha sido duplicada exitosamente')
+                            ->success()
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('¿DUPLICAR ESTA COMPRA?')
+                    ->modalDescription('Se creará una copia exacta de esta compra con estado "PENDIENTE".')
+                    ->modalSubmitActionLabel('SÍ, DUPLICAR')
+                    ->modalCancelActionLabel('CANCELAR'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('ELIMINAR SELECCIONADAS')
+                        ->icon('heroicon-o-trash')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('¿ELIMINAR COMPRAS SELECCIONADAS?')
+                        ->modalDescription('Esta acción no se puede deshacer. ¿Está seguro de continuar?')
+                        ->modalSubmitActionLabel('SÍ, ELIMINAR')
+                        ->modalCancelActionLabel('CANCELAR'),
+
+                    Tables\Actions\BulkAction::make('mark_completed')
+                        ->label('MARCAR COMPLETADAS')
+                        ->icon('heroicon-o-check-circle')
+                        ->color('success')
+                        ->action(function ($records) {
+                            $records->each(function ($record) {
+                                if ($record->status === 'pending') {
+                                    $record->update(['status' => 'completed']);
+                                }
+                            });
+                            
+                            \Filament\Notifications\Notification::make()
+                                ->title('COMPRAS ACTUALIZADAS')
+                                ->body(count($records) . ' compras marcadas como COMPLETADAS')
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion()
+                        ->requiresConfirmation()
+                        ->modalHeading('¿MARCAR COMPRAS COMO COMPLETADAS?')
+                        ->modalDescription('Se actualizará el estado de las compras seleccionadas a COMPLETADO.')
+                        ->modalSubmitActionLabel('SÍ, COMPLETAR')
+                        ->modalCancelActionLabel('CANCELAR')
+                        ->visible(fn (): bool => auth()->user()->can('update_purchase')),
+
+                    Tables\Actions\BulkAction::make('export_selected')
+                        ->label('EXPORTAR SELECCIÓN')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('info')
+                        ->action(function ($records) {
+                            // Lógica de exportación
+                            return \Filament\Actions\ExportAction::make('export_purchases')
+                                ->label('Exportar compras')
+                                ->exporter(\App\Exports\PurchasesExport::class)
+                                ->fileName('compras-' . now()->format('Y-m-d') . '.xlsx');
+                        })
+                        ->deselectRecordsAfterCompletion(),
                 ]),
             ])
+            ->emptyStateHeading('NO HAY COMPRAS REGISTRADAS')
+            ->emptyStateDescription('Comience registrando su primera compra para gestionar el inventario de ingredientes y productos del restaurante.')
             ->emptyStateActions([
                 Tables\Actions\CreateAction::make()
-                    ->icon('heroicon-o-clipboard-document-check'),
+                    ->label('REGISTRAR NUEVA COMPRA')
+                    ->icon('heroicon-o-plus-circle')
+                    ->size('lg')
+                    ->color('primary'),
             ]);
     }
 

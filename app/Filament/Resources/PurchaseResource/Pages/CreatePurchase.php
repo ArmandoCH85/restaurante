@@ -99,8 +99,8 @@ class CreatePurchase extends CreateRecord
             $purchase->save();
 
             Notification::make()
-                ->title('¡Compra registrada!')
-                ->body('La compra y el stock han sido registrados correctamente ✅')
+                ->title('🎉 COMPRA REGISTRADA EXITOSAMENTE')
+                ->body('✅ La compra y el stock han sido registrados correctamente en el sistema')
                 ->success()
                 ->send();
 
@@ -109,7 +109,7 @@ class CreatePurchase extends CreateRecord
             $friendlyMessage = $this->getFriendlyErrorMessage($e);
 
             Notification::make()
-                ->title('Problema al registrar el stock')
+                ->title('⚠️ PROBLEMA AL REGISTRAR STOCK')
                 ->body($friendlyMessage)
                 ->danger()
                 ->persistent()
@@ -125,8 +125,8 @@ class CreatePurchase extends CreateRecord
         } catch (Exception $e) {
             // Error general - mostrar mensaje amigable
             Notification::make()
-                ->title('Problema inesperado')
-                ->body('😅 Ocurrió algo inesperado. Cierra esta ventana y abre de nuevo para continuar.')
+                ->title('🚫 PROBLEMA INESPERADO')
+                ->body('😅 Ocurrió algo inesperado. Por favor, cierra esta ventana y abre de nuevo para continuar.')
                 ->danger()
                 ->send();
 
