@@ -37,7 +37,7 @@ class CashRegisterReportResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
     protected static ?string $navigationLabel = 'Reportes de Caja';
-    protected static ?string $navigationGroup = '📊 Reportes y Análisis';
+    protected static ?string $navigationGroup = '💰 Caja';
     protected static ?string $modelLabel = 'Reporte de Caja';
     protected static ?string $pluralModelLabel = 'Reportes de Caja';
     protected static ?int $navigationSort = 6;

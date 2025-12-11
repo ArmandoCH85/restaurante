@@ -67,17 +67,9 @@ class EditCashRegister extends EditRecord
         $data['expected_amount'] = $expectedAmount;
         $data['difference'] = $difference;
 
-        // Calcular total de egresos
-        $totalExpenses = 0;
-        if (isset($data['expense_method']) && $data['expense_method'] === 'detailed') {
-            if (isset($data['expenses_detailed'])) {
-                $totalExpenses = collect($data['expenses_detailed'])->sum('amount');
-            }
-        } else {
-            $totalExpenses = $data['total_expenses'] ?? 0;
-        }
-        
-        // Guardar total de egresos y método
+        // Los egresos ahora se registran en el módulo separado, no se procesan aquí
+        // El total se obtiene directamente desde la relación cashRegisterExpenses
+        $totalExpenses = $this->record->cashRegisterExpenses()->sum('amount');
         $data['total_expenses'] = $totalExpenses;
         
         // Calcular ganancia real (Ingresos - Egresos)
@@ -117,24 +109,11 @@ class EditCashRegister extends EditRecord
             $denominationDetails .= "\n\n";
         }
         
-        // Desglose de egresos
+        // Desglose de egresos (ahora se obtienen del módulo separado)
         if ($totalExpenses > 0) {
-            $denominationDetails .= "💸 EGRESOS REGISTRADOS:\n";
-            if (isset($data['expense_method']) && $data['expense_method'] === 'detailed' && isset($data['expenses_detailed'])) {
-                foreach ($data['expenses_detailed'] as $expense) {
-                    $denominationDetails .= "  - {$expense['concept']}: S/ " . number_format($expense['amount'], 2);
-                    if (!empty($expense['notes'])) {
-                        $denominationDetails .= " ({$expense['notes']})";
-                    }
-                    $denominationDetails .= "\n";
-                }
-            } else {
-                $denominationDetails .= "  Total: S/ " . number_format($totalExpenses, 2) . "\n";
-                if (!empty($data['expenses_notes'])) {
-                    $denominationDetails .= "  Notas: {$data['expenses_notes']}\n";
-                }
-            }
-            $denominationDetails .= "\n";
+            $denominationDetails .= "💸 EGRESOS REGISTRADOS (desde módulo de Egresos):\n";
+            $denominationDetails .= "  Total: S/ " . number_format($totalExpenses, 2) . "\n";
+            $denominationDetails .= "  Ver detalles en: /admin/egresos\n\n";
         }
         
         // Totales finales
@@ -200,23 +179,8 @@ class EditCashRegister extends EditRecord
     
     protected function afterSave(): void
     {
-        // Guardar egresos detallados si se seleccionó el método detallado
-        $data = $this->data;
-        
-        if (isset($data['expense_method']) && $data['expense_method'] === 'detailed' && isset($data['expenses_detailed'])) {
-            // Eliminar egresos existentes para evitar duplicados
-            CashRegisterExpense::where('cash_register_id', $this->record->id)->delete();
-            
-            // Crear nuevos egresos
-            foreach ($data['expenses_detailed'] as $expense) {
-                CashRegisterExpense::create([
-                    'cash_register_id' => $this->record->id,
-                    'concept' => $expense['concept'],
-                    'amount' => $expense['amount'],
-                    'notes' => $expense['notes'] ?? null,
-                ]);
-            }
-        }
+        // Los egresos ahora se registran en el módulo separado
+        // No se procesan egresos desde el formulario de cierre de caja
     }
 
     protected function getSavedNotification(): ?Notification

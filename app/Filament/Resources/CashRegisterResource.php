@@ -20,7 +20,7 @@ class CashRegisterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
-    protected static ?string $navigationGroup = '📄 Facturación y Ventas';
+    protected static ?string $navigationGroup = '💰 Caja';
 
     // Mostrar en el menú de navegación
     protected static bool $shouldRegisterNavigation = true;
@@ -59,7 +59,7 @@ class CashRegisterResource extends Resource
     // Añadir clases CSS personalizadas al navigation item
     public static function getNavigationGroup(): ?string
     {
-        return '📄 Facturación y Ventas';
+        return '💰 Caja';
     }
 
     public static function form(Form $form): Form
@@ -529,7 +529,7 @@ class CashRegisterResource extends Resource
                         if ($isSupervisor) {
                             return [
                                 // Comparativo de Efectivo
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\Placeholder::make('cash_sales_display')
                                             ->label('💻 Sistema: Efectivo')
@@ -559,11 +559,40 @@ class CashRegisterResource extends Resource
                                                 return number_format($efectivo, 2);
                                             })
                                             ->helperText('Billetes y monedas contados manualmente'),
+                                        Forms\Components\Placeholder::make('cash_difference')
+                                            ->label('⚖️ Diferencia')
+                                            ->content(function ($record, $get) {
+                                                if (!$record) return 'S/ 0.00';
+                                                
+                                                $sistema = $record->getSystemCashSales();
+                                                $manual = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                         (floatval($get('bill_100') ?? 0)) * 100 +
+                                                         (floatval($get('bill_50') ?? 0)) * 50 +
+                                                         (floatval($get('bill_20') ?? 0)) * 20 +
+                                                         (floatval($get('bill_10') ?? 0)) * 10 +
+                                                         (floatval($get('coin_5') ?? 0)) * 5 +
+                                                         (floatval($get('coin_2') ?? 0)) * 2 +
+                                                         (floatval($get('coin_1') ?? 0)) * 1 +
+                                                         (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                         (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                         (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                
+                                                $diferencia = $manual - $sistema;
+                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
+                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
+                                                
+                                                return new \Illuminate\Support\HtmlString("
+                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
+                                                        {$icono} S/ " . number_format($diferencia, 2) . "
+                                                    </span>
+                                                ");
+                                            })
+                                            ->helperText('Manual - Sistema'),
                                     ])
                                     ->columnSpan('full'),
 
                                 // Comparativo de Yape
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\Placeholder::make('yape_sales_display')
                                             ->label('💻 Sistema: Yape')
@@ -611,11 +640,29 @@ class CashRegisterResource extends Resource
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
                                             }),
+                                        Forms\Components\Placeholder::make('yape_difference')
+                                            ->label('⚖️ Diferencia')
+                                            ->content(function ($record, $get) {
+                                                if (!$record) return 'S/ 0.00';
+                                                
+                                                $sistema = $record->getSystemYapeSales();
+                                                $manual = floatval($get('manual_yape') ?? 0);
+                                                $diferencia = $manual - $sistema;
+                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
+                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
+                                                
+                                                return new \Illuminate\Support\HtmlString("
+                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
+                                                        {$icono} S/ " . number_format($diferencia, 2) . "
+                                                    </span>
+                                                ");
+                                            })
+                                            ->helperText('Manual - Sistema'),
                                     ])
                                     ->columnSpan('full'),
 
                                 // Comparativo de Plin
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\Placeholder::make('plin_sales_display')
                                             ->label('💻 Sistema: Plin')
@@ -663,11 +710,29 @@ class CashRegisterResource extends Resource
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
                                             }),
+                                        Forms\Components\Placeholder::make('plin_difference')
+                                            ->label('⚖️ Diferencia')
+                                            ->content(function ($record, $get) {
+                                                if (!$record) return 'S/ 0.00';
+                                                
+                                                $sistema = $record->getSystemPlinSales();
+                                                $manual = floatval($get('manual_plin') ?? 0);
+                                                $diferencia = $manual - $sistema;
+                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
+                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
+                                                
+                                                return new \Illuminate\Support\HtmlString("
+                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
+                                                        {$icono} S/ " . number_format($diferencia, 2) . "
+                                                    </span>
+                                                ");
+                                            })
+                                            ->helperText('Manual - Sistema'),
                                     ])
                                     ->columnSpan('full'),
 
                                 // Comparativo de Tarjetas
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\Placeholder::make('card_sales_display')
                                             ->label('💻 Sistema: Tarjetas')
@@ -715,11 +780,29 @@ class CashRegisterResource extends Resource
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
                                             }),
+                                        Forms\Components\Placeholder::make('card_difference')
+                                            ->label('⚖️ Diferencia')
+                                            ->content(function ($record, $get) {
+                                                if (!$record) return 'S/ 0.00';
+                                                
+                                                $sistema = $record->getSystemCardSales();
+                                                $manual = floatval($get('manual_card') ?? 0);
+                                                $diferencia = $manual - $sistema;
+                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
+                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
+                                                
+                                                return new \Illuminate\Support\HtmlString("
+                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
+                                                        {$icono} S/ " . number_format($diferencia, 2) . "
+                                                    </span>
+                                                ");
+                                            })
+                                            ->helperText('Manual - Sistema'),
                                     ])
                                     ->columnSpan('full'),
 
                                 // Comparativo de Didi
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\Placeholder::make('didi_sales_display')
                                             ->label('💻 Sistema: Didi Food')
@@ -760,11 +843,29 @@ class CashRegisterResource extends Resource
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
                                             }),
+                                        Forms\Components\Placeholder::make('didi_difference')
+                                            ->label('⚖️ Diferencia')
+                                            ->content(function ($record, $get) {
+                                                if (!$record) return 'S/ 0.00';
+                                                
+                                                $sistema = $record->getSystemDidiSales();
+                                                $manual = floatval($get('manual_didi') ?? 0);
+                                                $diferencia = $manual - $sistema;
+                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
+                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
+                                                
+                                                return new \Illuminate\Support\HtmlString("
+                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
+                                                        {$icono} S/ " . number_format($diferencia, 2) . "
+                                                    </span>
+                                                ");
+                                            })
+                                            ->helperText('Manual - Sistema'),
                                     ])
                                     ->columnSpan('full'),
 
                                 // Comparativo de PedidosYa
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\Placeholder::make('pedidos_ya_sales_display')
                                             ->label('💻 Sistema: PedidosYa')
@@ -805,12 +906,30 @@ class CashRegisterResource extends Resource
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
                                             }),
+                                        Forms\Components\Placeholder::make('pedidos_ya_difference')
+                                            ->label('⚖️ Diferencia')
+                                            ->content(function ($record, $get) {
+                                                if (!$record) return 'S/ 0.00';
+                                                
+                                                $sistema = $record->getSystemPedidosYaSales();
+                                                $manual = floatval($get('manual_pedidos_ya') ?? 0);
+                                                $diferencia = $manual - $sistema;
+                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
+                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
+                                                
+                                                return new \Illuminate\Support\HtmlString("
+                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
+                                                        {$icono} S/ " . number_format($diferencia, 2) . "
+                                                    </span>
+                                                ");
+                                            })
+                                            ->helperText('Manual - Sistema'),
                                     ])
                                     ->columnSpan('full'),
 
 
                                 // Totales comparativos
-                                Forms\Components\Grid::make(2)
+                                Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\Placeholder::make('total_sistema_display')
                                             ->label('💻 TOTAL SISTEMA')
@@ -857,6 +976,58 @@ class CashRegisterResource extends Resource
                                             })
                                             ->helperText('Total de todo lo contado manualmente')
                                             ->extraAttributes(['class' => 'font-bold text-lg text-green-600']),
+                                        Forms\Components\Placeholder::make('total_difference')
+                                            ->label('⚖️ Diferencia Total')
+                                            ->content(function ($record, $get) {
+                                                if (!$record) return 'S/ 0.00';
+                                                
+                                                // Calcular total del sistema
+                                                $totalSistema = $record->getSystemCashSales() +
+                                                              $record->getSystemYapeSales() +
+                                                              $record->getSystemPlinSales() +
+                                                              $record->getSystemCardSales() +
+                                                              $record->getSystemDidiSales() +
+                                                              $record->getSystemPedidosYaSales() +
+                                                              $record->getSystemBankTransferSales() +
+                                                              $record->getSystemOtherDigitalWalletSales();
+                                                
+                                                // Calcular total manual
+                                                $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
+                                                           (floatval($get('bill_100') ?? 0)) * 100 +
+                                                           (floatval($get('bill_50') ?? 0)) * 50 +
+                                                           (floatval($get('bill_20') ?? 0)) * 20 +
+                                                           (floatval($get('bill_10') ?? 0)) * 10 +
+                                                           (floatval($get('coin_5') ?? 0)) * 5 +
+                                                           (floatval($get('coin_2') ?? 0)) * 2 +
+                                                           (floatval($get('coin_1') ?? 0)) * 1 +
+                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                
+                                                $yape = floatval($get('manual_yape') ?? 0);
+                                                $plin = floatval($get('manual_plin') ?? 0);
+                                                $tarjetas = floatval($get('manual_card') ?? 0);
+                                                $didi = floatval($get('manual_didi') ?? 0);
+                                                $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
+                                                
+                                                $totalManual = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya;
+                                                
+                                                // Calcular diferencia
+                                                $diferencia = $totalManual - $totalSistema;
+                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
+                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
+                                                
+                                                return new \Illuminate\Support\HtmlString("
+                                                    <div style='background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 1rem; border-radius: 0.75rem; border-left: 4px solid var(--{$color}-500);'>
+                                                        <div style='font-size: 0.875rem; color: #6b7280; font-weight: 500; margin-bottom: 0.25rem;'>Diferencia Total</div>
+                                                        <div style='color: var(--{$color}-600); font-size: 1.5rem; font-weight: 700;'>
+                                                            {$icono} S/ " . number_format($diferencia, 2) . "
+                                                        </div>
+                                                        <div style='font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;'>Manual - Sistema</div>
+                                                    </div>
+                                                ");
+                                            })
+                                            ->helperText('Total Manual - Total Sistema'),
                                     ])
                                     ->columnSpan('full'),
                             ];
@@ -876,133 +1047,34 @@ class CashRegisterResource extends Resource
                     ->columns(1)
                     ->visible(fn ($record) => $record && $record->is_active),
 
-                Forms\Components\Section::make('💸 Egresos / Salidas de Dinero')
-                    ->description('Registre las salidas de dinero realizadas durante el día de operación')
+                Forms\Components\Section::make('💸 Total de Egresos Registrados')
+                    ->description('Total de egresos registrados en el módulo de Egresos')
                     ->icon('heroicon-o-arrow-trending-down')
                     ->schema([
-                        // Selector de Método con cards visuales
-                        Forms\Components\Radio::make('expense_method')
-                            ->label('¿Cómo desea registrar los egresos?')
-                            ->options([
-                                'total' => '📊 Monto Total - Rápido y simple',
-                                'detailed' => '📝 Por Concepto - Detallado y preciso',
-                            ])
-                            ->descriptions([
-                                'total' => 'Ingrese solo el monto total de salidas',
-                                'detailed' => 'Registre cada salida con su concepto y monto',
-                            ])
-                            ->default('total')
-                            ->inline(false)
-                            ->reactive()
-                            ->columnSpan('full')
-                            ->live(),
-
-                        // Método Total (más simple)
                         Forms\Components\Grid::make(1)
                             ->schema([
-                                Forms\Components\Section::make()
-                                    ->schema([
-                                        Forms\Components\TextInput::make('total_expenses')
-                                            ->label('💵 Monto Total de Egresos')
-                                            ->prefix('S/')
-                                            ->numeric()
-                                            ->default(0)
-                                            ->minValue(0)
-                                            ->placeholder('0.00')
-                                            ->suffix('.00')
-                                            ->inputMode('decimal')
-                                            ->maxLength(10)
-                                            ->helperText('💡 Ingrese la suma de todas las salidas de dinero del día')
-                                            ->extraAttributes(['class' => 'text-lg'])
-                                            ->columnSpan('full'),
+                                Forms\Components\Placeholder::make('total_expenses_from_module')
+                                    ->content(function ($record) {
+                                        if (!$record) return 'S/ 0.00';
                                         
-                                        Forms\Components\Textarea::make('expenses_notes')
-                                            ->label('📝 Observaciones')
-                                            ->placeholder('Describa brevemente los motivos de las salidas de dinero...')
-                                            ->rows(3)
-                                            ->helperText('Opcional: Agregue detalles sobre los egresos')
-                                            ->columnSpan('full'),
-                                    ])
-                                    ->columnSpan('full'),
-                            ])
-                            ->visible(fn ($get) => $get('expense_method') === 'total')
-                            ->columnSpan('full'),
-
-                        // Método Detallado (más completo)
-                        Forms\Components\Repeater::make('expenses_detailed')
-                            ->label('📋 Lista de Egresos')
-                            ->schema([
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\TextInput::make('concept')
-                                            ->label('📌 Concepto')
-                                            ->placeholder('Ej: Pago a proveedor, Compra insumos...')
-                                            ->required()
-                                            ->maxLength(255)
-                                            ->columnSpan(1),
-                                            
-                                        Forms\Components\TextInput::make('amount')
-                                            ->label('💵 Monto')
-                                            ->prefix('S/')
-                                            ->numeric()
-                                            ->required()
-                                            ->default(0)
-                                            ->minValue(0)
-                                            ->placeholder('0.00')
-                                            ->inputMode('decimal')
-                                            ->columnSpan(1),
-                                            
-                                        Forms\Components\TextInput::make('notes')
-                                            ->label('📝 Detalles')
-                                            ->placeholder('Observaciones adicionales...')
-                                            ->maxLength(500)
-                                            ->columnSpan(1),
-                                    ]),
-                            ])
-                            ->addActionLabel('➕ Agregar Egreso')
-                            ->reorderable()
-                            ->defaultItems(0)
-                            ->collapsible()
-                            ->itemLabel(fn (array $state): ?string => $state['concept'] ?? 'Nuevo egreso')
-                            ->visible(fn ($get) => $get('expense_method') === 'detailed')
-                            ->columnSpan('full')
-                            ->cloneable(),
-
-                        // Separador visual
-                        // Resumen de Egresos (destacado)
-                        Forms\Components\Grid::make(1)
-                            ->schema([
-                                Forms\Components\Placeholder::make('total_expenses_summary')
-                                    ->content(function ($get) {
-                                        if ($get('expense_method') === 'detailed') {
-                                            $expenses = $get('expenses_detailed') ?? [];
-                                            $total = collect($expenses)->sum('amount');
-                                            $count = count($expenses);
-                                            return new \Illuminate\Support\HtmlString("
-                                                <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.25rem; border-radius: 0.75rem; border-left: 4px solid #f59e0b;'>
-                                                    <div style='display: flex; align-items: center; gap: 0.75rem;'>
-                                                        <span style='font-size: 2rem;'>💸</span>
-                                                        <div style='flex: 1;'>
-                                                            <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos ({$count} concepto" . ($count != 1 ? 's' : '') . ")</div>
-                                                            <div style='font-size: 1.875rem; font-weight: 700; color: #b45309;'>S/ " . number_format($total, 2) . "</div>
+                                        // Obtener el total de egresos registrados para esta caja
+                                        $totalExpenses = $record->cashRegisterExpenses()->sum('amount');
+                                        $countExpenses = $record->cashRegisterExpenses()->count();
+                                        
+                                        return new \Illuminate\Support\HtmlString("
+                                            <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.25rem; border-radius: 0.75rem; border-left: 4px solid #f59e0b;'>
+                                                <div style='display: flex; align-items: center; gap: 0.75rem;'>
+                                                    <span style='font-size: 2rem;'>💸</span>
+                                                    <div style='flex: 1;'>
+                                                        <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos Registrados ({$countExpenses} egreso" . ($countExpenses != 1 ? 's' : '') . ")</div>
+                                                        <div style='font-size: 1.875rem; font-weight: 700; color: #b45309;'>S/ " . number_format($totalExpenses, 2) . "</div>
+                                                        <div style='font-size: 0.75rem; color: #92400e; margin-top: 0.5rem;'>
+                                                            <a href='/admin/egresos?tableFilters[cash_register_id]={$record->id}' style='color: #059669; text-decoration: underline; font-weight: 500;'>📋 Ver detalles de egresos</a>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            ");
-                                        } else {
-                                            $total = floatval($get('total_expenses') ?? 0);
-                                            return new \Illuminate\Support\HtmlString("
-                                                <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.25rem; border-radius: 0.75rem; border-left: 4px solid #f59e0b;'>
-                                                    <div style='display: flex; align-items: center; gap: 0.75rem;'>
-                                                        <span style='font-size: 2rem;'>💸</span>
-                                                        <div style='flex: 1;'>
-                                                            <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos</div>
-                                                            <div style='font-size: 1.875rem; font-weight: 700; color: #b45309;'>S/ " . number_format($total, 2) . "</div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ");
-                                        }
+                                            </div>
+                                        ");
                                     })
                                     ->columnSpan('full'),
                             ])
@@ -1107,27 +1179,31 @@ class CashRegisterResource extends Resource
                                     
                                 Forms\Components\Placeholder::make('total_egresos')
                                     ->label('💸 Total Egresos')
-                                    ->content(function ($get) {
-                                        if ($get('expense_method') === 'detailed') {
-                                            $expenses = $get('expenses_detailed') ?? [];
-                                            $total = collect($expenses)->sum('amount');
-                                            return 'S/ ' . number_format($total, 2);
-                                        } else {
-                                            $total = floatval($get('total_expenses') ?? 0);
-                                            return 'S/ ' . number_format($total, 2);
-                                        }
+                                    ->content(function ($record) {
+                                        if (!$record) return 'S/ 0.00';
+                                        
+                                        // Obtener egresos registrados del módulo
+                                        $totalExpenses = $record->cashRegisterExpenses()->sum('amount');
+                                        $countExpenses = $record->cashRegisterExpenses()->count();
+                                        
+                                        return new \Illuminate\Support\HtmlString("
+                                            <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;'>
+                                                <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos Registrados ({$countExpenses} egreso" . ($countExpenses != 1 ? 's' : '') . ")</div>
+                                                <div style='font-size: 1.25rem; font-weight: 700; color: #b45309;'>S/ " . number_format($totalExpenses, 2) . "</div>
+                                            </div>
+                                        ");
                                     })
-                                    ->helperText('Total de salidas de dinero'),
+                                    ->helperText('Total de egresos registrados en el módulo'),
                             ]),
                             
                         // Ganancia Real (destacado con gradiente)
                         Forms\Components\Grid::make(1)
                             ->schema([
                                 Forms\Components\Placeholder::make('ganancia_real')
-                                    ->content(function ($record, $get) {
+                                    ->content(function ($record) {
                                         if (!$record) return 'S/ 0.00';
                                         
-                                        // Calcular ingresos totales
+                                        // Calcular ingresos totales del sistema
                                         $ingresos = $record->getSystemCashSales() +
                                                    $record->getSystemYapeSales() +
                                                    $record->getSystemPlinSales() +
@@ -1136,16 +1212,11 @@ class CashRegisterResource extends Resource
                                                    $record->getSystemPedidosYaSales() +
                                                    $record->getSystemBankTransferSales() +
                                                    $record->getSystemOtherDigitalWalletSales();
+                                     
+                                        // Obtener egresos registrados del módulo
+                                        $egresos = $record->cashRegisterExpenses()->sum('amount');
                                         
-                                        // Calcular egresos totales
-                                        if ($get('expense_method') === 'detailed') {
-                                            $expenses = $get('expenses_detailed') ?? [];
-                                            $egresos = collect($expenses)->sum('amount');
-                                        } else {
-                                            $egresos = floatval($get('total_expenses') ?? 0);
-                                        }
-                                        
-                                        // Ganancia Real = Ingresos - Egresos
+                                        // Ganancia Real = Total Sistema - Egresos Registrados
                                         $ganancia = $ingresos - $egresos;
                                         
                                         return new \Illuminate\Support\HtmlString("
@@ -1155,7 +1226,7 @@ class CashRegisterResource extends Resource
                                                     <div style='flex: 1;'>
                                                         <div style='font-size: 1rem; color: #065f46; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;'>Ganancia Real del Día</div>
                                                         <div style='font-size: 2.5rem; font-weight: 800; color: #047857; line-height: 1;'>S/ " . number_format($ganancia, 2) . "</div>
-                                                        <div style='font-size: 0.875rem; color: #059669; margin-top: 0.5rem; font-weight: 500;'>💰 Ingresos: S/ " . number_format($ingresos, 2) . " - 💸 Egresos: S/ " . number_format($egresos, 2) . "</div>
+                                                        <div style='font-size: 0.875rem; color: #059669; margin-top: 0.5rem; font-weight: 500;'>💰 Total Sistema: S/ " . number_format($ingresos, 2) . " - 💸 Egresos Registrados: S/ " . number_format($egresos, 2) . "</div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -180,6 +180,14 @@ class CashRegister extends Model
     }
 
     /**
+     * Obtiene los egresos detallados asociados a esta caja (alias para cashRegisterExpenses).
+     */
+    public function cashRegisterExpenses(): HasMany
+    {
+        return $this->hasMany(CashRegisterExpense::class);
+    }
+
+    /**
      * Verifica si existe una caja abierta.
      *
      * @return CashRegister|null

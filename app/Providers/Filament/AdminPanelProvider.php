@@ -792,6 +792,9 @@ class AdminPanelProvider extends PanelProvider
                             "pos-interface": "#059669", // Verde corporativo
                             "mapa-mesas": "#059669", // Verde corporativo
                             "operaciones-caja": "#059669", // Verde corporativo
+                            "caja": "#059669", // Verde corporativo para el nuevo módulo
+                            "cash-register-report": "#059669", // Reportes de caja
+                            "egresos": "#DC2626", // Rojo corporativo para egresos
                             "reportes": "#D97706", // Naranja corporativo
                             "products": "#DC2626", // Rojo corporativo
                             "product-categories": "#DC2626", // Rojo corporativo
