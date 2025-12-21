@@ -413,9 +413,11 @@ class PosInterface extends Page
             ]);
 
             // Actualizar la orden actual y carrito, asegurando el orden de los items
-            $this->order = $cuentaPrincipal->load(['orderDetails' => function ($query) {
-                $query->orderBy('created_at', 'asc');
-            }]);
+            $this->order = $cuentaPrincipal->load([
+                'orderDetails' => function ($query) {
+                    $query->orderBy('created_at', 'asc');
+                }
+            ]);
             $this->updateCartFromOrder();
 
             DB::commit();
@@ -428,7 +430,7 @@ class PosInterface extends Page
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             Notification::make()
                 ->title('Error')
                 ->body('Error al unir las cuentas: ' . $e->getMessage())
@@ -1107,13 +1109,13 @@ class PosInterface extends Page
                     // 🛡️ AUTO-HEALING: Romper el estado "zombi" (Facturada pero Abierta)
                     if ($activeOrder->status === Order::STATUS_OPEN) {
                         \Illuminate\Support\Facades\Log::warning('🧟 ZOMBIE TABLE DETECTED: Auto-corrigiendo estado.', ['order_id' => $activeOrder->id]);
-                        
+
                         // Forzar el cierre correcto utilizando la lógica del dominio
                         if (!$activeOrder->billed) {
                             $activeOrder->billed = true;
                             $activeOrder->save();
                         }
-                        
+
                         $activeOrder->completeOrder(); // Esto libera la mesa y cierra la orden
 
                         Notification::make()
@@ -1164,7 +1166,7 @@ class PosInterface extends Page
                 if ($this->originalCustomerData && ($this->originalCustomerData['service_type'] ?? '') === 'delivery') {
                     $this->canAddProducts = true; // Auto-desbloquear para delivery
                     $this->canClearCart = true;   // Permitir modificar carrito en delivery
-                    
+
                     Notification::make()
                         ->title('🚚 POS Desbloqueado para Delivery')
                         ->body('Puede continuar agregando productos')
@@ -1253,7 +1255,7 @@ class PosInterface extends Page
                 if ($activeOrder->customer) {
                     // Verificar si es una orden de delivery
                     $isDeliveryOrder = $activeOrder->deliveryOrder()->exists();
-                    
+
                     $this->originalCustomerData = [
                         'customer_id' => $activeOrder->customer->id,
                         'customer_name' => $activeOrder->customer->name,
@@ -1263,7 +1265,7 @@ class PosInterface extends Page
                         'customer_phone' => $activeOrder->customer->phone ?: '',
                         'customer_email' => $activeOrder->customer->email ?: '',
                     ];
-                    
+
                     // Agregar service_type si es delivery
                     if ($isDeliveryOrder) {
                         $this->originalCustomerData['service_type'] = 'delivery';
@@ -1382,10 +1384,15 @@ class PosInterface extends Page
         }
 
         // 🏎️ OPTIMIZACIÓN KISS: cachear el árbol de categorías por 1 h
-        $this->categories = Cache::remember('pos_categories', 3600, fn () =>
+        // Se cambió key a v2 para invalidar caché anterior y aplicar filtro de ingredientes
+        $this->categories = Cache::remember(
+            'pos_categories_v2',
+            3600,
+            fn() =>
             ProductCategory::with('children')
                 ->whereNull('parent_category_id')
                 ->where('visible_in_menu', true)
+                ->whereNotIn('name', ['Ingredientes', 'Insumos', 'Recetas', 'Verduras']) // Filtro de seguridad para producción
                 ->get()
         );
 
@@ -1445,6 +1452,7 @@ class PosInterface extends Page
         $this->categories = ProductCategory::with('children')
             ->whereNull('parent_category_id')
             ->where('visible_in_menu', true)
+            ->whereNotIn('name', ['Ingredientes', 'Insumos', 'Recetas', 'Verduras']) // Filtro de seguridad
             ->orderBy('display_order')
             ->orderBy('name')
             ->get();
@@ -1562,9 +1570,9 @@ class PosInterface extends Page
 
     public function removeItem(int $index, bool $pinOk = false): void
     {
-    // Para waiter: pedir PIN cuando existe una orden (guardada o reabierta)
-    // En carrito nuevo (sin orden aún), no solicitar PIN
-    if (Auth::user()?->hasRole('waiter') && $this->order && !$pinOk) {
+        // Para waiter: pedir PIN cuando existe una orden (guardada o reabierta)
+        // En carrito nuevo (sin orden aún), no solicitar PIN
+        if (Auth::user()?->hasRole('waiter') && $this->order && !$pinOk) {
             $this->dispatch('pos-pin-required', action: 'removeItem', index: $index);
             return;
         }
@@ -1609,9 +1617,9 @@ class PosInterface extends Page
 
     public function clearCart(bool $pinOk = false): void
     {
-    // Para waiter: pedir PIN cuando existe una orden (guardada o reabierta)
-    // En carrito nuevo (sin orden aún), no solicitar PIN
-    if (Auth::user()?->hasRole('waiter') && $this->order && !$pinOk) {
+        // Para waiter: pedir PIN cuando existe una orden (guardada o reabierta)
+        // En carrito nuevo (sin orden aún), no solicitar PIN
+        if (Auth::user()?->hasRole('waiter') && $this->order && !$pinOk) {
             $this->dispatch('pos-pin-required', action: 'clearCart');
             return;
         }
@@ -1887,10 +1895,10 @@ class PosInterface extends Page
             // Detiene la ejecución sin registrar un error grave, ya que la notificación ya se envió.
         } catch (\Exception $e) {
             Log::error('Error al procesar la orden en TPV: ' . $e->getMessage() . ' en ' . $e->getFile() . ':' . $e->getLine());
-            
+
             // Usar mensaje de error comprensible
             $errorMessage = $this->getOrderErrorMessage($e);
-            
+
             Notification::make()
                 ->title('❌ Error al guardar la orden')
                 ->body($errorMessage)
@@ -2325,11 +2333,11 @@ class PosInterface extends Page
 
             $this->cartItems[] = [
                 'product_id' => $detail->product_id,
-                'name'       => $detail->product->name,
-                'quantity'   => $detail->quantity,
+                'name' => $detail->product->name,
+                'quantity' => $detail->quantity,
                 'unit_price' => $detail->unit_price,
-                'subtotal'   => $detail->subtotal,
-                'notes'      => $detail->notes ?? '',
+                'subtotal' => $detail->subtotal,
+                'notes' => $detail->notes ?? '',
                 'is_cold_drink' => $isColdDrink,
                 'temperature' => $temperature,
                 'temperature_selected' => !is_null($temperature), // Si hay temperatura, está seleccionada
@@ -2361,7 +2369,7 @@ class PosInterface extends Page
             ->modalDescription('Revisa totales, métodos y datos del cliente antes de confirmar.')
             ->modalSubmitActionLabel('💳 Pagar e Imprimir')
             ->extraModalWindowAttributes(['style' => 'max-height:80vh;overflow-y:auto;max-width:1180px;width:1180px;background:#f8fafc;border:1px solid #e2e8f0;padding:0.75rem;box-shadow:0 4px 18px -2px rgba(0,0,0,0.15);border-radius:0.9rem;'])
-            ->visible(fn() => Auth::user()->hasRole(['cashier','admin','super_admin']))
+            ->visible(fn() => Auth::user()->hasRole(['cashier', 'admin', 'super_admin']))
             ->before(function () {
                 if (!CashRegister::hasOpenRegister()) {
                     $this->hasOpenCashRegister = false;
@@ -2374,12 +2382,12 @@ class PosInterface extends Page
                         $customer = $this->selectedCustomerId ? Customer::find($this->selectedCustomerId) : null;
                         $this->order = $this->createOrderFromCart($customer);
                         if ($this->originalCustomerData && ($this->originalCustomerData['service_type'] ?? '') === 'delivery') {
-                            $this->order->update(['service_type' => 'delivery','table_id' => null]);
+                            $this->order->update(['service_type' => 'delivery', 'table_id' => null]);
                         }
                         Notification::make()->title('📋 Orden Preparada')->body("Orden #{$this->order->id} lista para pago")->success()->duration(3000)->send();
                     } catch (\Exception $e) {
                         Log::error('❌ Error auto-creando orden para pago', ['error' => $e->getMessage()]);
-                        Notification::make()->title('❌ Error')->body('No se pudo preparar la orden: '.$e->getMessage())->danger()->persistent()->send();
+                        Notification::make()->title('❌ Error')->body('No se pudo preparar la orden: ' . $e->getMessage())->danger()->persistent()->send();
                         throw $e;
                     }
                 }
@@ -2394,7 +2402,8 @@ class PosInterface extends Page
                             Forms\Components\Group::make([
                                 Forms\Components\Placeholder::make('payment_summary')
                                     ->label('Total a Pagar')
-                                    ->content(function () { return new \Illuminate\Support\HtmlString('<div class="text-center sticky top-0 z-10 p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/55 border border-emerald-200 shadow-sm ring-1 ring-emerald-100/60"><div class="text-[11px] font-semibold tracking-widest text-emerald-600/70 mb-1 uppercase">Total a Pagar</div><div class="text-3xl font-extrabold leading-none tracking-tight text-emerald-600 drop-shadow">S/ ' . number_format((float)$this->total, 2) . '</div><div class="mt-1 text-[10px] font-semibold text-emerald-500/80 uppercase">IGV incluido</div></div>'); }),
+                                    ->content(function () {
+                                        return new \Illuminate\Support\HtmlString('<div class="text-center sticky top-0 z-10 p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100/55 border border-emerald-200 shadow-sm ring-1 ring-emerald-100/60"><div class="text-[11px] font-semibold tracking-widest text-emerald-600/70 mb-1 uppercase">Total a Pagar</div><div class="text-3xl font-extrabold leading-none tracking-tight text-emerald-600 drop-shadow">S/ ' . number_format((float) $this->total, 2) . '</div><div class="mt-1 text-[10px] font-semibold text-emerald-500/80 uppercase">IGV incluido</div></div>'); }),
                                 Forms\Components\Toggle::make('split_payment')->label('💰 Dividir Pago')->helperText('Activa si usarás varios métodos.')->live()->default(false)->inline(false)->extraAttributes([
                                     'style' => 'background-color: rgb(220, 38, 38) !important; border-color: rgb(220, 38, 38) !important; box-shadow: 0 0 0 1px rgb(220, 38, 38) !important;',
                                     'class' => 'mt-2',
@@ -2467,45 +2476,56 @@ class PosInterface extends Page
                                 ]),
                                 Forms\Components\ToggleButtons::make('document_type')
                                     ->label('📄 Comprobante')
-                                    ->options(['sales_note' => '📝 Nota','receipt' => '🧾 Boleta','invoice' => '📋 Factura'])
-                                    ->colors(['sales_note' => 'info','receipt' => 'warning','invoice' => 'success'])
+                                    ->options(['sales_note' => '📝 Nota', 'receipt' => '🧾 Boleta', 'invoice' => '📋 Factura'])
+                                    ->colors(['sales_note' => 'info', 'receipt' => 'warning', 'invoice' => 'success'])
                                     ->extraAttributes(['class' => 'w-full'])
                                     ->live()->inline()->columnSpanFull()
                                     ->reactive(),
-                            ])->columnSpan(['md' => 4,'lg' => 3])->extraAttributes(['class' => 'space-y-4']),
+                            ])->columnSpan(['md' => 4, 'lg' => 3])->extraAttributes(['class' => 'space-y-4']),
                             Forms\Components\Group::make([
                                 Forms\Components\Section::make('Método de Pago')
-                                    ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-3 relative'])
+                                    ->compact()->extraAttributes(['class' => $card . ' ' . $innerPad . ' space-y-3 relative'])
                                     ->visible(fn(Get $get) => !$get('split_payment'))
                                     ->schema([
-                                        Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
-                                            Forms\Components\Select::make('payment_method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food','rappi'=>'🚚 Rappi','bita_express'=>'🚛 Bita Express'])->default('cash')->live()->columnSpan(1)
+                                        Forms\Components\Grid::make(3)->extraAttributes(['class' => 'gap-3'])->schema([
+                                            Forms\Components\Select::make('payment_method')->label('Método')->options(['cash' => '💵 Efectivo', 'card' => '💳 Tarjeta', 'yape' => '📱 Yape', 'plin' => '💙 Plin', 'pedidos_ya' => '🛵 Pedidos Ya', 'didi_food' => '🚗 Didi Food', 'rappi' => '🚚 Rappi', 'bita_express' => '🚛 Bita Express'])->default('cash')->live()->columnSpan(1)
                                                 ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                                     // Auto-seleccionar Boleta cuando se selecciona Tarjeta
                                                     if ($state === 'card') {
                                                         $set('document_type', 'receipt');
                                                     }
                                                 }),
-                                            Forms\Components\TextInput::make('payment_amount')->label('Monto Recibido')->numeric()->prefix('S/')->live()->default((float)$this->total)->step(0.01)->minValue(fn(Get $get) => $get('payment_method')==='cash' ? (float)$this->total : 0.01)->rule(fn(Get $get) => function(string $a,$v,\Closure $fail) use($get){ if($get('payment_method')==='cash'){ $val=(float)$v; $total=(float)$this->total; if(round($val, 2) < round($total, 2)){ $fail('El monto recibido debe ser mayor o igual al total.'); } } })->columnSpan(1),
-                                            Forms\Components\Placeholder::make('change_display')->label('Vuelto')->content(function (Get $get){ $amount=(float)($get('payment_amount')??0); $totalAmount = is_numeric($this->total) ? (float)$this->total : 0.0; $change=$amount-$totalAmount; if($change>0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-xs'>S/ ".number_format((float)$change,2)."</span></div>");} elseif($change<0){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-xs'>Falta: S/ ".number_format(abs((float)$change),2)."</span></div>");} return new \Illuminate\Support\HtmlString("<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'><span class='text-blue-700 font-bold text-xs'>Exacto ✓</span></div>"); })->live()->visible(fn(Get $get)=>$get('payment_method')==='cash')->columnSpan(1),
+                                            Forms\Components\TextInput::make('payment_amount')->label('Monto Recibido')->numeric()->prefix('S/')->live()->default((float) $this->total)->step(0.01)->minValue(fn(Get $get) => $get('payment_method') === 'cash' ? (float) $this->total : 0.01)->rule(fn(Get $get) => function (string $a, $v, \Closure $fail) use ($get) {
+                                                if ($get('payment_method') === 'cash') {
+                                                    $val = (float) $v;
+                                                    $total = (float) $this->total;
+                                                    if (round($val, 2) < round($total, 2)) {
+                                                        $fail('El monto recibido debe ser mayor o igual al total.'); } } })->columnSpan(1),
+                                            Forms\Components\Placeholder::make('change_display')->label('Vuelto')->content(function (Get $get) {
+                                                $amount = (float) ($get('payment_amount') ?? 0);
+                                                $totalAmount = is_numeric($this->total) ? (float) $this->total : 0.0;
+                                                $change = $amount - $totalAmount;
+                                                if ($change > 0) {
+                                                    return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-xs'>S/ " . number_format((float) $change, 2) . "</span></div>"); } elseif ($change < 0) {
+                                                    return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-xs'>Falta: S/ " . number_format(abs((float) $change), 2) . "</span></div>"); }return new \Illuminate\Support\HtmlString("<div class='p-1 bg-blue-50 border border-blue-200 rounded text-center'><span class='text-blue-700 font-bold text-xs'>Exacto ✓</span></div>"); })->live()->visible(fn(Get $get) => $get('payment_method') === 'cash')->columnSpan(1),
                                         ]),
-                                        Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del terminal POS')->helperText('Visible solo para tarjeta')->visible(fn(Get $get)=>$get('payment_method')==='card')->required(fn(Get $get)=>$get('payment_method')==='card')->maxLength(50)->live(),
+                                        Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del terminal POS')->helperText('Visible solo para tarjeta')->visible(fn(Get $get) => $get('payment_method') === 'card')->required(fn(Get $get) => $get('payment_method') === 'card')->maxLength(50)->live(),
                                         Forms\Components\Actions::make([
-                                            Forms\Components\Actions\Action::make('exactPayment')->label('Exacto')->color('success')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',(float)$this->total)),
-                                            Forms\Components\Actions\Action::make('10')->label('10')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',10)),
-                                            Forms\Components\Actions\Action::make('20')->label('20')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',20)),
-                                            Forms\Components\Actions\Action::make('50')->label('50')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',50)),
-                                            Forms\Components\Actions\Action::make('100')->label('100')->color('gray')->size('xs')->action(fn(Forms\Set $set)=>$set('payment_amount',100)),
-                                        ])->visible(fn(Get $get)=>$get('payment_method')==='cash')->extraAttributes(['class'=>'flex flex-wrap gap-1 justify-center']),
+                                            Forms\Components\Actions\Action::make('exactPayment')->label('Exacto')->color('success')->size('xs')->action(fn(Forms\Set $set) => $set('payment_amount', (float) $this->total)),
+                                            Forms\Components\Actions\Action::make('10')->label('10')->color('gray')->size('xs')->action(fn(Forms\Set $set) => $set('payment_amount', 10)),
+                                            Forms\Components\Actions\Action::make('20')->label('20')->color('gray')->size('xs')->action(fn(Forms\Set $set) => $set('payment_amount', 20)),
+                                            Forms\Components\Actions\Action::make('50')->label('50')->color('gray')->size('xs')->action(fn(Forms\Set $set) => $set('payment_amount', 50)),
+                                            Forms\Components\Actions\Action::make('100')->label('100')->color('gray')->size('xs')->action(fn(Forms\Set $set) => $set('payment_amount', 100)),
+                                        ])->visible(fn(Get $get) => $get('payment_method') === 'cash')->extraAttributes(['class' => 'flex flex-wrap gap-1 justify-center']),
                                     ]),
                                 Forms\Components\Section::make('Métodos de Pago Múltiples')
-                                    ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-4'])
+                                    ->compact()->extraAttributes(['class' => $card . ' ' . $innerPad . ' space-y-4'])
                                     ->visible(fn(Get $get) => $get('split_payment'))
                                     ->schema([
                                         Forms\Components\Repeater::make('payment_methods')
                                             ->schema([
-                                                Forms\Components\Grid::make(3)->extraAttributes(['class'=>'gap-3'])->schema([
-                                                    Forms\Components\Select::make('method')->label('Método')->options(['cash'=>'💵 Efectivo','card'=>'💳 Tarjeta','yape'=>'📱 Yape','plin'=>'💙 Plin','pedidos_ya'=>'🛵 Pedidos Ya','didi_food'=>'🚗 Didi Food'])->required()->live()->columnSpan(1)
+                                                Forms\Components\Grid::make(3)->extraAttributes(['class' => 'gap-3'])->schema([
+                                                    Forms\Components\Select::make('method')->label('Método')->options(['cash' => '💵 Efectivo', 'card' => '💳 Tarjeta', 'yape' => '📱 Yape', 'plin' => '💙 Plin', 'pedidos_ya' => '🛵 Pedidos Ya', 'didi_food' => '🚗 Didi Food'])->required()->live()->columnSpan(1)
                                                         ->afterStateUpdated(function (Get $get, Set $set, $state) {
                                                             // Auto-seleccionar Boleta cuando se selecciona Tarjeta en pago múltiple
                                                             if ($state === 'card') {
@@ -2513,59 +2533,72 @@ class PosInterface extends Page
                                                             }
                                                         }),
                                                     Forms\Components\TextInput::make('amount')->label('Monto')->numeric()->prefix('S/')->step(0.01)->minValue(0.01)->required()->live()->columnSpan(1),
-                                                    Forms\Components\Placeholder::make('remaining')->label('Estado')->content(function (Get $get){ $payments=$get('../../payment_methods')??[]; $totalPaid=0; foreach($payments as $p){ if(isset($p['amount']) && is_numeric($p['amount'])) $totalPaid+=(float)$p['amount']; } $totalAmount = is_numeric($this->total) ? (float)$this->total : 0.0; $remaining=$totalAmount - $totalPaid; if(abs($remaining) < 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-[11px]'>Completo ✓</span></div>");} elseif($remaining > 0.01){return new \Illuminate\Support\HtmlString("<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'><span class='text-orange-700 font-bold text-[11px]'>Falta: S/ ".number_format((float)$remaining,2)."</span></div>");} else {return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-[11px]'>Vuelto: S/ ".number_format(abs((float)$remaining),2)."</span></div>");} })->live()->columnSpan(1),
+                                                    Forms\Components\Placeholder::make('remaining')->label('Estado')->content(function (Get $get) {
+                                                        $payments = $get('../../payment_methods') ?? [];
+                                                        $totalPaid = 0;
+                                                        foreach ($payments as $p) {
+                                                            if (isset($p['amount']) && is_numeric($p['amount']))
+                                                                $totalPaid += (float) $p['amount']; }$totalAmount = is_numeric($this->total) ? (float) $this->total : 0.0;
+                                                        $remaining = $totalAmount - $totalPaid;
+                                                        if (abs($remaining) < 0.01) {
+                                                            return new \Illuminate\Support\HtmlString("<div class='p-1 bg-green-50 border border-green-200 rounded text-center'><span class='text-green-700 font-bold text-[11px]'>Completo ✓</span></div>"); } elseif ($remaining > 0.01) {
+                                                            return new \Illuminate\Support\HtmlString("<div class='p-1 bg-orange-50 border border-orange-200 rounded text-center'><span class='text-orange-700 font-bold text-[11px]'>Falta: S/ " . number_format((float) $remaining, 2) . "</span></div>"); } else {
+                                                            return new \Illuminate\Support\HtmlString("<div class='p-1 bg-red-50 border border-red-200 rounded text-center'><span class='text-red-700 font-bold text-[11px]'>Vuelto: S/ " . number_format(abs((float) $remaining), 2) . "</span></div>"); } })->live()->columnSpan(1),
                                                 ]),
-                                                Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del voucher')->helperText('Solo para tarjeta')->visible(fn(Get $get)=>$get('method')==='card')->required(fn(Get $get)=>$get('method')==='card')->maxLength(50)->live(),
+                                                Forms\Components\TextInput::make('voucher_code')->label('🎫 Código de Voucher')->placeholder('Código del voucher')->helperText('Solo para tarjeta')->visible(fn(Get $get) => $get('method') === 'card')->required(fn(Get $get) => $get('method') === 'card')->maxLength(50)->live(),
                                             ])->defaultItems(1)->addActionLabel('+ Agregar Método de Pago')
-                                            ->deleteAction(fn(Forms\Components\Actions\Action $action) => $action
-                                                ->requiresConfirmation()
-                                                ->modalHeading('Eliminar Método')
-                                                ->modalDescription('¿Eliminar este método?')
-                                                ->modalSubmitActionLabel('Eliminar')
-                                                ->modalCancelActionLabel('Cancelar')
+                                            ->deleteAction(
+                                                fn(Forms\Components\Actions\Action $action) => $action
+                                                    ->requiresConfirmation()
+                                                    ->modalHeading('Eliminar Método')
+                                                    ->modalDescription('¿Eliminar este método?')
+                                                    ->modalSubmitActionLabel('Eliminar')
+                                                    ->modalCancelActionLabel('Cancelar')
                                             )
-                                            ->itemLabel(fn(array $state): ?string => ($state['method'] ?? 'Método').': S/ '.number_format((float)($state['amount'] ?? 0),2))
+                                            ->itemLabel(fn(array $state): ?string => ($state['method'] ?? 'Método') . ': S/ ' . number_format((float) ($state['amount'] ?? 0), 2))
                                             ->collapsible()
-                                            ->cloneAction(fn(Forms\Components\Actions\Action $action) => $action
-                                                ->label('Agregar')
-                                                ->tooltip('Duplicar método')
+                                            ->cloneAction(
+                                                fn(Forms\Components\Actions\Action $action) => $action
+                                                    ->label('Agregar')
+                                                    ->tooltip('Duplicar método')
                                             )
                                             ->cloneable(),
-                                        Forms\Components\Placeholder::make('split_summary')->label('Resumen de Pago')->content(function (Get $get){
-                                                $payments = $get('payment_methods') ?? [];
-                                                $totalPaid = 0;
-                                                foreach ($payments as $p) {
-                                                    if (isset($p['amount']) && is_numeric($p['amount'])) {
-                                                        $totalPaid += (float) $p['amount'];
-                                                    }
+                                        Forms\Components\Placeholder::make('split_summary')->label('Resumen de Pago')->content(function (Get $get) {
+                                            $payments = $get('payment_methods') ?? [];
+                                            $totalPaid = 0;
+                                            foreach ($payments as $p) {
+                                                if (isset($p['amount']) && is_numeric($p['amount'])) {
+                                                    $totalPaid += (float) $p['amount'];
                                                 }
-                                                $remaining = $this->total - $totalPaid;
-                                                $status = abs($remaining) < 0.01 ? 'success' : ($remaining > 0 ? 'warning' : 'danger');
-                                                $statusText = abs($remaining) < 0.01 ? 'Pago Completo' : ($remaining > 0 ? 'Pago Incompleto' : 'Pago Excedido');
-                                                $color = $status === 'success' ? 'green' : ($status === 'warning' ? 'orange' : 'red');
-                                                return new \Illuminate\Support\HtmlString(
-                                                    '<div class="p-2 bg-gray-50 border border-gray-200 rounded text-[11px] space-y-1">'
-                                                    .'<div class="flex justify-between"><span>Total:</span><span class="font-semibold">S/ '.number_format((float)$this->total,2).'</span></div>'
-                                                    .'<div class="flex justify-between"><span>Pagado:</span><span class="font-semibold">S/ '.number_format((float)$totalPaid,2).'</span></div>'
-                                                    .'<div class="flex justify-between border-t pt-1"><span>Estado:</span><span class="font-semibold text-'.$color.'-700">'.$statusText.'</span></div>'
-                                                    .'</div>'
-                                                );
-                                            })->live(),
+                                            }
+                                            $remaining = $this->total - $totalPaid;
+                                            $status = abs($remaining) < 0.01 ? 'success' : ($remaining > 0 ? 'warning' : 'danger');
+                                            $statusText = abs($remaining) < 0.01 ? 'Pago Completo' : ($remaining > 0 ? 'Pago Incompleto' : 'Pago Excedido');
+                                            $color = $status === 'success' ? 'green' : ($status === 'warning' ? 'orange' : 'red');
+                                            return new \Illuminate\Support\HtmlString(
+                                                '<div class="p-2 bg-gray-50 border border-gray-200 rounded text-[11px] space-y-1">'
+                                                . '<div class="flex justify-between"><span>Total:</span><span class="font-semibold">S/ ' . number_format((float) $this->total, 2) . '</span></div>'
+                                                . '<div class="flex justify-between"><span>Pagado:</span><span class="font-semibold">S/ ' . number_format((float) $totalPaid, 2) . '</span></div>'
+                                                . '<div class="flex justify-between border-t pt-1"><span>Estado:</span><span class="font-semibold text-' . $color . '-700">' . $statusText . '</span></div>'
+                                                . '</div>'
+                                            );
+                                        })->live(),
                                     ]),
                                 Forms\Components\Section::make('👤 Cliente')
-                                    ->compact()->extraAttributes(['class' => $card.' '.$innerPad.' space-y-4'])
-                                    ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt','invoice']))
+                                    ->compact()->extraAttributes(['class' => $card . ' ' . $innerPad . ' space-y-4'])
+                                    ->visible(fn(Get $get) => in_array($get('document_type'), ['receipt', 'invoice']))
                                     ->schema([
                                         Forms\Components\Select::make('customer_id')
                                             ->label('Cliente')
                                             ->placeholder('Buscar cliente existente...')
                                             ->searchable()
-                                            ->options(fn():array => Customer::limit(50)->pluck('name','id')->toArray())
-                                            ->getSearchResultsUsing(fn(string $search):array => 
-                                                Customer::where('name','like',"%{$search}%")
-                                                    ->orWhere('document_number','like',"%{$search}%")
+                                            ->options(fn(): array => Customer::limit(50)->pluck('name', 'id')->toArray())
+                                            ->getSearchResultsUsing(
+                                                fn(string $search): array =>
+                                                Customer::where('name', 'like', "%{$search}%")
+                                                    ->orWhere('document_number', 'like', "%{$search}%")
                                                     ->limit(50)
-                                                    ->pluck('name','id')
+                                                    ->pluck('name', 'id')
                                                     ->toArray()
                                             )
                                             ->live()
@@ -2597,12 +2630,12 @@ class PosInterface extends Page
                                                             Forms\Components\Grid::make(3)->schema([
                                                                 Forms\Components\TextInput::make('document_number')
                                                                     ->label('Número de Documento')
-                                                                    ->placeholder(fn(Get $get) => match($get('document_type')) {
+                                                                    ->placeholder(fn(Get $get) => match ($get('document_type')) {
                                                                         'RUC' => '20123456789 (11 dígitos)',
                                                                         'DNI' => '12345678 (8 dígitos)',
                                                                         default => 'Opcional'
                                                                     })
-                                                                    ->maxLength(fn(Get $get) => match($get('document_type')) {
+                                                                    ->maxLength(fn(Get $get) => match ($get('document_type')) {
                                                                         'RUC' => 11,
                                                                         'DNI' => 8,
                                                                         default => 20
@@ -2611,7 +2644,7 @@ class PosInterface extends Page
                                                                     ->live(),
                                                                 Forms\Components\Actions::make([
                                                                     Forms\Components\Actions\Action::make('searchRuc')
-                                                                        ->label(fn(Get $get) => match($get('document_type')) {
+                                                                        ->label(fn(Get $get) => match ($get('document_type')) {
                                                                             'RUC' => '🔍 Buscar Empresa',
                                                                             'DNI' => '🔍 Buscar Persona',
                                                                             default => '🔍 Buscar'
@@ -2622,7 +2655,7 @@ class PosInterface extends Page
                                                                         ->action(function (Get $get, Set $set) {
                                                                             $documentType = $get('document_type');
                                                                             $documentNumber = $get('document_number');
-                                                                            
+
                                                                             // Validar según el tipo de documento
                                                                             if ($documentType === 'RUC') {
                                                                                 if (strlen($documentNumber) !== 11 || !preg_match('/^[0-9]{11}$/', $documentNumber)) {
@@ -2643,20 +2676,20 @@ class PosInterface extends Page
                                                                                     return;
                                                                                 }
                                                                             }
-                                                                            
+
                                                                             try {
                                                                                 // Verificar primero en base de datos local
                                                                                 $existingCustomer = \App\Models\Customer::where('document_number', $documentNumber)
                                                                                     ->where('document_type', $documentType)
                                                                                     ->first();
-                                                                                    
+
                                                                                 if ($existingCustomer) {
                                                                                     // Auto-completar con datos locales (solo campos esenciales)
                                                                                     $set('customer_name', $existingCustomer->name);
                                                                                     $set('customer_address', $existingCustomer->address ?? '');
                                                                                     $set('customer_phone', $existingCustomer->phone ?? '');
                                                                                     $set('customer_email', $existingCustomer->email ?? '');
-                                                                                    
+
                                                                                     Notification::make()
                                                                                         ->title('✅ Cliente Encontrado')
                                                                                         ->body('Datos cargados desde la base de datos local')
@@ -2664,18 +2697,18 @@ class PosInterface extends Page
                                                                                         ->send();
                                                                                     return;
                                                                                 }
-                                                                                
+
                                                                                 // Si es RUC y no existe localmente, buscar con Factiliza
                                                                                 if ($documentType === 'RUC') {
                                                                                     $rucLookupService = app(\App\Services\RucLookupService::class);
-                                                                                    
+
                                                                                     try {
                                                                                         $companyData = $rucLookupService->lookupRuc($documentNumber);
-                                                                                        
+
                                                                                         if ($companyData) {
                                                                                             // Auto-completar SOLO los campos necesarios del API
                                                                                             $set('customer_name', $companyData['razon_social']);
-                                                                                            
+
                                                                                             // Dirección completa (priorizar dirección principal)
                                                                                             $fullAddress = trim($companyData['direccion'] ?? '');
                                                                                             if (!empty($companyData['distrito'])) {
@@ -2685,7 +2718,7 @@ class PosInterface extends Page
                                                                                                 $fullAddress .= ', ' . $companyData['provincia'];
                                                                                             }
                                                                                             $set('customer_address', $fullAddress);
-                                                                                            
+
                                                                                             // Teléfono y email (solo si existen)
                                                                                             if (!empty($companyData['telefono'])) {
                                                                                                 $set('customer_phone', $companyData['telefono']);
@@ -2693,7 +2726,7 @@ class PosInterface extends Page
                                                                                             if (!empty($companyData['email'])) {
                                                                                                 $set('customer_email', $companyData['email']);
                                                                                             }
-                                                                                            
+
                                                                                             Notification::make()
                                                                                                 ->title('✅ RUC Encontrado')
                                                                                                 ->body('Empresa: ' . $companyData['razon_social'])
@@ -2717,14 +2750,14 @@ class PosInterface extends Page
                                                                                 } elseif ($documentType === 'DNI') {
                                                                                     // Buscar DNI con Factiliza
                                                                                     $rucLookupService = app(\App\Services\RucLookupService::class);
-                                                                                    
+
                                                                                     try {
                                                                                         $personData = $rucLookupService->lookupDni($documentNumber);
-                                                                                        
+
                                                                                         if ($personData) {
                                                                                             // Auto-completar SOLO los campos necesarios del API
                                                                                             $set('customer_name', $personData['nombre_completo']);
-                                                                                            
+
                                                                                             // Dirección completa (priorizar dirección principal)
                                                                                             $fullAddress = trim($personData['direccion'] ?? '');
                                                                                             if (!empty($personData['distrito'])) {
@@ -2734,7 +2767,7 @@ class PosInterface extends Page
                                                                                                 $fullAddress .= ', ' . $personData['provincia'];
                                                                                             }
                                                                                             $set('customer_address', $fullAddress);
-                                                                                            
+
                                                                                             // Teléfono y email (solo si existen)
                                                                                             if (!empty($personData['telefono'])) {
                                                                                                 $set('customer_phone', $personData['telefono']);
@@ -2742,7 +2775,7 @@ class PosInterface extends Page
                                                                                             if (!empty($personData['email'])) {
                                                                                                 $set('customer_email', $personData['email']);
                                                                                             }
-                                                                                            
+
                                                                                             Notification::make()
                                                                                                 ->title('✅ DNI Encontrado')
                                                                                                 ->body('Persona: ' . $personData['nombre_completo'])
@@ -2810,7 +2843,7 @@ class PosInterface extends Page
                                                         } catch (\Exception $e) {
                                                             // Mensajes de error específicos y comprensibles
                                                             $errorMessage = $this->getCustomerErrorMessage($e);
-                                                            
+
                                                             Notification::make()
                                                                 ->title('❌ No se pudo registrar el cliente')
                                                                 ->body($errorMessage)
@@ -2826,7 +2859,7 @@ class PosInterface extends Page
                                         Forms\Components\Hidden::make('new_customer_phone'),
                                         Forms\Components\Hidden::make('new_customer_address'),
                                     ]),
-                            ])->columnSpan(['md' => 8,'lg' => 9])->extraAttributes(['class' => 'space-y-4']),
+                            ])->columnSpan(['md' => 8, 'lg' => 9])->extraAttributes(['class' => 'space-y-4']),
                         ]),
                 ];
             })
@@ -2835,7 +2868,7 @@ class PosInterface extends Page
                     // Para delivery, usar Nota de Venta como default
                     $serviceType = $this->originalCustomerData['service_type'] ?? 'no_service_type';
                     $documentType = 'sales_note'; // Default para delivery
-                    
+    
                     if ($serviceType === 'delivery') {
                         $documentType = 'sales_note'; // Nota de Venta para delivery
                         \Log::info('🚚 FILLFORM: Configurando Nota de Venta para delivery', [
@@ -2849,24 +2882,24 @@ class PosInterface extends Page
                             'document_type' => $documentType
                         ]);
                     }
-                    
+
                     return [
                         'split_payment' => false,
                         'payment_method' => 'cash',
                         'payment_amount' => $this->total,
-                        'payment_methods' => [ ['method' => 'cash','amount' => $this->total] ],
+                        'payment_methods' => [['method' => 'cash', 'amount' => $this->total]],
                         'document_type' => $documentType,
                         'customer_id' => $this->originalCustomerData['customer_id'],
                         'new_customer_name' => '',
                     ];
                 }
-                
+
                 \Log::info('🎯 FILLFORM: Sin cliente original, usando Nota de Venta por defecto');
                 return [
                     'split_payment' => false,
                     'payment_method' => 'cash',
                     'payment_amount' => $this->total,
-                    'payment_methods' => [ ['method' => 'cash','amount' => $this->total] ],
+                    'payment_methods' => [['method' => 'cash', 'amount' => $this->total]],
                     'document_type' => 'sales_note',
                     'customer_id' => null,
                     'new_customer_name' => '',
@@ -2991,11 +3024,11 @@ class PosInterface extends Page
                     $methodTmp = $data['payment_method'] ?? 'cash';
                     $amountTmp = (float) ($data['payment_amount'] ?? $this->order->total);
                     $totalTmp = (float) $this->order->total;
-                    
+
                     // Redondear ambos valores a 2 decimales para evitar problemas de precisión
                     $amountRounded = round($amountTmp, 2);
                     $totalRounded = round($totalTmp, 2);
-                    
+
                     if ($methodTmp === 'cash' && $amountRounded < $totalRounded) {
                         throw new \Exception('El monto recibido debe ser mayor o igual al total a pagar.');
                     }
@@ -3047,7 +3080,7 @@ class PosInterface extends Page
 
                 // ✅ REFRESH DE PAYMENTS ANTES DE GENERAR FACTURA
                 $this->order->load('payments');
-                
+
                 Log::info('🎮 Filament PosInterface - Payments antes de generateInvoice', [
                     'order_id' => $this->order->id,
                     'payments_count' => $this->order->payments->count(),
@@ -3078,7 +3111,7 @@ class PosInterface extends Page
                 if ($data['split_payment'] ?? false) {
                     $paymentDetails = [];
                     foreach ($data['payment_methods'] as $payment) {
-                        $paymentDetails[] = $payment['method'] . ': S/ ' . number_format((float)$payment['amount'], 2);
+                        $paymentDetails[] = $payment['method'] . ': S/ ' . number_format((float) $payment['amount'], 2);
                     }
                     if (isset($invoice)) {
                         $invoice->update(['notes' => 'Pago dividido: ' . implode(', ', $paymentDetails)]);
@@ -3138,7 +3171,7 @@ class PosInterface extends Page
 
             // Usar mensaje de error comprensible
             $errorMessage = $this->getPaymentErrorMessage($e);
-            
+
             Notification::make()
                 ->title('❌ Error en el pago')
                 ->body($errorMessage)
@@ -3163,7 +3196,7 @@ class PosInterface extends Page
         $totalPaid = 0;
         $cashAmount = 0;
         $hasCash = false;
-        
+
         foreach ($paymentMethods as $payment) {
             if (!isset($payment['method']) || !isset($payment['amount'])) {
                 throw new \Exception('Todos los métodos de pago deben tener método y monto');
@@ -3175,7 +3208,7 @@ class PosInterface extends Page
 
             $amount = (float) $payment['amount'];
             $totalPaid += $amount;
-            
+
             // Rastrear si hay pago en efectivo
             if ($payment['method'] === 'cash') {
                 $cashAmount += $amount;
@@ -3183,19 +3216,19 @@ class PosInterface extends Page
             }
         }
 
-        $orderTotal = (float)$this->order->total;
+        $orderTotal = (float) $this->order->total;
         $difference = $totalPaid - $orderTotal;
-        
+
         // Redondear valores para evitar problemas de precisión
         $totalPaidRounded = round($totalPaid, 2);
         $orderTotalRounded = round($orderTotal, 2);
         $differenceRounded = $totalPaidRounded - $orderTotalRounded;
-        
+
         // Si hay diferencia negativa (falta dinero), siempre es error
         if ($differenceRounded < -0.01) {
             throw new \Exception('El total de los pagos (S/ ' . number_format($totalPaid, 2) . ') es insuficiente. Faltan S/ ' . number_format(abs($difference), 2));
         }
-        
+
         // Si hay exceso positivo (sobra dinero)
         if ($differenceRounded > 0.01) {
             if (!$hasCash) {
@@ -3232,7 +3265,7 @@ class PosInterface extends Page
                     'invoice_id' => $lastInvoice->id,
                     'invoice_type' => $lastInvoice->invoice_type
                 ]);
-                
+
                 Notification::make()
                     ->title('⚠️ Comprobante ya impreso')
                     ->body("El {$lastInvoice->document_type} {$lastInvoice->series}-{$lastInvoice->number} ya fue impreso")
@@ -3431,8 +3464,10 @@ class PosInterface extends Page
                     ->visible(fn() => (bool) $this->order || !empty($this->cartItems))
                     ->disabled(function () {
                         // Reglas de deshabilitado: sin caja abierta, sin orden ni items, o venta directa sin nombre
-                        if (!$this->hasOpenCashRegister) return true;
-                        if (!$this->order && empty($this->cartItems)) return true;
+                        if (!$this->hasOpenCashRegister)
+                            return true;
+                        if (!$this->order && empty($this->cartItems))
+                            return true;
                         if ($this->selectedTableId === null) {
                             return empty($this->customerNameForComanda);
                         }
@@ -3501,7 +3536,7 @@ class PosInterface extends Page
                     ->action(function () {
                         if ($this->order && $this->order->table) {
                             $this->order->table->update(['status' => TableModel::STATUS_PREBILL]);
-                            Log::info('🔵 Mesa cambiada a PRE-CUENTA', ['table_id' => $this->order->table->id,'order_id' => $this->order->id,'status' => 'prebill']);
+                            Log::info('🔵 Mesa cambiada a PRE-CUENTA', ['table_id' => $this->order->table->id, 'order_id' => $this->order->id, 'status' => 'prebill']);
                             Notification::make()->title('Mesa en PRE-CUENTA')->body('La mesa ahora está marcada como PRE-CUENTA')->success()->duration(3000)->send();
                         }
                         $url = route('print.prebill', ['order' => $this->order->id]);
@@ -3512,10 +3547,12 @@ class PosInterface extends Page
                     ->color('success')
                     ->size('sm')
                     ->extraAttributes(['class' => 'font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'])
-                    ->action(function () { $url = route('print.prebill', ['order' => $this->order->id]); $this->js("window.open('$url', '_blank')"); }),
+                    ->action(function () {
+                        $url = route('print.prebill', ['order' => $this->order->id]);
+                        $this->js("window.open('$url', '_blank')"); }),
             ])
-            ->visible(fn (): bool => (bool) $this->order || !empty($this->cartItems))
-            ->disabled(fn (): bool => !$this->order && empty($this->cartItems));
+            ->visible(fn(): bool => (bool) $this->order || !empty($this->cartItems))
+            ->disabled(fn(): bool => !$this->order && empty($this->cartItems));
     }
 
     /**
@@ -3536,7 +3573,8 @@ class PosInterface extends Page
                     ->warning()
                     ->send();
             })
-            ->visible(fn () =>
+            ->visible(
+                fn() =>
                 $this->order instanceof Order &&
                 !$this->order->invoices()->exists() &&
                 $this->order->status !== Order::STATUS_COMPLETED
@@ -3723,17 +3761,17 @@ class PosInterface extends Page
                                             ->columnSpan(4)
                                     ])
                             ])
-                            ->disabled(fn () => !$this->order)
+                            ->disabled(fn() => !$this->order)
                             ->defaultItems(0)
                     ])
             ])
-            ->fillForm(function(): array {
+            ->fillForm(function (): array {
                 if (!$this->order) {
                     return ['split_items' => []];
                 }
 
                 return [
-                    'split_items' => $this->order->orderDetails->map(function($detail) {
+                    'split_items' => $this->order->orderDetails->map(function ($detail) {
                         return [
                             'product_id' => $detail->product_id,
                             'name' => $detail->product->name,
@@ -3746,7 +3784,7 @@ class PosInterface extends Page
                     })->toArray()
                 ];
             })
-            ->action(function(array $data): void {
+            ->action(function (array $data): void {
                 // Validar que al menos un producto tenga cantidad mayor a 0
                 $hasItemsToSplit = collect($data['split_items'])
                     ->some(fn($item) => ($item['split_quantity'] ?? 0) > 0);
@@ -3851,7 +3889,7 @@ class PosInterface extends Page
                         ->send();
                 }
             })
-            ->visible(fn (): bool => $this->order !== null && count($this->order->orderDetails) > 0);
+            ->visible(fn(): bool => $this->order !== null && count($this->order->orderDetails) > 0);
     }
 
     /**
@@ -3974,7 +4012,7 @@ class PosInterface extends Page
     {
         $errorMessage = $e->getMessage();
         $errorCode = $e->getCode();
-        
+
         // Errores de duplicación (cliente ya existe)
         if (str_contains($errorMessage, 'Duplicate entry') || str_contains($errorMessage, 'UNIQUE constraint failed') || $errorCode == 23000) {
             if (str_contains($errorMessage, 'document_number')) {
@@ -3985,7 +4023,7 @@ class PosInterface extends Page
             }
             return "👥 Este cliente ya está registrado en el sistema. Use el buscador para encontrarlo.";
         }
-        
+
         // Errores de campos requeridos
         if (str_contains($errorMessage, 'cannot be null') || str_contains($errorMessage, 'NOT NULL constraint failed')) {
             if (str_contains($errorMessage, 'name')) {
@@ -3996,7 +4034,7 @@ class PosInterface extends Page
             }
             return "⚠️ Faltan datos obligatorios. Complete todos los campos marcados como requeridos.";
         }
-        
+
         // Errores de longitud de campo
         if (str_contains($errorMessage, 'Data too long') || str_contains($errorMessage, 'value too long')) {
             if (str_contains($errorMessage, 'name')) {
@@ -4010,27 +4048,27 @@ class PosInterface extends Page
             }
             return "📐 Uno de los datos ingresados es muy largo. Reduzca el texto.";
         }
-        
+
         // Errores de formato de email
         if (str_contains($errorMessage, 'email') && (str_contains($errorMessage, 'format') || str_contains($errorMessage, 'invalid'))) {
             return "📧 El formato del correo electrónico no es válido. Ejemplo: cliente@gmail.com";
         }
-        
+
         // Errores de conexión a base de datos
         if (str_contains($errorMessage, 'Connection refused') || str_contains($errorMessage, 'SQLSTATE[HY000]')) {
             return "🔌 Problema de conexión con la base de datos. Contacte al administrador del sistema.";
         }
-        
+
         // Errores de permisos
         if (str_contains($errorMessage, 'Access denied') || str_contains($errorMessage, 'permission')) {
             return "🔒 No tiene permisos para registrar clientes. Contacte al administrador.";
         }
-        
+
         // Errores de validación de documento
         if (str_contains($errorMessage, 'document_type') || str_contains($errorMessage, 'invalid document')) {
             return "🆔 El tipo de documento no es válido. Seleccione DNI, RUC o Pasaporte.";
         }
-        
+
         // Error genérico pero comprensible
         return "❌ No se pudo registrar el cliente. Revise que todos los datos sean correctos y vuelva a intentar. Si el problema persiste, contacte al administrador.";
     }
@@ -4042,47 +4080,47 @@ class PosInterface extends Page
     {
         $errorMessage = $e->getMessage();
         $errorCode = $e->getCode();
-        
+
         // Errores de caja registradora
         if (str_contains($errorMessage, 'cash_register') || str_contains($errorMessage, 'caja')) {
             return "💰 No hay una caja abierta. Abra la caja antes de procesar pagos.";
         }
-        
+
         // Errores de monto insuficiente
         if (str_contains($errorMessage, 'insufficient') || str_contains($errorMessage, 'insuficiente')) {
             return "💵 El monto recibido es menor al total de la cuenta. Verifique el dinero entregado.";
         }
-        
+
         // Errores de conexión con impresora
         if (str_contains($errorMessage, 'printer') || str_contains($errorMessage, 'impresora')) {
             return "🖨️ Problema con la impresora. El pago se procesó pero no se pudo imprimir. Contacte al técnico.";
         }
-        
+
         // Errores de facturación electrónica
         if (str_contains($errorMessage, 'SUNAT') || str_contains($errorMessage, 'facturación')) {
             return "📄 El pago se procesó pero hay un problema con la facturación electrónica. Contacte al administrador.";
         }
-        
+
         // Errores de base de datos
         if (str_contains($errorMessage, 'Connection refused') || str_contains($errorMessage, 'SQLSTATE')) {
             return "🔌 Problema de conexión con la base de datos. Verifique su conexión a internet y vuelva a intentar.";
         }
-        
+
         // Errores de validación de datos
         if (str_contains($errorMessage, 'validation') || str_contains($errorMessage, 'required')) {
             return "📝 Faltan datos obligatorios para procesar el pago. Complete todos los campos requeridos.";
         }
-        
+
         // Errores de permisos
         if (str_contains($errorMessage, 'permission') || str_contains($errorMessage, 'unauthorized')) {
             return "🔒 No tiene permisos para procesar pagos. Contacte al administrador del sistema.";
         }
-        
+
         // Errores de método de pago
         if (str_contains($errorMessage, 'payment_method') || str_contains($errorMessage, 'método de pago')) {
             return "💳 Método de pago no válido. Seleccione efectivo, tarjeta o transferencia.";
         }
-        
+
         // Error genérico pero comprensible
         return "❌ No se pudo procesar el pago. Verifique que todos los datos sean correctos y vuelva a intentar. Si el problema continúa, contacte al administrador.";
     }
@@ -4094,52 +4132,52 @@ class PosInterface extends Page
     {
         $errorMessage = $e->getMessage();
         $errorCode = $e->getCode();
-        
+
         // Errores de carrito vacío
         if (str_contains($errorMessage, 'empty') || str_contains($errorMessage, 'vacío')) {
             return "🛒 El carrito está vacío. Agregue productos antes de crear la orden.";
         }
-        
+
         // Errores de mesa ocupada
         if (str_contains($errorMessage, 'table') && str_contains($errorMessage, 'occupied')) {
             return "🪑 La mesa seleccionada ya está ocupada. Seleccione otra mesa o libere la actual.";
         }
-        
+
         // Errores de empleado
         if (str_contains($errorMessage, 'employee') || str_contains($errorMessage, 'empleado')) {
             return "👤 No se encontró información del empleado. Cierre sesión y vuelva a ingresar.";
         }
-        
+
         // Errores de caja registradora
         if (str_contains($errorMessage, 'cash_register') || str_contains($errorMessage, 'caja')) {
             return "💰 No hay una caja abierta. Abra la caja antes de crear órdenes.";
         }
-        
+
         // Errores de productos
         if (str_contains($errorMessage, 'product') && str_contains($errorMessage, 'not found')) {
             return "🍽️ Uno de los productos seleccionados ya no está disponible. Actualice el carrito.";
         }
-        
+
         // Errores de stock
         if (str_contains($errorMessage, 'stock') || str_contains($errorMessage, 'inventory')) {
             return "📦 No hay suficiente stock de uno de los productos. Verifique la disponibilidad.";
         }
-        
+
         // Errores de base de datos
         if (str_contains($errorMessage, 'Connection refused') || str_contains($errorMessage, 'SQLSTATE')) {
             return "🔌 Problema de conexión con la base de datos. Verifique su conexión a internet.";
         }
-        
+
         // Errores de validación
         if (str_contains($errorMessage, 'validation') || str_contains($errorMessage, 'required')) {
             return "📝 Faltan datos obligatorios. Complete la información de la mesa y cliente.";
         }
-        
+
         // Errores de permisos
         if (str_contains($errorMessage, 'permission') || str_contains($errorMessage, 'unauthorized')) {
             return "🔒 No tiene permisos para crear órdenes. Contacte al administrador.";
         }
-        
+
         // Error genérico pero comprensible
         return "❌ No se pudo guardar la orden. Verifique que todos los datos sean correctos y vuelva a intentar. Si el problema persiste, contacte al administrador.";
     }
