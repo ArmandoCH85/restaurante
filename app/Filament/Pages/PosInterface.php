@@ -1396,6 +1396,7 @@ class PosInterface extends Page
     {
         $this->selectedCategoryId = $categoryId;
         $this->selectedSubcategoryId = null; // Resetear subcategoría al cambiar categoría
+        $this->search = ''; // Limpiar búsqueda al cambiar categoría
 
         // Cargar subcategorías si se seleccionó una categoría
         $this->subcategories = $categoryId
@@ -1411,6 +1412,7 @@ class PosInterface extends Page
     public function selectSubcategory(?int $subcategoryId): void
     {
         $this->selectedSubcategoryId = $subcategoryId;
+        $this->search = ''; // Limpiar búsqueda al cambiar subcategoría
         $this->loadProductsLazy();
     }
 
