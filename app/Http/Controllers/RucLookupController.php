@@ -66,7 +66,7 @@ class RucLookupController extends Controller
                 ]);
             }
 
-            // Si no existe localmente, consultar la API de Factiliza
+            // Si no existe localmente, consultar la API de ApiPeru.dev
             $companyData = $this->rucLookupService->lookupRuc($ruc);
 
             if (!$companyData) {
@@ -82,7 +82,7 @@ class RucLookupController extends Controller
             // Crear automáticamente el cliente en nuestra base de datos
             $newCustomer = $this->createCustomerFromApiData($companyData);
 
-            Log::info('✅ RUC encontrado en Factiliza y cliente creado', [
+            Log::info('✅ RUC encontrado en ApiPeru.dev y cliente creado', [
                 'ruc' => $ruc,
                 'customer_id' => $newCustomer->id,
                 'razon_social' => $companyData['razon_social']
@@ -90,11 +90,11 @@ class RucLookupController extends Controller
 
             return response()->json([
                 'success' => true,
-                'source' => 'factiliza_api',
+                'source' => 'apiperu_api',
                 'data' => array_merge($companyData, [
                     'customer_id' => $newCustomer->id
                 ]),
-                'message' => 'Información obtenida de Factiliza y cliente creado automáticamente'
+                'message' => 'Información obtenida de ApiPeru.dev y cliente creado automáticamente'
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -168,7 +168,7 @@ class RucLookupController extends Controller
                 ]);
             }
 
-            // Si no existe localmente, consultar la API de Factiliza
+            // Si no existe localmente, consultar la API de ApiPeru.dev
             $personData = $this->rucLookupService->lookupDni($dni);
 
             if (!$personData) {
@@ -184,7 +184,7 @@ class RucLookupController extends Controller
             // Crear automáticamente el cliente en nuestra base de datos
             $newCustomer = $this->createCustomerFromDniData($personData);
 
-            Log::info('✅ DNI encontrado en Factiliza y cliente creado', [
+            Log::info('✅ DNI encontrado en ApiPeru.dev y cliente creado', [
                 'dni' => $dni,
                 'customer_id' => $newCustomer->id,
                 'nombre_completo' => $personData['nombre_completo']
@@ -192,11 +192,11 @@ class RucLookupController extends Controller
 
             return response()->json([
                 'success' => true,
-                'source' => 'factiliza_api',
+                'source' => 'apiperu_api',
                 'data' => array_merge($personData, [
                     'customer_id' => $newCustomer->id
                 ]),
-                'message' => 'Información obtenida de Factiliza y cliente creado automáticamente'
+                'message' => 'Información obtenida de ApiPeru.dev y cliente creado automáticamente'
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -292,7 +292,7 @@ class RucLookupController extends Controller
                 return response()->json([
                     'success' => false,
                     'suggest_api_lookup' => true,
-                    'message' => 'Cliente no encontrado. ¿Desea buscar en Factiliza?'
+                    'message' => 'Cliente no encontrado. ¿Desea buscar en ApiPeru.dev?'
                 ], 404);
             }
 
@@ -329,7 +329,7 @@ class RucLookupController extends Controller
             'address' => $this->buildFullAddress($apiData),
             'phone' => $apiData['telefono'] ?? null,
             'email' => $apiData['email'] ?? null,
-            'tax_validated' => true, // Marcamos como validado ya que viene de Factiliza
+            'tax_validated' => true, // Marcamos como validado ya que viene de ApiPeru.dev
             'address_references' => $this->buildAddressReferences($apiData)
         ]);
     }
@@ -349,7 +349,7 @@ class RucLookupController extends Controller
             'address' => $this->buildFullAddressFromDni($personData),
             'phone' => $personData['telefono'] ?? null,
             'email' => $personData['email'] ?? null,
-            'tax_validated' => true, // Marcamos como validado ya que viene de Factiliza
+            'tax_validated' => true, // Marcamos como validado ya que viene de ApiPeru.dev
             'address_references' => $this->buildAddressReferencesFromDni($personData)
         ]);
     }

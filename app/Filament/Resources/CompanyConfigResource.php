@@ -107,13 +107,13 @@ class CompanyConfigResource extends Resource
                         Forms\Components\TextInput::make('value')
                             ->label(function ($record) {
                                 return match ($record->key) {
-                                    'factiliza_token' => 'Token de Factiliza',
+                                    'factiliza_token' => 'Token de ApiPeru.dev',
                                     default => ucfirst(str_replace('_', ' ', $record->key)),
                                 };
                             })
                             ->helperText(function ($record) {
                                 return match ($record->key) {
-                                    'factiliza_token' => '🔑 Token de autorización para la API de Factiliza. Se usa para búsqueda automática de datos de empresas por RUC.',
+                                    'factiliza_token' => '🔑 Token de autorización para la API de ApiPeru.dev (anteriormente Factiliza). Se usa para búsqueda automática de DNI y RUC.',
                                     default => null,
                                 };
                             })
@@ -125,7 +125,7 @@ class CompanyConfigResource extends Resource
                             })
                             ->placeholder(function ($record) {
                                 return match ($record->key) {
-                                    'factiliza_token' => 'Ingrese su token de Factiliza...',
+                                    'factiliza_token' => 'Ingrese su token de ApiPeru.dev...',
                                     default => null,
                                 };
                             })
@@ -206,7 +206,7 @@ class CompanyConfigResource extends Resource
                             'codigo_pais' => 'Código de País',
                             'telefono' => 'Teléfono',
                             'email' => 'Email',
-                            'factiliza_token' => 'Token de Factiliza',
+                            'factiliza_token' => 'Token ApiPeru.dev',
                             default => ucfirst(str_replace('_', ' ', $state)),
                         };
                     }),

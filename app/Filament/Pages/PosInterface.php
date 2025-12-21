@@ -1102,8 +1102,31 @@ class PosInterface extends Page
                 ->first();
 
             if ($activeOrder) {
-                // Solo verificar si tiene comprobantes
+                // Solo verificar si tiene comprobantes ($activeOrder ya fue asignado arriba)
                 if ($activeOrder->invoices()->exists()) {
+                    // 🛡️ AUTO-HEALING: Romper el estado "zombi" (Facturada pero Abierta)
+                    if ($activeOrder->status === Order::STATUS_OPEN) {
+                        \Illuminate\Support\Facades\Log::warning('🧟 ZOMBIE TABLE DETECTED: Auto-corrigiendo estado.', ['order_id' => $activeOrder->id]);
+                        
+                        // Forzar el cierre correcto utilizando la lógica del dominio
+                        if (!$activeOrder->billed) {
+                            $activeOrder->billed = true;
+                            $activeOrder->save();
+                        }
+                        
+                        $activeOrder->completeOrder(); // Esto libera la mesa y cierra la orden
+
+                        Notification::make()
+                            ->title('Mesa Recuperada')
+                            ->body('Se detectó una inconsistencia y se corrigió automáticamente.')
+                            ->success()
+                            ->send();
+
+                        $this->redirect(TableMap::getUrl());
+                        return;
+                    }
+
+                    // Bloqueo normal para órdenes correctamente cerradas
                     Notification::make()
                         ->title('No se puede reabrir')
                         ->body('Esta orden ya tiene un comprobante emitido.')
@@ -3046,31 +3069,33 @@ class PosInterface extends Page
                     throw new \Exception('No se pudo generar la factura');
                 }
 
-                // AHORA SÍ marcar orden como completada y facturada (después de generar factura exitosamente)
-                $this->order->update([
-                    'status' => 'completed',
-                    'billed' => true,
-                ]);
+                // ✅ ATOMICIDAD: Usar completeOrder() en lugar de actualizaciones manuales
+                // Primero aseguramos que esté marcada como facturada
+                $this->order->billed = true;
+                $this->order->save();
 
-                // Para pagos divididos, guardar detalles en las notas de la factura
+                // Para pagos divididos, guardar notas en la factura
                 if ($data['split_payment'] ?? false) {
                     $paymentDetails = [];
                     foreach ($data['payment_methods'] as $payment) {
                         $paymentDetails[] = $payment['method'] . ': S/ ' . number_format((float)$payment['amount'], 2);
                     }
-                    $invoice->update([
-                        'notes' => 'Pago dividido: ' . implode(', ', $paymentDetails)
-                    ]);
+                    if (isset($invoice)) {
+                        $invoice->update(['notes' => 'Pago dividido: ' . implode(', ', $paymentDetails)]);
+                    }
                 }
 
-                // Liberar mesa automáticamente después del pago
-                if ($this->order->table) {
-                    $this->order->table->update(['status' => TableModel::STATUS_AVAILABLE]);
-                    Log::info('🟢 Mesa liberada automáticamente', [
-                        'table_id' => $this->order->table->id,
-                        'table_status' => 'available'
-                    ]);
+                // Delegar al modelo la responsabilidad de liberar la mesa y cambiar estado
+                // Esto previene condiciones de carrera o actualizaciones parciales
+                if (!$this->order->completeOrder()) {
+                    // Si falla por alguna razón lógica (ej. no estaba facturada), forzamos el log
+                    Log::error('❌ completeOrder() falló a pesar de tener factura.', ['order_id' => $this->order->id]);
+                    throw new \Exception('Error de integridad: La orden tiene factura pero no se pudo cerrar.');
                 }
+
+                Log::info('✅ FLUJO COMPLETADO: Factura generada + Orden cerrada + Mesa liberada', [
+                    'order_id' => $this->order->id
+                ]);
 
                 // Limpiar carrito y resetear estado
                 $this->cartItems = [];
