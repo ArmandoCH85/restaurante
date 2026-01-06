@@ -13,7 +13,7 @@ class CleanAbandonedOrders extends Command
      *
      * @var string
      */
-    protected $signature = 'orders:clean-abandoned {--hours=24 : Hours after which orders are considered abandoned}';
+    protected $signature = 'orders:clean-abandoned {--hours=24 : Hours after which orders are considered abandoned} {--dry-run : Show affected orders without deleting} {--force : Perform cleanup without interactive confirmation}';
 
     /**
      * The console command description.
@@ -27,7 +27,8 @@ class CleanAbandonedOrders extends Command
      */
     public function handle()
     {
-        $hours = (int) $this->option('hours');
+        $hoursInput = (int) $this->option('hours');
+        $hours = max(24, $hoursInput);
         
         $this->info("🧹 Iniciando limpieza de órdenes abandonadas (>{$hours} horas)...");
         
@@ -66,6 +67,33 @@ class CleanAbandonedOrders extends Command
                     ];
                 })->toArray()
             ]);
+            
+            if ($hoursInput < 24) {
+                $this->warn("El umbral solicitado ({$hoursInput}h) es inferior al mínimo permitido. Usando 24h.");
+            }
+            
+            if ($this->option('dry-run')) {
+                $this->info('🔍 MODO DRY-RUN: No se realizarán cambios.');
+                
+                $this->table(['ID', 'Empleado', 'Mesa', 'Total', 'Antigüedad (h)'], $ordersToDelete->map(function($order) {
+                    return [
+                        $order->id,
+                        $order->employee_id ?? 'N/A',
+                        $order->table_id ?? 'N/A',
+                        'S/ ' . number_format($order->total, 2),
+                        $order->created_at->diffInHours(now())
+                    ];
+                })->toArray());
+                
+                return 0;
+            }
+            
+            if (!$this->option('force')) {
+                if (!$this->confirm('¿Deseas proceder con la limpieza?')) {
+                    $this->info('❌ Operación cancelada.');
+                    return 0;
+                }
+            }
             
             // Eliminar órdenes abandonadas
             $cleaned = Order::where('status', Order::STATUS_OPEN)

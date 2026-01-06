@@ -144,27 +144,9 @@ class PosInterface extends Page
     protected function cleanUserAbandonedOrders(): void
     {
         try {
-            $employeeId = $this->getEmployeeId();
-
-            $cleaned = Order::where('employee_id', $employeeId)
-                ->where('status', Order::STATUS_OPEN)
-                ->where('billed', false)
-                ->where('created_at', '<', now()->subHours(2)) // 2 horas timeout
-                ->delete();
-
-            if ($cleaned > 0) {
-                Log::info("🧹 Órdenes abandonadas limpiadas del empleado", [
-                    'user_id' => auth()->id(),
-                    'employee_id' => $employeeId,
-                    'cleaned_count' => $cleaned,
-                    'timeout_hours' => 2
-                ]);
-            }
+            return;
         } catch (\Exception $e) {
-            Log::warning("⚠️ Error limpiando órdenes abandonadas del empleado", [
-                'user_id' => auth()->id(),
-                'error' => $e->getMessage()
-            ]);
+            return;
         }
     }
     public ?Collection $products = null;
@@ -2109,6 +2091,8 @@ class PosInterface extends Page
                 // Verificar si el producto ya existe en la orden destino
                 $existingDetailInTarget = OrderDetail::where('order_id', $targetOrder->id)
                     ->where('product_id', $orderDetail->product_id)
+                    ->where('unit_price', $orderDetail->unit_price)
+                    ->where('notes', $orderDetail->notes)
                     ->first();
 
                 if ($existingDetailInTarget) {
@@ -2180,8 +2164,12 @@ class PosInterface extends Page
                     ->success()
                     ->send();
 
-                // Redireccionar al mapa de mesas
-                $this->redirect(TableMap::getUrl());
+                $redirectUrl = self::getUrl(['table_id' => $targetTable->id, 'order_id' => $targetOrder->id]);
+                $this->js("
+                    setTimeout(function() {
+                        window.location.href = '{$redirectUrl}';
+                    }, 500);
+                ");
             }
 
             // ✅ CONFIRMAR TRANSACCIÓN
@@ -2197,6 +2185,13 @@ class PosInterface extends Page
                 ->success()
                 ->duration(5000)
                 ->send();
+
+            $redirectUrl = self::getUrl(['table_id' => $targetTable->id, 'order_id' => $targetOrder->id]);
+            $this->js("
+                setTimeout(function() {
+                    window.location.href = '{$redirectUrl}';
+                }, 500);
+            ");
 
         } catch (\Exception $e) {
             // 🔙 ROLLBACK EN CASO DE ERROR SEGÚN DOCUMENTACIÓN
