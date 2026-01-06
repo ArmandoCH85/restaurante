@@ -37,6 +37,7 @@ class CleanAbandonedOrders extends Command
             $toClean = Order::where('status', Order::STATUS_OPEN)
                 ->where('billed', false)
                 ->where('created_at', '<', now()->subHours($hours))
+                ->whereDoesntHave('payments')
                 ->count();
                 
             if ($toClean === 0) {
@@ -50,6 +51,7 @@ class CleanAbandonedOrders extends Command
             $ordersToDelete = Order::where('status', Order::STATUS_OPEN)
                 ->where('billed', false)
                 ->where('created_at', '<', now()->subHours($hours))
+                ->whereDoesntHave('payments')
                 ->select('id', 'employee_id', 'table_id', 'total', 'created_at')
                 ->get();
             
@@ -99,6 +101,7 @@ class CleanAbandonedOrders extends Command
             $cleaned = Order::where('status', Order::STATUS_OPEN)
                 ->where('billed', false)
                 ->where('created_at', '<', now()->subHours($hours))
+                ->whereDoesntHave('payments')
                 ->delete();
             
             $this->info("✅ Órdenes abandonadas limpiadas: {$cleaned}");

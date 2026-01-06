@@ -358,14 +358,8 @@ class ViewCashRegister extends ViewRecord
                                             TextEntry::make('expected_amount')
                                                 ->label('💰 Monto Esperado')
                                                 ->formatStateUsing(function ($record) {
-                                                    // Para vista de caja cerrada: MONTO ESPERADO excluye monto inicial
-                                                    $totalSales = $record->getSystemCashSales() + 
-                                                                $record->getSystemCardSales() + 
-                                                                $record->getSystemYapeSales() + 
-                                                                $record->getSystemPlinSales() + 
-                                                                $record->getSystemDidiSales() + 
-                                                                $record->getSystemPedidosYaSales();
-                                                    return 'S/ ' . number_format($totalSales, 2);
+                                                    $expected = $record->opening_amount + $record->getSystemTotalSales();
+                                                    return 'S/ ' . number_format($expected, 2);
                                                 })
                                                 ->badge()
                                                 ->color('info')

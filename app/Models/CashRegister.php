@@ -472,7 +472,7 @@ class CashRegister extends Model
      */
     public function calculateExpectedCash(): float
     {
-        return $this->opening_amount + $this->total_sales;
+        return $this->opening_amount + $this->getSystemTotalSales();
     }
 
     /**
@@ -681,6 +681,7 @@ class CashRegister extends Model
     public function getSystemCashSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->where('payment_method', Payment::METHOD_CASH)
             ->sum('amount');
     }
@@ -693,6 +694,7 @@ class CashRegister extends Model
     public function getSystemYapeSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->where('payment_method', 'yape')
             ->sum('amount');
     }
@@ -705,6 +707,7 @@ class CashRegister extends Model
     public function getSystemPlinSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->where('payment_method', 'plin')
             ->sum('amount');
     }
@@ -717,6 +720,7 @@ class CashRegister extends Model
     public function getSystemCardSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->whereIn('payment_method', [
                 Payment::METHOD_CARD,
                 Payment::METHOD_CREDIT_CARD,
@@ -733,6 +737,7 @@ class CashRegister extends Model
     public function getSystemBankTransferSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->where('payment_method', Payment::METHOD_BANK_TRANSFER)
             ->sum('amount');
     }
@@ -745,6 +750,7 @@ class CashRegister extends Model
     public function getSystemOtherDigitalWalletSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->where('payment_method', Payment::METHOD_DIGITAL_WALLET)
             ->where(function($query) {
                 $query->where('reference_number', 'NOT LIKE', '%Tipo: yape%')
@@ -761,6 +767,7 @@ class CashRegister extends Model
     public function getSystemDidiSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->where('payment_method', 'didi_food')
             ->sum('amount');
     }
@@ -773,7 +780,25 @@ class CashRegister extends Model
     public function getSystemPedidosYaSales(): float
     {
         return $this->payments()
+            ->whereNull('void_reason')
             ->where('payment_method', 'pedidos_ya')
             ->sum('amount');
+    }
+
+    /**
+     * Obtiene el total de ventas del sistema (todas las formas de pago no anuladas).
+     *
+     * @return float
+     */
+    public function getSystemTotalSales(): float
+    {
+        return $this->getSystemCashSales()
+             + $this->getSystemYapeSales()
+             + $this->getSystemPlinSales()
+             + $this->getSystemCardSales()
+             + $this->getSystemDidiSales()
+             + $this->getSystemPedidosYaSales()
+             + $this->getSystemBankTransferSales()
+             + $this->getSystemOtherDigitalWalletSales();
     }
 }

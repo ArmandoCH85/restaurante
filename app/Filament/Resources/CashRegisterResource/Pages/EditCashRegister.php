@@ -53,8 +53,8 @@ class EditCashRegister extends EditRecord
         // Total contado = efectivo + otros métodos
         $totalCounted = $totalCashCounted + $otherPaymentsCounted;
 
-        // NUEVO CÁLCULO: Monto esperado = monto inicial + TODAS las ventas del día
-        $expectedAmount = $this->record->opening_amount + $this->record->total_sales;
+        // Monto esperado consistente con el modelo
+        $expectedAmount = $this->record->calculateExpectedCash();
 
         // NUEVA FÓRMULA: Diferencia = total contado - esperado (positivo = sobrante, negativo = faltante)
         $difference = $totalCounted - $expectedAmount;
@@ -73,7 +73,7 @@ class EditCashRegister extends EditRecord
         $data['total_expenses'] = $totalExpenses;
         
         // Calcular ganancia real (Ingresos - Egresos)
-        $totalIngresos = $this->record->total_sales;
+        $totalIngresos = $this->record->getSystemTotalSales();
         $gananciaReal = $totalIngresos - $totalExpenses;
         
         // Guardar el desglose completo en las observaciones
@@ -87,7 +87,7 @@ class EditCashRegister extends EditRecord
         
         $denominationDetails .= "💰 MONTO ESPERADO: S/ " . number_format($expectedAmount, 2) . "\n";
         $denominationDetails .= "   (Monto inicial: S/ " . number_format($this->record->opening_amount, 2);
-        $denominationDetails .= " + Ventas del día: S/ " . number_format($this->record->total_sales, 2) . ")\n\n";
+        $denominationDetails .= " + Ventas del día: S/ " . number_format($totalIngresos, 2) . ")\n\n";
         
         // Efectivo contado
         $denominationDetails .= "💵 EFECTIVO CONTADO: S/ " . number_format($totalCashCounted, 2) . "\n";
