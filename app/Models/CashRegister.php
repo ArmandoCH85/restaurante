@@ -416,7 +416,7 @@ class CashRegister extends Model
     private function updateSalesByPaymentMethod(string $paymentMethod, float $amount): void
     {
         // Usar match para un código más limpio y mantenible
-        match(true) {
+        match (true) {
             $paymentMethod === Payment::METHOD_CASH => $this->cash_sales += $amount,
             in_array($paymentMethod, [Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD], true) => $this->card_sales += $amount,
             default => $this->other_sales += $amount,
@@ -442,7 +442,7 @@ class CashRegister extends Model
      */
     private function logSaleRegistration(string $paymentMethod, float $amount): void
     {
-        $methodName = match($paymentMethod) {
+        $methodName = match ($paymentMethod) {
             Payment::METHOD_CASH => 'efectivo',
             Payment::METHOD_CARD, Payment::METHOD_CREDIT_CARD, Payment::METHOD_DEBIT_CARD => 'tarjeta',
             Payment::METHOD_DIGITAL_WALLET => 'billetera digital',
@@ -483,16 +483,16 @@ class CashRegister extends Model
     public function calculateCountedCash(): float
     {
         return ($this->bill_200 ?? 0) * 200 +
-               ($this->bill_100 ?? 0) * 100 +
-               ($this->bill_50 ?? 0) * 50 +
-               ($this->bill_20 ?? 0) * 20 +
-               ($this->bill_10 ?? 0) * 10 +
-               ($this->coin_5 ?? 0) * 5 +
-               ($this->coin_2 ?? 0) * 2 +
-               ($this->coin_1 ?? 0) * 1 +
-               ($this->coin_050 ?? 0) * 0.5 +
-               ($this->coin_020 ?? 0) * 0.2 +
-               ($this->coin_010 ?? 0) * 0.1;
+            ($this->bill_100 ?? 0) * 100 +
+            ($this->bill_50 ?? 0) * 50 +
+            ($this->bill_20 ?? 0) * 20 +
+            ($this->bill_10 ?? 0) * 10 +
+            ($this->coin_5 ?? 0) * 5 +
+            ($this->coin_2 ?? 0) * 2 +
+            ($this->coin_1 ?? 0) * 1 +
+            ($this->coin_050 ?? 0) * 0.5 +
+            ($this->coin_020 ?? 0) * 0.2 +
+            ($this->coin_010 ?? 0) * 0.1;
     }
 
     /**
@@ -503,11 +503,11 @@ class CashRegister extends Model
     public function calculateOtherPayments(): float
     {
         return ($this->manual_yape ?? 0) +
-               ($this->manual_plin ?? 0) +
-               ($this->manual_card ?? 0) +
-               ($this->manual_didi ?? 0) +
-               ($this->manual_pedidos_ya ?? 0) +
-               ($this->manual_otros ?? 0);
+            ($this->manual_plin ?? 0) +
+            ($this->manual_card ?? 0) +
+            ($this->manual_didi ?? 0) +
+            ($this->manual_pedidos_ya ?? 0) +
+            ($this->manual_otros ?? 0);
     }
 
     /**
@@ -752,9 +752,9 @@ class CashRegister extends Model
         return $this->payments()
             ->whereNull('void_reason')
             ->where('payment_method', Payment::METHOD_DIGITAL_WALLET)
-            ->where(function($query) {
+            ->where(function ($query) {
                 $query->where('reference_number', 'NOT LIKE', '%Tipo: yape%')
-                      ->where('reference_number', 'NOT LIKE', '%Tipo: plin%');
+                    ->where('reference_number', 'NOT LIKE', '%Tipo: plin%');
             })
             ->sum('amount');
     }
@@ -793,12 +793,12 @@ class CashRegister extends Model
     public function getSystemTotalSales(): float
     {
         return $this->getSystemCashSales()
-             + $this->getSystemYapeSales()
-             + $this->getSystemPlinSales()
-             + $this->getSystemCardSales()
-             + $this->getSystemDidiSales()
-             + $this->getSystemPedidosYaSales()
-             + $this->getSystemBankTransferSales()
-             + $this->getSystemOtherDigitalWalletSales();
+            + $this->getSystemYapeSales()
+            + $this->getSystemPlinSales()
+            + $this->getSystemCardSales()
+            + $this->getSystemDidiSales()
+            + $this->getSystemPedidosYaSales()
+            + $this->getSystemBankTransferSales()
+            + $this->getSystemOtherDigitalWalletSales();
     }
 }
