@@ -84,7 +84,7 @@ class CashRegisterResource extends Resource
                             ->columnSpan(2),
                         Forms\Components\TextInput::make('opened_by_name')
                             ->label('Abierto por')
-                            ->formatStateUsing(fn ($record) => $record->openedBy->name ?? '')
+                            ->formatStateUsing(fn($record) => $record->openedBy->name ?? '')
                             ->disabled()
                             ->dehydrated(false)
                             ->columnSpan(2),
@@ -92,7 +92,7 @@ class CashRegisterResource extends Resource
                             ->disabled(),
                     ])
                     ->columns(2)
-                    ->visible(fn ($record) => $record && !$record->is_active),
+                    ->visible(fn($record) => $record && !$record->is_active),
 
                 Forms\Components\Section::make('Información de Apertura')
                     ->description('Datos de apertura de caja')
@@ -135,7 +135,7 @@ class CashRegisterResource extends Resource
                             ->columnSpan(2),
                     ])
                     ->columns(2)
-                    ->visible(fn ($record) => !$record || $record->is_active),
+                    ->visible(fn($record) => !$record || $record->is_active),
 
                 Forms\Components\Section::make('Conteo de Efectivo')
                     ->description('Ingrese la cantidad de billetes y monedas para el cierre de caja')
@@ -155,24 +155,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($state ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($state ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -184,24 +184,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($state ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($state ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -213,24 +213,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($state ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($state ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -242,24 +242,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($state ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($state ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -271,24 +271,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($state ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -306,24 +306,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($state ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($state ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -335,24 +335,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($state ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($state ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -364,24 +364,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($state ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($state ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -393,24 +393,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($state ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($state ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -422,24 +422,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($get('coin_5') ?? 0)) * 5 +
-                                                                   (floatval($state ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($get('coin_5') ?? 0)) * 5 +
+                                                            (floatval($state ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -451,24 +451,24 @@ class CashRegisterResource extends Resource
                                                     ->required()
                                                     ->afterStateUpdated(function ($set, $get, $state) {
                                                         $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                                   (floatval($get('bill_100') ?? 0)) * 100 +
-                                                                   (floatval($get('bill_50') ?? 0)) * 50 +
-                                                                   (floatval($get('bill_20') ?? 0)) * 20 +
-                                                                   (floatval($get('bill_10') ?? 0)) * 10 +
-                                                                   (floatval($state ?? 0)) * 5 +
-                                                                   (floatval($get('coin_2') ?? 0)) * 2 +
-                                                                   (floatval($get('coin_1') ?? 0)) * 1 +
-                                                                   (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                                   (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                                   (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                            (floatval($get('bill_100') ?? 0)) * 100 +
+                                                            (floatval($get('bill_50') ?? 0)) * 50 +
+                                                            (floatval($get('bill_20') ?? 0)) * 20 +
+                                                            (floatval($get('bill_10') ?? 0)) * 10 +
+                                                            (floatval($state ?? 0)) * 5 +
+                                                            (floatval($get('coin_2') ?? 0)) * 2 +
+                                                            (floatval($get('coin_1') ?? 0)) * 1 +
+                                                            (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                            (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                            (floatval($get('coin_010') ?? 0)) * 0.1;
                                                         $set('calculated_cash_display', $efectivo);
-                                                        
+
                                                         // También actualizar el total manual
                                                         $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                                (floatval($get('manual_plin') ?? 0)) +
-                                                                (floatval($get('manual_card') ?? 0)) +
-                                                                (floatval($get('manual_didi') ?? 0)) +
-                                                                (floatval($get('manual_pedidos_ya') ?? 0));
+                                                            (floatval($get('manual_plin') ?? 0)) +
+                                                            (floatval($get('manual_card') ?? 0)) +
+                                                            (floatval($get('manual_didi') ?? 0)) +
+                                                            (floatval($get('manual_pedidos_ya') ?? 0));
                                                         $total = $efectivo + $otros;
                                                         $set('calculated_total_manual', $total);
                                                     }),
@@ -480,7 +480,7 @@ class CashRegisterResource extends Resource
                             ->label('Observaciones de Cierre')
                             ->placeholder('Observaciones sobre el cierre de caja')
                             ->columnSpan('full'),
-                            
+
                         Forms\Components\Actions::make([
                             Forms\Components\Actions\Action::make('calcular_totales')
                                 ->label('🔄 Calcular Totales')
@@ -489,34 +489,34 @@ class CashRegisterResource extends Resource
                                 ->action(function ($set, $get) {
                                     // Calcular efectivo
                                     $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                               (floatval($get('bill_100') ?? 0)) * 100 +
-                                               (floatval($get('bill_50') ?? 0)) * 50 +
-                                               (floatval($get('bill_20') ?? 0)) * 20 +
-                                               (floatval($get('bill_10') ?? 0)) * 10 +
-                                               (floatval($get('coin_5') ?? 0)) * 5 +
-                                               (floatval($get('coin_2') ?? 0)) * 2 +
-                                               (floatval($get('coin_1') ?? 0)) * 1 +
-                                               (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                               (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                               (floatval($get('coin_010') ?? 0)) * 0.1;
-                                    
+                                        (floatval($get('bill_100') ?? 0)) * 100 +
+                                        (floatval($get('bill_50') ?? 0)) * 50 +
+                                        (floatval($get('bill_20') ?? 0)) * 20 +
+                                        (floatval($get('bill_10') ?? 0)) * 10 +
+                                        (floatval($get('coin_5') ?? 0)) * 5 +
+                                        (floatval($get('coin_2') ?? 0)) * 2 +
+                                        (floatval($get('coin_1') ?? 0)) * 1 +
+                                        (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                        (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                        (floatval($get('coin_010') ?? 0)) * 0.1;
+
                                     $set('calculated_cash_display', $efectivo);
-                                    
+
                                     // Calcular otros métodos
                                     $otros = (floatval($get('manual_yape') ?? 0)) +
-                                            (floatval($get('manual_plin') ?? 0)) +
-                                            (floatval($get('manual_card') ?? 0)) +
-                                            (floatval($get('manual_didi') ?? 0)) +
-                                            (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                            (floatval($get('manual_otros') ?? 0));
-                                    
+                                        (floatval($get('manual_plin') ?? 0)) +
+                                        (floatval($get('manual_card') ?? 0)) +
+                                        (floatval($get('manual_didi') ?? 0)) +
+                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                        (floatval($get('manual_otros') ?? 0));
+
                                     // Calcular total manual
                                     $total = $efectivo + $otros;
                                     $set('calculated_total_manual', $total);
                                 }),
                         ])->columnSpan('full'),
                     ])
-                    ->visible(fn ($record) => $record && $record->is_active),
+                    ->visible(fn($record) => $record && $record->is_active),
 
 
                 Forms\Components\Section::make('Resumen de Ventas')
@@ -534,7 +534,8 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('cash_sales_display')
                                             ->label('💻 Sistema: Efectivo')
                                             ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
+                                                if (!$record)
+                                                    return 'S/ 0.00';
                                                 $cashSales = $record->getSystemCashSales();
                                                 return 'S/ ' . number_format($cashSales, 2);
                                             })
@@ -546,41 +547,42 @@ class CashRegisterResource extends Resource
                                             ->lazy()
                                             ->default(function ($get) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
                                                 return number_format($efectivo, 2);
                                             })
                                             ->helperText('Billetes y monedas contados manualmente'),
                                         Forms\Components\Placeholder::make('cash_difference')
                                             ->label('⚖️ Diferencia')
                                             ->content(function ($record, $get) {
-                                                if (!$record) return 'S/ 0.00';
-                                                
+                                                if (!$record)
+                                                    return 'S/ 0.00';
+
                                                 $sistema = $record->getSystemCashSales();
                                                 $manual = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                         (floatval($get('bill_100') ?? 0)) * 100 +
-                                                         (floatval($get('bill_50') ?? 0)) * 50 +
-                                                         (floatval($get('bill_20') ?? 0)) * 20 +
-                                                         (floatval($get('bill_10') ?? 0)) * 10 +
-                                                         (floatval($get('coin_5') ?? 0)) * 5 +
-                                                         (floatval($get('coin_2') ?? 0)) * 2 +
-                                                         (floatval($get('coin_1') ?? 0)) * 1 +
-                                                         (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                         (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                         (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
+
                                                 $diferencia = $manual - $sistema;
                                                 $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
                                                 $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-                                                
+
                                                 return new \Illuminate\Support\HtmlString("
                                                     <span style='color: var(--{$color}-600); font-weight: 600;'>
                                                         {$icono} S/ " . number_format($diferencia, 2) . "
@@ -597,7 +599,8 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('yape_sales_display')
                                             ->label('💻 Sistema: Yape')
                                             ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
+                                                if (!$record)
+                                                    return 'S/ 0.00';
                                                 $yapeSales = $record->getSystemYapeSales();
                                                 return 'S/ ' . number_format($yapeSales, 2);
                                             })
@@ -614,28 +617,28 @@ class CashRegisterResource extends Resource
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 // Calcular efectivo
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
+
                                                 // Actualizar efectivo display
                                                 $set('calculated_cash_display', $efectivo);
-                                                
+
                                                 // Calcular otros métodos
                                                 $otros = (floatval($state ?? 0)) +
-                                                        (floatval($get('manual_plin') ?? 0)) +
-                                                        (floatval($get('manual_card') ?? 0)) +
-                                                        (floatval($get('manual_didi') ?? 0)) +
-                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                        (floatval($get('manual_otros') ?? 0));
-                                                
+                                                    (floatval($get('manual_plin') ?? 0)) +
+                                                    (floatval($get('manual_card') ?? 0)) +
+                                                    (floatval($get('manual_didi') ?? 0)) +
+                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                    (floatval($get('manual_otros') ?? 0));
+
                                                 // Actualizar total manual
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
@@ -643,14 +646,15 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('yape_difference')
                                             ->label('⚖️ Diferencia')
                                             ->content(function ($record, $get) {
-                                                if (!$record) return 'S/ 0.00';
-                                                
+                                                if (!$record)
+                                                    return 'S/ 0.00';
+
                                                 $sistema = $record->getSystemYapeSales();
                                                 $manual = floatval($get('manual_yape') ?? 0);
                                                 $diferencia = $manual - $sistema;
                                                 $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
                                                 $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-                                                
+
                                                 return new \Illuminate\Support\HtmlString("
                                                     <span style='color: var(--{$color}-600); font-weight: 600;'>
                                                         {$icono} S/ " . number_format($diferencia, 2) . "
@@ -667,7 +671,8 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('plin_sales_display')
                                             ->label('💻 Sistema: Plin')
                                             ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
+                                                if (!$record)
+                                                    return 'S/ 0.00';
                                                 $plinSales = $record->getSystemPlinSales();
                                                 return 'S/ ' . number_format($plinSales, 2);
                                             })
@@ -684,28 +689,28 @@ class CashRegisterResource extends Resource
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 // Calcular efectivo
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
+
                                                 // Actualizar efectivo display
                                                 $set('calculated_cash_display', $efectivo);
-                                                
+
                                                 // Calcular otros métodos
                                                 $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                        (floatval($state ?? 0)) +
-                                                        (floatval($get('manual_card') ?? 0)) +
-                                                        (floatval($get('manual_didi') ?? 0)) +
-                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                        (floatval($get('manual_otros') ?? 0));
-                                                
+                                                    (floatval($state ?? 0)) +
+                                                    (floatval($get('manual_card') ?? 0)) +
+                                                    (floatval($get('manual_didi') ?? 0)) +
+                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                    (floatval($get('manual_otros') ?? 0));
+
                                                 // Actualizar total manual
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
@@ -713,14 +718,15 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('plin_difference')
                                             ->label('⚖️ Diferencia')
                                             ->content(function ($record, $get) {
-                                                if (!$record) return 'S/ 0.00';
-                                                
+                                                if (!$record)
+                                                    return 'S/ 0.00';
+
                                                 $sistema = $record->getSystemPlinSales();
                                                 $manual = floatval($get('manual_plin') ?? 0);
                                                 $diferencia = $manual - $sistema;
                                                 $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
                                                 $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-                                                
+
                                                 return new \Illuminate\Support\HtmlString("
                                                     <span style='color: var(--{$color}-600); font-weight: 600;'>
                                                         {$icono} S/ " . number_format($diferencia, 2) . "
@@ -737,7 +743,8 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('card_sales_display')
                                             ->label('💻 Sistema: Tarjetas')
                                             ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
+                                                if (!$record)
+                                                    return 'S/ 0.00';
                                                 $cardSales = $record->getSystemCardSales();
                                                 return 'S/ ' . number_format($cardSales, 2);
                                             })
@@ -754,28 +761,28 @@ class CashRegisterResource extends Resource
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 // Calcular efectivo
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
+
                                                 // Actualizar efectivo display
                                                 $set('calculated_cash_display', $efectivo);
-                                                
+
                                                 // Calcular otros métodos
                                                 $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                        (floatval($get('manual_plin') ?? 0)) +
-                                                        (floatval($state ?? 0)) +
-                                                        (floatval($get('manual_didi') ?? 0)) +
-                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                        (floatval($get('manual_otros') ?? 0));
-                                                
+                                                    (floatval($get('manual_plin') ?? 0)) +
+                                                    (floatval($state ?? 0)) +
+                                                    (floatval($get('manual_didi') ?? 0)) +
+                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                    (floatval($get('manual_otros') ?? 0));
+
                                                 // Actualizar total manual
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
@@ -783,14 +790,15 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('card_difference')
                                             ->label('⚖️ Diferencia')
                                             ->content(function ($record, $get) {
-                                                if (!$record) return 'S/ 0.00';
-                                                
+                                                if (!$record)
+                                                    return 'S/ 0.00';
+
                                                 $sistema = $record->getSystemCardSales();
                                                 $manual = floatval($get('manual_card') ?? 0);
                                                 $diferencia = $manual - $sistema;
                                                 $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
                                                 $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-                                                
+
                                                 return new \Illuminate\Support\HtmlString("
                                                     <span style='color: var(--{$color}-600); font-weight: 600;'>
                                                         {$icono} S/ " . number_format($diferencia, 2) . "
@@ -807,7 +815,8 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('didi_sales_display')
                                             ->label('💻 Sistema: Didi Food')
                                             ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
+                                                if (!$record)
+                                                    return 'S/ 0.00';
                                                 $didiSales = $record->getSystemDidiSales();
                                                 return 'S/ ' . number_format($didiSales, 2);
                                             })
@@ -823,37 +832,38 @@ class CashRegisterResource extends Resource
                                             ->required()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
                                                 $set('calculated_cash_display', $efectivo);
                                                 $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                        (floatval($get('manual_plin') ?? 0)) +
-                                                        (floatval($get('manual_card') ?? 0)) +
-                                                        (floatval($state ?? 0)) +
-                                                        (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                        (floatval($get('manual_otros') ?? 0));
+                                                    (floatval($get('manual_plin') ?? 0)) +
+                                                    (floatval($get('manual_card') ?? 0)) +
+                                                    (floatval($state ?? 0)) +
+                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
+                                                    (floatval($get('manual_otros') ?? 0));
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
                                             }),
                                         Forms\Components\Placeholder::make('didi_difference')
                                             ->label('⚖️ Diferencia')
                                             ->content(function ($record, $get) {
-                                                if (!$record) return 'S/ 0.00';
-                                                
+                                                if (!$record)
+                                                    return 'S/ 0.00';
+
                                                 $sistema = $record->getSystemDidiSales();
                                                 $manual = floatval($get('manual_didi') ?? 0);
                                                 $diferencia = $manual - $sistema;
                                                 $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
                                                 $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-                                                
+
                                                 return new \Illuminate\Support\HtmlString("
                                                     <span style='color: var(--{$color}-600); font-weight: 600;'>
                                                         {$icono} S/ " . number_format($diferencia, 2) . "
@@ -870,7 +880,8 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('pedidos_ya_sales_display')
                                             ->label('💻 Sistema: PedidosYa')
                                             ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
+                                                if (!$record)
+                                                    return 'S/ 0.00';
                                                 $pedidosYaSales = $record->getSystemPedidosYaSales();
                                                 return 'S/ ' . number_format($pedidosYaSales, 2);
                                             })
@@ -886,37 +897,38 @@ class CashRegisterResource extends Resource
                                             ->required()
                                             ->afterStateUpdated(function ($set, $get, $state) {
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
                                                 $set('calculated_cash_display', $efectivo);
                                                 $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                        (floatval($get('manual_plin') ?? 0)) +
-                                                        (floatval($get('manual_card') ?? 0)) +
-                                                        (floatval($get('manual_didi') ?? 0)) +
-                                                        (floatval($state ?? 0)) +
-                                                        (floatval($get('manual_otros') ?? 0));
+                                                    (floatval($get('manual_plin') ?? 0)) +
+                                                    (floatval($get('manual_card') ?? 0)) +
+                                                    (floatval($get('manual_didi') ?? 0)) +
+                                                    (floatval($state ?? 0)) +
+                                                    (floatval($get('manual_otros') ?? 0));
                                                 $total = $efectivo + $otros;
                                                 $set('calculated_total_manual', $total);
                                             }),
                                         Forms\Components\Placeholder::make('pedidos_ya_difference')
                                             ->label('⚖️ Diferencia')
                                             ->content(function ($record, $get) {
-                                                if (!$record) return 'S/ 0.00';
-                                                
+                                                if (!$record)
+                                                    return 'S/ 0.00';
+
                                                 $sistema = $record->getSystemPedidosYaSales();
                                                 $manual = floatval($get('manual_pedidos_ya') ?? 0);
                                                 $diferencia = $manual - $sistema;
                                                 $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
                                                 $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-                                                
+
                                                 return new \Illuminate\Support\HtmlString("
                                                     <span style='color: var(--{$color}-600); font-weight: 600;'>
                                                         {$icono} S/ " . number_format($diferencia, 2) . "
@@ -934,15 +946,16 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('total_sistema_display')
                                             ->label('💻 TOTAL SISTEMA')
                                             ->content(function ($record) {
-                                                if (!$record) return 'S/ 0.00';
+                                                if (!$record)
+                                                    return 'S/ 0.00';
                                                 $totalSistema = $record->getSystemCashSales() +
-                                                              $record->getSystemYapeSales() +
-                                                              $record->getSystemPlinSales() +
-                                                              $record->getSystemCardSales() +
-                                                              $record->getSystemDidiSales() +
-                                                              $record->getSystemPedidosYaSales() +
-                                                              $record->getSystemBankTransferSales() +
-                                                              $record->getSystemOtherDigitalWalletSales();
+                                                    $record->getSystemYapeSales() +
+                                                    $record->getSystemPlinSales() +
+                                                    $record->getSystemCardSales() +
+                                                    $record->getSystemDidiSales() +
+                                                    $record->getSystemPedidosYaSales() +
+                                                    $record->getSystemBankTransferSales() +
+                                                    $record->getSystemOtherDigitalWalletSales();
                                                 return 'S/ ' . number_format($totalSistema, 2);
                                             })
                                             ->helperText('Total de todas las ventas registradas en el sistema')
@@ -952,24 +965,24 @@ class CashRegisterResource extends Resource
                                             ->content(function ($get) {
                                                 // 👥 Manual: Efectivo (billetes y monedas)
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
+
                                                 // Métodos de pago digitales manuales
                                                 $yape = floatval($get('manual_yape') ?? 0);
                                                 $plin = floatval($get('manual_plin') ?? 0);
                                                 $tarjetas = floatval($get('manual_card') ?? 0);
                                                 $didi = floatval($get('manual_didi') ?? 0);
                                                 $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
-                                                
+
                                                 // TOTAL MANUAL = Efectivo + Yape + Plin + Tarjetas + Didi + PedidosYa
                                                 $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya;
                                                 return 'S/ ' . number_format($total, 2);
@@ -979,44 +992,45 @@ class CashRegisterResource extends Resource
                                         Forms\Components\Placeholder::make('total_difference')
                                             ->label('⚖️ Diferencia Total')
                                             ->content(function ($record, $get) {
-                                                if (!$record) return 'S/ 0.00';
-                                                
+                                                if (!$record)
+                                                    return 'S/ 0.00';
+
                                                 // Calcular total del sistema
                                                 $totalSistema = $record->getSystemCashSales() +
-                                                              $record->getSystemYapeSales() +
-                                                              $record->getSystemPlinSales() +
-                                                              $record->getSystemCardSales() +
-                                                              $record->getSystemDidiSales() +
-                                                              $record->getSystemPedidosYaSales() +
-                                                              $record->getSystemBankTransferSales() +
-                                                              $record->getSystemOtherDigitalWalletSales();
-                                                
+                                                    $record->getSystemYapeSales() +
+                                                    $record->getSystemPlinSales() +
+                                                    $record->getSystemCardSales() +
+                                                    $record->getSystemDidiSales() +
+                                                    $record->getSystemPedidosYaSales() +
+                                                    $record->getSystemBankTransferSales() +
+                                                    $record->getSystemOtherDigitalWalletSales();
+
                                                 // Calcular total manual
                                                 $efectivo = (floatval($get('bill_200') ?? 0)) * 200 +
-                                                           (floatval($get('bill_100') ?? 0)) * 100 +
-                                                           (floatval($get('bill_50') ?? 0)) * 50 +
-                                                           (floatval($get('bill_20') ?? 0)) * 20 +
-                                                           (floatval($get('bill_10') ?? 0)) * 10 +
-                                                           (floatval($get('coin_5') ?? 0)) * 5 +
-                                                           (floatval($get('coin_2') ?? 0)) * 2 +
-                                                           (floatval($get('coin_1') ?? 0)) * 1 +
-                                                           (floatval($get('coin_050') ?? 0)) * 0.5 +
-                                                           (floatval($get('coin_020') ?? 0)) * 0.2 +
-                                                           (floatval($get('coin_010') ?? 0)) * 0.1;
-                                                
+                                                    (floatval($get('bill_100') ?? 0)) * 100 +
+                                                    (floatval($get('bill_50') ?? 0)) * 50 +
+                                                    (floatval($get('bill_20') ?? 0)) * 20 +
+                                                    (floatval($get('bill_10') ?? 0)) * 10 +
+                                                    (floatval($get('coin_5') ?? 0)) * 5 +
+                                                    (floatval($get('coin_2') ?? 0)) * 2 +
+                                                    (floatval($get('coin_1') ?? 0)) * 1 +
+                                                    (floatval($get('coin_050') ?? 0)) * 0.5 +
+                                                    (floatval($get('coin_020') ?? 0)) * 0.2 +
+                                                    (floatval($get('coin_010') ?? 0)) * 0.1;
+
                                                 $yape = floatval($get('manual_yape') ?? 0);
                                                 $plin = floatval($get('manual_plin') ?? 0);
                                                 $tarjetas = floatval($get('manual_card') ?? 0);
                                                 $didi = floatval($get('manual_didi') ?? 0);
                                                 $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
-                                                
+
                                                 $totalManual = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya;
-                                                
+
                                                 // Calcular diferencia
                                                 $diferencia = $totalManual - $totalSistema;
                                                 $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
                                                 $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-                                                
+
                                                 return new \Illuminate\Support\HtmlString("
                                                     <div style='background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 1rem; border-radius: 0.75rem; border-left: 4px solid var(--{$color}-500);'>
                                                         <div style='font-size: 0.875rem; color: #6b7280; font-weight: 500; margin-bottom: 0.25rem;'>Diferencia Total</div>
@@ -1045,180 +1059,191 @@ class CashRegisterResource extends Resource
                         }
                     })
                     ->columns(1)
-                    ->visible(fn ($record) => $record && $record->is_active),
+                    ->visible(fn($record) => $record && $record->is_active),
 
-                Forms\Components\Section::make('💸 Total de Egresos Registrados')
-                    ->description('Total de egresos registrados en el módulo de Egresos')
-                    ->icon('heroicon-o-arrow-trending-down')
-                    ->schema([
-                        Forms\Components\Grid::make(1)
-                            ->schema([
-                                Forms\Components\Placeholder::make('total_expenses_from_module')
-                                    ->content(function ($record) {
-                                        if (!$record) return 'S/ 0.00';
-                                        
-                                        // Obtener el total de egresos registrados para esta caja
-                                        $totalExpenses = $record->cashRegisterExpenses()->sum('amount');
-                                        $countExpenses = $record->cashRegisterExpenses()->count();
-                                        
-                                        return new \Illuminate\Support\HtmlString("
-                                            <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.25rem; border-radius: 0.75rem; border-left: 4px solid #f59e0b;'>
-                                                <div style='display: flex; align-items: center; gap: 0.75rem;'>
-                                                    <span style='font-size: 2rem;'>💸</span>
-                                                    <div style='flex: 1;'>
-                                                        <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos Registrados ({$countExpenses} egreso" . ($countExpenses != 1 ? 's' : '') . ")</div>
-                                                        <div style='font-size: 1.875rem; font-weight: 700; color: #b45309;'>S/ " . number_format($totalExpenses, 2) . "</div>
-                                                        <div style='font-size: 0.75rem; color: #92400e; margin-top: 0.5rem;'>
-                                                            <a href='/admin/egresos?tableFilters[cash_register_id]={$record->id}' style='color: #059669; text-decoration: underline; font-weight: 500;'>📋 Ver detalles de egresos</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ");
-                                    })
-                                    ->columnSpan('full'),
-                            ])
-                            ->columnSpan('full'),
-                    ])
-                    ->columns(1)
-                    ->collapsed(false)
-                    ->visible(fn ($record) => $record && $record->is_active),
+
 
                 Forms\Components\Section::make('Resumen Final del Cierre')
                     ->description('Cálculos automáticos del cierre de caja')
                     ->icon('heroicon-m-calculator')
                     ->schema([
-                        Forms\Components\Grid::make(4)
+                        Forms\Components\Grid::make(6)
                             ->schema([
-                                Forms\Components\Placeholder::make('monto_esperado')
+                                Forms\Components\Placeholder::make('monto_inicial')
+                                    ->label('🏁 Monto Inicial')
+                                    ->content(function ($record) {
+                                        if (!$record)
+                                            return 'S/ 0.00';
+                                        return 'S/ ' . number_format($record->opening_amount, 2);
+                                    })
+                                    ->helperText('Monto de apertura en caja')
+                                    ->extraAttributes(['class' => 'text-gray-600']),
+
+                                Forms\Components\Placeholder::make('total_ingresos')
                                     ->label('💰 Total Ingresos')
                                     ->content(function ($record) {
-                                        if (!$record) return 'S/ 0.00';
-                                        $esperado = $record->getSystemCashSales() +
-                                                   $record->getSystemYapeSales() +
-                                                   $record->getSystemPlinSales() +
-                                                   $record->getSystemCardSales() +
-                                                   $record->getSystemDidiSales() +
-                                                   $record->getSystemPedidosYaSales() +
-                                                   $record->getSystemBankTransferSales() +
-                                                   $record->getSystemOtherDigitalWalletSales();
-                                        return 'S/ ' . number_format($esperado, 2);
+                                        if (!$record)
+                                            return 'S/ 0.00';
+                                        return 'S/ ' . number_format($record->getSystemTotalSales(), 2);
                                     })
-                                    ->helperText('Sumatoria de todos los ingresos del sistema'),
-                                    
-                                Forms\Components\Placeholder::make('total_contado')
-                                    ->label('👥 Total Manual')
-                                    ->content(function ($record, $get) {
-                                        // Calcular total de efectivo (billetes y monedas)
-                                        $efectivo = floatval($get('bill_200') ?? 0) * 200 +
-                                                   floatval($get('bill_100') ?? 0) * 100 +
-                                                   floatval($get('bill_50') ?? 0) * 50 +
-                                                   floatval($get('bill_20') ?? 0) * 20 +
-                                                   floatval($get('bill_10') ?? 0) * 10 +
-                                                   floatval($get('coin_5') ?? 0) * 5 +
-                                                   floatval($get('coin_2') ?? 0) * 2 +
-                                                   floatval($get('coin_1') ?? 0) * 1 +
-                                                   floatval($get('coin_050') ?? 0) * 0.5 +
-                                                   floatval($get('coin_020') ?? 0) * 0.2 +
-                                                   floatval($get('coin_010') ?? 0) * 0.1;
-                                        
-                                        // Sumar otros métodos de pago
-                                        $otros = floatval($get('manual_yape') ?? 0) +
-                                                floatval($get('manual_plin') ?? 0) +
-                                                floatval($get('manual_card') ?? 0) +
-                                                floatval($get('manual_didi') ?? 0) +
-                                                floatval($get('manual_pedidos_ya') ?? 0);
-                                                
-                                        $total = $efectivo + $otros;
-                                        return 'S/ ' . number_format($total, 2);
-                                    })
-                                    ->helperText('Total de todo lo contado manualmente'),
-                                    
-                                Forms\Components\Placeholder::make('diferencia')
-                                    ->label('⚖️ Diferencia')
-                                    ->content(function ($record, $get) {
-                                        if (!$record) return 'S/ 0.00';
-                                        
-                                        $esperado = $record->getSystemCashSales() +
-                                                   $record->getSystemYapeSales() +
-                                                   $record->getSystemPlinSales() +
-                                                   $record->getSystemCardSales() +
-                                                   $record->getSystemDidiSales() +
-                                                   $record->getSystemPedidosYaSales() +
-                                                   $record->getSystemBankTransferSales() +
-                                                   $record->getSystemOtherDigitalWalletSales();
-                                        
-                                        // Calcular total contado
-                                        $efectivo = floatval($get('bill_200') ?? 0) * 200 +
-                                                   floatval($get('bill_100') ?? 0) * 100 +
-                                                   floatval($get('bill_50') ?? 0) * 50 +
-                                                   floatval($get('bill_20') ?? 0) * 20 +
-                                                   floatval($get('bill_10') ?? 0) * 10 +
-                                                   floatval($get('coin_5') ?? 0) * 5 +
-                                                   floatval($get('coin_2') ?? 0) * 2 +
-                                                   floatval($get('coin_1') ?? 0) * 1 +
-                                                   floatval($get('coin_050') ?? 0) * 0.5 +
-                                                   floatval($get('coin_020') ?? 0) * 0.2 +
-                                                   floatval($get('coin_010') ?? 0) * 0.1;
-                                        
-                                        $otros = floatval($get('manual_yape') ?? 0) +
-                                                floatval($get('manual_plin') ?? 0) +
-                                                floatval($get('manual_card') ?? 0) +
-                                                floatval($get('manual_didi') ?? 0) +
-                                                floatval($get('manual_pedidos_ya') ?? 0);
-                                                
-                                        $totalContado = $efectivo + $otros;
-                                        $diferencia = $totalContado - $esperado;
-                                        
-                                        $color = $diferencia == 0 ? 'success' : ($diferencia > 0 ? 'warning' : 'danger');
-                                        $icon = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⚠️ Sobrante:' : '❌ Faltante:');
-                                        
-                                        return $icon . ' S/ ' . number_format($diferencia, 2);
-                                    })
-                                    ->helperText('Total Manual - Monto Esperado'),
-                                    
+                                    ->helperText('Ventas totales del sistema'),
+
                                 Forms\Components\Placeholder::make('total_egresos')
                                     ->label('💸 Total Egresos')
                                     ->content(function ($record) {
-                                        if (!$record) return 'S/ 0.00';
-                                        
-                                        // Obtener egresos registrados del módulo
-                                        $totalExpenses = $record->cashRegisterExpenses()->sum('amount');
-                                        $countExpenses = $record->cashRegisterExpenses()->count();
-                                        
+                                        if (!$record)
+                                            return 'S/ 0.00';
+                                        $expenses = $record->cashRegisterExpenses()->sum('amount');
+                                        return 'S/ ' . number_format($expenses, 2);
+                                    })
+                                    ->helperText('Gastos registrados'),
+
+                                Forms\Components\Placeholder::make('saldo_esperado')
+                                    ->label('🎯 Saldo Esperado')
+                                    ->content(function ($record) {
+                                        if (!$record)
+                                            return 'S/ 0.00';
+                                        // Usa la lógica central del modelo: (Apertura + Ventas) - Egresos
+                                        $expected = $record->calculateExpectedCash();
+                                        return 'S/ ' . number_format($expected, 2);
+                                    })
+                                    ->helperText('Inicio + Ingresos - Egresos')
+                                    ->extraAttributes(['class' => 'font-bold text-primary-600']),
+
+                                Forms\Components\Placeholder::make('total_contado')
+                                    ->label('👥 Total Manual')
+                                    ->content(function ($record, $get) {
+                                        // Efectivo
+                                        $efectivo = floatval($get('bill_200') ?? 0) * 200 +
+                                            floatval($get('bill_100') ?? 0) * 100 +
+                                            floatval($get('bill_50') ?? 0) * 50 +
+                                            floatval($get('bill_20') ?? 0) * 20 +
+                                            floatval($get('bill_10') ?? 0) * 10 +
+                                            floatval($get('coin_5') ?? 0) * 5 +
+                                            floatval($get('coin_2') ?? 0) * 2 +
+                                            floatval($get('coin_1') ?? 0) * 1 +
+                                            floatval($get('coin_050') ?? 0) * 0.5 +
+                                            floatval($get('coin_020') ?? 0) * 0.2 +
+                                            floatval($get('coin_010') ?? 0) * 0.1;
+
+                                        // Otros
+                                        $otros = floatval($get('manual_yape') ?? 0) +
+                                            floatval($get('manual_plin') ?? 0) +
+                                            floatval($get('manual_card') ?? 0) +
+                                            floatval($get('manual_didi') ?? 0) +
+                                            floatval($get('manual_pedidos_ya') ?? 0) +
+                                            floatval($get('manual_otros') ?? 0);
+
+                                        $total = $efectivo + $otros;
+                                        return 'S/ ' . number_format($total, 2);
+                                    })
+                                    ->helperText('Lo que tienes en mano'),
+
+                                Forms\Components\Placeholder::make('diferencia')
+                                    ->label('⚖️ Diferencia')
+                                    ->content(function ($record, $get) {
+                                        if (!$record)
+                                            return 'S/ 0.00';
+
+                                        $esperado = $record->calculateExpectedCash();
+
+                                        // Calcular total contado (Ventas Brutas según usuario)
+                                        $efectivo = floatval($get('bill_200') ?? 0) * 200 +
+                                            floatval($get('bill_100') ?? 0) * 100 +
+                                            floatval($get('bill_50') ?? 0) * 50 +
+                                            floatval($get('bill_20') ?? 0) * 20 +
+                                            floatval($get('bill_10') ?? 0) * 10 +
+                                            floatval($get('coin_5') ?? 0) * 5 +
+                                            floatval($get('coin_2') ?? 0) * 2 +
+                                            floatval($get('coin_1') ?? 0) * 1 +
+                                            floatval($get('coin_050') ?? 0) * 0.5 +
+                                            floatval($get('coin_020') ?? 0) * 0.2 +
+                                            floatval($get('coin_010') ?? 0) * 0.1;
+
+                                        $otros = floatval($get('manual_yape') ?? 0) +
+                                            floatval($get('manual_plin') ?? 0) +
+                                            floatval($get('manual_card') ?? 0) +
+                                            floatval($get('manual_didi') ?? 0) +
+                                            floatval($get('manual_pedidos_ya') ?? 0) +
+                                            floatval($get('manual_otros') ?? 0);
+
+                                        $totalManual = $efectivo + $otros;
+
+                                        // Ajuste solicitado: Manual + Apertura - Egresos
+                                        $apertura = $record->opening_amount;
+                                        $egresos = $record->cashRegisterExpenses()->sum('amount');
+
+                                        $totalCalculado = $totalManual + $apertura - $egresos;
+
+                                        $diferencia = $totalCalculado - $esperado;
+
+                                        $color = abs($diferencia) < 0.01 ? 'success' : ($diferencia > 0 ? 'warning' : 'danger');
+                                        $icon = abs($diferencia) < 0.01 ? '✅' : ($diferencia > 0 ? '⚠️ Sobrante:' : '❌ Faltante:');
+
                                         return new \Illuminate\Support\HtmlString("
-                                            <div style='background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #f59e0b;'>
-                                                <div style='font-size: 0.875rem; color: #92400e; font-weight: 500; margin-bottom: 0.25rem;'>Total de Egresos Registrados ({$countExpenses} egreso" . ($countExpenses != 1 ? 's' : '') . ")</div>
-                                                <div style='font-size: 1.25rem; font-weight: 700; color: #b45309;'>S/ " . number_format($totalExpenses, 2) . "</div>
-                                            </div>
+                                            <span style='color: var(--{$color}-600); font-weight: 700; font-size: 1.1rem;'>
+                                                {$icon} S/ " . number_format($diferencia, 2) . "
+                                            </span>
                                         ");
                                     })
-                                    ->helperText('Total de egresos registrados en el módulo'),
+                                    ->helperText(function ($record, $get) {
+                                        if (!$record)
+                                            return '';
+
+                                        $esperado = $record->calculateExpectedCash();
+
+                                        // Recalcular para texto de ayuda
+                                        $efectivo = floatval($get('bill_200') ?? 0) * 200 +
+                                            floatval($get('bill_100') ?? 0) * 100 +
+                                            floatval($get('bill_50') ?? 0) * 50 +
+                                            floatval($get('bill_20') ?? 0) * 20 +
+                                            floatval($get('bill_10') ?? 0) * 10 +
+                                            floatval($get('coin_5') ?? 0) * 5 +
+                                            floatval($get('coin_2') ?? 0) * 2 +
+                                            floatval($get('coin_1') ?? 0) * 1 +
+                                            floatval($get('coin_050') ?? 0) * 0.5 +
+                                            floatval($get('coin_020') ?? 0) * 0.2 +
+                                            floatval($get('coin_010') ?? 0) * 0.1;
+
+                                        $otros = floatval($get('manual_yape') ?? 0) +
+                                            floatval($get('manual_plin') ?? 0) +
+                                            floatval($get('manual_card') ?? 0) +
+                                            floatval($get('manual_didi') ?? 0) +
+                                            floatval($get('manual_pedidos_ya') ?? 0) +
+                                            floatval($get('manual_otros') ?? 0);
+
+                                        $totalManual = $efectivo + $otros;
+                                        $apertura = $record->opening_amount;
+                                        $egresos = $record->cashRegisterExpenses()->sum('amount');
+
+                                        return "(Manual S/ " . number_format($totalManual, 2) . " + Ini S/ " . number_format($apertura, 2) . " - Egr S/ " . number_format($egresos, 2) . ") - Esp S/ " . number_format($esperado, 2);
+                                    }),
                             ]),
-                            
+
                         // Ganancia Real (destacado con gradiente)
                         Forms\Components\Grid::make(1)
                             ->schema([
                                 Forms\Components\Placeholder::make('ganancia_real')
                                     ->content(function ($record) {
-                                        if (!$record) return 'S/ 0.00';
-                                        
+                                        if (!$record)
+                                            return 'S/ 0.00';
+
                                         // Calcular ingresos totales del sistema
                                         $ingresos = $record->getSystemCashSales() +
-                                                   $record->getSystemYapeSales() +
-                                                   $record->getSystemPlinSales() +
-                                                   $record->getSystemCardSales() +
-                                                   $record->getSystemDidiSales() +
-                                                   $record->getSystemPedidosYaSales() +
-                                                   $record->getSystemBankTransferSales() +
-                                                   $record->getSystemOtherDigitalWalletSales();
-                                     
+                                            $record->getSystemYapeSales() +
+                                            $record->getSystemPlinSales() +
+                                            $record->getSystemCardSales() +
+                                            $record->getSystemDidiSales() +
+                                            $record->getSystemPedidosYaSales() +
+                                            $record->getSystemBankTransferSales() +
+                                            $record->getSystemOtherDigitalWalletSales();
+
                                         // Obtener egresos registrados del módulo
                                         $egresos = $record->cashRegisterExpenses()->sum('amount');
-                                        
+
                                         // Ganancia Real = Total Sistema - Egresos Registrados
                                         $ganancia = $ingresos - $egresos;
-                                        
+
                                         return new \Illuminate\Support\HtmlString("
                                             <div style='background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 1.75rem; border-radius: 1rem; border-left: 5px solid #10b981; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>
                                                 <div style='display: flex; align-items: center; gap: 1rem;'>
@@ -1235,7 +1260,7 @@ class CashRegisterResource extends Resource
                                     ->columnSpan('full'),
                             ]),
                     ])
-                    ->visible(fn ($record) => $record && $record->is_active),
+                    ->visible(fn($record) => $record && $record->is_active),
             ]);
     }
 
@@ -1248,7 +1273,7 @@ class CashRegisterResource extends Resource
                     ->prefix('#'),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
-                    ->getStateUsing(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
+                    ->getStateUsing(fn($record) => $record->is_active ? 'Abierta' : 'Cerrada')
                     ->colors([
                         'success' => 'Abierta',
                         'danger' => 'Cerrada',
@@ -1268,7 +1293,7 @@ class CashRegisterResource extends Resource
                 Tables\Columns\TextColumn::make('opening_amount')
                     ->label('Monto Inicial')
                     ->money('PEN')
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
             ])
             ->filters([
                 // Filtro de estado mejorado con iconos
@@ -1291,7 +1316,7 @@ class CashRegisterResource extends Resource
                     ])
                     ->placeholder('Todos los estados')
                     ->default(null)
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
 
                 // Filtro de responsable
                 Tables\Filters\SelectFilter::make('opened_by')
@@ -1363,11 +1388,11 @@ class CashRegisterResource extends Resource
                         return $query
                             ->when(
                                 $data['desde'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('opening_datetime', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('opening_datetime', '>=', $date),
                             )
                             ->when(
                                 $data['hasta'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('opening_datetime', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('opening_datetime', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -1395,11 +1420,11 @@ class CashRegisterResource extends Resource
                         return $query
                             ->when(
                                 $data['desde_cierre'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('closing_datetime', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('closing_datetime', '>=', $date),
                             )
                             ->when(
                                 $data['hasta_cierre'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('closing_datetime', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('closing_datetime', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -1444,11 +1469,11 @@ class CashRegisterResource extends Resource
                         return $query
                             ->when(
                                 $data['min_difference'] !== null,
-                                fn (Builder $query, $min): Builder => $query->where('difference', '>=', $data['min_difference']),
+                                fn(Builder $query, $min): Builder => $query->where('difference', '>=', $data['min_difference']),
                             )
                             ->when(
                                 $data['max_difference'] !== null,
-                                fn (Builder $query, $max): Builder => $query->where('difference', '<=', $data['max_difference']),
+                                fn(Builder $query, $max): Builder => $query->where('difference', '<=', $data['max_difference']),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -1464,7 +1489,7 @@ class CashRegisterResource extends Resource
 
                         return $indicators;
                     })
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
             ])
             ->filtersFormColumns(3)
             ->defaultSort('id', 'desc')
@@ -1475,22 +1500,22 @@ class CashRegisterResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->label('Cerrar')
                     ->icon('heroicon-m-lock-closed')
-                    ->visible(fn ($record) => $record->is_active),
+                    ->visible(fn($record) => $record->is_active),
                 Tables\Actions\Action::make('print')
                     ->label('Imprimir')
                     ->icon('heroicon-m-printer')
                     ->color('gray')
-                    ->url(fn ($record) => url('/admin/print-cash-register/' . $record->id))
+                    ->url(fn($record) => url('/admin/print-cash-register/' . $record->id))
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('approve')
                     ->label('Aprobar')
                     ->icon('heroicon-m-check-circle')
                     ->color('success')
-                    ->visible(fn ($record) => !$record->is_active && !$record->is_approved && auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
+                    ->visible(fn($record) => !$record->is_active && !$record->is_approved && auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         $record->update(['is_approved' => true, 'approval_notes' => 'Aprobado manualmente']);
-                        
+
                         \Filament\Notifications\Notification::make()
                             ->success()
                             ->title('✅ Caja aprobada')
@@ -1500,7 +1525,7 @@ class CashRegisterResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin'])),
+                        ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin'])),
                 ]),
             ])
             ->headerActions([

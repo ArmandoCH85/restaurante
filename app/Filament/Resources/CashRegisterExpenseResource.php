@@ -48,23 +48,23 @@ class CashRegisterExpenseResource extends Resource
                     ->description('Registre los egresos o salidas de dinero de caja')
                     ->icon('heroicon-m-arrow-trending-down')
                     ->schema([
-                        Forms\Components\Select::make('cash_register_id')
+                        Forms\Components\Hidden::make('cash_register_id')
+                            ->default(fn() => \App\Models\CashRegister::getActiveCashRegisterId())
+                            ->required(),
+
+                        Forms\Components\Placeholder::make('cash_register_info')
                             ->label('Caja Registradora')
-                            ->relationship('cashRegister', 'id', function (Builder $query) {
-                                return $query->where('is_active', true)
-                                    ->orWhere('is_active', false)
-                                    ->orderBy('opening_datetime', 'desc');
-                            })
-                            ->getOptionLabelUsing(function ($record) {
-                                if (!$record) return '';
-                                $status = $record->is_active ? 'Abierta' : 'Cerrada';
-                                $date = $record->opening_datetime->format('d/m/Y H:i');
-                                return "Caja #{$record->id} - {$status} ({$date})";
-                            })
-                            ->searchable()
-                            ->preload()
-                            ->required()
-                            ->helperText('Seleccione la caja a la que pertenece este egreso'),
+                            ->content(function ($record) {
+                                $register = $record ? $record->cashRegister : \App\Models\CashRegister::getOpenRegister();
+
+                                if (!$register) {
+                                    return '⚠️ No hay caja abierta. Es necesario abrir una caja para registrar egresos.';
+                                }
+
+                                $status = $register->is_active ? 'Abierta' : 'Cerrada';
+                                $date = $register->opening_datetime->format('d/m/Y H:i');
+                                return "Caja #{$register->id} - {$status} ({$date})";
+                            }),
 
                         Forms\Components\TextInput::make('concept')
                             ->label('Concepto')
@@ -103,13 +103,13 @@ class CashRegisterExpenseResource extends Resource
                     ->label('ID')
                     ->prefix('#')
                     ->sortable(),
-                    
+
                 Tables\Columns\TextColumn::make('cashRegister.id')
                     ->label('Caja')
-                    ->formatStateUsing(fn ($record) => "Caja #{$record->cashRegister->id}")
+                    ->formatStateUsing(fn($record) => "Caja #{$record->cashRegister->id}")
                     ->sortable()
                     ->searchable(),
-                    
+
                 Tables\Columns\TextColumn::make('concept')
                     ->label('Concepto')
                     ->searchable()
@@ -117,7 +117,7 @@ class CashRegisterExpenseResource extends Resource
                     ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                         return $column->getState();
                     }),
-                    
+
                 Tables\Columns\TextColumn::make('amount')
                     ->label('Monto')
                     ->money('PEN')
@@ -125,7 +125,7 @@ class CashRegisterExpenseResource extends Resource
                     ->alignEnd()
                     ->weight('bold')
                     ->color('danger'),
-                    
+
                 Tables\Columns\TextColumn::make('notes')
                     ->label('Notas')
                     ->limit(30)
@@ -133,7 +133,7 @@ class CashRegisterExpenseResource extends Resource
                         return $column->getState();
                     })
                     ->placeholder('Sin notas'),
-                    
+
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
@@ -147,7 +147,8 @@ class CashRegisterExpenseResource extends Resource
                         return $query->orderBy('opening_datetime', 'desc');
                     })
                     ->getOptionLabelUsing(function ($record) {
-                        if (!$record) return '';
+                        if (!$record)
+                            return '';
                         $status = $record->is_active ? 'Abierta' : 'Cerrada';
                         $date = $record->opening_datetime->format('d/m/Y');
                         return "Caja #{$record->id} - {$status} ({$date})";
@@ -180,11 +181,11 @@ class CashRegisterExpenseResource extends Resource
                         return $query
                             ->when(
                                 $data['min_amount'] ?? null,
-                                fn (Builder $query, $amount): Builder => $query->where('amount', '>=', $amount),
+                                fn(Builder $query, $amount): Builder => $query->where('amount', '>=', $amount),
                             )
                             ->when(
                                 $data['max_amount'] ?? null,
-                                fn (Builder $query, $amount): Builder => $query->where('amount', '<=', $amount),
+                                fn(Builder $query, $amount): Builder => $query->where('amount', '<=', $amount),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
@@ -219,11 +220,11 @@ class CashRegisterExpenseResource extends Resource
                         return $query
                             ->when(
                                 $data['date_from'] ?? null,
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '>=', $date),
                             )
                             ->when(
                                 $data['date_to'] ?? null,
-                                fn (Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('created_at', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {

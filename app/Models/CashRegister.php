@@ -466,13 +466,14 @@ class CashRegister extends Model
 
     /**
      * Calcula el monto esperado total al cierre.
-     * NUEVO CÁLCULO: Monto inicial + TODAS las ventas del día
+     * NUEVO CÁLCULO: Monto inicial + TODAS las ventas del día - Egresos
      *
      * @return float
      */
     public function calculateExpectedCash(): float
     {
-        return $this->opening_amount + $this->getSystemTotalSales();
+        $expenses = $this->cashRegisterExpenses()->sum('amount');
+        return ($this->opening_amount + $this->getSystemTotalSales()) - $expenses;
     }
 
     /**
