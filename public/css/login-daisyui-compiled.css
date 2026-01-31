@@ -96,36 +96,23 @@ body {
 
 .fi-simple-layout {
     min-height: 100vh !important;
-    background: linear-gradient(
-        135deg,
-        var(--base-200) 0%,
-        var(--base-300) 100%
-    ) !important;
+    background: var(--base-100) !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    padding: var(--spacing-6) !important;
+    justify-content: flex-end !important;
+    padding: 2.5rem 4rem !important;
     position: relative !important;
+    overflow: hidden !important;
 }
 
 /* Patrón de fondo sutil */
 .fi-simple-layout::before {
     content: "";
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: radial-gradient(
-            circle at 25% 25%,
-            rgba(59, 130, 246, 0.03) 0%,
-            transparent 50%
-        ),
-        radial-gradient(
-            circle at 75% 75%,
-            rgba(59, 130, 246, 0.03) 0%,
-            transparent 50%
-        );
+    inset: 0;
+    width: 48%;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-right: 1px solid #e5e7eb;
     pointer-events: none;
 }
 
@@ -136,34 +123,21 @@ body {
 .fi-simple-main {
     /* Estilo card de DaisyUI basado en ejemplos reales */
     background: var(--base-100) !important;
-    border-radius: 0.5rem !important; /* rounded-md */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-        0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* shadow-md */
-    border: 2px solid transparent !important;
-    border-top: 4px solid var(--neutral) !important; /* border-t-4 border-gray-600 */
+    border-radius: 0.75rem !important;
+    box-shadow: var(--shadow-lg) !important;
+    border: 1px solid var(--base-300) !important;
     width: 100% !important;
-    max-width: 28rem !important; /* lg:max-w-lg */
+    max-width: 26.25rem !important;
     padding: 0 !important;
     position: relative !important;
     z-index: 1 !important;
-    animation: fadeInUp 0.6s ease-out;
     margin: 1.5rem auto !important; /* m-auto */
+    margin-left: auto !important;
 }
 
 .fi-simple-main > div {
     /* Card body - p-6 */
     padding: 1.5rem !important;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* ========================================
@@ -172,27 +146,21 @@ body {
 
 .pos-header {
     text-align: center;
-    margin-bottom: var(--spacing-8);
+    margin-bottom: var(--spacing-6);
 }
 
 .pos-logo {
-    width: 80px;
-    height: 80px;
+    width: 64px;
+    height: 64px;
     margin: 0 auto var(--spacing-6);
     display: block;
-    transition: transform 0.3s ease;
-}
-
-.pos-logo:hover {
-    transform: scale(1.05);
 }
 
 .pos-title {
-    /* Estilo basado en ejemplos DaisyUI reales */
-    font-size: 1.875rem; /* text-3xl */
-    font-weight: 600; /* font-semibold */
-    color: var(--neutral); /* text-gray-700 */
-    margin: 0 0 var(--spacing-6);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--neutral);
+    margin: 0 0 var(--spacing-2);
     text-align: center;
     letter-spacing: -0.025em;
 }
@@ -200,30 +168,25 @@ body {
 .pos-subtitle {
     font-size: 0.875rem;
     color: var(--neutral);
-    margin: 0 0 var(--spacing-6);
+    margin: 0 0 var(--spacing-4);
     opacity: 0.7;
     text-align: center;
 }
 
-.pos-security-badge {
-    /* Badge estilo DaisyUI */
+.pos-security-note {
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-2);
-    background: var(--primary);
-    color: var(--primary-content);
-    padding: var(--spacing-2) var(--spacing-3);
-    border-radius: var(--radius-md);
+    color: var(--base-content);
+    opacity: 0.6;
     font-size: 0.75rem;
-    font-weight: 500;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    box-shadow: var(--shadow-sm);
 }
 
-.pos-security-icon {
-    width: 12px;
-    height: 12px;
-    fill: currentColor;
+.pos-security-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--success);
 }
 
 /* ========================================
@@ -381,6 +344,17 @@ body {
     }
 
     .pos-title {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .fi-simple-layout {
+        justify-content: center !important;
+        padding: 2rem !important;
+    }
+
+    .fi-simple-layout::before {
+        display: none;
     }
 }

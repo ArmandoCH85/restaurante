@@ -128,6 +128,7 @@ class ProductResource extends Resource
                             ->label('Imagen')
                             ->image()
                             ->imageEditor()
+                            ->helperText('Sin límite de tamaño')
                             ->directory('productos')
                             ->columnSpanFull(),
                     ]),

@@ -26,11 +26,22 @@
    ======================================== */
 
 .fi-simple-layout {
-    @apply min-h-screen bg-gradient-to-br from-base-200 to-base-300;
+    @apply min-h-screen bg-base-100;
     display: flex !important;
     align-items: center !important;
-    justify-content: center !important;
-    padding: 1.5rem !important;
+    justify-content: flex-end !important;
+    padding: 2.5rem 4rem !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.fi-simple-layout::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 48%;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    border-right: 1px solid #e5e7eb;
 }
 
 /* ========================================
@@ -38,10 +49,13 @@
    ======================================== */
 
 .fi-simple-main {
-    @apply card bg-base-100 shadow-2xl;
+    @apply card bg-base-100 shadow-lg border border-base-300;
     width: 100% !important;
-    max-width: 400px !important;
+    max-width: 420px !important;
     padding: 0 !important;
+    margin-left: auto !important;
+    position: relative !important;
+    z-index: 1 !important;
 }
 
 .fi-simple-main > div {
@@ -57,23 +71,23 @@
 }
 
 .pos-logo {
-    @apply w-20 h-20 mx-auto mb-4 transition-transform duration-300;
-}
-
-.pos-logo:hover {
-    @apply scale-105;
+    @apply w-16 h-16 mx-auto mb-4;
 }
 
 .pos-title {
-    @apply text-3xl font-bold text-base-content mb-2;
+    @apply text-2xl font-semibold text-base-content mb-1;
 }
 
 .pos-subtitle {
-    @apply text-base-content/70 mb-6;
+    @apply text-sm text-base-content/70 mb-4;
 }
 
-.pos-security-badge {
-    @apply badge badge-primary badge-outline gap-2;
+.pos-security-note {
+    @apply inline-flex items-center gap-2 text-xs text-base-content/60;
+}
+
+.pos-security-dot {
+    @apply w-2 h-2 rounded-full bg-success;
 }
 
 /* ========================================
@@ -184,26 +198,18 @@
     }
     
     .pos-title {
-        @apply text-2xl;
+        @apply text-xl;
     }
 }
 
-/* ========================================
-   ANIMACIONES SUTILES
-   ======================================== */
-
-.fi-simple-main {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
+@media (max-width: 900px) {
+    .fi-simple-layout {
+        justify-content: center !important;
+        padding: 2rem !important;
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    .fi-simple-layout::before {
+        display: none;
     }
 }
 

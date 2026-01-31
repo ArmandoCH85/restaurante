@@ -27,7 +27,7 @@ use App\Http\Controllers\PreBillPrintController;
 
 Route::get('/', function () {
     // Mostrar la página principal del sitio
-    return view('home');
+    return redirect('/admin');
 });
 
 // Ruta para redirigir a los usuarios según su rol
@@ -550,6 +550,5 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/login', function () {
     return redirect()->route('filament.admin.auth.login');
 })->name('login');
-
 
 

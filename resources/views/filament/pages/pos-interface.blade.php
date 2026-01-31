@@ -1210,15 +1210,15 @@
             gap: 6px;
             position: relative;
             /* Más espacio disponible */
-            min-height: 80px;
+            min-height: 92px;
         }
 
-        .pos-product-name {
-            font-size: clamp(8px, 1.5vw, 10px);
+        .pos-product-card .pos-product-name {
+            font-size: clamp(9px, 1.2vw, 11px);
             font-weight: 600;
             text-transform: uppercase;
             color: #1f2937;
-            line-height: 1.2;
+            line-height: 1.25;
             text-align: center;
             letter-spacing: 0.2px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -1229,15 +1229,12 @@
             hyphens: auto;
             margin-bottom: 3px;
             width: 100%;
-            /* Permitir que el texto se ajuste naturalmente */
             display: block;
-            /* Centrado perfecto */
             margin-left: auto;
             margin-right: auto;
-            /* Si es muy largo, permitir hasta 2 líneas */
             overflow: hidden;
             display: -webkit-box;
-            -webkit-line-clamp: 2;
+            -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
         }
 
@@ -2209,7 +2206,7 @@
     border: 1px solid var(--pos-gray-200);
 }
 
-.pos-product-name {
+.pos-cart-product-name {
     flex: 1;
     font-size: var(--cart-item-font-size);
     font-weight: 600;
@@ -4458,7 +4455,7 @@
                                 <div class="pos-cart-item-info">
                                     <div class="pos-cart-item-name-container">
                                         {{-- NOMBRE DEL PRODUCTO --}}
-                                        <span class="pos-product-name">{{ $item['name'] }}</span>
+                                        <span class="pos-cart-product-name">{{ $item['name'] }}</span>
                                         
                                         {{-- CONTROLES INLINE COMPACTOS --}}
                                         <div class="pos-inline-controls">
