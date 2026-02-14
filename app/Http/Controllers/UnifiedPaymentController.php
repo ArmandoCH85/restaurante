@@ -146,15 +146,15 @@ class UnifiedPaymentController extends Controller
             // Validar exceso de pago - solo permitir vuelto en pagos de efectivo
             $totalPaid = $order->getTotalPaid();
             $changeAmount = 0;
-            
+
             if ($totalPaid > $order->total) {
                 $changeAmount = $totalPaid - $order->total;
-                
+
                 // Verificar si hay pagos en efectivo para justificar el exceso
                 $hasCashPayment = $order->payments()
                     ->where('payment_method', 'cash')
                     ->exists();
-                
+
                 if (!$hasCashPayment) {
                     return redirect()->route('pos.unified.form', ['order' => $order->id])
                         ->with('error', 'El total pagado (S/ ' . number_format($totalPaid, 2) . ') excede el total de la orden (S/ ' . number_format($order->total, 2) . '). Solo se permite exceso en pagos de efectivo como vuelto.');
@@ -187,7 +187,7 @@ class UnifiedPaymentController extends Controller
 
             // ✅ CRUCIAL: Refrescar relación de pagos justo antes de generar factura
             $order->load('payments');
-            
+
             Log::info('🔍 UnifiedPaymentController - Payments antes de generateInvoice', [
                 'order_id' => $order->id,
                 'payments_count' => $order->payments->count(),
@@ -284,7 +284,7 @@ class UnifiedPaymentController extends Controller
     private function getNextNumber(string $type): int
     {
         $lastInvoice = Invoice::where('invoice_type', $type)->latest('number')->first();
-        return $lastInvoice ? (int)$lastInvoice->number + 1 : 1;
+        return $lastInvoice ? (int) $lastInvoice->number + 1 : 1;
     }
 
     /**
@@ -313,9 +313,9 @@ class UnifiedPaymentController extends Controller
         // Calcular desglose según el tipo de comprobante
         $tax = 0;
         if (in_array($invoiceType, ['receipt', 'invoice'])) {
-            // Calcular IGV incluido en el precio
-            $subtotalWithoutIgv = round($totalWithIgvAfterDiscount / 1.18, 2);
-            $tax = round($totalWithIgvAfterDiscount / 1.18 * 0.18, 2);
+            // Calcular IGV incluido en el precio usando métodos del modelo Order (Trait CalculatesIgv)
+            $tax = $order->calculateIncludedIgv($totalWithIgvAfterDiscount);
+            $subtotalWithoutIgv = $order->calculateSubtotalFromPriceWithIgv($totalWithIgvAfterDiscount);
             $subtotalAfterDiscount = $subtotalWithoutIgv; // Actualizar para BD
         }
         // Las notas de venta no tienen IGV
@@ -328,7 +328,7 @@ class UnifiedPaymentController extends Controller
         $order->tax = $tax;
         $order->total = $total;
         $order->save();
-        
+
         // ✅ CRUCIAL: Refrescar relación de pagos después del save
         $order->load('payments');
 

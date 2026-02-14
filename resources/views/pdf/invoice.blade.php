@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Factura #{{ $invoice->series }}-{{ $invoice->number }}</title>
@@ -9,6 +10,7 @@
             size: 80mm auto;
             margin: 0mm 2mm 3mm 6mm;
         }
+
         body {
             font-family: 'Arial', sans-serif;
             font-size: 14px;
@@ -20,14 +22,14 @@
             padding: 0 2mm 2mm 2mm;
             box-sizing: border-box;
         }
-        
+
         /* FORZAR COLOR NEGRO Y ESTILOS TÉRMICOS */
         * {
             color: #000 !important;
             -webkit-print-color-adjust: exact !important;
             color-adjust: exact !important;
         }
-        
+
         .container {
             width: 100%;
             max-width: 66mm;
@@ -35,68 +37,70 @@
             padding: 0 0 0 2mm;
             text-align: left;
         }
-        
-        .header, .footer {
+
+        .header,
+        .footer {
             text-align: center;
             margin: 0 auto;
             max-width: 64mm;
         }
-        
+
         .header h1 {
             margin: 0 0 3px 0;
             font-size: 20px;
             font-weight: bold;
             text-transform: uppercase;
         }
-        
+
         .header p {
             margin: 1px 0;
             font-size: 20px;
             font-weight: bold;
         }
-        
+
         .footer p {
             margin: 1px 0;
             font-size: 13px;
         }
-        
+
         hr {
             border: 0;
             border-top: 1px dashed #000;
             margin: 4px 0;
         }
-        
-        .info-table, .items-table {
+
+        .info-table,
+        .items-table {
             width: 100%;
             max-width: 64mm;
             margin: 0;
             border-collapse: collapse;
         }
-        
+
         .info-table td {
             padding: 1px 0;
             font-size: 14px;
             vertical-align: top;
         }
-        
+
         .info-table td:first-child {
             width: 30%;
             font-weight: bold;
             font-size: 13px;
         }
-        
+
         .info-table td:last-child {
             font-size: 13px;
             word-break: break-word;
         }
-        
+
         .items-table th {
             padding: 2px 0;
             font-size: 13px;
             font-weight: bold;
             border-bottom: 1px solid #000;
         }
-        
+
         .items-table td {
             padding: 2px 0;
             font-size: 12px;
@@ -104,63 +108,63 @@
             word-wrap: break-word;
             text-align: center;
         }
-        
-        .col-qty { 
-            width: 10%; 
+
+        .col-qty {
+            width: 10%;
             text-align: center;
             font-weight: bold;
             font-size: 14px;
         }
-        
-        .col-desc { 
-            width: 65%; 
+
+        .col-desc {
+            width: 65%;
             word-break: break-word;
             font-size: 14px;
             padding-right: 2px;
         }
-        
-        .col-total { 
-            width: 25%; 
+
+        .col-total {
+            width: 25%;
             text-align: right;
             font-weight: bold;
             font-size: 14px;
         }
-        
+
         .totals {
             margin-top: 4px;
         }
-        
+
         .totals .row {
             display: flex;
             justify-content: space-between;
             margin: 1px 0;
         }
-        
+
         .totals .row .col-label {
             font-size: 14px;
             font-weight: bold;
         }
-        
+
         .totals .row .col-value {
             font-size: 14px;
             font-weight: bold;
             text-align: right;
         }
-        
-        .totals .total-final .col-label, 
+
+        .totals .total-final .col-label,
         .totals .total-final .col-value {
             font-size: 16px;
             font-weight: bold;
             border-top: 1px solid #000;
             padding-top: 2px;
         }
-        
+
         .payment-info {
             text-align: center;
             font-size: 13px;
             margin: 3px 0;
         }
-        
+
         @media print {
             body {
                 -webkit-print-color-adjust: exact;
@@ -170,17 +174,23 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>FACTURA ELECTRÓNICA</h1>
-            <p><strong style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
-            <p style="font-size: 14px;">RUC: {{ $company['ruc'] ?? \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
+            <p><strong
+                    style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() }}</strong>
+            </p>
+            <p style="font-size: 14px;">RUC:
+                {{ $company['ruc'] ?? \App\Models\CompanyConfig::getRuc() ?? '20123456789' }}</p>
             <p style="font-size: 14px;">{{ $company['direccion'] ?? \App\Models\CompanyConfig::getDireccion() }}</p>
             @if($company['telefono'] ?? \App\Models\CompanyConfig::getTelefono())
                 <p style="font-size: 14px;">Tel: {{ $company['telefono'] ?? \App\Models\CompanyConfig::getTelefono() }}</p>
             @endif
-            <p><strong style="font-size: 15px;">F{{ $invoice->series }}-{{ str_pad($invoice->number, 8, '0', STR_PAD_LEFT) }}</strong></p>
+            <p><strong
+                    style="font-size: 15px;">F{{ $invoice->series }}-{{ str_pad($invoice->number, 8, '0', STR_PAD_LEFT) }}</strong>
+            </p>
         </div>
         <hr>
         <table class="info-table">
@@ -189,48 +199,50 @@
                 <td><strong>Cliente:</strong></td>
                 <td>{{ $invoice->client_name }}</td>
             </tr>
-            
+
             {{-- Mostrar RUC del cliente siempre que esté disponible --}}
             @if($invoice->client_document)
-            <tr>
-                <td><strong>RUC:</strong></td>
-                <td>{{ $invoice->client_document }}</td>
-            </tr>
+                <tr>
+                    <td><strong>RUC:</strong></td>
+                    <td>{{ $invoice->client_document }}</td>
+                </tr>
             @endif
-            
+
             {{-- Mostrar teléfono del cliente siempre que esté disponible --}}
             @if($invoice->order && $invoice->order->customer && $invoice->order->customer->phone)
-            <tr>
-                <td><strong>Teléfono:</strong></td>
-                <td>{{ $invoice->order->customer->phone }}</td>
-            </tr>
+                <tr>
+                    <td><strong>Teléfono:</strong></td>
+                    <td>{{ $invoice->order->customer->phone }}</td>
+                </tr>
             @endif
-            
+
             {{-- Mostrar dirección del cliente siempre que esté disponible --}}
             @if($invoice->client_address)
-            <tr>
-                <td><strong>Dirección:</strong></td>
-                <td>{{ $invoice->client_address }}</td>
-            </tr>
+                <tr>
+                    <td><strong>Dirección:</strong></td>
+                    <td>{{ $invoice->client_address }}</td>
+                </tr>
             @endif
         </table>
-        
+
         {{-- Separador entre información del cliente y datos de transacción --}}
         <hr>
-        
+
         <table class="info-table">
             <tr>
                 <td><strong>Fecha:</strong></td>
-                <td>{{ $invoice->issue_date ? \Carbon\Carbon::parse($invoice->issue_date)->format('d/m/Y') : now()->format('d/m/Y') }}</td>
+                <td>{{ $invoice->issue_date ? \Carbon\Carbon::parse($invoice->issue_date)->format('d/m/Y') : now()->format('d/m/Y') }}
+                </td>
             </tr>
             <tr>
                 <td><strong>Hora:</strong></td>
-                <td>{{ $invoice->created_at ? \Carbon\Carbon::parse($invoice->created_at)->format('H:i:s') : now()->format('H:i:s') }}</td>
+                <td>{{ $invoice->created_at ? \Carbon\Carbon::parse($invoice->created_at)->format('H:i:s') : now()->format('H:i:s') }}
+                </td>
             </tr>
-            
+
             @php
                 $waiterName = null;
-                
+
                 // Prioridad 1: Usuario de la orden (buscando primero el empleado relacionado)
                 if ($invoice->order && $invoice->order->employee_id) {
                     $orderEmployee = \App\Models\Employee::find($invoice->order->employee_id);
@@ -244,7 +256,7 @@
                         }
                     }
                 }
-                
+
                 // Prioridad 2: Empleado directo de la factura
                 if (!$waiterName && $invoice->employee_id) {
                     $invoiceEmployee = \App\Models\Employee::find($invoice->employee_id);
@@ -258,28 +270,28 @@
                         }
                     }
                 }
-                
+
                 // Prioridad 3: Empleado relacionado (relación directa)
                 if (!$waiterName && $invoice->employee) {
                     $waiterName = $invoice->employee->full_name;
                 }
-                
+
                 // Prioridad 4: Usuario actual como fallback
                 if (!$waiterName && auth()->user()) {
                     $waiterName = auth()->user()->name;
                 }
-                
+
                 // Prioridad 5: Mensaje por defecto
                 if (!$waiterName) {
                     $waiterName = 'Sin información del mesero';
                 }
             @endphp
-            
+
             <tr>
                 <td><strong>Atendido por:</strong></td>
                 <td>{{ $waiterName }}</td>
             </tr>
-            
+
             {{-- Para delivery: manejo inteligente de direcciones --}}
             @if($invoice->order && $invoice->order->service_type === 'delivery' && $invoice->order->deliveryOrder)
                 @php
@@ -288,41 +300,47 @@
                     $deliveryAddress = $deliveryOrder->delivery_address;
                     $recipientAddress = $deliveryOrder->recipient_address;
                 @endphp
-                
+
                 {{-- Separador visual para delivery --}}
-                <tr><td colspan="2" style="text-align: center; font-weight: bold; padding: 4px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000;">🚚 INFORMACIÓN DE CONTACTO</td></tr>
-                
+                <tr>
+                    <td colspan="2"
+                        style="text-align: center; font-weight: bold; padding: 4px 0; border-top: 1px dashed #000; border-bottom: 1px dashed #000;">
+                        🚚 INFORMACIÓN DE CONTACTO</td>
+                </tr>
+
                 @if($deliveryAddress && $deliveryAddress !== 'Dirección pendiente de completar')
-                <tr>
-                    <td><strong>Dirección Entrega:</strong></td>
-                    <td>{{ $deliveryAddress }}</td>
-                </tr>
+                    <tr>
+                        <td><strong>Dirección Entrega:</strong></td>
+                        <td>{{ $deliveryAddress }}</td>
+                    </tr>
                 @endif
-                
+
                 @if($deliveryOrder->delivery_references)
-                <tr>
-                    <td><strong>Referencias:</strong></td>
-                    <td>{{ $deliveryOrder->delivery_references }}</td>
-                </tr>
+                    <tr>
+                        <td><strong>Referencias:</strong></td>
+                        <td>{{ $deliveryOrder->delivery_references }}</td>
+                    </tr>
                 @endif
-                
+
                 @if($deliveryOrder->recipient_name)
-                <tr>
-                    <td><strong>Recibe:</strong></td>
-                    <td>{{ $deliveryOrder->recipient_name }}</td>
-                </tr>
+                    <tr>
+                        <td><strong>Recibe:</strong></td>
+                        <td>{{ $deliveryOrder->recipient_name }}</td>
+                    </tr>
                 @endif
-                
+
                 {{-- Solo mostrar dirección del destinatario si es diferente a la de entrega --}}
                 @if($recipientAddress && $recipientAddress !== $deliveryAddress && $recipientAddress !== 'Dirección pendiente de completar')
-                <tr>
-                    <td><strong>Dirección Destinatario:</strong></td>
-                    <td>{{ $recipientAddress }}</td>
-                </tr>
+                    <tr>
+                        <td><strong>Dirección Destinatario:</strong></td>
+                        <td>{{ $recipientAddress }}</td>
+                    </tr>
                 @endif
-                
+
                 {{-- Separador de cierre --}}
-                <tr><td colspan="2" style="border-bottom: 1px dashed #000; padding: 2px 0;"></td></tr>
+                <tr>
+                    <td colspan="2" style="border-bottom: 1px dashed #000; padding: 2px 0;"></td>
+                </tr>
             @endif
         </table>
         <hr>
@@ -336,11 +354,11 @@
             </thead>
             <tbody>
                 @foreach($invoice->details as $detail)
-                <tr>
-                    <td class="col-qty">{{ intval($detail->quantity) }}</td>
-                    <td class="col-desc">{{ strtoupper($detail->description) }}</td>
-                    <td class="col-total">{{ number_format($detail->subtotal, 2) }}</td>
-                </tr>
+                    <tr>
+                        <td class="col-qty">{{ intval($detail->quantity) }}</td>
+                        <td class="col-desc">{{ strtoupper($detail->description) }}</td>
+                        <td class="col-total">{{ number_format($detail->subtotal, 2) }}</td>
+                    </tr>
                 @endforeach
             </tbody>
         </table>
@@ -351,8 +369,20 @@
                     <span class="col-label">OP. GRAVADAS:</span>
                     <span class="col-value">S/ {{ number_format($invoice->correct_subtotal, 2) }}</span>
                 </div>
+
+                @php
+                    // Calcular tasa histórica implícita para mostrar en el label
+                    $impliedRate = 18; // Valor por defecto
+                    if ($invoice->correct_subtotal > 0) {
+                        $impliedRate = round(($invoice->correct_igv / $invoice->correct_subtotal) * 100, 1);
+                    } elseif ($invoice->total > 0) {
+                        // Si subtotal es 0 pero total > 0 (no debería pasar en gravadas), fallback a config actual
+                        $impliedRate = (float) \App\Models\AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?: 18;
+                    }
+                @endphp
+
                 <div class="row" style="display: flex; justify-content: space-between;">
-                    <span class="col-label">IGV (18%):</span>
+                    <span class="col-label">IGV ({{ $impliedRate }}%):</span>
                     <span class="col-value">S/ {{ number_format($invoice->correct_igv, 2) }}</span>
                 </div>
             @endif
@@ -364,55 +394,55 @@
                 // Calcular dinámicamente el vuelto en caso de que los datos de BD no estén correctos
                 $totalPaid = 0;
                 $changeAmount = 0;
-                
+
                 if ($invoice->order && $invoice->order->payments) {
                     $totalPaid = $invoice->order->payments->sum('amount');
                     $hasCashPayment = $invoice->order->payments->where('payment_method', 'cash')->isNotEmpty();
-                    
+
                     if ($hasCashPayment && $totalPaid > $invoice->total) {
                         $changeAmount = $totalPaid - $invoice->total;
                     }
                 }
-                
+
                 // Usar el vuelto de la BD si está correcto, sino usar el calculado
                 $displayChange = ($invoice->change_amount > 0) ? $invoice->change_amount : $changeAmount;
                 $displayPaid = ($invoice->payment_amount > 0) ? $invoice->payment_amount : $totalPaid;
             @endphp
-            
+
             @if($displayChange > 0)
-            <div class="row" style="display: flex; justify-content: space-between;">
-                <span class="col-label">RECIBIDO:</span>
-                <span class="col-value">S/ {{ number_format($displayPaid, 2) }}</span>
-            </div>
-            <div class="row" style="display: flex; justify-content: space-between;">
-                <span class="col-label">🪙 VUELTO:</span>
-                <span class="col-value">S/ {{ number_format($displayChange, 2) }}</span>
-            </div>
+                <div class="row" style="display: flex; justify-content: space-between;">
+                    <span class="col-label">RECIBIDO:</span>
+                    <span class="col-value">S/ {{ number_format($displayPaid, 2) }}</span>
+                </div>
+                <div class="row" style="display: flex; justify-content: space-between;">
+                    <span class="col-label">🪙 VUELTO:</span>
+                    <span class="col-value">S/ {{ number_format($displayChange, 2) }}</span>
+                </div>
             @endif
         </div>
         <hr>
         <div class="payment-info" style="text-align: center;">
             <p><strong>FORMA DE PAGO:</strong>
-                {{ ucfirst(match($invoice->payment_method ?? 'cash') {
-                    'cash' => 'Efectivo',
-                    'credit_card' => 'Tarjeta de Crédito',
-                    'debit_card' => 'Tarjeta de Débito',
-                    'bank_transfer' => 'Transferencia Bancaria',
-                    'digital_wallet' => 'Billetera Digital',
-                    'yape' => 'Yape',
-                    'plin' => 'Plin',
-                    'pedidos_ya' => 'Pedidos Ya',
-                    'didi_food' => 'Didi Food',
-                    'mixto' => '💳 Pago Mixto',
-                    'multiple' => '💳 Pago Múltiple',
-                    default => ucfirst(str_replace('_', ' ', $invoice->payment_method ?? 'Efectivo'))
-                }) }}
+                {{ ucfirst(match ($invoice->payment_method ?? 'cash') {
+    'cash' => 'Efectivo',
+    'credit_card' => 'Tarjeta de Crédito',
+    'debit_card' => 'Tarjeta de Débito',
+    'bank_transfer' => 'Transferencia Bancaria',
+    'digital_wallet' => 'Billetera Digital',
+    'yape' => 'Yape',
+    'plin' => 'Plin',
+    'pedidos_ya' => 'Pedidos Ya',
+    'didi_food' => 'Didi Food',
+    'mixto' => '💳 Pago Mixto',
+    'multiple' => '💳 Pago Múltiple',
+    default => ucfirst(str_replace('_', ' ', $invoice->payment_method ?? 'Efectivo'))
+}) }}
             </p>
             @if(($invoice->payment_method ?? 'cash') === 'mixto' && $invoice->order && $invoice->order->payments)
                 <div style="font-size: 10px; margin-top: 5px; text-align: center;">
                     <strong>Detalle de pagos:</strong><br>
                     @foreach($invoice->order->payments as $payment)
-                        {{ ucfirst(match($payment->payment_method) {
+                                {{ ucfirst(match ($payment->payment_method) {
                             'cash' => 'Efectivo',
                             'credit_card' => 'Tarjeta Crédito',
                             'debit_card' => 'Tarjeta Débito',
@@ -438,24 +468,26 @@
             <p>N° 203-2015/SUNAT</p>
             <p>Consulte su comprobante en www.sunat.gob.pe</p>
             <p>Gracias por su preferencia</p>
-            <p><strong style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() }}</strong></p>
+            <p><strong
+                    style="font-size: 16px;">{{ $company['razon_social'] ?? \App\Models\CompanyConfig::getRazonSocial() }}</strong>
+            </p>
         </div>
     </div>
     <script>
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             // Imprimir automáticamente al cargar
-            setTimeout(function() {
+            setTimeout(function () {
                 window.print();
-                
+
                 // Notificar a la ventana padre que se ha completado la facturación
                 if (window.opener) {
                     window.opener.postMessage('invoice-completed', '*');
                     console.log('Notificación enviada: invoice-completed');
                 }
-                
+
                 // Después de imprimir, redirigir al mapa de mesas
-                window.addEventListener('afterprint', function() {
-                    setTimeout(function() {
+                window.addEventListener('afterprint', function () {
+                    setTimeout(function () {
                         // Redirigir a mapa de mesas
                         if (window.opener) {
                             window.opener.location.href = '/admin/mapa-mesas';
@@ -465,9 +497,9 @@
                         }
                     }, 500);
                 });
-                
+
                 // Redirección alternativa por si no funciona afterprint
-                setTimeout(function() {
+                setTimeout(function () {
                     if (window.opener) {
                         window.opener.location.href = '/admin/mapa-mesas';
                         window.close();
@@ -479,4 +511,5 @@
         });
     </script>
 </body>
+
 </html>

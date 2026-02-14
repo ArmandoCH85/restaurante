@@ -165,7 +165,7 @@ class Invoice extends Model
      */
     public function getDocumentTypeAttribute(): string
     {
-        return match($this->invoice_type) {
+        return match ($this->invoice_type) {
             'invoice' => 'Factura Electrónica',
             'receipt' => $this->order_id ? 'Boleta Electrónica' : 'Nota de Venta',
             'credit_note' => 'Nota de Crédito',
@@ -206,8 +206,8 @@ class Invoice extends Model
         }
 
         // Si el comprobante fue aceptado por SUNAT, generar nota de crédito
-        $shouldGenerateCreditNote = in_array($this->sunat_status, ['ACEPTADO', 'OBSERVADO']) && 
-                                   !$this->hasCreditNotes();
+        $shouldGenerateCreditNote = in_array($this->sunat_status, ['ACEPTADO', 'OBSERVADO']) &&
+            !$this->hasCreditNotes();
 
         if ($shouldGenerateCreditNote) {
             try {
@@ -217,7 +217,7 @@ class Invoice extends Model
                     '01', // Código 01: Anulación de la operación
                     $reason
                 );
-                
+
                 \Log::info('Nota de crédito generada automáticamente', [
                     'invoice_id' => $this->id,
                     'credit_note_id' => $creditNote->id,
@@ -229,7 +229,7 @@ class Invoice extends Model
                     'invoice_id' => $this->id,
                     'error' => $e->getMessage()
                 ]);
-                
+
                 // No fallar la anulación si hay error en la nota de crédito
                 // Solo registrar el error para revisión posterior
             }
@@ -293,7 +293,7 @@ class Invoice extends Model
      */
     public function getSunatDocumentType(): string
     {
-        return match($this->invoice_type) {
+        return match ($this->invoice_type) {
             'invoice' => '01', // Factura
             'receipt' => '03', // Boleta
             'credit_note' => '07', // Nota de Crédito
@@ -322,21 +322,31 @@ class Invoice extends Model
 
     /**
      * Calcula el subtotal sin IGV basado en el total que incluye IGV
+     * O devuelve el valor almacenado si existe (para evitar retroactividad)
      *
      * @return float
      */
     public function getCorrectSubtotalAttribute(): float
     {
+        // Si hay un valor almacenado, usarlo (histórico)
+        if ($this->taxable_amount > 0) {
+            return $this->taxable_amount;
+        }
         return $this->calculateSubtotalFromPriceWithIgv($this->total);
     }
 
     /**
      * Calcula el IGV incluido en el total
+     * O devuelve el valor almacenado si existe (para evitar retroactividad)
      *
      * @return float
      */
     public function getCorrectIgvAttribute(): float
     {
+        // Si hay un valor almacenado, usarlo (histórico)
+        if ($this->tax > 0) {
+            return $this->tax;
+        }
         return $this->calculateIncludedIgv($this->total);
     }
 

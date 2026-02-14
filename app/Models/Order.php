@@ -129,13 +129,13 @@ class Order extends Model
         if ($this->user) {
             return $this->user->name;
         }
-        
+
         // Si no hay user, intentar buscar directamente
         if ($this->employee_id) {
             $user = User::find($this->employee_id);
             return $user ? $user->name : "Usuario ID {$this->employee_id} no encontrado";
         }
-        
+
         return 'Sin mesero asignado';
     }
 
@@ -691,7 +691,7 @@ class Order extends Model
             $logContext['cash_register_id'] = $cashRegister->id;
         }
 
-        $methodName = match($payment->payment_method) {
+        $methodName = match ($payment->payment_method) {
             Payment::METHOD_CASH => 'efectivo',
             Payment::METHOD_CARD => 'tarjeta',
             Payment::METHOD_DIGITAL_WALLET => 'billetera digital',
@@ -795,135 +795,135 @@ class Order extends Model
     {
         try {
             return DB::transaction(function () use ($invoiceType, $series, $customerId) {
-            // 1. Obtener el siguiente número de factura de forma segura
-            $lastInvoice = Invoice::where('series', $series)->lockForUpdate()->latest('number')->first();
-            $nextNumber = $lastInvoice ? ((int) $lastInvoice->number) + 1 : 1;
+                // 1. Obtener el siguiente número de factura de forma segura
+                $lastInvoice = Invoice::where('series', $series)->lockForUpdate()->latest('number')->first();
+                $nextNumber = $lastInvoice ? ((int) $lastInvoice->number) + 1 : 1;
 
-            // 2. Formatear el número con ceros a la izquierda
-            $formattedNumber = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
+                // 2. Formatear el número con ceros a la izquierda
+                $formattedNumber = str_pad($nextNumber, 8, '0', STR_PAD_LEFT);
 
-            // 3. Obtener el cliente
-            $customer = Customer::find($customerId);
+                // 3. Obtener el cliente
+                $customer = Customer::find($customerId);
 
-            // Verificar que el cliente existe
-            if (!$customer) {
-                \Illuminate\Support\Facades\Log::error('❌ Cliente no encontrado', ['customer_id' => $customerId]);
-                throw new \Exception("No se encontró el cliente con ID: {$customerId}");
-            }
+                // Verificar que el cliente existe
+                if (!$customer) {
+                    \Illuminate\Support\Facades\Log::error('❌ Cliente no encontrado', ['customer_id' => $customerId]);
+                    throw new \Exception("No se encontró el cliente con ID: {$customerId}");
+                }
 
-            \Illuminate\Support\Facades\Log::info('📋 Generando factura', [
-                'order_id' => $this->id,
-                'invoice_type' => $invoiceType,
-                'series' => $series,
-                'customer_id' => $customerId,
-                'payment_method' => $this->payment_method,
-                'payment_amount' => $this->payment_amount
-            ]);
-
-            // 4. Calcular correctamente subtotal e IGV desde el total
-            $correctSubtotal = $this->total / 1.18; // Subtotal sin IGV
-            $correctIgv = $this->total - $correctSubtotal; // IGV incluido
-            
-            // 5. Guardar el tipo de documento tal como se seleccionó (sin mapear)
-            $invoiceTypeForDb = $invoiceType;
-            
-            // 6. Establecer estado SUNAT según el tipo de comprobante
-            $sunatStatus = in_array($invoiceType, ['invoice', 'receipt']) ? 'PENDIENTE' : null;
-            
-            // 7. REFRESCAR relación de pagos para asegurar datos actualizados
-            $this->load('payments'); // ✅ FORZAR REFRESH DE PAGOS
-            
-            // Calcular información de pagos para el comprobante
-            $totalPaid = $this->getTotalPaid();
-            $cashPayments = $this->payments()->where('payment_method', 'cash')->get();
-            $hasCashPayment = $cashPayments->isNotEmpty();
-            $cashAmount = $cashPayments->sum('amount');
-            
-            // Determinar método de pago principal para mostrar en el comprobante
-            $primaryPaymentMethod = 'cash'; // Por defecto efectivo
-            
-            // ✅ LOG PARA DEBUG
-            \Illuminate\Support\Facades\Log::info('🔍 Analizando pagos para factura', [
-                'order_id' => $this->id,
-                'payments_count' => $this->payments()->count(),
-                'payments_data' => $this->payments->map(function($p) {
-                    return ['method' => $p->payment_method, 'amount' => $p->amount];
-                })->toArray()
-            ]);
-            
-            if ($this->payments()->count() === 1) {
-                // Si hay un solo pago, usar ese método
-                $primaryPaymentMethod = $this->payments()->first()->payment_method;
-                \Illuminate\Support\Facades\Log::info('✅ Un solo pago detectado', [
-                    'payment_method' => $primaryPaymentMethod
+                \Illuminate\Support\Facades\Log::info('📋 Generando factura', [
+                    'order_id' => $this->id,
+                    'invoice_type' => $invoiceType,
+                    'series' => $series,
+                    'customer_id' => $customerId,
+                    'payment_method' => $this->payment_method,
+                    'payment_amount' => $this->payment_amount
                 ]);
-            } elseif ($this->payments()->count() > 1) {
-                // Si hay múltiples pagos, mostrar como "mixto"
-                $primaryPaymentMethod = 'mixto';
-                \Illuminate\Support\Facades\Log::info('✅ Múltiples pagos detectados', [
-                    'payment_method' => 'mixto',
-                    'payments_count' => $this->payments()->count()
+
+                // 4. Calcular correctamente subtotal e IGV desde el total usando configuración dinámica
+                $correctSubtotal = $this->calculateSubtotalFromPriceWithIgv($this->total); // Subtotal sin IGV
+                $correctIgv = $this->calculateIncludedIgv($this->total); // IGV incluido
+
+                // 5. Guardar el tipo de documento tal como se seleccionó (sin mapear)
+                $invoiceTypeForDb = $invoiceType;
+
+                // 6. Establecer estado SUNAT según el tipo de comprobante
+                $sunatStatus = in_array($invoiceType, ['invoice', 'receipt']) ? 'PENDIENTE' : null;
+
+                // 7. REFRESCAR relación de pagos para asegurar datos actualizados
+                $this->load('payments'); // ✅ FORZAR REFRESH DE PAGOS
+
+                // Calcular información de pagos para el comprobante
+                $totalPaid = $this->getTotalPaid();
+                $cashPayments = $this->payments()->where('payment_method', 'cash')->get();
+                $hasCashPayment = $cashPayments->isNotEmpty();
+                $cashAmount = $cashPayments->sum('amount');
+
+                // Determinar método de pago principal para mostrar en el comprobante
+                $primaryPaymentMethod = 'cash'; // Por defecto efectivo
+
+                // ✅ LOG PARA DEBUG
+                \Illuminate\Support\Facades\Log::info('🔍 Analizando pagos para factura', [
+                    'order_id' => $this->id,
+                    'payments_count' => $this->payments()->count(),
+                    'payments_data' => $this->payments->map(function ($p) {
+                        return ['method' => $p->payment_method, 'amount' => $p->amount];
+                    })->toArray()
                 ]);
-            } else {
-                \Illuminate\Support\Facades\Log::warning('❌ No se encontraron pagos', [
-                    'payment_method' => 'cash (default)',
-                    'order_id' => $this->id
+
+                if ($this->payments()->count() === 1) {
+                    // Si hay un solo pago, usar ese método
+                    $primaryPaymentMethod = $this->payments()->first()->payment_method;
+                    \Illuminate\Support\Facades\Log::info('✅ Un solo pago detectado', [
+                        'payment_method' => $primaryPaymentMethod
+                    ]);
+                } elseif ($this->payments()->count() > 1) {
+                    // Si hay múltiples pagos, mostrar como "mixto"
+                    $primaryPaymentMethod = 'mixto';
+                    \Illuminate\Support\Facades\Log::info('✅ Múltiples pagos detectados', [
+                        'payment_method' => 'mixto',
+                        'payments_count' => $this->payments()->count()
+                    ]);
+                } else {
+                    \Illuminate\Support\Facades\Log::warning('❌ No se encontraron pagos', [
+                        'payment_method' => 'cash (default)',
+                        'order_id' => $this->id
+                    ]);
+                }
+
+                // Calcular vuelto solo si hay pago en efectivo y exceso
+                $changeAmount = 0;
+                if ($hasCashPayment && $totalPaid > $this->total) {
+                    $changeAmount = $totalPaid - $this->total;
+                }
+
+                // 8. Crear la factura
+                $invoice = Invoice::create([
+                    'order_id' => $this->id,
+                    'invoice_type' => $invoiceTypeForDb,
+                    'series' => $series,
+                    'number' => $formattedNumber,
+                    'issue_date' => now(),
+                    'customer_id' => $customer->id,
+                    'employee_id' => $this->employee_id, // ✅ AGREGAR: Asignar el mesero que registró la orden
+                    'client_name' => $customer->name,
+                    'client_document' => $customer->document_number,
+                    'client_address' => $customer->address,
+                    'taxable_amount' => round($correctSubtotal, 2),
+                    'tax' => round($correctIgv, 2),
+                    'total' => $this->total,
+                    'payment_method' => $primaryPaymentMethod,
+                    'payment_amount' => $totalPaid,
+                    'change_amount' => $changeAmount,
+                    'status' => 'issued',
+                    'sunat_status' => $sunatStatus,
                 ]);
-            }
-            
-            // Calcular vuelto solo si hay pago en efectivo y exceso
-            $changeAmount = 0;
-            if ($hasCashPayment && $totalPaid > $this->total) {
-                $changeAmount = $totalPaid - $this->total;
-            }
-            
-            // 8. Crear la factura
-            $invoice = Invoice::create([
-                'order_id' => $this->id,
-                'invoice_type' => $invoiceTypeForDb,
-                'series' => $series,
-                'number' => $formattedNumber,
-                'issue_date' => now(),
-                'customer_id' => $customer->id,
-                'employee_id' => $this->employee_id, // ✅ AGREGAR: Asignar el mesero que registró la orden
-                'client_name' => $customer->name,
-                'client_document' => $customer->document_number,
-                'client_address' => $customer->address,
-                'taxable_amount' => round($correctSubtotal, 2),
-                'tax' => round($correctIgv, 2),
-                'total' => $this->total,
-                'payment_method' => $primaryPaymentMethod,
-                'payment_amount' => $totalPaid,
-                'change_amount' => $changeAmount,
-                'status' => 'issued',
-                'sunat_status' => $sunatStatus,
-            ]);
 
-            // 8. Agregar detalles de la factura
-        foreach ($this->orderDetails as $detail) {
-            $invoice->details()->create([
-                'product_id' => $detail->product_id,
-                'quantity' => $detail->quantity,
-                'unit_price' => $detail->unit_price,
-                'subtotal' => $detail->subtotal,
-                    'description' => $detail->product->name,
-            ]);
-        }
+                // 8. Agregar detalles de la factura
+                foreach ($this->orderDetails as $detail) {
+                    $invoice->details()->create([
+                        'product_id' => $detail->product_id,
+                        'quantity' => $detail->quantity,
+                        'unit_price' => $detail->unit_price,
+                        'subtotal' => $detail->subtotal,
+                        'description' => $detail->product->name,
+                    ]);
+                }
 
-            // 9. Actualizar el correlativo en la serie del documento
-            $documentSeries = DocumentSeries::where('series', $series)->first();
-            if ($documentSeries) {
-                $documentSeries->increment('current_number');
-            }
+                // 9. Actualizar el correlativo en la serie del documento
+                $documentSeries = DocumentSeries::where('series', $series)->first();
+                if ($documentSeries) {
+                    $documentSeries->increment('current_number');
+                }
 
-            \Illuminate\Support\Facades\Log::info('✅ Factura generada exitosamente', [
-                'invoice_id' => $invoice->id,
-                'series' => $invoice->series,
-                'number' => $invoice->number
-            ]);
+                \Illuminate\Support\Facades\Log::info('✅ Factura generada exitosamente', [
+                    'invoice_id' => $invoice->id,
+                    'series' => $invoice->series,
+                    'number' => $invoice->number
+                ]);
 
-        return $invoice;
-        });
+                return $invoice;
+            });
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('❌ Error generando factura', [
                 'order_id' => $this->id,

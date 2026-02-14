@@ -799,9 +799,9 @@ class PosController extends Controller
 
         // Calcular desglose según tipo de comprobante
         if (in_array($validated['invoice_type'], ['receipt', 'invoice'])) {
-            // Calcular IGV incluido en el precio
-            $subtotalAfterDiscount = round($totalAfterDiscount / 1.18, 2);
-            $taxAmount = round($totalAfterDiscount / 1.18 * 0.18, 2);
+            // Calcular IGV incluido en el precio usando el Trait (dinámico)
+            $subtotalAfterDiscount = $order->calculateSubtotalFromPriceWithIgv($totalAfterDiscount);
+            $taxAmount = $order->calculateIncludedIgv($totalAfterDiscount);
             $total = $totalAfterDiscount; // El total no cambia, ya incluye IGV
         } else {
             // Nota de venta no tiene IGV
@@ -858,8 +858,8 @@ class PosController extends Controller
                     try {
                         $customer = \App\Models\Customer::create($customerData);
                     } catch (\Exception $e) {
-                                            // Si falla la creación, usar cliente genérico
-                    $customer = \App\Models\Customer::where('document_type', 'DNI')->where('document_number', '00000000')->first();
+                        // Si falla la creación, usar cliente genérico
+                        $customer = \App\Models\Customer::where('document_type', 'DNI')->where('document_number', '00000000')->first();
                     }
                 }
 
@@ -920,7 +920,7 @@ class PosController extends Controller
             // ✅ REGISTRAR PAGOS MÚLTIPLES ANTES DE CREAR COMPROBANTE
             // Limpiar pagos anteriores de esta orden
             $order->payments()->delete();
-            
+
             // Registrar cada método de pago por separado
             foreach ($validated['split_methods'] as $index => $method) {
                 $amount = $validated['split_amounts'][$index] ?? 0;
@@ -936,14 +936,14 @@ class PosController extends Controller
             // ✅ USAR Order::generateInvoice() PARA LECTURA CORRECTA DE PAGOS
             // Obtener la serie correcta según el tipo de documento
             $series = $this->getNextSeries($validated['invoice_type']);
-            
+
             // Generar la factura usando el método del modelo Order (que lee pagos correctamente)
             $invoice = $order->generateInvoice(
                 $validated['invoice_type'],
                 $series,
                 $customerId
             );
-            
+
             if (!$invoice) {
                 throw new \Exception('No se pudo generar la factura');
             }
@@ -963,7 +963,7 @@ class PosController extends Controller
             // Enviar el comprobante a SUNAT si es factura o boleta electrónica
             if (in_array($validated['invoice_type'], ['invoice', 'receipt'])) {
                 $sunatService = new \App\Services\SunatService();
-                $sunatService->sendInvoice($invoice);
+                $sunatService->emitirFactura($invoice->id);
             } else {
                 // Para notas de venta, solo generar código QR
                 $invoice->qr_code = $invoice->generateQRCode();
@@ -1038,7 +1038,7 @@ class PosController extends Controller
             // ✅ REGISTRAR PAGO SIMPLE ANTES DE CREAR COMPROBANTE
             // Limpiar pagos anteriores de esta orden
             $order->payments()->delete();
-            
+
             // Registrar el pago seleccionado
             $paymentAmount = $validated['payment_method'] === 'cash' ? $validated['payment_amount'] : $total;
             $order->registerPayment(
@@ -1050,14 +1050,14 @@ class PosController extends Controller
             // ✅ USAR Order::generateInvoice() PARA LECTURA CORRECTA DE PAGOS
             // Obtener la serie correcta según el tipo de documento
             $series = $this->getNextSeries($validated['invoice_type']);
-            
+
             // Generar la factura usando el método del modelo Order (que lee pagos correctamente)
             $invoice = $order->generateInvoice(
                 $validated['invoice_type'],
                 $series,
                 $customerId
             );
-            
+
             if (!$invoice) {
                 throw new \Exception('No se pudo generar la factura');
             }

@@ -2,61 +2,88 @@
 
 namespace App\Traits;
 
+use App\Models\AppSetting;
+
 /**
  * Trait para cálculos de IGV según normativa peruana
  * 
- * Los precios en el sistema YA INCLUYEN IGV (18%)
+ * Los precios en el sistema YA INCLUYEN IGV
  * Este trait calcula cuánto IGV está incluido en el precio
  */
 trait CalculatesIgv
 {
     /**
-     * Tasa de IGV en Perú (18%)
+     * Obtiene la tasa de IGV actual desde la configuración.
+     * Retorna el valor porcentual (ej. 18.00 o 10.50).
      */
-    public const IGV_RATE = 0.18;
+    public function getIgvRate(): float
+    {
+        // Intentar obtener del modelo si tiene la propiedad (para futuro soporte de tasa histórica)
+        if (isset($this->igv_percent)) {
+            return (float) $this->igv_percent;
+        }
+        
+        // Obtener de la configuración global
+        return (float) AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?: 18.00;
+    }
 
     /**
-     * Factor para calcular IGV incluido: 1 + tasa_igv
+     * Obtiene el factor de IGV (1 + tasa/100).
+     * Ej. Si tasa es 18%, factor es 1.18.
+     * Ej. Si tasa es 10.5%, factor es 1.105.
      */
-    public const IGV_FACTOR = 1.18;
-
+    public function getIgvFactor(): float
+    {
+        return 1 + ($this->getIgvRate() / 100);
+    }
+    
     /**
      * Calcula el IGV incluido en un precio que ya contiene IGV
      * 
-     * Fórmula: IGV = Precio_con_IGV / 1.18 * 0.18
+     * Fórmula: IGV = Precio_con_IGV / Factor * (Tasa / 100)
      * 
      * @param float $priceWithIgv Precio que ya incluye IGV
      * @return float IGV incluido en el precio
      */
     public function calculateIncludedIgv(float $priceWithIgv): float
     {
-        return round($priceWithIgv / self::IGV_FACTOR * self::IGV_RATE, 2);
+        $factor = $this->getIgvFactor();
+        $rate = $this->getIgvRate() / 100;
+        
+        if ($factor == 0) return 0; // Evitar división por cero
+        
+        return round($priceWithIgv / $factor * $rate, 2);
     }
 
     /**
      * Calcula el subtotal (precio sin IGV) de un precio que incluye IGV
      * 
-     * Fórmula: Subtotal = Precio_con_IGV / 1.18
+     * Fórmula: Subtotal = Precio_con_IGV / Factor
      * 
      * @param float $priceWithIgv Precio que ya incluye IGV
      * @return float Precio sin IGV (subtotal)
      */
     public function calculateSubtotalFromPriceWithIgv(float $priceWithIgv): float
     {
-        return round($priceWithIgv / self::IGV_FACTOR, 2);
+        $factor = $this->getIgvFactor();
+        
+        if ($factor == 0) return $priceWithIgv;
+        
+        return round($priceWithIgv / $factor, 2);
     }
 
     /**
      * Calcula el precio con IGV a partir de un subtotal
      * 
-     * Fórmula: Precio_con_IGV = Subtotal * 1.18
+     * Fórmula: Precio_con_IGV = Subtotal * Factor
      * 
      * @param float $subtotal Precio sin IGV
      * @return float Precio con IGV incluido
      */
     public function calculatePriceWithIgv(float $subtotal): float
     {
-        return round($subtotal * self::IGV_FACTOR, 2);
+        $factor = $this->getIgvFactor();
+        return round($subtotal * $factor, 2);
     }
 
     /**
@@ -86,12 +113,13 @@ trait CalculatesIgv
     {
         $subtotal = $this->calculateSubtotalFromPriceWithIgv($priceWithIgv);
         $igv = $this->calculateIncludedIgv($priceWithIgv);
+        $rate = $this->getIgvRate();
         
         return [
             'subtotal' => $subtotal,
             'igv' => $igv,
             'total' => $priceWithIgv,
-            'igv_rate' => self::IGV_RATE * 100, // 18%
+            'igv_rate' => $rate,
             'is_valid' => $this->validateIgvCalculations($priceWithIgv, $subtotal, $igv)
         ];
     }
