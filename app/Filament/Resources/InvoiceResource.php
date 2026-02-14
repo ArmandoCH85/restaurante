@@ -101,14 +101,18 @@ class InvoiceResource extends Resource
                             ->relationship('customer', 'name')
                             // Permitimos cambiar el cliente SOLO si aún no ha sido aceptado por SUNAT (factura/boleta). En Notas de Venta siempre editable.
                             ->helperText('Si necesita corregir nombre/documento solo en este comprobante use los campos inferiores. Para modificar el cliente global vaya a: Clientes.')
-                            ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && in_array($record->sunat_status, ['ACEPTADO', 'RECHAZADO']))
+                            ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice', 'receipt']) && in_array($record->sunat_status, ['ACEPTADO', 'RECHAZADO']))
                             ->getOptionLabelFromRecordUsing(fn(Customer $c) => $c->name . ' — ' . $c->document_type . ': ' . $c->document_number)
                             ->searchable()
                             ->reactive()
                             ->afterStateUpdated(function ($state, callable $set) {
-                                if (!$state) { return; }
+                                if (!$state) {
+                                    return;
+                                }
                                 $customer = Customer::find($state);
-                                if (!$customer) { return; }
+                                if (!$customer) {
+                                    return;
+                                }
                                 // Siempre sincronizar al seleccionar un cliente para reflejar datos actualizados
                                 $set('client_name', $customer->name);
                                 $set('client_document', $customer->document_number);
@@ -122,25 +126,27 @@ class InvoiceResource extends Resource
                                     ->label('Nombre para este comprobante')
                                     ->maxLength(150)
                                     ->default(fn(?Invoice $record) => $record?->client_name ?? $record?->customer?->name)
-                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && $record->sunat_status === 'ACEPTADO')
+                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice', 'receipt']) && $record->sunat_status === 'ACEPTADO')
                                     ->helperText('Si se deja vacío se usa el nombre del cliente.'),
                                 Forms\Components\TextInput::make('client_document')
                                     ->label('Documento para este comprobante')
                                     ->maxLength(20)
                                     ->default(fn(?Invoice $record) => $record?->client_document ?? $record?->customer?->document_number)
-                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && $record->sunat_status === 'ACEPTADO')
+                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice', 'receipt']) && $record->sunat_status === 'ACEPTADO')
                                     ->helperText('Reemplaza numero a enviar/impreso; no cambia el cliente original.'),
                                 Forms\Components\TextInput::make('client_address')
                                     ->label('Dirección para este comprobante')
                                     ->maxLength(255)
                                     ->default(fn(?Invoice $record) => $record?->client_address ?? $record?->customer?->address)
-                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice','receipt']) && $record->sunat_status === 'ACEPTADO')
+                                    ->disabled(fn(?Invoice $record) => $record && in_array($record->invoice_type, ['invoice', 'receipt']) && $record->sunat_status === 'ACEPTADO')
                                     ->helperText('Si se deja vacío se usa la dirección del cliente.'),
                                 Forms\Components\Placeholder::make('info_documento_cliente')
                                     ->label('Documento del cliente seleccionado')
                                     ->content(function (callable $get) {
                                         $cid = $get('customer_id');
-                                        if (!$cid) { return '—'; }
+                                        if (!$cid) {
+                                            return '—';
+                                        }
                                         $c = Customer::find($cid);
                                         return $c ? ($c->document_type . ': ' . $c->document_number) : '—';
                                     })
@@ -177,7 +183,7 @@ class InvoiceResource extends Resource
                         Forms\Components\Textarea::make('voided_reason')
                             ->label('Motivo de Anulación')
                             ->disabled()
-                            ->visible(fn (Invoice $record): bool => $record->tax_authority_status === 'voided'),
+                            ->visible(fn(Invoice $record): bool => $record->tax_authority_status === 'voided'),
                     ]),
                 Forms\Components\Section::make('Notas / Auditoría')
                     ->schema([
@@ -218,21 +224,22 @@ class InvoiceResource extends Resource
 
                 Tables\Columns\BadgeColumn::make('invoice_type')
                     ->label('Tipo')
-                    ->formatStateUsing(fn (string $state, $record): string =>
+                    ->formatStateUsing(
+                        fn(string $state, $record): string =>
                         // Si la serie comienza con 'NV', es una Nota de Venta
                         str_starts_with($record->series, 'NV')
-                            ? 'Nota de Venta'
-                            : match ($state) {
-                                'invoice' => 'Factura',
-                                'receipt' => 'Boleta',
-                                default => 'Nota de Venta',
-                            }
+                        ? 'Nota de Venta'
+                        : match ($state) {
+                            'invoice' => 'Factura',
+                            'receipt' => 'Boleta',
+                            default => 'Nota de Venta',
+                        }
                     )
                     ->colors([
                         'primary' => 'invoice',
-                        'success' => fn ($state, $record) => $state === 'receipt' && !str_starts_with($record->series, 'NV'),
-                        'info' => fn ($state, $record) => str_starts_with($record->series, 'NV'),
-                        'warning' => fn ($state, $record) => $state !== 'invoice' && $state !== 'receipt' && !str_starts_with($record->series, 'NV'),
+                        'success' => fn($state, $record) => $state === 'receipt' && !str_starts_with($record->series, 'NV'),
+                        'info' => fn($state, $record) => str_starts_with($record->series, 'NV'),
+                        'warning' => fn($state, $record) => $state !== 'invoice' && $state !== 'receipt' && !str_starts_with($record->series, 'NV'),
                     ]),
 
                 Tables\Columns\TextColumn::make('customer.name')
@@ -271,25 +278,25 @@ class InvoiceResource extends Resource
                         };
                     })
                     ->colors([
-                        'warning' => fn ($record) =>
+                        'warning' => fn($record) =>
                             ($record->invoice_type === 'sales_note' || str_starts_with($record->series, 'NV'))
-                                ? $record->tax_authority_status === 'pending'
-                                : in_array($record->sunat_status, ['PENDIENTE', null]),
-                        'info' => fn ($record) => $record->sunat_status === 'ENVIANDO',
-                        'success' => fn ($record) =>
+                            ? $record->tax_authority_status === 'pending'
+                            : in_array($record->sunat_status, ['PENDIENTE', null]),
+                        'info' => fn($record) => $record->sunat_status === 'ENVIANDO',
+                        'success' => fn($record) =>
                             ($record->invoice_type === 'sales_note' || str_starts_with($record->series, 'NV'))
-                                ? $record->tax_authority_status === 'accepted'
-                                : $record->sunat_status === 'ACEPTADO',
-                        'danger' => fn ($record) =>
+                            ? $record->tax_authority_status === 'accepted'
+                            : $record->sunat_status === 'ACEPTADO',
+                        'danger' => fn($record) =>
                             ($record->invoice_type === 'sales_note' || str_starts_with($record->series, 'NV'))
-                                ? in_array($record->tax_authority_status, ['rejected'])
-                                : in_array($record->sunat_status, ['RECHAZADO', 'ERROR']),
-                        'gray' => fn ($record) => $record->tax_authority_status === 'voided',
+                            ? in_array($record->tax_authority_status, ['rejected'])
+                            : in_array($record->sunat_status, ['RECHAZADO', 'ERROR']),
+                        'gray' => fn($record) => $record->tax_authority_status === 'voided',
                     ]),
 
                 Tables\Columns\BadgeColumn::make('sunat_status')
                     ->label('Estado SUNAT')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                    ->formatStateUsing(fn(?string $state): string => match ($state) {
                         'PENDIENTE' => 'Pendiente',
                         'ENVIANDO' => 'Enviando',
                         'ACEPTADO' => 'Aceptado',
@@ -299,13 +306,14 @@ class InvoiceResource extends Resource
                         default => 'Sin enviar',
                     })
                     ->colors([
-                        'gray' => fn (?string $state): bool => $state === null || $state === 'NO_APLICA',
+                        'gray' => fn(?string $state): bool => $state === null || $state === 'NO_APLICA',
                         'warning' => 'PENDIENTE',
                         'info' => 'ENVIANDO',
                         'success' => 'ACEPTADO',
                         'danger' => ['RECHAZADO', 'ERROR'],
                     ])
-                    ->visible(fn ($livewire): bool =>
+                    ->visible(
+                        fn($livewire): bool =>
                         // SOLO mostrar para Boletas y Facturas - NO Notas de Venta
                         in_array($livewire->getTableFilterState('invoice_type'), ['invoice', 'receipt']) ||
                         $livewire->getTableFilterState('invoice_type') === null
@@ -314,13 +322,20 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('voided_date')
                     ->label('Fecha Anulación')
                     ->date('d/m/Y')
-                    ->visible(fn ($livewire): bool => $livewire->getTableFilterState('tax_authority_status') === 'voided')
+                    ->visible(fn($livewire): bool => $livewire->getTableFilterState('tax_authority_status') === 'voided')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('sunat_description')
-                    ->label('Motivo Rechazo')
+                    ->label('Respuesta SUNAT')
+                    ->limit(40)
+                    ->tooltip(fn($record) => $record->sunat_description)
                     ->wrap()
-                    ->visible(fn($record) => ($record?->sunat_status === 'RECHAZADO')),
+                    ->visible(
+                        fn($livewire): bool =>
+                            // Show for invoices/receipts regardless of status, as long as there is a status
+                        (in_array($livewire->getTableFilterState('invoice_type'), ['invoice', 'receipt']) ||
+                            $livewire->getTableFilterState('invoice_type') === null)
+                    ),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('invoice_type')
@@ -349,11 +364,11 @@ class InvoiceResource extends Resource
                         return $query
                             ->when(
                                 $data['issued_from'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('issue_date', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('issue_date', '>=', $date),
                             )
                             ->when(
                                 $data['issued_until'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('issue_date', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('issue_date', '<=', $date),
                             );
                     })
             ])
@@ -361,17 +376,19 @@ class InvoiceResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make()
                     ->label('Editar')
-                    ->visible(fn (Invoice $record): bool =>
-                        // Permitir editar siempre Notas de Venta.
-                        // Para Factura/Boleta permitir solo si aún no aceptada ni anulada.
+                    ->visible(
+                        fn(Invoice $record): bool =>
+                            // Permitir editar siempre Notas de Venta.
+                            // Para Factura/Boleta permitir solo si aún no aceptada ni anulada.
                         ($record->invoice_type === 'sales_note') ||
-                        (in_array($record->invoice_type, ['invoice','receipt']) && !in_array($record->sunat_status, ['ACEPTADO']) && $record->tax_authority_status !== 'voided')
+                        (in_array($record->invoice_type, ['invoice', 'receipt']) && !in_array($record->sunat_status, ['ACEPTADO']) && $record->tax_authority_status !== 'voided')
                     ),
                 Action::make('send_to_sunat')
                     ->label('Enviar a SUNAT')
                     ->icon('heroicon-o-paper-airplane')
                     ->color('info')
-                    ->visible(fn (Invoice $record): bool =>
+                    ->visible(
+                        fn(Invoice $record): bool =>
                         // SOLO Boletas y Facturas - NO Notas de Venta
                         in_array($record->invoice_type, ['invoice', 'receipt']) &&
                         ($record->sunat_status === 'PENDIENTE' || $record->sunat_status === null)
@@ -382,7 +399,8 @@ class InvoiceResource extends Resource
                             ->content('Se enviará vía QPS (qpse.pe) - Método estable y confiable')
                     ])
                     ->modalHeading('Enviar Comprobante a SUNAT')
-                    ->modalDescription(fn (Invoice $record): string =>
+                    ->modalDescription(
+                        fn(Invoice $record): string =>
                         "Comprobante: {$record->series}-{$record->number}\nCliente: {$record->customer->name}\nTotal: S/ " . number_format($record->total, 2)
                     )
                     ->modalSubmitActionLabel('Enviar a SUNAT')
@@ -420,7 +438,7 @@ class InvoiceResource extends Resource
                     ->label('Anular')
                     ->icon('heroicon-o-x-mark')
                     ->color('danger')
-                    ->visible(fn (Invoice $record): bool => $record->canBeVoided())
+                    ->visible(fn(Invoice $record): bool => $record->canBeVoided())
                     ->form([
                         Forms\Components\Textarea::make('reason')
                             ->label('Motivo de Anulación')
@@ -476,51 +494,64 @@ class InvoiceResource extends Resource
                     ->label('Descargar XML')
                     ->icon('heroicon-o-document-text')
                     ->color('info')
-                    ->visible(fn (Invoice $record): bool =>
+                    ->visible(
+                        fn(Invoice $record): bool =>
                         (function ($path) {
-                            if (empty($path)) return false;
-                            if (file_exists($path)) return true;
+                            if (empty($path))
+                                return false;
+                            if (file_exists($path))
+                                return true;
                             $normalized = ltrim(str_replace('\\', '/', $path), '/');
-                            if (file_exists(storage_path('app/private/' . $normalized))) return true;
-                            if (file_exists(storage_path('app/' . $normalized))) return true;
+                            if (file_exists(storage_path('app/private/' . $normalized)))
+                                return true;
+                            if (file_exists(storage_path('app/' . $normalized)))
+                                return true;
                             return false;
                         })($record->xml_path)
                     )
-                    ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-xml', $record))
+                    ->url(fn(Invoice $record): string => route('filament.admin.invoices.download-xml', $record))
                     ->openUrlInNewTab(),
                 Action::make('download_cdr')
                     ->label('Descargar CDR')
                     ->icon('heroicon-o-document-check')
                     ->color('warning')
-                    ->visible(fn (Invoice $record): bool =>
+                    ->visible(
+                        fn(Invoice $record): bool =>
                         (function ($path) {
-                            if (empty($path)) return false;
-                            if (file_exists($path)) return true;
+                            if (empty($path))
+                                return false;
+                            if (file_exists($path))
+                                return true;
                             $normalized = ltrim(str_replace('\\', '/', $path), '/');
-                            if (file_exists(storage_path('app/private/' . $normalized))) return true;
-                            if (file_exists(storage_path('app/' . $normalized))) return true;
+                            if (file_exists(storage_path('app/private/' . $normalized)))
+                                return true;
+                            if (file_exists(storage_path('app/' . $normalized)))
+                                return true;
                             return false;
                         })($record->cdr_path)
                     )
-                    ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-cdr', $record))
+                    ->url(fn(Invoice $record): string => route('filament.admin.invoices.download-cdr', $record))
                     ->openUrlInNewTab(),
                 Action::make('download_pdf')
                     ->label('Descargar PDF')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('gray')
-                    ->url(fn (Invoice $record): string => route('filament.admin.invoices.download-pdf', $record))
+                    ->url(fn(Invoice $record): string => route('filament.admin.invoices.download-pdf', $record))
                     ->openUrlInNewTab(),
                 Action::make('resend_to_sunat')
                     ->label('Reenviar a SUNAT')
                     ->icon('heroicon-o-arrow-path')
                     ->color('warning')
-                    ->visible(fn (Invoice $record): bool =>
-                        in_array($record->sunat_status, ['RECHAZADO']) && in_array($record->invoice_type, ['invoice','receipt'])
+                    ->visible(
+                        fn(Invoice $record): bool =>
+                        // Permitir reenviar también aceptados (para corregir falsos positivos) y errores
+                        in_array($record->sunat_status, ['RECHAZADO', 'ERROR', 'ACEPTADO']) &&
+                        in_array($record->invoice_type, ['invoice', 'receipt'])
                     )
                     ->requiresConfirmation()
                     ->modalHeading('Reenviar Comprobante a SUNAT')
-                    ->modalDescription(fn (Invoice $record): string =>
-                        "¿Está seguro de reenviar el comprobante {$record->series}-{$record->number} a SUNAT?" )
+                    ->modalDescription(fn(Invoice $record): string =>
+                        "¿Está seguro de reenviar el comprobante {$record->series}-{$record->number} a SUNAT?")
                     ->modalSubmitActionLabel('Reenviar')
                     ->action(function (Invoice $record): void {
                         try {
@@ -541,8 +572,9 @@ class InvoiceResource extends Resource
                     ->label('Crear Nota de Crédito')
                     ->icon('heroicon-o-document-minus')
                     ->color('danger')
-                    ->visible(fn (Invoice $record): bool => 
-                        $record->sunat_status === 'ACEPTADO' && 
+                    ->visible(
+                        fn(Invoice $record): bool =>
+                        $record->sunat_status === 'ACEPTADO' &&
                         !$record->hasCreditNotes() &&
                         in_array($record->invoice_type, ['invoice', 'receipt'])
                     )
@@ -573,7 +605,7 @@ class InvoiceResource extends Resource
                     ->action(function (Invoice $record, array $data): void {
                         try {
                             $sunatService = new \App\Services\SunatService();
-                            
+
                             $result = $sunatService->emitirNotaCredito(
                                 $record,
                                 $data['motivo_codigo'],

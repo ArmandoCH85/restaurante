@@ -26,7 +26,7 @@ class QpsService
     {
         // Verificar si usar configuración dinámica desde base de datos
         $useDynamicConfig = config('services.qps.use_dynamic_config', true);
-        
+
         if ($useDynamicConfig) {
             // Configuración dinámica desde base de datos
             $this->loadDynamicConfiguration();
@@ -34,10 +34,10 @@ class QpsService
             // Configuración estática desde config/services.php
             $this->loadStaticConfiguration();
         }
-        
+
         $this->token = null;
         $this->tokenExpiry = null;
-        
+
         // Configuración de la empresa para SUNAT
         $this->ruc = \App\Models\AppSetting::getSetting('Empresa', 'ruc');
         $this->usuarioSol = \App\Models\AppSetting::getSetting('Empresa', 'usuario_sol');
@@ -52,10 +52,10 @@ class QpsService
         // Determinar el entorno actual (beta o production)
         $isProduction = \App\Models\AppSetting::getSetting('FacturacionElectronica', 'sunat_production') === '1';
         $environment = $isProduction ? 'production' : 'beta';
-        
+
         // Obtener endpoint dinámico
         $endpoint = \App\Models\AppSetting::getQpseEndpointByEnvironmentFromFacturacion($environment);
-        
+
         if ($endpoint) {
             $this->baseUrl = $endpoint;
             $this->tokenUrl = $endpoint . '/api/auth/cpe/token';
@@ -65,10 +65,10 @@ class QpsService
             $this->loadStaticConfiguration();
             return;
         }
-        
+
         // Obtener credenciales dinámicas
         $credentials = \App\Models\AppSetting::getQpseCredentialsFromFacturacion();
-        
+
         if ($credentials['username'] && $credentials['password']) {
             $this->username = $credentials['username'];
             $this->password = $credentials['password'];
@@ -77,7 +77,7 @@ class QpsService
             $this->username = config('services.qps.username');
             $this->password = config('services.qps.password');
         }
-        
+
         Log::channel('qps')->info('QPS: Configuración dinámica cargada', [
             'environment' => $environment,
             'endpoint' => $endpoint,
@@ -95,7 +95,7 @@ class QpsService
         $this->apiUrl = config('services.qps.api_url', 'https://demo-cpe.qpse.pe/api/cpe');
         $this->username = config('services.qps.username');
         $this->password = config('services.qps.password');
-        
+
         Log::channel('qps')->info('QPS: Configuración estática cargada desde config/services.php');
     }
 
@@ -137,7 +137,7 @@ class QpsService
             if (!$response->successful()) {
                 $statusCode = $response->status();
                 $errorBody = $response->body();
-                
+
                 $errorMessage = match ($statusCode) {
                     401 => 'Credenciales inválidas. Verifique usuario y contraseña QPSE.',
                     403 => 'Acceso denegado. Verifique permisos de la cuenta QPSE.',
@@ -146,14 +146,14 @@ class QpsService
                     500, 502, 503, 504 => 'Error del servidor QPSE. Intente nuevamente más tarde.',
                     default => "Error HTTP {$statusCode} del servidor QPSE."
                 };
-                
+
                 Log::channel('qps')->error('QPS: Error HTTP al obtener token', [
                     'status_code' => $statusCode,
                     'error_message' => $errorMessage,
                     'response_body' => $errorBody,
                     'url' => $this->tokenUrl
                 ]);
-                
+
                 throw new Exception($errorMessage . " Código: {$statusCode}");
             }
 
@@ -176,7 +176,7 @@ class QpsService
             }
 
             $this->token = $data['token_acceso'];
-            $this->tokenExpiry = now()->timestamp + (int)$data['expira_en'] - 30; // 30 segundos de margen
+            $this->tokenExpiry = now()->timestamp + (int) $data['expira_en'] - 30; // 30 segundos de margen
 
             Log::channel('qps')->info('QPS: Token obtenido exitosamente', [
                 'token_prefix' => substr($this->token, 0, 10) . '...',
@@ -206,7 +206,7 @@ class QpsService
             if (str_contains($e->getMessage(), 'QPSE')) {
                 throw $e;
             }
-            
+
             Log::channel('qps')->error('QPS: Error inesperado al obtener token', [
                 'error' => $e->getMessage(),
                 'url' => $this->tokenUrl,
@@ -224,19 +224,19 @@ class QpsService
     private function validateConfiguration(): void
     {
         $errors = [];
-        
+
         if (empty($this->tokenUrl)) {
             $errors[] = 'URL del token QPSE no configurada';
         }
-        
+
         if (empty($this->username)) {
             $errors[] = 'Usuario QPSE no configurado';
         }
-        
+
         if (empty($this->password)) {
             $errors[] = 'Contraseña QPSE no configurada';
         }
-        
+
         if (!empty($errors)) {
             $errorMessage = 'Configuración QPSE incompleta: ' . implode(', ', $errors);
             Log::channel('qps')->error('QPS: Configuración incompleta', ['errors' => $errors]);
@@ -257,25 +257,25 @@ class QpsService
         // Validar nombre antes de cualquier llamada a QPS
         $this->validateFilename($filename);
         $token = $this->getAccessToken();
-     
-         // Convertir XML a base64
-         $xmlBase64 = base64_encode($xmlContent);
-     
-         $data = [
-             'tipo_integracion' => 1, // 1 para procesamiento completo (firma + envío)
-             'nombre_archivo' => $filename,
-             'contenido_archivo' => $xmlBase64
-         ];
-     
-         Log::channel('qps')->info('QPS: INTEGRADO - Enviando XML para procesamiento completo', [
-             'filename' => $filename,
-             'xml_size' => strlen($xmlContent),
-             'xml_base64_length' => strlen($xmlBase64),
-             'token_prefix' => substr($token, 0, 10) . '...',
-             'metodo' => 'Integrado (firma + envío)',
-             'endpoint' => $this->apiUrl . '/generar',
-             'tipo_integracion' => 1
-         ]);
+
+        // Convertir XML a base64
+        $xmlBase64 = base64_encode($xmlContent);
+
+        $data = [
+            'tipo_integracion' => 1, // 1 para procesamiento completo (firma + envío)
+            'nombre_archivo' => $filename,
+            'contenido_archivo' => $xmlBase64
+        ];
+
+        Log::channel('qps')->info('QPS: INTEGRADO - Enviando XML para procesamiento completo', [
+            'filename' => $filename,
+            'xml_size' => strlen($xmlContent),
+            'xml_base64_length' => strlen($xmlBase64),
+            'token_prefix' => substr($token, 0, 10) . '...',
+            'metodo' => 'Integrado (firma + envío)',
+            'endpoint' => $this->apiUrl . '/generar',
+            'tipo_integracion' => 1
+        ]);
 
         try {
             $response = Http::timeout(60)
@@ -311,7 +311,7 @@ class QpsService
                 'error' => $e->getMessage(),
                 'url' => $this->apiUrl . '/enviar'
             ]);
-            
+
             throw new Exception('Error en procesamiento integrado QPS: ' . $e->getMessage());
         }
     }
@@ -339,7 +339,7 @@ class QpsService
             'xml_size' => strlen($xmlContent),
             'token_prefix' => substr($token, 0, 10) . '...'
         ]);
-        
+
         // Log crítico para debugging error 0161
         Log::channel('qps')->info('QPS: ENVÍO - Datos enviados', [
             'filename' => $filename,
@@ -391,7 +391,7 @@ class QpsService
                 'url' => $this->apiUrl . '/enviar',
                 'response_headers' => isset($response) ? $response->headers() : null
             ]);
-            
+
             throw new Exception('Error al enviar XML a través de QPS: ' . $e->getMessage());
         }
     }
@@ -409,7 +409,7 @@ class QpsService
             if (!in_array($invoice->invoice_type, ['receipt', 'invoice']) || str_starts_with($invoice->series, 'NV')) {
                 throw new Exception("Tipo de documento no válido para SUNAT: {$invoice->invoice_type} con serie {$invoice->series}. Solo se permiten Boletas (B) y Facturas (F), NO Notas de Venta (NV).");
             }
-            
+
             Log::channel('qps')->info('QPS: Iniciando envío de factura', [
                 'invoice_id' => $invoice->id,
                 'series_number' => $invoice->series . '-' . $invoice->number,
@@ -422,10 +422,10 @@ class QpsService
             // PASO 1: Generar XML SIN firmar usando Greenter
             $sunatService = new SunatService();
             $greenterInvoice = $sunatService->createGreenterInvoice($invoice);
-            
+
             // Obtener XML sin firmar
             $unsignedXml = $sunatService->getUnsignedXml($greenterInvoice);
-            
+
             if (!$unsignedXml) {
                 throw new Exception('No se pudo generar el XML sin firmar');
             }
@@ -438,10 +438,10 @@ class QpsService
 
             // Generar nombre del archivo
             $filename = $this->generateXmlFilename($invoice);
-            
+
             // Validar formato del nombre de archivo
             $this->validateFilename($filename);
-            
+
             Log::channel('qps')->info('QPS: Validación nombre archivo', [
                 'invoice_id' => $invoice->id,
                 'filename' => $filename,
@@ -452,7 +452,7 @@ class QpsService
                 'serie' => $invoice->series,
                 'correlativo' => $invoice->number
             ]);
-            
+
             // PASO 2: Intentar flujo de 2 pasos, si falla usar integrado
             Log::channel('qps')->info('QPS: PASO 2 - Intentando flujo de 2 pasos', [
                 'invoice_id' => $invoice->id,
@@ -460,15 +460,15 @@ class QpsService
                 'xml_size' => strlen($unsignedXml),
                 'metodo' => 'Flujo 2 pasos con fallback'
             ]);
-            
+
             $signResult = $this->signXml($unsignedXml, $filename);
-            
+
             if (!$signResult['success']) {
                 Log::channel('qps')->warning('QPS: Firma falló, usando flujo integrado como fallback', [
                     'invoice_id' => $invoice->id,
                     'error' => $signResult['message']
                 ]);
-                
+
                 // Fallback: usar flujo integrado
                 $qpsResult = $this->sendUnsignedXmlIntegrated($unsignedXml, $filename);
                 $signResult = ['signed_xml' => $unsignedXml]; // Para guardar el XML original
@@ -480,7 +480,7 @@ class QpsService
                     'signed_xml_size' => strlen($signResult['signed_xml']),
                     'hash_code' => $signResult['hash_code']
                 ]);
-                
+
                 try {
                     $qpsResult = $this->sendSignedXml($signResult['signed_xml'], $filename);
                 } catch (Exception $e) {
@@ -490,7 +490,7 @@ class QpsService
                             'invoice_id' => $invoice->id,
                             'error' => $e->getMessage()
                         ]);
-                        
+
                         $qpsResult = $this->sendUnsignedXmlIntegrated($unsignedXml, $filename);
                         $signResult = ['signed_xml' => $unsignedXml]; // Para guardar el XML original
                     } else {
@@ -498,17 +498,17 @@ class QpsService
                     }
                 }
             }
-            
+
             if ($qpsResult['success']) {
                 // Guardar archivos
                 $documentName = $invoice->series . '-' . $invoice->number;
                 Storage::put("sunat/xml/{$documentName}.xml", $signResult['signed_xml']);
-                
+
                 // Nuevo: soportar múltiples formatos de CDR devueltos por QPS
                 $cdrBinary = null;
                 $cdrBase64 = $qpsResult['cdr_content'] ?? null; // preferido desde métodos internos
                 $qpsData = $qpsResult['data'] ?? [];
-                
+
                 if (!$cdrBase64 && is_array($qpsData)) {
                     // Intentar cdr_base64 primero
                     if (!empty($qpsData['cdr_base64'])) {
@@ -539,7 +539,7 @@ class QpsService
                             }
                         } else {
                             // Intentar decodificar como base64 estricto
-                            $decoded = base64_decode((string)$possible, true);
+                            $decoded = base64_decode((string) $possible, true);
                             if ($decoded !== false) {
                                 $cdrBinary = $decoded;
                                 Log::channel('qps')->info('QPS: CDR obtenido desde campo "cdr" en base64');
@@ -570,7 +570,7 @@ class QpsService
                         }
                     }
                 }
-                
+
                 if (!$cdrBinary && $cdrBase64) {
                     $decoded = base64_decode($cdrBase64, true);
                     if ($decoded !== false) {
@@ -630,18 +630,88 @@ class QpsService
                 } else {
                     Log::channel('qps')->warning('QPS: No se pudo obtener contenido de CDR desde la respuesta');
                 }
-                
-                // Actualizar estado de la factura
+
+                // ---------------------------------------------------------
+                // PARSING DEL CDR PARA OBTENER RESPUESTA REAL DE SUNAT
+                // ---------------------------------------------------------
+                $sunatStatus = 'ACEPTADO'; // Default provisional
+                $sunatCode = '0000';
+                $sunatDescription = 'Comprobante enviado exitosamente (Sujeto a verificación del CDR)';
+
+                if ($cdrBinary) {
+                    try {
+                        $cdrXml = null;
+
+                        if (strlen($cdrBinary) >= 2 && substr($cdrBinary, 0, 2) === 'PK') {
+                            // Es un ZIP, extraer el XML
+                            $zip = new \ZipArchive();
+                            $tmpFile = tempnam(sys_get_temp_dir(), 'cdr_parse');
+                            file_put_contents($tmpFile, $cdrBinary);
+
+                            if ($zip->open($tmpFile) === true) {
+                                // Buscar archivo XML dentro del ZIP
+                                for ($i = 0; $i < $zip->numFiles; $i++) {
+                                    $filename = $zip->getNameIndex($i);
+                                    if (str_ends_with(strtolower($filename), '.xml')) {
+                                        $cdrXml = $zip->getFromIndex($i);
+                                        break;
+                                    }
+                                }
+                                $zip->close();
+                            }
+                            @unlink($tmpFile);
+                        } else {
+                            // Asumir que es XML directo
+                            $cdrXml = $cdrBinary;
+                        }
+
+                        if ($cdrXml) {
+                            // Usar parser de Greenter si está disponible, o parsing manual básico
+                            if (class_exists('Greenter\Xml\Parser\CdrParser')) {
+                                $parser = new \Greenter\Xml\Parser\CdrParser();
+                                $cdr = $parser->parse($cdrXml);
+                                $sunatCode = $cdr->getCode();
+                                $sunatDescription = $cdr->getDescription();
+                            } else {
+                                // Fallback manual con SimpleXML si no cargara la clase
+                                $xml = @simplexml_load_string($cdrXml);
+                                if ($xml) {
+                                    $namespaces = $xml->getNamespaces(true);
+                                    $cbc = $xml->children($namespaces['cbc'] ?? 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+                                    $sunatCode = (string) ($cbc->ResponseCode ?? '0');
+                                    $sunatDescription = (string) ($cbc->Description ?? 'Procesado');
+                                }
+                            }
+
+                            // Determinar estado basado en el código
+                            // 0 = Aceptado, cualquier otro suele ser rechazo o excepción
+                            if ($sunatCode === '0') {
+                                $sunatStatus = 'ACEPTADO';
+                            } else {
+                                $sunatStatus = 'RECHAZADO';
+                                Log::channel('qps')->warning('QPS: CDR indica rechazo', [
+                                    'code' => $sunatCode,
+                                    'description' => $sunatDescription,
+                                    'invoice' => $invoice->series . '-' . $invoice->number
+                                ]);
+                            }
+                        }
+                    } catch (\Exception $e) {
+                        Log::channel('qps')->error('QPS: Error parseando CDR', ['error' => $e->getMessage()]);
+                    }
+                }
+
+                // Actualizar estado de la factura con DATOS REALES
                 $invoice->update([
-                    'sunat_status' => 'ACEPTADO',
-                    'sunat_code' => '0000',
-                    'sunat_description' => 'Comprobante enviado exitosamente vía QPS',
+                    'sunat_status' => $sunatStatus,
+                    'sunat_code' => $sunatCode,
+                    'sunat_description' => $sunatDescription,
                     'xml_path' => "sunat/xml/{$documentName}.xml",
                     'cdr_path' => "sunat/cdr/{$documentName}.zip"
                 ]);
-                
+
                 $metodoUsado = isset($signResult['hash_code']) ? 'Flujo 2 pasos (firmar + enviar)' : 'Flujo integrado (fallback)';
-                
+
                 Log::channel('qps')->info('QPS: FLUJO COMPLETO - Factura procesada exitosamente', [
                     'invoice_id' => $invoice->id,
                     'metodo' => $metodoUsado,
@@ -649,7 +719,7 @@ class QpsService
                     'document_name' => $documentName,
                     'proceso' => '3 pasos: Generar XML → Firmar con QPS → Enviar a SUNAT'
                 ]);
-                
+
                 return [
                     'success' => true,
                     'message' => 'Comprobante enviado exitosamente a SUNAT vía QPS',
@@ -659,12 +729,12 @@ class QpsService
             } else {
                 throw new Exception('Error en el envío QPS: ' . ($qpsResult['message'] ?? 'Error desconocido'));
             }
-            
+
         } catch (Exception $e) {
             // Detectar si es error 0161 específicamente
-            $isError0161 = strpos($e->getMessage(), '0161') !== false || 
-                          strpos($e->getMessage(), 'nombre del archivo XML no coincide') !== false;
-            
+            $isError0161 = strpos($e->getMessage(), '0161') !== false ||
+                strpos($e->getMessage(), 'nombre del archivo XML no coincide') !== false;
+
             if ($isError0161) {
                 Log::channel('qps')->error('QPS: ERROR 0161 DETECTADO', [
                     'invoice_id' => $invoice->id,
@@ -674,21 +744,21 @@ class QpsService
                     'solucion_sugerida' => 'Contactar soporte QPS si persiste después de validaciones'
                 ]);
             }
-            
+
             // Actualizar estado de error
             $invoice->update([
                 'sunat_status' => 'RECHAZADO',
                 'sunat_code' => $isError0161 ? '0161' : ($e->getCode() ?: '9999'),
                 'sunat_description' => $e->getMessage()
             ]);
-            
+
             Log::channel('qps')->error('QPS: Error al enviar factura', [
                 'invoice_id' => $invoice->id,
                 'error' => $e->getMessage(),
                 'error_code' => $isError0161 ? '0161' : ($e->getCode() ?: '9999'),
                 'is_error_0161' => $isError0161
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
@@ -716,18 +786,18 @@ class QpsService
         }
         // ✅ CORREGIDO FINAL: Sin padding y SIN extensión .xml según colección Postman
         $correlativo = ltrim($invoice->number, '0') ?: '0'; // Eliminar ceros del padding
-        
+
         // IMPORTANTE: Formato correcto para QPS - SIN extensión .xml
         $filename = "{$ruc}-{$tipoDoc}-{$serie}-{$correlativo}";
-        
+
         // Validar que el nombre solo contiene caracteres permitidos
         if (!preg_match('/^[0-9A-Z\-]+$/i', $filename)) {
             throw new Exception("Nombre de archivo contiene caracteres no permitidos: {$filename}");
         }
-        
+
         return $filename;
     }
-    
+
     /**
      * Validar formato del nombre de archivo
      * 
@@ -739,11 +809,11 @@ class QpsService
         // Validar formato según tipo de documento
         $isInvoiceFormat = preg_match('/^\d{11}-\d{2}-[A-Z0-9]+-\d+$/', $filename); // RUC-TipoDoc-Serie-Correlativo
         $isSummaryFormat = preg_match('/^\d{11}-RC-\d{8}-\d{3}$/', $filename); // RUC-RC-YYYYMMDD-XXX
-        
+
         if (!$isInvoiceFormat && !$isSummaryFormat) {
             throw new Exception("Formato de nombre de archivo inválido: {$filename}. Esperado: RUC-TipoDoc-Serie-Correlativo o RUC-RC-YYYYMMDD-XXX");
         }
-        
+
         // Verificar longitud
         if (strlen($filename) > 100) {
             throw new Exception("Nombre de archivo muy largo: {$filename}");
@@ -772,13 +842,13 @@ class QpsService
             }
 
             $xmlBase64 = base64_encode($unsignedXml);
-            
+
             $data = [
                 'tipo_integracion' => 0,
                 'nombre_archivo' => $filename,
                 'contenido_archivo' => $xmlBase64
             ];
-            
+
             // Log crítico para debugging error 0161
             Log::channel('qps')->info('QPS: FIRMA - Datos enviados', [
                 'filename' => $filename,
@@ -800,16 +870,16 @@ class QpsService
 
             if ($response->successful()) {
                 $result = $response->json();
-                
+
                 if (isset($result['xml'])) {
                     $signedXml = base64_decode($result['xml']);
-                    
+
                     Log::channel('qps')->info('QPS: XML firmado exitosamente', [
                         'filename' => $filename,
                         'signed_xml_size' => strlen($signedXml),
                         'hash_code' => $result['codigo_hash'] ?? 'N/A'
                     ]);
-                    
+
                     return [
                         'success' => true,
                         'signed_xml' => $signedXml,
@@ -822,7 +892,7 @@ class QpsService
             } else {
                 $errorBody = $response->json();
                 $errorMessage = $errorBody['message'] ?? 'Error desconocido';
-                
+
                 // Log detallado del error para debugging
                 Log::channel('qps')->error('QPS: Error detallado en firma', [
                     'status' => $response->status(),
@@ -832,7 +902,7 @@ class QpsService
                     'token_used' => substr($token, 0, 20) . '...',
                     'endpoint' => $this->apiUrl . '/generar'
                 ]);
-                
+
                 // Manejar errores específicos de QPS
                 if (strpos($errorMessage, 'Data too long for column') !== false) {
                     throw new Exception('Error de configuración en QPS: El servidor tiene limitaciones en el tamaño de datos. Contacte al soporte de QPS.');
@@ -842,13 +912,13 @@ class QpsService
                     throw new Exception('Error en QPS: ' . $errorMessage);
                 }
             }
-            
+
         } catch (Exception $e) {
             Log::channel('qps')->error('QPS: Error al firmar XML', [
                 'filename' => $filename,
                 'error' => $e->getMessage()
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => $e->getMessage(),
