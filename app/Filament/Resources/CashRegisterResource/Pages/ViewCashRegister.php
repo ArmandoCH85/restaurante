@@ -40,7 +40,7 @@ class ViewCashRegister extends ViewRecord
                 ->icon('heroicon-m-printer')
                 ->color('gray')
                 ->button()
-                ->url(fn ($record) => url("/admin/print-cash-register/{$record->id}"))
+                ->url(fn($record) => url("/admin/print-cash-register/{$record->id}"))
                 ->openUrlInNewTab()
                 ->visible(function ($record) {
                     // Solo permitir imprimir cajas cerradas
@@ -52,7 +52,7 @@ class ViewCashRegister extends ViewRecord
                 ->icon('heroicon-m-document-arrow-down')
                 ->color('success')
                 ->button()
-                ->url(fn ($record) => url("/admin/export-cash-register-pdf/{$record->id}"))
+                ->url(fn($record) => url("/admin/export-cash-register-pdf/{$record->id}"))
                 ->openUrlInNewTab()
                 ->visible(function ($record) {
                     // Solo permitir exportar cajas cerradas
@@ -74,19 +74,19 @@ class ViewCashRegister extends ViewRecord
                                         ->label('Monto Esperado')
                                         ->disabled()
                                         ->prefix('S/')
-                                        ->formatStateUsing(fn ($record) => number_format($record->expected_amount, 2)),
+                                        ->formatStateUsing(fn($record) => number_format($record->expected_amount, 2)),
 
                                     Forms\Components\TextInput::make('actual_amount')
                                         ->label('Monto Contado')
                                         ->disabled()
                                         ->prefix('S/')
-                                        ->formatStateUsing(fn ($record) => number_format($record->actual_amount, 2)),
+                                        ->formatStateUsing(fn($record) => number_format($record->actual_amount, 2)),
 
                                     Forms\Components\TextInput::make('difference')
                                         ->label('Diferencia')
                                         ->disabled()
                                         ->prefix('S/')
-                                        ->formatStateUsing(fn ($record) => number_format($record->difference, 2))
+                                        ->formatStateUsing(fn($record) => number_format($record->difference, 2))
                                         ->extraAttributes(function ($record) {
                                             $color = $record->difference < 0 ? 'red' : ($record->difference > 0 ? 'orange' : 'green');
                                             return ['style' => "color: {$color}; font-weight: bold;"];
@@ -143,7 +143,7 @@ class ViewCashRegister extends ViewRecord
                     $user = auth()->user();
                     // Solo visible para supervisores y cajas cerradas no aprobadas
                     return !$record->is_active && !$record->is_approved &&
-                           $user->hasAnyRole(['admin', 'super_admin', 'manager']);
+                        $user->hasAnyRole(['admin', 'super_admin', 'manager']);
                 }),
         ];
     }
@@ -171,15 +171,15 @@ class ViewCashRegister extends ViewRecord
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('status')
                                     ->label('📊 Estado')
-                                    ->state(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
+                                    ->state(fn($record) => $record->is_active ? 'Abierta' : 'Cerrada')
                                     ->badge()
                                     ->size('xl')
-                                    ->color(fn ($record) => $record->is_active ? 'success' : 'danger')
-                                    ->icon(fn ($record) => $record->is_active ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
+                                    ->color(fn($record) => $record->is_active ? 'success' : 'danger')
+                                    ->icon(fn($record) => $record->is_active ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('opening_amount')
                                     ->label('💰 Monto Inicial')
-                                    ->formatStateUsing(fn ($state) => 'S/ ' . number_format($state ?? 0, 2))
+                                    ->formatStateUsing(fn($state) => 'S/ ' . number_format($state ?? 0, 2))
                                     ->badge()
                                     ->size('xl')
                                     ->color('info')
@@ -245,7 +245,7 @@ class ViewCashRegister extends ViewRecord
 
                                 return $record->observations;
                             })
-                            ->formatStateUsing(fn ($state) => $state)
+                            ->formatStateUsing(fn($state) => $state)
                             ->extraAttributes(['style' => 'white-space: pre-line; font-family: monospace; font-size: 0.9rem; line-height: 1.4; max-width: 100%; word-wrap: break-word;'])
                             ->icon('heroicon-o-document-text')
                             ->placeholder('Sin observaciones')
@@ -265,7 +265,8 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('cash_sales_live')
                                     ->label('💵 Efectivo')
                                     ->state(function ($record) use ($isSupervisor) {
-                                        if (!$isSupervisor) return 'Restringido';
+                                        if (!$isSupervisor)
+                                            return 'Restringido';
                                         $sum = $record->getSystemCashSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
@@ -276,7 +277,8 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('card_sales_live')
                                     ->label('💳 Tarjetas')
                                     ->state(function ($record) use ($isSupervisor) {
-                                        if (!$isSupervisor) return 'Restringido';
+                                        if (!$isSupervisor)
+                                            return 'Restringido';
                                         $sum = $record->getSystemCardSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
@@ -287,7 +289,8 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('yape_sales_live')
                                     ->label('📱 Yape')
                                     ->state(function ($record) use ($isSupervisor) {
-                                        if (!$isSupervisor) return 'Restringido';
+                                        if (!$isSupervisor)
+                                            return 'Restringido';
                                         $sum = $record->getSystemYapeSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
@@ -298,7 +301,8 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('plin_sales_live')
                                     ->label('📱 Plin')
                                     ->state(function ($record) use ($isSupervisor) {
-                                        if (!$isSupervisor) return 'Restringido';
+                                        if (!$isSupervisor)
+                                            return 'Restringido';
                                         $sum = $record->getSystemPlinSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
@@ -309,7 +313,8 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('pedidosya_sales_live')
                                     ->label('🛒 PedidosYa')
                                     ->state(function ($record) use ($isSupervisor) {
-                                        if (!$isSupervisor) return 'Restringido';
+                                        if (!$isSupervisor)
+                                            return 'Restringido';
                                         $sum = $record->getSystemPedidosYaSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
@@ -320,13 +325,26 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('didi_sales_live')
                                     ->label('🍕 Didi Food')
                                     ->state(function ($record) use ($isSupervisor) {
-                                        if (!$isSupervisor) return 'Restringido';
+                                        if (!$isSupervisor)
+                                            return 'Restringido';
                                         $sum = $record->getSystemDidiSales();
                                         return 'S/ ' . number_format($sum, 2);
                                     })
                                     ->badge()
                                     ->color($isSupervisor ? 'orange' : 'gray')
                                     ->icon('heroicon-o-truck')
+                                    ->weight(FontWeight::Bold),
+                                TextEntry::make('bita_express_sales_live')
+                                    ->label('🚀 Bita Express')
+                                    ->state(function ($record) use ($isSupervisor) {
+                                        if (!$isSupervisor)
+                                            return 'Restringido';
+                                        $sum = $record->getSystemBitaExpressSales();
+                                        return 'S/ ' . number_format($sum, 2);
+                                    })
+                                    ->badge()
+                                    ->color($isSupervisor ? 'purple' : 'gray')
+                                    ->icon('heroicon-o-rocket-launch')
                                     ->weight(FontWeight::Bold),
                             ]),
 
@@ -375,7 +393,8 @@ class ViewCashRegister extends ViewRecord
                                                     $tarjetas = $record->manual_card ?? 0;
                                                     $didi = $record->manual_didi ?? 0;
                                                     $pedidosya = $record->manual_pedidos_ya ?? 0;
-                                                    $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya;
+                                                    $bitaExpress = $record->manual_bita_express ?? 0;
+                                                    $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya + $bitaExpress;
                                                     return 'S/ ' . number_format($total, 2);
                                                 })
                                                 ->badge()
@@ -403,12 +422,12 @@ class ViewCashRegister extends ViewRecord
                                         ->label('Estado')
                                         ->badge()
                                         ->size('lg')
-                                        ->color(fn ($record) => match($record->reconciliationStatus) {
+                                        ->color(fn($record) => match ($record->reconciliationStatus) {
                                             'Aprobada' => 'success',
                                             'Rechazada' => 'danger',
                                             default => 'warning',
                                         })
-                                        ->icon(fn ($record) => match($record->reconciliationStatus) {
+                                        ->icon(fn($record) => match ($record->reconciliationStatus) {
                                             'Aprobada' => 'heroicon-o-check-circle',
                                             'Rechazada' => 'heroicon-o-x-circle',
                                             default => 'heroicon-o-clock',
@@ -428,21 +447,21 @@ class ViewCashRegister extends ViewRecord
                                         ->badge()
                                         ->color('gray')
                                         ->icon('heroicon-o-calendar-days')
-                                        ->visible(fn ($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes && $record->approval_datetime))),
+                                        ->visible(fn($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes && $record->approval_datetime))),
                                 ])
                                 ->grow(false),
                         ])->from('md'),
 
                         // Notas de aprobación/rechazo
                         TextEntry::make('approval_notes')
-                            ->label(fn ($record) => $record->is_approved ? '📝 Notas de Aprobación' : '❌ Motivo del Rechazo')
+                            ->label(fn($record) => $record->is_approved ? '📝 Notas de Aprobación' : '❌ Motivo del Rechazo')
                             ->placeholder('Sin notas adicionales')
-                            ->color(fn ($record) => !$record->is_approved && $record->approval_notes ? 'danger' : 'gray')
-                            ->icon(fn ($record) => $record->is_approved ? 'heroicon-o-document-check' : 'heroicon-o-exclamation-triangle')
-                            ->visible(fn ($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes)))
+                            ->color(fn($record) => !$record->is_approved && $record->approval_notes ? 'danger' : 'gray')
+                            ->icon(fn($record) => $record->is_approved ? 'heroicon-o-document-check' : 'heroicon-o-exclamation-triangle')
+                            ->visible(fn($record) => $isSupervisor && ($record->is_approved || (!$record->is_approved && $record->approval_notes)))
                             ->columnSpanFull(),
                     ])
-                    ->visible(fn ($record) => !$record->is_active)
+                    ->visible(fn($record) => !$record->is_active)
                     ->collapsible(),
 
                 Section::make('Reconciliación Final')
@@ -453,13 +472,13 @@ class ViewCashRegister extends ViewRecord
                                 TextEntry::make('reconciliationStatus')
                                     ->label('Estado de Reconciliación')
                                     ->badge()
-                                    ->color(fn ($record) => match($record->reconciliationStatus) {
+                                    ->color(fn($record) => match ($record->reconciliationStatus) {
                                         'Aprobada' => 'success',
                                         'Rechazada' => 'danger',
                                         'Pendiente de cierre' => 'info',
                                         default => 'warning',
                                     })
-                                    ->icon(fn ($record) => match($record->reconciliationStatus) {
+                                    ->icon(fn($record) => match ($record->reconciliationStatus) {
                                         'Aprobada' => 'heroicon-o-check-circle',
                                         'Rechazada' => 'heroicon-o-x-circle',
                                         'Pendiente de cierre' => 'heroicon-o-lock-open',
@@ -472,8 +491,8 @@ class ViewCashRegister extends ViewRecord
                                         if (!$record->is_active) {
                                             if ($record->is_approved) {
                                                 $diffText = $record->difference == 0 ? 'sin diferencias' :
-                                                            'con una diferencia de S/ ' . number_format(abs($record->difference), 2) .
-                                                            ($record->difference < 0 ? ' faltante' : ' sobrante');
+                                                    'con una diferencia de S/ ' . number_format(abs($record->difference), 2) .
+                                                    ($record->difference < 0 ? ' faltante' : ' sobrante');
 
                                                 return "Operación de caja reconciliada y aprobada {$diffText}";
                                             } elseif (!$record->is_approved && $record->approval_notes && $record->approval_datetime) {
@@ -485,7 +504,7 @@ class ViewCashRegister extends ViewRecord
                                             return 'Operación de caja actualmente abierta';
                                         }
                                     })
-                                    ->color(fn ($record) => !$record->is_active && !$record->is_approved && $record->approval_notes ? 'danger' : null),
+                                    ->color(fn($record) => !$record->is_active && !$record->is_approved && $record->approval_notes ? 'danger' : null),
                             ]),
 
                         TextEntry::make('reconciliation_instructions')
@@ -580,6 +599,15 @@ class ViewCashRegister extends ViewRecord
                                     ->size('lg')
                                     ->color('orange')
                                     ->icon('heroicon-o-truck'),
+                                TextEntry::make('payments_count_bita_express')
+                                    ->label('🚀 Bita Express')
+                                    ->state(function ($record) {
+                                        return $record->payments()->where('payment_method', 'bita_express')->count() . ' usos';
+                                    })
+                                    ->badge()
+                                    ->size('lg')
+                                    ->color('purple')
+                                    ->icon('heroicon-o-rocket-launch'),
                             ]),
                     ])
                     ->collapsible(),
@@ -620,7 +648,7 @@ class ViewCashRegister extends ViewRecord
 
                                             return implode("\n", $voucherList);
                                         })
-                                        ->formatStateUsing(fn ($state) => $state)
+                                        ->formatStateUsing(fn($state) => $state)
                                         ->extraAttributes(['style' => 'white-space: pre-line; font-family: monospace; font-size: 0.875rem;'])
                                         ->placeholder('Sin vouchers registrados')
                                         ->color('gray')
@@ -665,8 +693,8 @@ class ViewCashRegister extends ViewRecord
                                 ->grow(false),
                         ])->from('lg'),
                     ])
-                     ->visible(fn ($record) => $isSupervisor && !$record->is_active)
-                     ->collapsible(),
+                    ->visible(fn($record) => $isSupervisor && !$record->is_active)
+                    ->collapsible(),
             ]);
     }
 
@@ -677,77 +705,77 @@ class ViewCashRegister extends ViewRecord
     }
 
     /**
-      * Formatear observaciones para mostrar mejor el desglose de denominaciones
-      */
-     protected function formatObservations(string $observations): string
-     {
-         // Si contiene desglose de denominaciones, formatearlo mejor
-         if (str_contains($observations, 'Desglose de denominaciones')) {
-             $formatted = [];
+     * Formatear observaciones para mostrar mejor el desglose de denominaciones
+     */
+    protected function formatObservations(string $observations): string
+    {
+        // Si contiene desglose de denominaciones, formatearlo mejor
+        if (str_contains($observations, 'Desglose de denominaciones')) {
+            $formatted = [];
 
-             // Separar por secciones principales
-             if (preg_match('/Cierre de caja - Desglose de denominaciones:\s*(.+?)Total contado:\s*(.+?)$/s', $observations, $matches)) {
-                 $formatted[] = "💰 DESGLOSE DE DENOMINACIONES";
-                 $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+            // Separar por secciones principales
+            if (preg_match('/Cierre de caja - Desglose de denominaciones:\s*(.+?)Total contado:\s*(.+?)$/s', $observations, $matches)) {
+                $formatted[] = "💰 DESGLOSE DE DENOMINACIONES";
+                $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
 
-                 $content = $matches[1];
-                 $total = trim($matches[2]);
+                $content = $matches[1];
+                $total = trim($matches[2]);
 
-                 // Procesar billetes
-                 if (preg_match('/Billetes:\s*(.+?)(?=Monedas:|$)/s', $content, $billetes)) {
-                     $formatted[] = "";
-                     $formatted[] = "💵 BILLETES:";
-                     $billetesData = trim($billetes[1]);
-                     $items = preg_split('/\s*\|\s*/', $billetesData);
+                // Procesar billetes
+                if (preg_match('/Billetes:\s*(.+?)(?=Monedas:|$)/s', $content, $billetes)) {
+                    $formatted[] = "";
+                    $formatted[] = "💵 BILLETES:";
+                    $billetesData = trim($billetes[1]);
+                    $items = preg_split('/\s*\|\s*/', $billetesData);
 
-                     foreach ($items as $item) {
-                         if (preg_match('/S\/(\d+):\s*(\d+)/', $item, $match)) {
-                             $denomination = $match[1];
-                             $quantity = $match[2];
-                             $subtotal = $denomination * $quantity;
+                    foreach ($items as $item) {
+                        if (preg_match('/S\/(\d+):\s*(\d+)/', $item, $match)) {
+                            $denomination = $match[1];
+                            $quantity = $match[2];
+                            $subtotal = $denomination * $quantity;
 
-                             if ($quantity > 0) {
-                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ {$subtotal}.00";
-                             } else {
-                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades";
-                             }
-                         }
-                     }
-                 }
+                            if ($quantity > 0) {
+                                $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ {$subtotal}.00";
+                            } else {
+                                $formatted[] = "   • S/ {$denomination}: {$quantity} unidades";
+                            }
+                        }
+                    }
+                }
 
-                 // Procesar monedas
-                 if (preg_match('/Monedas:\s*(.+?)$/s', $content, $monedas)) {
-                     $formatted[] = "";
-                     $formatted[] = "🪙 MONEDAS:";
-                     $monedasData = trim($monedas[1]);
-                     $items = preg_split('/\s*\|\s*/', $monedasData);
+                // Procesar monedas
+                if (preg_match('/Monedas:\s*(.+?)$/s', $content, $monedas)) {
+                    $formatted[] = "";
+                    $formatted[] = "🪙 MONEDAS:";
+                    $monedasData = trim($monedas[1]);
+                    $items = preg_split('/\s*\|\s*/', $monedasData);
 
-                     foreach ($items as $item) {
-                         if (preg_match('/S\/(\d+(?:\.\d+)?):\s*(\d+)/', $item, $match)) {
-                             $denomination = $match[1];
-                             $quantity = $match[2];
-                             $subtotal = $denomination * $quantity;
+                    foreach ($items as $item) {
+                        if (preg_match('/S\/(\d+(?:\.\d+)?):\s*(\d+)/', $item, $match)) {
+                            $denomination = $match[1];
+                            $quantity = $match[2];
+                            $subtotal = $denomination * $quantity;
 
-                             if ($quantity > 0) {
-                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ " . number_format($subtotal, 2);
-                             } else {
-                                 $formatted[] = "   • S/ {$denomination}: {$quantity} unidades";
-                             }
-                         }
-                     }
-                 }
+                            if ($quantity > 0) {
+                                $formatted[] = "   • S/ {$denomination}: {$quantity} unidades = S/ " . number_format($subtotal, 2);
+                            } else {
+                                $formatted[] = "   • S/ {$denomination}: {$quantity} unidades";
+                            }
+                        }
+                    }
+                }
 
-                 $formatted[] = "";
-                 $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
-                 $formatted[] = "💰 TOTAL CONTADO: {$total}";
-             } else {
-                 // Formato de respaldo si no coincide el patrón esperado
-                 $formatted[] = $observations;
-             }
+                $formatted[] = "";
+                $formatted[] = "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━";
+                $formatted[] = "💰 TOTAL CONTADO: {$total}";
+            } else {
+                // Formato de respaldo si no coincide el patrón esperado
+                $formatted[] = $observations;
+            }
 
-             return implode("\n", $formatted);
-         }
+            return implode("\n", $formatted);
+        }
 
-         return $observations;
-     }
+        return $observations;
+    }
 }
