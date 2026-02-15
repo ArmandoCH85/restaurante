@@ -683,10 +683,22 @@ class QpsService
                                 }
                             }
 
-                            // Determinar estado basado en el código
-                            // 0 = Aceptado, cualquier otro suele ser rechazo o excepción
-                            if ($sunatCode === '0') {
+                            // Determinar estado basado en el código de SUNAT
+                            // Según documentación SUNAT:
+                            // - Código 0 o 0000: Aceptado
+                            // - Códigos 0001-0999: Aceptado con observaciones
+                            // - Códigos 1000-9999: Rechazado o con errores
+                            $codeNumeric = (int) $sunatCode;
+
+                            if ($codeNumeric < 1000) {
                                 $sunatStatus = 'ACEPTADO';
+                                if ($codeNumeric > 0) {
+                                    Log::channel('qps')->info('QPS: CDR indica aceptación con observaciones', [
+                                        'code' => $sunatCode,
+                                        'description' => $sunatDescription,
+                                        'invoice' => $invoice->series . '-' . $invoice->number
+                                    ]);
+                                }
                             } else {
                                 $sunatStatus = 'RECHAZADO';
                                 Log::channel('qps')->warning('QPS: CDR indica rechazo', [
