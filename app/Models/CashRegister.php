@@ -50,6 +50,7 @@ class CashRegister extends Model
         'manual_card',
         'manual_didi',
         'manual_pedidos_ya',
+        'manual_bita_express',
         'manual_otros',
         // Campos de egresos
         'total_expenses',
@@ -94,6 +95,7 @@ class CashRegister extends Model
         'manual_card' => 'decimal:2',
         'manual_didi' => 'decimal:2',
         'manual_pedidos_ya' => 'decimal:2',
+        'manual_bita_express' => 'decimal:2',
         'manual_otros' => 'decimal:2',
         // Campos de egresos
         'total_expenses' => 'decimal:2',
@@ -508,6 +510,7 @@ class CashRegister extends Model
             ($this->manual_card ?? 0) +
             ($this->manual_didi ?? 0) +
             ($this->manual_pedidos_ya ?? 0) +
+            ($this->manual_bita_express ?? 0) +
             ($this->manual_otros ?? 0);
     }
 
@@ -787,6 +790,19 @@ class CashRegister extends Model
     }
 
     /**
+     * Obtiene las ventas con Bita Express del sistema para esta caja.
+     *
+     * @return float
+     */
+    public function getSystemBitaExpressSales(): float
+    {
+        return $this->payments()
+            ->whereNull('void_reason')
+            ->where('payment_method', 'bita_express')
+            ->sum('amount');
+    }
+
+    /**
      * Obtiene el total de ventas del sistema (todas las formas de pago no anuladas).
      *
      * @return float
@@ -799,6 +815,7 @@ class CashRegister extends Model
             + $this->getSystemCardSales()
             + $this->getSystemDidiSales()
             + $this->getSystemPedidosYaSales()
+            + $this->getSystemBitaExpressSales()
             + $this->getSystemBankTransferSales()
             + $this->getSystemOtherDigitalWalletSales();
     }
