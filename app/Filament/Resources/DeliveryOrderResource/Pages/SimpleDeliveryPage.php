@@ -33,6 +33,7 @@ class SimpleDeliveryPage extends Page
         'recipient_name' => '',
         'recipient_phone' => '',
         'recipient_address' => '',
+        'edit_address_enabled' => false,
     ];
 
     protected function getForms(): array
@@ -58,7 +59,7 @@ class SimpleDeliveryPage extends Page
                             $set('customer_name', '');
                             $set('address', '');
                             $set('reference', '');
-                            
+
                             // También limpiar el array simple
                             $this->simple['customer_id'] = null;
                             $this->simple['customer_name'] = '';
@@ -79,14 +80,14 @@ class SimpleDeliveryPage extends Page
                             $set('phone', $customer->phone ?? ''); // Actualizar con teléfono completo
                             $set('address', $customer->address ?? '');
                             $set('reference', $customer->address_references ?? '');
-                            
+
                             // Sincronizar con el array simple
                             $this->simple['customer_id'] = $customer->id;
                             $this->simple['customer_name'] = $customer->name ?? '';
                             $this->simple['phone'] = $customer->phone ?? '';
                             $this->simple['address'] = $customer->address ?? '';
                             $this->simple['reference'] = $customer->address_references ?? '';
-                            
+
                             \Filament\Notifications\Notification::make()
                                 ->title('✅ Cliente encontrado')
                                 ->body("Datos de {$customer->name} cargados automáticamente")
@@ -98,13 +99,13 @@ class SimpleDeliveryPage extends Page
                             $set('customer_name', '');
                             $set('address', '');
                             $set('reference', '');
-                            
+
                             // También limpiar el array simple
                             $this->simple['customer_id'] = null;
                             $this->simple['customer_name'] = '';
                             $this->simple['address'] = '';
                             $this->simple['reference'] = '';
-                            
+
                             \Filament\Notifications\Notification::make()
                                 ->title('📝 Cliente no encontrado')
                                 ->body('Complete los datos para crear un nuevo cliente')
@@ -120,24 +121,70 @@ class SimpleDeliveryPage extends Page
                     ->required()
                     ->placeholder('Ej. Juan Perez')
                     ->prefixIcon('heroicon-o-user')
-                    ->disabled(fn (Forms\Get $get): bool => !empty($get('customer_id')))
-                    ->helperText(fn (Forms\Get $get): string => 
-                        !empty($get('customer_id')) 
-                            ? '✅ Cliente encontrado en base de datos' 
-                            : '📝 Ingrese el nombre del nuevo cliente'
+                    ->disabled(fn(Forms\Get $get): bool => !empty($get('customer_id')))
+                    ->helperText(
+                        fn(Forms\Get $get): string =>
+                        !empty($get('customer_id'))
+                        ? '✅ Cliente encontrado en base de datos'
+                        : '📝 Ingrese el nombre del nuevo cliente'
                     ),
-                Forms\Components\Textarea::make('address')
-                    ->label('Dirección de entrega')
-                    ->required()
-                    ->rows(3)
-                    ->placeholder('Calle, número, referencias breves')
-                    ->disabled(fn (Forms\Get $get): bool => !empty($get('customer_id')))
-                    ->helperText(fn (Forms\Get $get): string => 
-                        !empty($get('customer_id')) 
-                            ? '📍 Dirección del cliente registrado (editable si necesario)' 
-                            : '📝 Ingrese la dirección de entrega'
-                    )
+                Forms\Components\Section::make('Dirección de entrega')
+                    ->schema([
+                        Forms\Components\Grid::make(1)
+                            ->schema([
+                                Forms\Components\Textarea::make('address')
+                                    ->label('')
+                                    ->required()
+                                    ->rows(3)
+                                    ->placeholder('Calle, número, referencias breves')
+                                    ->disabled(fn(Forms\Get $get): bool => !empty($get('customer_id')) && !$get('edit_address_enabled'))
+                                    ->helperText(
+                                        fn(Forms\Get $get): string =>
+                                        !empty($get('customer_id'))
+                                        ? '📍 Dirección del cliente registrado' . ($get('edit_address_enabled') ? ' (editando...)' : '')
+                                        : '📝 Ingrese la dirección de entrega'
+                                    )
+                                    ->columnSpanFull(),
+                            ]),
+                    ])
+                    ->headerActions([
+                        Forms\Components\Actions\Action::make('toggle_edit_address')
+                            ->label(fn(Forms\Get $get): string => $get('edit_address_enabled') ? 'Guardar' : 'Editar')
+                            ->icon(fn(Forms\Get $get): string => $get('edit_address_enabled') ? 'heroicon-m-check' : 'heroicon-m-pencil')
+                            ->color(fn(Forms\Get $get): string => $get('edit_address_enabled') ? 'success' : 'primary')
+                            ->visible(fn(Forms\Get $get): bool => !empty($get('customer_id')))
+                            ->action(function (Forms\Set $set, Forms\Get $get) {
+                                $isEditing = $get('edit_address_enabled');
+
+                                if ($isEditing) {
+                                    // Guardar cambios
+                                    $customerId = $get('customer_id');
+                                    $newAddress = $get('address');
+
+                                    if ($customerId && $newAddress) {
+                                        $customer = Customer::find($customerId);
+                                        if ($customer) {
+                                            $customer->update(['address' => $newAddress]);
+
+                                            Notification::make()
+                                                ->title('✅ Dirección actualizada')
+                                                ->body('La dirección del cliente ha sido guardada correctamente')
+                                                ->success()
+                                                ->send();
+                                        }
+                                    }
+
+                                    // Deshabilitar edición
+                                    $set('edit_address_enabled', false);
+                                } else {
+                                    // Habilitar edición
+                                    $set('edit_address_enabled', true);
+                                }
+                            })
+                    ])
                     ->columnSpanFull(),
+                Forms\Components\Hidden::make('edit_address_enabled')
+                    ->default(false),
                 Forms\Components\Textarea::make('reference')
                     ->label('Referencias (opcional)')
                     ->rows(2)
@@ -176,10 +223,10 @@ class SimpleDeliveryPage extends Page
     public function createSimpleDelivery(): void
     {
         $data = $this->getForm('simpleForm')->getState();
-        
+
         // Debug para verificar qué datos estamos recibiendo
         \Log::info('🚿 DEBUG: Datos del formulario', ['data' => $data]);
-        
+
         // Asegurar que los datos básicos estén presentes
         if (empty($data['customer_name'])) {
             $data['customer_name'] = $this->simple['customer_name'] ?? '';
@@ -207,7 +254,7 @@ class SimpleDeliveryPage extends Page
                 if (empty($data['customer_name']) || empty($data['phone']) || empty($data['address'])) {
                     throw new \Exception('Faltan datos obligatorios del cliente (nombre, teléfono o dirección)');
                 }
-                
+
                 // Buscar cliente existente o crear uno nuevo
                 if (!empty($data['customer_id'])) {
                     // Cliente ya identificado por la búsqueda automática
@@ -224,7 +271,7 @@ class SimpleDeliveryPage extends Page
                 } else {
                     // Buscar por teléfono por si acaso no fue detectado
                     $customer = Customer::where('phone', $data['phone'])->first();
-                    
+
                     if (!$customer) {
                         // Crear nuevo cliente
                         $customer = Customer::create([
@@ -267,20 +314,22 @@ class SimpleDeliveryPage extends Page
                 ]);
 
                 // Datos a sesión para POS (igual que el flujo actual)
-                session(['delivery_data' => [
-                    'order_id' => $order->id,
-                    'delivery_order_id' => $deliveryOrder->id,
-                    'customer_id' => $customer->id,
-                    'customer_name' => $customer->name,
-                    'customer_phone' => $customer->phone,
-                    'delivery_type' => 'domicilio',
-                    'delivery_address' => $data['address'],
-                    'delivery_references' => $data['reference'] ?? '',
-                    'recipient_name' => $data['recipient_name'] ?? '',
-                    'recipient_phone' => $data['recipient_phone'] ?? '',
-                    'recipient_address' => $data['recipient_address'] ?? '',
-                    'service_type' => 'delivery',
-                ]]);
+                session([
+                    'delivery_data' => [
+                        'order_id' => $order->id,
+                        'delivery_order_id' => $deliveryOrder->id,
+                        'customer_id' => $customer->id,
+                        'customer_name' => $customer->name,
+                        'customer_phone' => $customer->phone,
+                        'delivery_type' => 'domicilio',
+                        'delivery_address' => $data['address'],
+                        'delivery_references' => $data['reference'] ?? '',
+                        'recipient_name' => $data['recipient_name'] ?? '',
+                        'recipient_phone' => $data['recipient_phone'] ?? '',
+                        'recipient_address' => $data['recipient_address'] ?? '',
+                        'service_type' => 'delivery',
+                    ]
+                ]);
 
                 Notification::make()
                     ->title('Pedido de Delivery Creado')
