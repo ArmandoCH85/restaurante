@@ -23,6 +23,9 @@ class Payment extends Model
         'reference_number',
         'payment_datetime',
         'received_by',
+        'void_reason',
+        'voided_at',
+        'voided_by',
     ];
 
     /**
@@ -33,6 +36,7 @@ class Payment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'payment_datetime' => 'datetime',
+        'voided_at' => 'datetime',
     ];
 
     /**
@@ -78,7 +82,7 @@ class Payment extends Model
         }
 
         // Si no es un caso especial, usar el match normal
-        return match($this->payment_method) {
+        return match ($this->payment_method) {
             self::METHOD_CASH => 'Efectivo',
             self::METHOD_CARD => 'Tarjeta',
             self::METHOD_BANK_TRANSFER => 'Transferencia Bancaria',

@@ -235,6 +235,35 @@ class Invoice extends Model
             }
         }
 
+        // Anular los pagos asociados a la orden de este comprobante
+        if ($this->order_id) {
+            try {
+                $paymentsUpdated = \App\Models\Payment::where('order_id', $this->order_id)
+                    ->whereNull('void_reason') // Solo anular pagos que no estén ya anulados
+                    ->update([
+                        'void_reason' => $reason,
+                        'voided_at' => now(),
+                        'voided_by' => auth()->id()
+                    ]);
+
+                \Log::info('Pagos anulados automáticamente al anular comprobante', [
+                    'invoice_id' => $this->id,
+                    'order_id' => $this->order_id,
+                    'payments_voided' => $paymentsUpdated,
+                    'reason' => $reason
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Error al anular pagos asociados al comprobante', [
+                    'invoice_id' => $this->id,
+                    'order_id' => $this->order_id,
+                    'error' => $e->getMessage()
+                ]);
+
+                // No fallar la anulación del comprobante si hay error al anular pagos
+                // El comprobante se anulará de todas formas
+            }
+        }
+
         $this->tax_authority_status = self::STATUS_VOIDED;
         $this->voided_reason = $reason;
         $this->voided_date = now();
