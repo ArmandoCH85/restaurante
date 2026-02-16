@@ -2285,6 +2285,24 @@
     border-radius: 3px;
 }
 
+.pos-quantity-input {
+    width: 46px;
+    height: 24px;
+    border: none;
+    outline: none;
+    text-align: center;
+    background: white;
+    border-radius: 3px;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.pos-quantity-input::-webkit-outer-spin-button,
+.pos-quantity-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
 .pos-final-price {
     font-size: 12px;
     color: var(--pos-success);
@@ -4462,31 +4480,16 @@
                                         
                                         {{-- CONTROLES INLINE COMPACTOS --}}
                                         <div class="pos-inline-controls">
-                                            <button 
-                                                wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] - 1 }})"
-                                                class="pos-btn-minus"
-                                                {{ (!$canClearCart || $item['quantity'] <= 1) ? 'disabled' : '' }}
-                                                title="Disminuir cantidad"
-                                                x-data="{ pressed: false }"
-                                                @click="pressed = true; setTimeout(() => pressed = false, 100)"
-                                                :class="{ 'pressed': pressed }"
-                                            >
-                                                −
-                                            </button>
-                                            
-                                            <span class="pos-quantity-display">{{ $item['quantity'] }}</span>
-                                            
-                                            <button 
-                                                wire:click="updateQuantity({{ $index }}, {{ $item['quantity'] + 1 }})"
-                                                class="pos-btn-plus"
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                step="1"
+                                                inputmode="numeric"
+                                                class="pos-quantity-display pos-quantity-input"
+                                                value="{{ $item['quantity'] }}"
+                                                wire:change.debounce.200ms="updateQuantity({{ $index }}, $event.target.value)"
                                                 {{ !$canClearCart ? 'disabled' : '' }}
-                                                title="Aumentar cantidad"
-                                                x-data="{ pressed: false }"
-                                                @click="pressed = true; setTimeout(() => pressed = false, 100)"
-                                                :class="{ 'pressed': pressed }"
-                                            >
-                                                +
-                                            </button>
+                                            />
                                         </div>
                                         
                                         {{-- PRECIO FINAL --}}

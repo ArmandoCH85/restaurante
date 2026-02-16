@@ -1525,7 +1525,7 @@ class PosInterface extends Page
         $this->calculateTotals();
     }
 
-    public function updateQuantity(int $index, int $quantity)
+    public function updateQuantity(int $index, $quantity)
     {
         // Verificar si se puede modificar el carrito
         if (!$this->canClearCart) {
@@ -1538,14 +1538,11 @@ class PosInterface extends Page
             return;
         }
 
+        $quantity = max(1, (int) $quantity);
+
         if (isset($this->cartItems[$index])) {
-            if ($quantity <= 0) {
-                unset($this->cartItems[$index]);
-                $this->cartItems = array_values($this->cartItems);
-            } else {
-                $this->cartItems[$index]['quantity'] = $quantity;
-                $this->cartItems[$index]['subtotal'] = $quantity * $this->cartItems[$index]['unit_price'];
-            }
+            $this->cartItems[$index]['quantity'] = $quantity;
+            $this->cartItems[$index]['subtotal'] = $quantity * $this->cartItems[$index]['unit_price'];
         }
         $this->calculateTotals();
     }
