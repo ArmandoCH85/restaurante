@@ -1651,6 +1651,8 @@ class PosInterface extends Page
 
     public function processOrder(): void
     {
+        $savedSuccessfully = false;
+
         // Bloqueo por ausencia de caja abierta
         if (!CashRegister::hasOpenRegister()) {
             Notification::make()
@@ -1760,6 +1762,7 @@ class PosInterface extends Page
                     // Forzar recarga de la orden para actualizar el estado
                     $this->order = $this->order->fresh(['orderDetails.product', 'table', 'invoices']);
                 });
+                $savedSuccessfully = true;
             } else {
                 // Crear nueva orden
                 DB::transaction(function () {
@@ -1870,11 +1873,17 @@ class PosInterface extends Page
                         ->success()
                         ->send();
                 });
+                $savedSuccessfully = true;
             }
 
             // Refrescar datos y UI
             $this->refreshOrderData();
             $this->dispatch('$refresh');
+
+            if ($savedSuccessfully && $this->selectedTableId) {
+                $this->redirect(TableMap::getUrl());
+                return;
+            }
 
         } catch (Halt $e) {
             // Detiene la ejecución sin registrar un error grave, ya que la notificación ya se envió.
