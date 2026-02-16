@@ -94,24 +94,24 @@ class EditCashRegister extends EditRecord
         // Efectivo contado
         $denominationDetails .= "💵 EFECTIVO CONTADO: S/ " . number_format($totalCashCounted, 2) . "\n";
         $denominationDetails .= "Billetes: ";
-        $denominationDetails .= "S/200×{$data['bill_200']} | S/100×{$data['bill_100']} | S/50×{$data['bill_50']} | ";
-        $denominationDetails .= "S/20×{$data['bill_20']} | S/10×{$data['bill_10']}\n";
+        $denominationDetails .= "S/200×" . ($data['bill_200'] ?? 0) . " | S/100×" . ($data['bill_100'] ?? 0) . " | S/50×" . ($data['bill_50'] ?? 0) . " | ";
+        $denominationDetails .= "S/20×" . ($data['bill_20'] ?? 0) . " | S/10×" . ($data['bill_10'] ?? 0) . "\n";
         $denominationDetails .= "Monedas: ";
-        $denominationDetails .= "S/5×{$data['coin_5']} | S/2×{$data['coin_2']} | S/1×{$data['coin_1']} | ";
-        $denominationDetails .= "S/0.50×{$data['coin_050']} | S/0.20×{$data['coin_020']} | S/0.10×{$data['coin_010']}\n\n";
+        $denominationDetails .= "S/5×" . ($data['coin_5'] ?? 0) . " | S/2×" . ($data['coin_2'] ?? 0) . " | S/1×" . ($data['coin_1'] ?? 0) . " | ";
+        $denominationDetails .= "S/0.50×" . ($data['coin_050'] ?? 0) . " | S/0.20×" . ($data['coin_020'] ?? 0) . " | S/0.10×" . ($data['coin_010'] ?? 0) . "\n\n";
 
         // Otros métodos de pago
         if ($otherPaymentsCounted > 0) {
             $denominationDetails .= "📱 OTROS MÉTODOS DE PAGO: S/ " . number_format($otherPaymentsCounted, 2) . "\n";
-            if ($data['manual_yape'] > 0)
+            if (($data['manual_yape'] ?? 0) > 0)
                 $denominationDetails .= "Yape: S/ " . number_format($data['manual_yape'], 2) . " | ";
-            if ($data['manual_plin'] > 0)
+            if (($data['manual_plin'] ?? 0) > 0)
                 $denominationDetails .= "Plin: S/ " . number_format($data['manual_plin'], 2) . " | ";
-            if ($data['manual_card'] > 0)
+            if (($data['manual_card'] ?? 0) > 0)
                 $denominationDetails .= "Tarjeta: S/ " . number_format($data['manual_card'], 2) . " | ";
-            if ($data['manual_didi'] > 0)
+            if (($data['manual_didi'] ?? 0) > 0)
                 $denominationDetails .= "Didi: S/ " . number_format($data['manual_didi'], 2) . " | ";
-            if ($data['manual_pedidos_ya'] > 0)
+            if (($data['manual_pedidos_ya'] ?? 0) > 0)
                 $denominationDetails .= "Pedidos Ya: S/ " . number_format($data['manual_pedidos_ya'], 2) . " | ";
             $denominationDetails .= "\n\n";
         }
