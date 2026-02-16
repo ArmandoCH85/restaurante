@@ -13,12 +13,14 @@ class ViewCashRegisterReport extends ViewRecord
     public function mount(int|string $record): void
     {
         parent::mount($record);
-        
+
         // Eager load relationships needed for the view
         $this->record->load([
             'openedBy',
             'closedBy',
             'cashMovements.approvedByUser',
+            'cashRegisterExpenses',
+            'payments',
             'orders.user',
             'orders.payments'
         ]);

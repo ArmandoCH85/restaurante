@@ -77,59 +77,36 @@ class CashRegisterReportResource extends Resource
                         'cash_registers.opening_datetime',
                         'cash_registers.opening_amount',
                         'cash_registers.actual_amount',
-                        'cash_registers.is_active',
                         'cash_registers.closing_datetime',
                         'cash_registers.opened_by',
-                        'cash_registers.closed_by',
                         'cash_registers.opening_datetime as date',
-                        'cash_registers.opening_amount as total_opening_amount',
-                        'cash_registers.actual_amount as total_actual_amount',
-                        DB::raw('COALESCE(cm.total_movements, 0) as cash_movements_total'),
-                        DB::raw('COALESCE(o.total_orders, 0) as orders_total'),
-                        DB::raw('COALESCE(o_dine.total_dine, 0) as dine_in_total'),
-                        DB::raw('COALESCE(o_take.total_take, 0) as takeout_total'),
-                        DB::raw('COALESCE(o_del.total_del, 0) as delivery_total'),
-                        DB::raw('COALESCE(o_self.total_self, 0) as self_service_total')
+                        DB::raw('COALESCE(o.total, 0) + COALESCE(cm_in.total, 0) as ingresos_totales'),
+                        DB::raw('COALESCE(cre.total, 0) + COALESCE(cm_out.total, 0) as egresos_totales'),
+                        DB::raw('(cash_registers.opening_amount + COALESCE(o.total, 0) + COALESCE(cm_in.total, 0)) - (COALESCE(cre.total, 0) + COALESCE(cm_out.total, 0)) as saldo_teorico'),
                     ])
-                    ->with(['payments' => function($q) {
-                        $q->selectRaw('cash_register_id, payment_method, SUM(amount) as total')
-                          ->groupBy('cash_register_id', 'payment_method');
-                    }])
                     ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(amount) as total_movements FROM cash_movements GROUP BY cash_register_id) as cm'),
-                        'cm.cash_register_id', '=', 'cash_registers.id'
+                        DB::raw('(SELECT cash_register_id, SUM(total) as total FROM orders GROUP BY cash_register_id) as o'),
+                        'o.cash_register_id',
+                        '=',
+                        'cash_registers.id'
                     )
                     ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(total) as total_orders FROM orders GROUP BY cash_register_id) as o'),
-                        'o.cash_register_id', '=', 'cash_registers.id'
+                        DB::raw('(SELECT cash_register_id, SUM(amount) as total FROM cash_movements WHERE movement_type = "ingreso" GROUP BY cash_register_id) as cm_in'),
+                        'cm_in.cash_register_id',
+                        '=',
+                        'cash_registers.id'
                     )
                     ->leftJoin(
-                        DB::raw(sprintf(
-                            '(SELECT cash_register_id, SUM(total) as total_dine FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_dine',
-                            ServiceTypeEnum::DINE_IN->value
-                        )),
-                        'o_dine.cash_register_id', '=', 'cash_registers.id'
+                        DB::raw('(SELECT cash_register_id, SUM(amount) as total FROM cash_movements WHERE movement_type = "egreso" GROUP BY cash_register_id) as cm_out'),
+                        'cm_out.cash_register_id',
+                        '=',
+                        'cash_registers.id'
                     )
                     ->leftJoin(
-                        DB::raw(sprintf(
-                            '(SELECT cash_register_id, SUM(total) as total_take FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_take',
-                            ServiceTypeEnum::TAKEOUT->value
-                        )),
-                        'o_take.cash_register_id', '=', 'cash_registers.id'
-                    )
-                    ->leftJoin(
-                        DB::raw(sprintf(
-                            '(SELECT cash_register_id, SUM(total) as total_del FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_del',
-                            ServiceTypeEnum::DELIVERY->value
-                        )),
-                        'o_del.cash_register_id', '=', 'cash_registers.id'
-                    )
-                    ->leftJoin(
-                        DB::raw(sprintf(
-                            '(SELECT cash_register_id, SUM(total) as total_self FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_self',
-                            ServiceTypeEnum::SELF_SERVICE->value
-                        )),
-                        'o_self.cash_register_id', '=', 'cash_registers.id'
+                        DB::raw('(SELECT cash_register_id, SUM(amount) as total FROM cash_register_expenses GROUP BY cash_register_id) as cre'),
+                        'cre.cash_register_id',
+                        '=',
+                        'cash_registers.id'
                     )
                     ->orderBy('date', 'desc');
             })
@@ -139,70 +116,39 @@ class CashRegisterReportResource extends Resource
                     ->label('Fecha')
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
-                TextColumn::make('total_opening_amount')
-                    ->label('Monto Apertura')
+                TextColumn::make('opening_amount')
+                    ->label('Monto Inicial')
                     ->money('PEN')
+                    ->alignEnd(),
+                TextColumn::make('ingresos_totales')
+                    ->label('Ingresos Totales')
+                    ->money('PEN')
+                    ->color('success')
                     ->alignEnd()
                     ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
+                        Tables\Columns\Summarizers\Sum::make()->money('PEN')
                     ]),
-                TextColumn::make('total_actual_amount')
+                TextColumn::make('egresos_totales')
+                    ->label('Egresos Totales')
+                    ->money('PEN')
+                    ->color('danger')
+                    ->alignEnd()
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()->money('PEN')
+                    ]),
+                TextColumn::make('saldo_teorico')
+                    ->label('Saldo Final Teórico')
+                    ->money('PEN')
+                    ->color('info')
+                    ->alignEnd()
+                    ->summarize([
+                        Tables\Columns\Summarizers\Sum::make()->money('PEN')
+                    ]),
+                TextColumn::make('actual_amount')
                     ->label('Monto Real')
                     ->money('PEN')
-                    ->alignEnd()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
-                    ]),
-                TextColumn::make('cash_movements_total')
-                    ->label('Movimientos')
-                    ->money('PEN')
-                    ->alignEnd()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
-                    ]),
-                TextColumn::make('orders_total')
-                    ->label('Total Ordenes')
-                    ->money('PEN')
-                    ->alignEnd()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
-                    ]),
-                TextColumn::make('dine_in_total')
-                    ->label('Mesa')
-                    ->money('PEN')
-                    ->alignEnd()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
-                    ]),
-                TextColumn::make('takeout_total')
-                    ->label('Para Llevar')
-                    ->money('PEN')
-                    ->alignEnd()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
-                    ]),
-                TextColumn::make('delivery_total')
-                    ->label('Delivery')
-                    ->money('PEN')
-                    ->alignEnd()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
-                    ]),
-                TextColumn::make('self_service_total')
-                    ->label('Autoservicio')
-                    ->money('PEN')
-                    ->alignEnd()
-                    ->summarize([
-                        Tables\Columns\Summarizers\Sum::make()
-                            ->money('PEN')
-                    ])
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->alignEnd(),
             ])
             ->defaultSort('date', 'desc')
             ->filters([
@@ -243,11 +189,11 @@ class CashRegisterReportResource extends Resource
                         return $query
                             ->when(
                                 $data['start_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('opening_datetime', '>=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('opening_datetime', '>=', $date),
                             )
                             ->when(
                                 $data['end_date'],
-                                fn (Builder $query, $date): Builder => $query->whereDate('opening_datetime', '<=', $date),
+                                fn(Builder $query, $date): Builder => $query->whereDate('opening_datetime', '<=', $date),
                             );
                     }),
 
@@ -268,9 +214,9 @@ class CashRegisterReportResource extends Resource
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(
                             $data['service_type'],
-                            fn (Builder $query, $type): Builder => $query->whereHas(
+                            fn(Builder $query, $type): Builder => $query->whereHas(
                                 'orders',
-                                fn (Builder $query) => $query->where('service_type', $type)
+                                fn(Builder $query) => $query->where('service_type', $type)
                             )
                         );
                     }),
@@ -281,8 +227,8 @@ class CashRegisterReportResource extends Resource
                     ->label('Ver Detalle')
                     ->modalHeading('Detalle de Caja')
                     ->modalWidth('4xl')
-                    ->modalContent(fn ($record): \Illuminate\View\View => view('filament.resources.cash-register-report-resource.detail', [
-                        'record' => CashRegister::with(['openedBy', 'closedBy', 'cashMovements.approvedByUser', 'orders.user', 'orders.payments'])->findOrFail($record->id),
+                    ->modalContent(fn($record): \Illuminate\View\View => view('filament.resources.cash-register-report-resource.detail', [
+                        'record' => CashRegister::with(['openedBy', 'closedBy', 'cashMovements.approvedByUser', 'cashRegisterExpenses', 'orders.user', 'orders.payments'])->findOrFail($record->id),
                     ])),
             ])
             ->bulkActions([
@@ -296,7 +242,7 @@ class CashRegisterReportResource extends Resource
             ])
             ->poll('60s')
             ->filtersTriggerAction(
-                fn (Action $action) => $action
+                fn(Action $action) => $action
                     ->button()
                     ->label('Filtros')
             );
