@@ -10,8 +10,11 @@ class ViewCashRegisterReport extends ViewRecord
     protected static string $resource = CashRegisterReportResource::class;
     protected static string $view = 'filament.resources.cash-register-report-resource.pages.view';
 
-    protected function afterMount(): void
+    public function mount(int|string $record): void
     {
+        parent::mount($record);
+        
+        // Eager load relationships needed for the view
         $this->record->load([
             'openedBy',
             'closedBy',
