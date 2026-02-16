@@ -6,7 +6,7 @@ use App\Filament\Resources\SummaryResource\Pages;
 use App\Filament\Resources\SummaryResource\RelationManagers;
 use App\Models\Summary;
 use App\Models\Invoice;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -380,7 +380,16 @@ class SummaryResource extends Resource
                     ->visible(fn (Summary $record): bool => $record->status === Summary::STATUS_PENDING)
                     ->action(function (Summary $record) {
                         try {
-                            $sunatService = app(SunatService::class);
+                            $sunatService = SunatServiceHelper::createIfNotTesting();
+                            if ($sunatService === null) {
+                                Notification::make()
+                                    ->title('Modo de pruebas')
+                                    ->body('El servicio SUNAT no está disponible en modo de pruebas.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
                             // Obtener boletas para el resumen
                             $boletas = Invoice::where('issue_date', $record->fecha_referencia)
                                 ->where('sunat_status', 'ACEPTADO')
@@ -400,18 +409,18 @@ class SummaryResource extends Resource
                                     ];
                                 })
                                 ->toArray();
-                            
+
                             $result = $sunatService->enviarResumenBoletas(
                                 $boletas,
                                 now()->format('Y-m-d'),
                                 $record->fecha_referencia
                             );
-                            
+
                             if ($result['success']) {
                                 // Calcular valores localmente desde las boletas
                                 $receiptsCount = count($boletas);
                                 $totalAmount = collect($boletas)->sum('total');
-                                
+
                                 $record->update([
                                     'correlativo' => $result['correlativo'],
                                     'receipts_count' => $receiptsCount,
@@ -421,7 +430,7 @@ class SummaryResource extends Resource
                                     'status' => Summary::STATUS_PROCESSING,
                                     'fecha_generacion' => now(),
                                 ]);
-                                
+
                                 Notification::make()
                                     ->title('Resumen generado exitosamente')
                                     ->success()
@@ -431,7 +440,7 @@ class SummaryResource extends Resource
                                     'status' => Summary::STATUS_ERROR,
                                     'error_message' => $result['message'],
                                 ]);
-                                
+
                                 Notification::make()
                                     ->title('Error al generar resumen')
                                     ->body($result['message'])
@@ -443,7 +452,7 @@ class SummaryResource extends Resource
                                 'status' => Summary::STATUS_ERROR,
                                 'error_message' => $e->getMessage(),
                             ]);
-                            
+
                             Notification::make()
                                 ->title('Error inesperado')
                                 ->body($e->getMessage())
@@ -462,7 +471,16 @@ class SummaryResource extends Resource
                     ->visible(fn (Summary $record): bool => $record->status === Summary::STATUS_PROCESSING && $record->xml_path)
                     ->action(function (Summary $record) {
                         try {
-                            $sunatService = app(SunatService::class);
+                            $sunatService = SunatServiceHelper::createIfNotTesting();
+                            if ($sunatService === null) {
+                                Notification::make()
+                                    ->title('Modo de pruebas')
+                                    ->body('El servicio SUNAT no está disponible en modo de pruebas.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
                             // Obtener boletas para el resumen
                             $boletas = Invoice::where('issue_date', $record->fecha_referencia)
                                 ->where('sunat_status', 'ACEPTADO')
@@ -482,19 +500,19 @@ class SummaryResource extends Resource
                                     ];
                                 })
                                 ->toArray();
-                            
+
                             $result = $sunatService->enviarResumenBoletas(
                                 $boletas,
                                 now()->format('Y-m-d'),
                                 $record->fecha_referencia
                             );
-                            
+
                             if ($result['success']) {
                                 $record->update([
                                     'ticket' => $result['ticket'],
                                     'status' => Summary::STATUS_SENT,
                                 ]);
-                                
+
                                 Notification::make()
                                     ->title('Resumen enviado a SUNAT')
                                     ->body('Ticket: ' . $result['ticket'])
@@ -505,7 +523,7 @@ class SummaryResource extends Resource
                                     'status' => Summary::STATUS_ERROR,
                                     'error_message' => $result['message'],
                                 ]);
-                                
+
                                 Notification::make()
                                     ->title('Error al enviar resumen')
                                     ->body($result['message'])
@@ -517,7 +535,7 @@ class SummaryResource extends Resource
                                 'status' => Summary::STATUS_ERROR,
                                 'error_message' => $e->getMessage(),
                             ]);
-                            
+
                             Notification::make()
                                 ->title('Error inesperado')
                                 ->body($e->getMessage())
@@ -536,7 +554,16 @@ class SummaryResource extends Resource
                     ->visible(fn (Summary $record): bool => $record->status === Summary::STATUS_SENT && $record->ticket)
                     ->action(function (Summary $record) {
                         try {
-                            $sunatService = app(SunatService::class);
+                            $sunatService = SunatServiceHelper::createIfNotTesting();
+                            if ($sunatService === null) {
+                                Notification::make()
+                                    ->title('Modo de pruebas')
+                                    ->body('El servicio SUNAT no está disponible en modo de pruebas.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
                             $result = $sunatService->consultarEstadoResumen($record->ticket);
                             
                             if ($result['success']) {

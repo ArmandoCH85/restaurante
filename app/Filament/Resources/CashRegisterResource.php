@@ -20,7 +20,7 @@ class CashRegisterResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calculator';
 
-    protected static ?string $navigationGroup = '💰 Caja';
+    protected static ?string $navigationGroup = 'Caja';
 
     // Mostrar en el menú de navegación
     protected static bool $shouldRegisterNavigation = true;
@@ -56,10 +56,9 @@ class CashRegisterResource extends Resource
         return 'heroicon-o-calculator';
     }
 
-    // Añadir clases CSS personalizadas al navigation item
     public static function getNavigationGroup(): ?string
     {
-        return '💰 Caja';
+        return 'Caja';
     }
 
     public static function form(Form $form): Form
@@ -141,7 +140,7 @@ class CashRegisterResource extends Resource
 
 
                 Forms\Components\Section::make('Resumen de Ventas')
-                    ->description('Comparativo: Montos del Sistema vs Conteo Manual')
+                    ->description('Comparativo: Sistema vs Conteo Manual')
                     ->icon('heroicon-m-chart-bar')
                     ->schema(function () {
                         $user = auth()->user();
@@ -149,682 +148,262 @@ class CashRegisterResource extends Resource
 
                         if ($isSupervisor) {
                             return [
-                                // Comparativo de Efectivo
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('cash_sales_display')
-                                            ->label('💻 Sistema: Efectivo')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $cashSales = $record->getSystemCashSales();
-                                                return 'S/ ' . number_format($cashSales, 2);
-                                            })
-                                            ->helperText('Ventas en efectivo registradas en el sistema'),
-                                        Forms\Components\TextInput::make('manual_cash')
-                                            ->label('👥 Manual: Efectivo')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('Ingrese el monto total de efectivo contado')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                // Calcular total manual cuando cambia el efectivo
-                                                $efectivo = floatval($state ?? 0);
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                    (floatval($get('manual_plin') ?? 0)) +
-                                                    (floatval($get('manual_card') ?? 0)) +
-                                                    (floatval($get('manual_didi') ?? 0)) +
-                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                    (floatval($get('manual_bita_express') ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                        Forms\Components\Placeholder::make('cash_difference')
-                                            ->label('⚖️ Diferencia')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                $sistema = $record->getSystemCashSales();
-                                                $manual = floatval($get('manual_cash') ?? 0);
-
-                                                $diferencia = $manual - $sistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
-                                                        {$icono} S/ " . number_format($diferencia, 2) . "
-                                                    </span>
-                                                ");
-                                            })
-                                            ->helperText('Manual - Sistema'),
+                                Forms\Components\Grid::make()
+                                    ->columns([
+                                        'default' => 1,
+                                        'md' => 4,
                                     ])
-                                    ->columnSpan('full'),
-
-                                // Comparativo de Yape
-                                Forms\Components\Grid::make(3)
+                                    ->columnSpanFull()
                                     ->schema([
-                                        Forms\Components\Placeholder::make('yape_sales_display')
-                                            ->label('💻 Sistema: Yape')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $yapeSales = $record->getSystemYapeSales();
-                                                return 'S/ ' . number_format($yapeSales, 2);
-                                            })
-                                            ->helperText('Ventas Yape registradas en el sistema'),
-                                        Forms\Components\TextInput::make('manual_yape')
-                                            ->label('👥 Manual: Yape')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('Yape contado manualmente')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                // Calcular total manual
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-                                                $otros = (floatval($state ?? 0)) +
-                                                    (floatval($get('manual_plin') ?? 0)) +
-                                                    (floatval($get('manual_card') ?? 0)) +
-                                                    (floatval($get('manual_didi') ?? 0)) +
-                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                    (floatval($get('manual_bita_express') ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                        Forms\Components\Placeholder::make('yape_difference')
-                                            ->label('⚖️ Diferencia')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                $sistema = $record->getSystemYapeSales();
-                                                $manual = floatval($get('manual_yape') ?? 0);
-                                                $diferencia = $manual - $sistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
-                                                        {$icono} S/ " . number_format($diferencia, 2) . "
-                                                    </span>
-                                                ");
-                                            })
-                                            ->helperText('Manual - Sistema'),
-                                    ])
-                                    ->columnSpan('full'),
-
-                                // Comparativo de Plin
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('plin_sales_display')
-                                            ->label('💻 Sistema: Plin')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $plinSales = $record->getSystemPlinSales();
-                                                return 'S/ ' . number_format($plinSales, 2);
-                                            })
-                                            ->helperText('Ventas Plin registradas en el sistema'),
-                                        Forms\Components\TextInput::make('manual_plin')
-                                            ->label('👥 Manual: Plin')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('Plin contado manualmente')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                // Calcular total manual
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                    (floatval($state ?? 0)) +
-                                                    (floatval($get('manual_card') ?? 0)) +
-                                                    (floatval($get('manual_didi') ?? 0)) +
-                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                    (floatval($get('manual_bita_express') ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                        Forms\Components\Placeholder::make('plin_difference')
-                                            ->label('⚖️ Diferencia')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                $sistema = $record->getSystemPlinSales();
-                                                $manual = floatval($get('manual_plin') ?? 0);
-                                                $diferencia = $manual - $sistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
-                                                        {$icono} S/ " . number_format($diferencia, 2) . "
-                                                    </span>
-                                                ");
-                                            })
-                                            ->helperText('Manual - Sistema'),
-                                    ])
-                                    ->columnSpan('full'),
-
-                                // Comparativo de Tarjetas
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('card_sales_display')
-                                            ->label('💻 Sistema: Tarjetas')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $cardSales = $record->getSystemCardSales();
-                                                return 'S/ ' . number_format($cardSales, 2);
-                                            })
-                                            ->helperText('Ventas con tarjeta registradas en el sistema'),
-                                        Forms\Components\TextInput::make('manual_card')
-                                            ->label('👥 Manual: Tarjetas')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('Tarjetas contadas manualmente')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                // Calcular total manual
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                    (floatval($get('manual_plin') ?? 0)) +
-                                                    (floatval($state ?? 0)) +
-                                                    (floatval($get('manual_didi') ?? 0)) +
-                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                    (floatval($get('manual_bita_express') ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                        Forms\Components\Placeholder::make('card_difference')
-                                            ->label('⚖️ Diferencia')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                $sistema = $record->getSystemCardSales();
-                                                $manual = floatval($get('manual_card') ?? 0);
-                                                $diferencia = $manual - $sistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
-                                                        {$icono} S/ " . number_format($diferencia, 2) . "
-                                                    </span>
-                                                ");
-                                            })
-                                            ->helperText('Manual - Sistema'),
-                                    ])
-                                    ->columnSpan('full'),
-
-                                // Comparativo de Didi
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('didi_sales_display')
-                                            ->label('💻 Sistema: Didi Food')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $didiSales = $record->getSystemDidiSales();
-                                                return 'S/ ' . number_format($didiSales, 2);
-                                            })
-                                            ->helperText('Ventas Didi Food registradas en el sistema'),
-                                        Forms\Components\TextInput::make('manual_didi')
-                                            ->label('👥 Manual: Didi Food')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('Didi Food contado manualmente')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                // Calcular total manual
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                    (floatval($get('manual_plin') ?? 0)) +
-                                                    (floatval($get('manual_card') ?? 0)) +
-                                                    (floatval($state ?? 0)) +
-                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                    (floatval($get('manual_bita_express') ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                        Forms\Components\Placeholder::make('didi_difference')
-                                            ->label('⚖️ Diferencia')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                $sistema = $record->getSystemDidiSales();
-                                                $manual = floatval($get('manual_didi') ?? 0);
-                                                $diferencia = $manual - $sistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
-                                                        {$icono} S/ " . number_format($diferencia, 2) . "
-                                                    </span>
-                                                ");
-                                            })
-                                            ->helperText('Manual - Sistema'),
-                                    ])
-                                    ->columnSpan('full'),
-
-                                // Comparativo de PedidosYa
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('pedidos_ya_sales_display')
-                                            ->label('💻 Sistema: PedidosYa')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $pedidosYaSales = $record->getSystemPedidosYaSales();
-                                                return 'S/ ' . number_format($pedidosYaSales, 2);
-                                            })
-                                            ->helperText('Ventas PedidosYa registradas en el sistema'),
-                                        Forms\Components\TextInput::make('manual_pedidos_ya')
-                                            ->label('👥 Manual: PedidosYa')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('PedidosYa contado manualmente')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                // Calcular total manual
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                    (floatval($get('manual_plin') ?? 0)) +
-                                                    (floatval($get('manual_card') ?? 0)) +
-                                                    (floatval($get('manual_didi') ?? 0)) +
-                                                    (floatval($state ?? 0)) +
-                                                    (floatval($get('manual_bita_express') ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                        Forms\Components\Placeholder::make('pedidos_ya_difference')
-                                            ->label('⚖️ Diferencia')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                $sistema = $record->getSystemPedidosYaSales();
-                                                $manual = floatval($get('manual_pedidos_ya') ?? 0);
-                                                $diferencia = $manual - $sistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
-                                                        {$icono} S/ " . number_format($diferencia, 2) . "
-                                                    </span>
-                                                ");
-                                            })
-                                            ->helperText('Manual - Sistema'),
-                                    ])
-                                    ->columnSpan('full'),
-
-                                // Comparativo de Bita Express
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('bita_express_sales_display')
-                                            ->label('💻 Sistema: Bita Express')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $bitaExpressSales = $record->getSystemBitaExpressSales();
-                                                return 'S/ ' . number_format($bitaExpressSales, 2);
-                                            })
-                                            ->helperText('Ventas Bita Express registradas en el sistema'),
-                                        Forms\Components\TextInput::make('manual_bita_express')
-                                            ->label('👥 Manual: Bita Express')
-                                            ->inputMode('decimal')
-                                            ->default(0)
-                                            ->rules(['required', 'numeric', 'min:0'])
-                                            ->prefix('S/')
-                                            ->placeholder('0.00')
-                                            ->helperText('Bita Express contado manualmente')
-                                            ->required()
-                                            ->afterStateUpdated(function ($set, $get, $state) {
-                                                // Calcular total manual
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-                                                $otros = (floatval($get('manual_yape') ?? 0)) +
-                                                    (floatval($get('manual_plin') ?? 0)) +
-                                                    (floatval($get('manual_card') ?? 0)) +
-                                                    (floatval($get('manual_didi') ?? 0)) +
-                                                    (floatval($get('manual_pedidos_ya') ?? 0)) +
-                                                    (floatval($state ?? 0));
-                                                $total = $efectivo + $otros;
-                                                $set('calculated_total_manual', $total);
-                                            }),
-                                        Forms\Components\Placeholder::make('bita_express_difference')
-                                            ->label('⚖️ Diferencia')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                $sistema = $record->getSystemBitaExpressSales();
-                                                $manual = floatval($get('manual_bita_express') ?? 0);
-                                                $diferencia = $manual - $sistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <span style='color: var(--{$color}-600); font-weight: 600;'>
-                                                        {$icono} S/ " . number_format($diferencia, 2) . "
-                                                    </span>
-                                                ");
-                                            })
-                                            ->helperText('Manual - Sistema'),
-                                    ])
-                                    ->columnSpan('full'),
-
-
-                                // Totales comparativos
-                                Forms\Components\Grid::make(3)
-                                    ->schema([
-                                        Forms\Components\Placeholder::make('total_sistema_display')
-                                            ->label('💻 TOTAL SISTEMA')
-                                            ->content(function ($record) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-                                                $totalSistema = $record->getSystemCashSales() +
-                                                    $record->getSystemYapeSales() +
-                                                    $record->getSystemPlinSales() +
-                                                    $record->getSystemCardSales() +
-                                                    $record->getSystemDidiSales() +
-                                                    $record->getSystemPedidosYaSales() +
-                                                    $record->getSystemBankTransferSales() +
-                                                    $record->getSystemOtherDigitalWalletSales();
-                                                return 'S/ ' . number_format($totalSistema, 2);
-                                            })
-                                            ->helperText('Total de todas las ventas registradas en el sistema')
-                                            ->extraAttributes(['class' => 'font-bold text-lg text-blue-600']),
-                                        Forms\Components\Placeholder::make('calculated_total_manual')
-                                            ->label('👥 TOTAL MANUAL')
-                                            ->content(function ($get) {
-                                                // 👥 Manual: Efectivo (ingresado directamente)
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-
-                                                // Métodos de pago digitales manuales
-                                                $yape = floatval($get('manual_yape') ?? 0);
-                                                $plin = floatval($get('manual_plin') ?? 0);
-                                                $tarjetas = floatval($get('manual_card') ?? 0);
-                                                $didi = floatval($get('manual_didi') ?? 0);
-                                                $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
-                                                $bitaExpress = floatval($get('manual_bita_express') ?? 0);
-
-                                                // TOTAL MANUAL = Efectivo + Yape + Plin + Tarjetas + Didi + PedidosYa + Bita Express
-                                                $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya + $bitaExpress;
-                                                return 'S/ ' . number_format($total, 2);
-                                            })
-                                            ->helperText('Total de todo lo contado manualmente')
-                                            ->extraAttributes(['class' => 'font-bold text-lg text-green-600']),
-                                        Forms\Components\Placeholder::make('total_difference')
-                                            ->label('⚖️ Diferencia Total')
-                                            ->content(function ($record, $get) {
-                                                if (!$record)
-                                                    return 'S/ 0.00';
-
-                                                // Calcular total del sistema
-                                                $totalSistema = $record->getSystemCashSales() +
-                                                    $record->getSystemYapeSales() +
-                                                    $record->getSystemPlinSales() +
-                                                    $record->getSystemCardSales() +
-                                                    $record->getSystemDidiSales() +
-                                                    $record->getSystemPedidosYaSales() +
-                                                    $record->getSystemBankTransferSales() +
-                                                    $record->getSystemOtherDigitalWalletSales();
-
-                                                // Calcular total manual
-                                                $efectivo = floatval($get('manual_cash') ?? 0);
-
-                                                $yape = floatval($get('manual_yape') ?? 0);
-                                                $plin = floatval($get('manual_plin') ?? 0);
-                                                $tarjetas = floatval($get('manual_card') ?? 0);
-                                                $didi = floatval($get('manual_didi') ?? 0);
-                                                $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
-                                                $bitaExpress = floatval($get('manual_bita_express') ?? 0);
-
-                                                $totalManual = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya + $bitaExpress;
-
-                                                // Calcular diferencia
-                                                $diferencia = $totalManual - $totalSistema;
-                                                $color = $diferencia == 0 ? 'primary' : ($diferencia > 0 ? 'success' : 'danger');
-                                                $icono = $diferencia == 0 ? '✅' : ($diferencia > 0 ? '⬆️' : '⬇️');
-
-                                                return new \Illuminate\Support\HtmlString("
-                                                    <div style='background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 1rem; border-radius: 0.75rem; border-left: 4px solid var(--{$color}-500);'>
-                                                        <div style='font-size: 0.875rem; color: #6b7280; font-weight: 500; margin-bottom: 0.25rem;'>Diferencia Total</div>
-                                                        <div style='color: var(--{$color}-600); font-size: 1.5rem; font-weight: 700;'>
-                                                            {$icono} S/ " . number_format($diferencia, 2) . "
-                                                        </div>
-                                                        <div style='font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem;'>Manual - Sistema</div>
-                                                    </div>
-                                                ");
-                                            })
-                                            ->helperText('Total Manual - Total Sistema'),
-                                    ])
-                                    ->columnSpan('full'),
-                            ];
-                        } else {
-                            return [
-                                Forms\Components\Placeholder::make('sales_info')
-                                    ->label('Información de Ventas')
-                                    ->content('Esta información solo es visible para supervisores')
-                                    ->columnSpan('full'),
-                                Forms\Components\Placeholder::make('blind_closing_info')
-                                    ->label('Cierre a Ciegas')
-                                    ->content('Por favor, realice el conteo de efectivo sin conocer los montos esperados')
-                                    ->columnSpan('full'),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('metodo_efectivo')->label('Método')->content('Efectivo'),
+                                                Forms\Components\Placeholder::make('sistema_efectivo')->label('Sistema')->content(function ($record) {
+                                                    return $record ? 'S/ ' . number_format($record->getSystemCashSales(), 2) : 'S/ 0.00';
+                                                }),
+                                                Forms\Components\TextInput::make('manual_cash')
+                                                    ->label('Contado')
+                                                    ->numeric()
+                                                    ->prefix('S/')
+                                                    ->default(0)
+                                                    ->live(),
+                                                Forms\Components\Placeholder::make('diff_efectivo')
+                                                    ->label('Diferencia')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        $sistema = $record ? $record->getSystemCashSales() : 0;
+                                                        $manual = floatval($get('manual_cash') ?? 0);
+                                                        $diff = $manual - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('metodo_yape')->label('Método')->content('Yape'),
+                                                Forms\Components\Placeholder::make('sistema_yape')->label('Sistema')->content(function ($record) {
+                                                    return $record ? 'S/ ' . number_format($record->getSystemYapeSales(), 2) : 'S/ 0.00';
+                                                }),
+                                                Forms\Components\TextInput::make('manual_yape')
+                                                    ->label('Contado')
+                                                    ->numeric()
+                                                    ->prefix('S/')
+                                                    ->default(0)
+                                                    ->live(),
+                                                Forms\Components\Placeholder::make('diff_yape')
+                                                    ->label('Diferencia')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        $sistema = $record ? $record->getSystemYapeSales() : 0;
+                                                        $manual = floatval($get('manual_yape') ?? 0);
+                                                        $diff = $manual - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('metodo_plin')->label('Método')->content('Plin'),
+                                                Forms\Components\Placeholder::make('sistema_plin')->label('Sistema')->content(function ($record) {
+                                                    return $record ? 'S/ ' . number_format($record->getSystemPlinSales(), 2) : 'S/ 0.00';
+                                                }),
+                                                Forms\Components\TextInput::make('manual_plin')
+                                                    ->label('Contado')
+                                                    ->numeric()
+                                                    ->prefix('S/')
+                                                    ->default(0)
+                                                    ->live(),
+                                                Forms\Components\Placeholder::make('diff_plin')
+                                                    ->label('Diferencia')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        $sistema = $record ? $record->getSystemPlinSales() : 0;
+                                                        $manual = floatval($get('manual_plin') ?? 0);
+                                                        $diff = $manual - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('metodo_tarjetas')->label('Método')->content('Tarjetas'),
+                                                Forms\Components\Placeholder::make('sistema_tarjetas')->label('Sistema')->content(function ($record) {
+                                                    return $record ? 'S/ ' . number_format($record->getSystemCardSales(), 2) : 'S/ 0.00';
+                                                }),
+                                                Forms\Components\TextInput::make('manual_card')
+                                                    ->label('Contado')
+                                                    ->numeric()
+                                                    ->prefix('S/')
+                                                    ->default(0)
+                                                    ->live(),
+                                                Forms\Components\Placeholder::make('diff_tarjetas')
+                                                    ->label('Diferencia')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        $sistema = $record ? $record->getSystemCardSales() : 0;
+                                                        $manual = floatval($get('manual_card') ?? 0);
+                                                        $diff = $manual - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('metodo_didi')->label('Método')->content('Didi Food'),
+                                                Forms\Components\Placeholder::make('sistema_didi')->label('Sistema')->content(function ($record) {
+                                                    return $record ? 'S/ ' . number_format($record->getSystemDidiSales(), 2) : 'S/ 0.00';
+                                                }),
+                                                Forms\Components\TextInput::make('manual_didi')
+                                                    ->label('Contado')
+                                                    ->numeric()
+                                                    ->prefix('S/')
+                                                    ->default(0)
+                                                    ->live(),
+                                                Forms\Components\Placeholder::make('diff_didi')
+                                                    ->label('Diferencia')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        $sistema = $record ? $record->getSystemDidiSales() : 0;
+                                                        $manual = floatval($get('manual_didi') ?? 0);
+                                                        $diff = $manual - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('metodo_pedidosya')->label('Método')->content('PedidosYa'),
+                                                Forms\Components\Placeholder::make('sistema_pedidosya')->label('Sistema')->content(function ($record) {
+                                                    return $record ? 'S/ ' . number_format($record->getSystemPedidosYaSales(), 2) : 'S/ 0.00';
+                                                }),
+                                                Forms\Components\TextInput::make('manual_pedidos_ya')
+                                                    ->label('Contado')
+                                                    ->numeric()
+                                                    ->prefix('S/')
+                                                    ->default(0)
+                                                    ->live(),
+                                                Forms\Components\Placeholder::make('diff_pedidosya')
+                                                    ->label('Diferencia')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        $sistema = $record ? $record->getSystemPedidosYaSales() : 0;
+                                                        $manual = floatval($get('manual_pedidos_ya') ?? 0);
+                                                        $diff = $manual - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('metodo_bita')->label('Método')->content('Bita Express'),
+                                                Forms\Components\Placeholder::make('sistema_bita')->label('Sistema')->content(function ($record) {
+                                                    return $record ? 'S/ ' . number_format($record->getSystemBitaExpressSales(), 2) : 'S/ 0.00';
+                                                }),
+                                                Forms\Components\TextInput::make('manual_bita_express')
+                                                    ->label('Contado')
+                                                    ->numeric()
+                                                    ->prefix('S/')
+                                                    ->default(0)
+                                                    ->live(),
+                                                Forms\Components\Placeholder::make('diff_bita')
+                                                    ->label('Diferencia')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        $sistema = $record ? $record->getSystemBitaExpressSales() : 0;
+                                                        $manual = floatval($get('manual_bita_express') ?? 0);
+                                                        $diff = $manual - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                        Forms\Components\Grid::make()
+                                            ->columns(4)
+                                            ->columnSpanFull()
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('total_label')->label('')->content(''),
+                                                Forms\Components\Placeholder::make('total_sistema')
+                                                    ->label('TOTAL')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        return $record ? 'S/ ' . number_format($record->getSystemTotalSales(), 2) : 'S/ 0.00';
+                                                    }),
+                                                Forms\Components\Placeholder::make('total_contado')
+                                                    ->label('TOTAL')
+                                                    ->live()
+                                                    ->content(function ($get) {
+                                                        $total = floatval($get('manual_cash') ?? 0) + floatval($get('manual_yape') ?? 0) + floatval($get('manual_plin') ?? 0) + floatval($get('manual_card') ?? 0) + floatval($get('manual_didi') ?? 0) + floatval($get('manual_pedidos_ya') ?? 0) + floatval($get('manual_bita_express') ?? 0);
+                                                        return 'S/ ' . number_format($total, 2);
+                                                    }),
+                                                Forms\Components\Placeholder::make('diferencia_total')
+                                                    ->label('DIFERENCIA')
+                                                    ->live()
+                                                    ->content(function ($record, $get) {
+                                                        if (!$record) return 'S/ 0.00';
+                                                        $sistema = $record->getSystemTotalSales();
+                                                        $contado = floatval($get('manual_cash') ?? 0) + floatval($get('manual_yape') ?? 0) + floatval($get('manual_plin') ?? 0) + floatval($get('manual_card') ?? 0) + floatval($get('manual_didi') ?? 0) + floatval($get('manual_pedidos_ya') ?? 0) + floatval($get('manual_bita_express') ?? 0);
+                                                        $diff = $contado - $sistema;
+                                                        $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+                                                    }),
+                                            ]),
+                                    ]),
                             ];
                         }
+
+                        return [
+                            Forms\Components\Placeholder::make('blind_closing')
+                                ->label('Cierre a Ciegas')
+                                ->content('Ingrese el monto total de efectivo sin consultar los montos del sistema')
+                                ->columnSpan('full'),
+                            Forms\Components\TextInput::make('manual_cash')
+                                ->label('Efectivo Contado')
+                                ->numeric()
+                                ->prefix('S/')
+                                ->default(0),
+                        ];
                     })
                     ->columns(1)
-                    ->visible(fn($record) => $record && $record->is_active)
-                    ->footerActions([
-                        Forms\Components\Actions\Action::make('calcular_totales')
-                            ->label('🔄 Calcular Totales')
-                            ->color('primary')
-                            ->button()
-                            ->action(function ($set, $get) {
-                                // Calcular total manual sumando todos los métodos de pago
-                                $efectivo = floatval($get('manual_cash') ?? 0);
-                                $yape = floatval($get('manual_yape') ?? 0);
-                                $plin = floatval($get('manual_plin') ?? 0);
-                                $tarjetas = floatval($get('manual_card') ?? 0);
-                                $didi = floatval($get('manual_didi') ?? 0);
-                                $pedidosya = floatval($get('manual_pedidos_ya') ?? 0);
-                                $bitaExpress = floatval($get('manual_bita_express') ?? 0);
-
-                                $total = $efectivo + $yape + $plin + $tarjetas + $didi + $pedidosya + $bitaExpress;
-                                $set('calculated_total_manual', $total);
-                            }),
-                    ]),
+                    ->visible(fn($record) => $record && $record->is_active),
 
 
 
-                Forms\Components\Section::make('Resumen Final del Cierre')
-                    ->description('Cálculos automáticos del cierre de caja')
+                Forms\Components\Section::make('Resumen de Cierre')
+                    ->description('Resumen del cierre de caja')
                     ->icon('heroicon-m-calculator')
                     ->schema([
-                        Forms\Components\Grid::make(6)
+                        Forms\Components\Grid::make(4)
                             ->schema([
                                 Forms\Components\Placeholder::make('monto_inicial')
-                                    ->label('🏁 Monto Inicial')
+                                    ->label('Monto Inicial')
                                     ->content(function ($record) {
-                                        if (!$record)
-                                            return 'S/ 0.00';
-                                        return 'S/ ' . number_format($record->opening_amount, 2);
-                                    })
-                                    ->helperText('Monto de apertura en caja')
-                                    ->extraAttributes(['class' => 'text-gray-600']),
-
-                                Forms\Components\Placeholder::make('total_ingresos')
-                                    ->label('💰 Total Ingresos')
-                                    ->content(function ($record) {
-                                        if (!$record)
-                                            return 'S/ 0.00';
-                                        return 'S/ ' . number_format($record->getSystemTotalSales(), 2);
-                                    })
-                                    ->helperText('Ventas totales del sistema'),
-
-                                Forms\Components\Placeholder::make('total_egresos')
-                                    ->label('💸 Total Egresos')
-                                    ->content(function ($record) {
-                                        if (!$record)
-                                            return 'S/ 0.00';
-                                        $expenses = $record->cashRegisterExpenses()->sum('amount');
-                                        return 'S/ ' . number_format($expenses, 2);
-                                    })
-                                    ->helperText('Gastos registrados'),
-
-                                Forms\Components\Placeholder::make('saldo_esperado')
-                                    ->label('🎯 Saldo Esperado')
-                                    ->content(function ($record) {
-                                        if (!$record)
-                                            return 'S/ 0.00';
-                                        // Usa la lógica central del modelo: (Apertura + Ventas) - Egresos
-                                        $expected = $record->calculateExpectedCash();
-                                        return 'S/ ' . number_format($expected, 2);
-                                    })
-                                    ->helperText('Inicio + Ingresos - Egresos')
-                                    ->extraAttributes(['class' => 'font-bold text-primary-600']),
-
-                                Forms\Components\Placeholder::make('total_contado')
-                                    ->label('👥 Total Manual')
-                                    ->content(function ($record, $get) {
-                                        // Efectivo
-                                        $efectivo = floatval($get('manual_cash') ?? 0);
-
-                                        // Otros
-                                        $otros = floatval($get('manual_yape') ?? 0) +
-                                            floatval($get('manual_plin') ?? 0) +
-                                            floatval($get('manual_card') ?? 0) +
-                                            floatval($get('manual_didi') ?? 0) +
-                                            floatval($get('manual_pedidos_ya') ?? 0) +
-                                            floatval($get('manual_bita_express') ?? 0);
-
-                                        $total = $efectivo + $otros;
-                                        return 'S/ ' . number_format($total, 2);
-                                    })
-                                    ->helperText('Lo que tienes en mano'),
-
-                                Forms\Components\Placeholder::make('diferencia')
-                                    ->label('⚖️ Diferencia')
-                                    ->content(function ($record, $get) {
-                                        if (!$record)
-                                            return 'S/ 0.00';
-
-                                        $esperado = $record->calculateExpectedCash();
-
-                                        // Calcular total contado (Ventas Brutas según usuario)
-                                        $efectivo = floatval($get('manual_cash') ?? 0);
-
-                                        $otros = floatval($get('manual_yape') ?? 0) +
-                                            floatval($get('manual_plin') ?? 0) +
-                                            floatval($get('manual_card') ?? 0) +
-                                            floatval($get('manual_didi') ?? 0) +
-                                            floatval($get('manual_pedidos_ya') ?? 0) +
-                                            floatval($get('manual_bita_express') ?? 0);
-
-                                        $totalManual = $efectivo + $otros;
-
-                                        // Ajuste solicitado: Manual + Apertura - Egresos
-                                        $apertura = $record->opening_amount;
-                                        $egresos = $record->cashRegisterExpenses()->sum('amount');
-
-                                        $totalCalculado = $totalManual + $apertura - $egresos;
-
-                                        $diferencia = $totalCalculado - $esperado;
-
-                                        $color = abs($diferencia) < 0.01 ? 'success' : ($diferencia > 0 ? 'warning' : 'danger');
-                                        $icon = abs($diferencia) < 0.01 ? '✅' : ($diferencia > 0 ? '⚠️ Sobrante:' : '❌ Faltante:');
-
-                                        return new \Illuminate\Support\HtmlString("
-                                            <span style='color: var(--{$color}-600); font-weight: 700; font-size: 1.1rem;'>
-                                                {$icon} S/ " . number_format($diferencia, 2) . "
-                                            </span>
-                                        ");
-                                    })
-                                    ->helperText(function ($record, $get) {
-                                        if (!$record)
-                                            return '';
-
-                                        $esperado = $record->calculateExpectedCash();
-
-                                        // Recalcular para texto de ayuda
-                                        $efectivo = floatval($get('manual_cash') ?? 0);
-
-                                        $otros = floatval($get('manual_yape') ?? 0) +
-                                            floatval($get('manual_plin') ?? 0) +
-                                            floatval($get('manual_card') ?? 0) +
-                                            floatval($get('manual_didi') ?? 0) +
-                                            floatval($get('manual_pedidos_ya') ?? 0) +
-                                            floatval($get('manual_bita_express') ?? 0);
-
-                                        $totalManual = $efectivo + $otros;
-                                        $apertura = $record->opening_amount;
-                                        $egresos = $record->cashRegisterExpenses()->sum('amount');
-
-                                        return "(Manual S/ " . number_format($totalManual, 2) . " + Ini S/ " . number_format($apertura, 2) . " - Egr S/ " . number_format($egresos, 2) . ") - Esp S/ " . number_format($esperado, 2);
+                                        return $record ? 'S/ ' . number_format($record->opening_amount, 2) : 'S/ 0.00';
                                     }),
-                            ]),
-
-                        // Ganancia Real (destacado con gradiente)
-                        Forms\Components\Grid::make(1)
-                            ->schema([
-                                Forms\Components\Placeholder::make('ganancia_real')
+                                Forms\Components\Placeholder::make('total_ingresos')
+                                    ->label('Ingresos')
                                     ->content(function ($record) {
-                                        if (!$record)
-                                            return 'S/ 0.00';
-
-                                        // Calcular ingresos totales del sistema
-                                        $ingresos = $record->getSystemCashSales() +
-                                            $record->getSystemYapeSales() +
-                                            $record->getSystemPlinSales() +
-                                            $record->getSystemCardSales() +
-                                            $record->getSystemDidiSales() +
-                                            $record->getSystemPedidosYaSales() +
-                                            $record->getSystemBankTransferSales() +
-                                            $record->getSystemOtherDigitalWalletSales();
-
-                                        // Obtener egresos registrados del módulo
-                                        $egresos = $record->cashRegisterExpenses()->sum('amount');
-
-                                        // Ganancia Real = Total Sistema - Egresos Registrados
-                                        $ganancia = $ingresos - $egresos;
-
-                                        return new \Illuminate\Support\HtmlString("
-                                            <div style='background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 1.75rem; border-radius: 1rem; border-left: 5px solid #10b981; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);'>
-                                                <div style='display: flex; align-items: center; gap: 1rem;'>
-                                                    <span style='font-size: 3rem;'>🏆</span>
-                                                    <div style='flex: 1;'>
-                                                        <div style='font-size: 1rem; color: #065f46; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em;'>Ganancia Real del Día</div>
-                                                        <div style='font-size: 2.5rem; font-weight: 800; color: #047857; line-height: 1;'>S/ " . number_format($ganancia, 2) . "</div>
-                                                        <div style='font-size: 0.875rem; color: #059669; margin-top: 0.5rem; font-weight: 500;'>💰 Total Sistema: S/ " . number_format($ingresos, 2) . " - 💸 Egresos Registrados: S/ " . number_format($egresos, 2) . "</div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ");
-                                    })
-                                    ->columnSpan('full'),
+                                        return $record ? 'S/ ' . number_format($record->getSystemTotalSales(), 2) : 'S/ 0.00';
+                                    }),
+                                Forms\Components\Placeholder::make('total_egresos')
+                                    ->label('Egresos')
+                                    ->content(function ($record) {
+                                        if (!$record) return 'S/ 0.00';
+                                        return 'S/ ' . number_format($record->getCachedExpenses(), 2);
+                                    }),
+                                Forms\Components\Placeholder::make('ganancia_real')
+                                    ->label('Ganancia Real')
+                                    ->content(function ($record) {
+                                        if (!$record) return 'S/ 0.00';
+                                        $ingresos = $record->getSystemTotalSales();
+                                        $egresos = $record->getCachedExpenses();
+                                        return 'S/ ' . number_format($ingresos - $egresos, 2);
+                                    }),
                             ]),
                     ])
                     ->visible(fn($record) => $record && $record->is_active),
@@ -865,10 +444,10 @@ class CashRegisterResource extends Resource
             ->filters([
                 // Filtro de estado mejorado con iconos
                 Tables\Filters\SelectFilter::make('is_active')
-                    ->label('🔄 Estado de Operación')
+                    ->label('Estado de Operación')
                     ->options([
-                        1 => '🟢 Abierta',
-                        0 => '🔴 Cerrada',
+                        1 => 'Abierta',
+                        0 => 'Cerrada',
                     ])
                     ->placeholder('Todos los estados')
                     ->default(null)
@@ -876,10 +455,10 @@ class CashRegisterResource extends Resource
 
                 // Filtro de aprobación mejorado
                 Tables\Filters\SelectFilter::make('is_approved')
-                    ->label('✅ Estado de Aprobación')
+                    ->label('Estado de Aprobación')
                     ->options([
-                        1 => '✅ Aprobada',
-                        0 => '⏳ Pendiente/Rechazada',
+                        1 => 'Aprobada',
+                        0 => 'Pendiente/Rechazada',
                     ])
                     ->placeholder('Todos los estados')
                     ->default(null)
@@ -887,7 +466,7 @@ class CashRegisterResource extends Resource
 
                 // Filtro de responsable
                 Tables\Filters\SelectFilter::make('opened_by')
-                    ->label('👤 Responsable')
+                    ->label('Responsable')
                     ->relationship('openedBy', 'name')
                     ->searchable()
                     ->preload()
@@ -895,7 +474,7 @@ class CashRegisterResource extends Resource
 
                 // Filtro de fecha mejorado con presets
                 Tables\Filters\Filter::make('opening_datetime')
-                    ->label('📅 Período')
+                    ->label('Período')
                     ->form([
                         Forms\Components\Section::make('Rango de Fechas')
                             ->description('Seleccione el período de operaciones')
@@ -966,11 +545,11 @@ class CashRegisterResource extends Resource
                         $indicators = [];
 
                         if ($data['desde'] ?? null) {
-                            $indicators['desde'] = '📅 Desde: ' . \Carbon\Carbon::parse($data['desde'])->format('d/m/Y');
+                            $indicators['desde'] = 'Desde: ' . \Carbon\Carbon::parse($data['desde'])->format('d/m/Y');
                         }
 
                         if ($data['hasta'] ?? null) {
-                            $indicators['hasta'] = '📅 Hasta: ' . \Carbon\Carbon::parse($data['hasta'])->format('d/m/Y');
+                            $indicators['hasta'] = 'Hasta: ' . \Carbon\Carbon::parse($data['hasta'])->format('d/m/Y');
                         }
 
                         return $indicators;
@@ -1085,7 +664,7 @@ class CashRegisterResource extends Resource
 
                         \Filament\Notifications\Notification::make()
                             ->success()
-                            ->title('✅ Caja aprobada')
+                            ->title('Caja aprobada')
                             ->send();
                     }),
             ])
@@ -1098,7 +677,7 @@ class CashRegisterResource extends Resource
             ->headerActions([
                 // Acción principal: Abrir nueva caja (solo cuando no hay caja abierta)
                 Tables\Actions\CreateAction::make()
-                    ->label('🏦 Abrir Nueva Caja')
+                    ->label('Abrir Nueva Caja')
                     ->icon('heroicon-m-plus-circle')
                     ->color('success')
                     ->size('lg')
@@ -1112,14 +691,14 @@ class CashRegisterResource extends Resource
                         $data['is_active'] = true;
                         return $data;
                     })
-                    ->successNotificationTitle('✅ Caja abierta correctamente')
+                    ->successNotificationTitle('Caja abierta correctamente')
                     ->after(function () {
                         redirect()->to('/admin/pos-interface');
                     }),
 
                 // Reconciliación visible (principio KISS)
                 Tables\Actions\Action::make('reconcile_all')
-                    ->label('⚖️ Reconciliar Pendientes')
+                    ->label('Reconciliar Pendientes')
                     ->icon('heroicon-m-scale')
                     ->color('warning')
                     ->button()
@@ -1143,27 +722,27 @@ class CashRegisterResource extends Resource
 
                         \Filament\Notifications\Notification::make()
                             ->success()
-                            ->title("✅ {$count} cajas reconciliadas")
+                            ->title("{$count} cajas reconciliadas")
                             ->send();
                     }),
 
                 // Exportar (acción secundaria simple)
                 Tables\Actions\Action::make('export_today')
-                    ->label('📊 Exportar Hoy')
+                    ->label('Exportar Hoy')
                     ->icon('heroicon-m-document-arrow-down')
                     ->color('info')
                     ->button()
                     ->action(function () {
                         \Filament\Notifications\Notification::make()
                             ->info()
-                            ->title('📊 Exportando...')
+                            ->title('Exportando...')
                             ->body('Se está generando el reporte del día.')
                             ->send();
                     }),
             ])
             ->defaultSort('opening_datetime', 'desc')
             ->emptyStateIcon('heroicon-o-calculator')
-            ->emptyStateHeading('🏦 No hay cajas registradas')
+            ->emptyStateHeading('No hay cajas registradas')
             ->emptyStateDescription('Use el botón "Abrir Nueva Caja" en la parte superior para comenzar.');
     }
 

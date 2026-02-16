@@ -82,17 +82,17 @@ class EditCashRegister extends EditRecord
         $denominationDetails = "=== CIERRE DE CAJA - RESUMEN COMPLETO ===\n\n";
 
         // Información del cierre
-        $denominationDetails .= "💰 TOTAL INGRESOS: S/ " . number_format($totalIngresos, 2) . "\n";
-        $denominationDetails .= "💸 TOTAL EGRESOS: S/ " . number_format($totalExpenses, 2) . "\n";
-        $denominationDetails .= "🏆 GANANCIA REAL: S/ " . number_format($gananciaReal, 2) . "\n";
+        $denominationDetails .= "TOTAL INGRESOS: S/ " . number_format($totalIngresos, 2) . "\n";
+        $denominationDetails .= "TOTAL EGRESOS: S/ " . number_format($totalExpenses, 2) . "\n";
+        $denominationDetails .= "GANANCIA REAL: S/ " . number_format($gananciaReal, 2) . "\n";
         $denominationDetails .= "   (Ingresos - Egresos)\n\n";
 
-        $denominationDetails .= "💰 MONTO ESPERADO: S/ " . number_format($expectedAmount, 2) . "\n";
+        $denominationDetails .= "MONTO ESPERADO: S/ " . number_format($expectedAmount, 2) . "\n";
         $denominationDetails .= "   (Monto inicial: S/ " . number_format($this->record->opening_amount, 2);
         $denominationDetails .= " + Ventas del día: S/ " . number_format($totalIngresos, 2) . ")\n\n";
 
         // Efectivo contado
-        $denominationDetails .= "💵 EFECTIVO CONTADO: S/ " . number_format($totalCashCounted, 2) . "\n";
+        $denominationDetails .= "EFECTIVO CONTADO: S/ " . number_format($totalCashCounted, 2) . "\n";
         $denominationDetails .= "Billetes: ";
         $denominationDetails .= "S/200×" . ($data['bill_200'] ?? 0) . " | S/100×" . ($data['bill_100'] ?? 0) . " | S/50×" . ($data['bill_50'] ?? 0) . " | ";
         $denominationDetails .= "S/20×" . ($data['bill_20'] ?? 0) . " | S/10×" . ($data['bill_10'] ?? 0) . "\n";
@@ -102,7 +102,7 @@ class EditCashRegister extends EditRecord
 
         // Otros métodos de pago
         if ($otherPaymentsCounted > 0) {
-            $denominationDetails .= "📱 OTROS MÉTODOS DE PAGO: S/ " . number_format($otherPaymentsCounted, 2) . "\n";
+            $denominationDetails .= "OTROS METODOS DE PAGO: S/ " . number_format($otherPaymentsCounted, 2) . "\n";
             if (($data['manual_yape'] ?? 0) > 0)
                 $denominationDetails .= "Yape: S/ " . number_format($data['manual_yape'], 2) . " | ";
             if (($data['manual_plin'] ?? 0) > 0)
@@ -118,14 +118,14 @@ class EditCashRegister extends EditRecord
 
         // Desglose de egresos (ahora se obtienen del módulo separado)
         if ($totalExpenses > 0) {
-            $denominationDetails .= "💸 EGRESOS REGISTRADOS (desde módulo de Egresos):\n";
+            $denominationDetails .= "EGRESOS REGISTRADOS (desde modulo de Egresos):\n";
             $denominationDetails .= "  Total: S/ " . number_format($totalExpenses, 2) . "\n";
             $denominationDetails .= "  Ver detalles en: /admin/egresos\n\n";
         }
 
         // Totales finales
-        $denominationDetails .= "💵 TOTAL MANUAL (Ventas): S/ " . number_format($totalCounted, 2) . "\n";
-        $denominationDetails .= "⚖️ DIFERENCIA: S/ " . number_format($difference, 2);
+        $denominationDetails .= "TOTAL MANUAL (Ventas): S/ " . number_format($totalCounted, 2) . "\n";
+        $denominationDetails .= "DIFERENCIA: S/ " . number_format($difference, 2);
         if ($difference > 0) {
             $denominationDetails .= " (SOBRANTE)\n";
         } elseif ($difference < 0) {
@@ -207,7 +207,7 @@ class EditCashRegister extends EditRecord
         if ($significantDifference) {
             // Si hay diferencia significativa, mostrar como advertencia
             $notification->warning()
-                ->title('⚠️ Caja cerrada con diferencia significativa')
+                ->title('Caja cerrada con diferencia significativa')
                 ->duration(8000);
 
             // Enviar notificación a supervisores (simulado con log)
@@ -222,7 +222,7 @@ class EditCashRegister extends EditRecord
         } else {
             // Si no hay diferencia significativa, mostrar como éxito
             $notification->success()
-                ->title('✅ Caja cerrada exitosamente')
+                ->title('Caja cerrada exitosamente')
                 ->duration(5000);
         }
 
@@ -251,6 +251,6 @@ class EditCashRegister extends EditRecord
 
     public function getHeading(): string
     {
-        return '🔒 Cerrar Operación de Caja';
+        return 'Cerrar Operación de Caja';
     }
 }

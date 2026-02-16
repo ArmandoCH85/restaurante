@@ -4,7 +4,7 @@ namespace App\Filament\Resources\CreditNoteResource\Pages;
 
 use App\Filament\Resources\CreditNoteResource;
 use App\Models\Invoice;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Forms;
@@ -71,7 +71,16 @@ class ListCreditNotes extends ListRecords
                 ->action(function (array $data) {
                     try {
                         $invoice = Invoice::findOrFail($data['invoice_id']);
-                        $sunatService = new SunatService();
+                        $sunatService = SunatServiceHelper::createIfNotTesting();
+                        
+                        if ($sunatService === null) {
+                            Notification::make()
+                                ->title('Modo testing - SUNAT deshabilitado')
+                                ->body('La nota de crédito no se envió a SUNAT')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
                         
                         $result = $sunatService->emitirNotaCredito(
                             $invoice,

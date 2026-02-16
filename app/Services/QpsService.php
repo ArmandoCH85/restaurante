@@ -420,7 +420,10 @@ class QpsService
             $invoice->update(['sunat_status' => 'ENVIANDO']);
 
             // PASO 1: Generar XML SIN firmar usando Greenter
-            $sunatService = new SunatService();
+            $sunatService = \App\Helpers\SunatServiceHelper::createIfNotTesting();
+            if ($sunatService === null) {
+                throw new Exception('QPS no disponible en modo testing');
+            }
             $greenterInvoice = $sunatService->createGreenterInvoice($invoice);
 
             // Obtener XML sin firmar

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AppSetting extends Model
@@ -67,15 +68,29 @@ class AppSetting extends Model
      */
     public static function getSetting(string $tab, string $key)
     {
-        $setting = self::where('tab', $tab)
-            ->where('key', $key)
-            ->first();
-
-        if (!$setting) {
+        // Verificar si la tabla existe antes de consultar
+        // Esto evita errores durante el boot en entornos de testing
+        try {
+            if (!\Illuminate\Support\Facades\Schema::hasTable('app_settings')) {
+                return null;
+            }
+        } catch (\Exception $e) {
             return null;
         }
 
-        return $setting->value ?? $setting->default;
+        try {
+            $setting = self::where('tab', $tab)
+                ->where('key', $key)
+                ->first();
+
+            if (!$setting) {
+                return null;
+            }
+
+            return $setting->value ?? $setting->default;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**

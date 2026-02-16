@@ -12,6 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Verificar si la tabla existe (puede no existir en entornos de testing)
+        if (!Schema::hasTable('invoices')) {
+            return;
+        }
+
         // 1. Convertir todas las facturas con invoice_type='sales_note' a la forma estándar
         // sales_note -> invoice_type='receipt' + sunat_status=null
         DB::table('invoices')

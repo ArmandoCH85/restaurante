@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class Order extends Model
 {
-    use CalculatesIgv;
+    use CalculatesIgv, \Illuminate\Database\Eloquent\Factories\HasFactory;
 
     /**
      * OPTIMIZACIÓN: Relaciones que se cargan por defecto para evitar N+1

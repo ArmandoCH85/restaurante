@@ -14,21 +14,6 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 class CashRegisterReportController extends Controller
 {
-    public function exportDetailPdf(CashRegister $cashRegister)
-    {
-        // Cargar las relaciones necesarias que se usan en la vista del PDF
-        $cashRegister->load(['user', 'cashMovements.approvedByUser', 'orders.user', 'orders.payments']);
-
-        // Lógica para generar el PDF
-        $pdf = Pdf::loadView('pdf.cash_register_detail', [
-            'record' => $cashRegister,
-            'movements' => $cashRegister->cashMovements,
-            'orders' => $cashRegister->orders,
-        ]);
-
-        return $pdf->download("reporte_caja_{$cashRegister->id}.pdf");
-    }
-
     public function download(Request $request)
     {
         try {
@@ -57,12 +42,7 @@ class CashRegisterReportController extends Controller
                 ->get();
             
             Log::info('✅ Query completada', ['count' => $cashMovements->count()]);
-            
-            // Calcular resúmenes basados en opening_amount
-            $totalIngresos = $cashMovements->where('opening_amount', '>', 0)->sum('opening_amount');
-            $totalEgresos = $cashMovements->where('opening_amount', '<', 0)->sum('opening_amount');
-            $saldoFinal = $totalIngresos + $totalEgresos;
-            
+
             // Crear el archivo Excel
             Log::info('📊 Creando Excel');
             $spreadsheet = new Spreadsheet();
@@ -95,14 +75,7 @@ class CashRegisterReportController extends Controller
             $sheet->getStyle('A4:A6')->getFont()->setBold(true);
             $sheet->getStyle('A8:G8')->getFont()->setBold(true);
             $sheet->getStyle('A8:G8')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E0E0E0');
-            
-            // Colorear saldo final según sea positivo o negativo
-            if ($saldoFinal >= 0) {
-                $sheet->getStyle('B6')->getFont()->getColor()->setRGB('008000'); // Verde
-            } else {
-                $sheet->getStyle('B6')->getFont()->getColor()->setRGB('FF0000'); // Rojo
-            }
-            
+
             // Llenar datos de cajas registradoras
             $row = 9;
             foreach ($cashMovements as $movement) {
@@ -171,13 +144,12 @@ class CashRegisterReportController extends Controller
             
             // Retornar la respuesta de descarga
             Log::info('📤 Retornando respuesta de descarga');
-            // No eliminar el archivo inmediatamente para debugging
             $response = response()->download($tempFile, $filename, [
                 'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
                 'Cache-Control' => 'no-cache, must-revalidate',
                 'Pragma' => 'no-cache'
-            ]); // ->deleteFileAfterSend();
+            ])->deleteFileAfterSend();
             Log::info('✅ Descarga Excel completada exitosamente');
             return $response;
             
@@ -193,33 +165,4 @@ class CashRegisterReportController extends Controller
         }
     }
     
-    /**
-     * Obtener etiqueta del tipo de movimiento
-     */
-    private function getTypeLabel($type)
-    {
-        return match($type) {
-            'income' => 'Ingreso 📈',
-            'expense' => 'Egreso 📉',
-            'opening' => 'Apertura 🏁',
-            'closing' => 'Cierre 🏁',
-            'adjustment' => 'Ajuste ⚙️',
-            default => ucfirst(str_replace('_', ' ', $type))
-        };
-    }
-    
-    /**
-     * Obtener etiqueta del estado
-     */
-    private function getStatusLabel($status)
-    {
-        return match($status) {
-            'active' => 'Activo ✅',
-            'closed' => 'Cerrado 🔒',
-            'cancelled' => 'Cancelado ❌',
-            'pending' => 'Pendiente ⏳',
-            'confirmed' => 'Confirmado ✔️',
-            default => ucfirst(str_replace('_', ' ', $status))
-        };
-    }
 }

@@ -7,4 +7,5 @@ return [
     App\Providers\Filament\WaiterPanelProvider::class,
     App\Providers\EventServiceProvider::class,
     App\Providers\TailAdminServiceProvider::class,
+    App\Providers\SunatServiceProvider::class,
 ];

@@ -12,9 +12,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // Verificar si la tabla existe (puede no existir en entornos de testing)
+        if (!Schema::hasTable('document_series')) {
+            return;
+        }
+
         // Verificar si ya existe una serie para notas de crédito
         $existingCreditNoteSeries = DocumentSeries::where('document_type', 'credit_note')->first();
-        
+
         if (!$existingCreditNoteSeries) {
             // Crear serie por defecto para notas de crédito
             DocumentSeries::create([
@@ -32,6 +37,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Verificar si la tabla existe antes de intentar eliminar
+        if (!Schema::hasTable('document_series')) {
+            return;
+        }
+
         // Eliminar la serie de notas de crédito creada por esta migración
         DocumentSeries::where('document_type', 'credit_note')
             ->where('series', 'FC001')

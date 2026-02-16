@@ -12,8 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Modificar la columna payment_method para que sea VARCHAR en lugar de ENUM
-        DB::statement('ALTER TABLE payments MODIFY payment_method VARCHAR(30) NOT NULL');
+        if (DB::getDriverName() !== 'sqlite') {
+            // Modificar la columna payment_method para que sea VARCHAR en lugar de ENUM
+            DB::statement('ALTER TABLE payments MODIFY payment_method VARCHAR(30) NOT NULL');
+        }
     }
 
     /**

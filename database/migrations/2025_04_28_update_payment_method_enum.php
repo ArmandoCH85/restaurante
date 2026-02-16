@@ -12,11 +12,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Primero cambiamos el tipo de la columna a string para evitar restricciones de enum
-        Schema::table('payments', function (Blueprint $table) {
-            // Cambiar el tipo de columna de enum a string
-            DB::statement('ALTER TABLE payments MODIFY payment_method VARCHAR(20) NOT NULL');
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            // Primero cambiamos el tipo de la columna a string para evitar restricciones de enum
+            Schema::table('payments', function (Blueprint $table) {
+                // Cambiar el tipo de columna de enum a string
+                DB::statement('ALTER TABLE payments MODIFY payment_method VARCHAR(20) NOT NULL');
+            });
+        }
     }
 
     /**
@@ -24,9 +26,11 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revertir a enum con los valores originales
-        Schema::table('payments', function (Blueprint $table) {
-            DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('cash', 'credit_card', 'debit_card', 'bank_transfer', 'digital_wallet') NOT NULL");
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            // Revertir a enum con los valores originales
+            Schema::table('payments', function (Blueprint $table) {
+                DB::statement("ALTER TABLE payments MODIFY payment_method ENUM('cash', 'credit_card', 'debit_card', 'bank_transfer', 'digital_wallet') NOT NULL");
+            });
+        }
     }
 };

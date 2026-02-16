@@ -11,6 +11,8 @@ use Carbon\Carbon;
 
 class Table extends Model
 {
+    use \Illuminate\Database\Eloquent\Factories\HasFactory;
+
     protected $fillable = [
         'floor_id',
         'number',

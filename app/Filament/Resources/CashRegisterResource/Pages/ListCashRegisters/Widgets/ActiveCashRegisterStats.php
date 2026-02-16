@@ -22,7 +22,7 @@ class ActiveCashRegisterStats extends BaseWidget
 
         if (!$openRegister) {
             return [
-                Stat::make('🏦 Estado de Caja', 'Sin caja activa')
+                Stat::make('Estado de Caja', 'Sin caja activa')
                     ->description('Abra una nueva caja para comenzar operaciones')
                     ->descriptionIcon('heroicon-m-plus-circle')
                     ->color('gray')
@@ -31,13 +31,13 @@ class ActiveCashRegisterStats extends BaseWidget
                         'class' => 'cursor-pointer hover:bg-gray-50 transition-colors',
                     ]),
 
-                Stat::make('📊 Operaciones Hoy', $this->getTodayOperationsCount())
+                Stat::make('Operaciones Hoy', $this->getTodayOperationsCount())
                     ->description('Cajas cerradas en el día')
                     ->descriptionIcon('heroicon-m-archive-box')
                     ->color('info')
                     ->chart($this->getTodayOperationsChart()),
 
-                Stat::make('⏱️ Tiempo Promedio', $this->getAverageOperationTime())
+                Stat::make('Tiempo Promedio', $this->getAverageOperationTime())
                     ->description('Duración promedio de operaciones')
                     ->descriptionIcon('heroicon-m-clock')
                     ->color('warning'),
@@ -49,7 +49,7 @@ class ActiveCashRegisterStats extends BaseWidget
         $duration = $openRegister->opening_datetime->diffForHumans(null, true);
 
         return [
-            Stat::make('🏦 Caja Activa', '#' . $openRegister->id)
+            Stat::make('Caja Activa', '#' . $openRegister->id)
                 ->description("Abierta hace {$duration} por {$openedByName}")
                 ->descriptionIcon('heroicon-m-user')
                 ->color('success')
@@ -58,7 +58,7 @@ class ActiveCashRegisterStats extends BaseWidget
                     'class' => 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
                 ]),
 
-            Stat::make('💰 Monto Inicial', $isSupervisor
+            Stat::make('Monto Inicial', $isSupervisor
                 ? 'S/ ' . number_format($openRegister->opening_amount, 2)
                 : 'Información reservada')
                 ->description($isSupervisor
@@ -68,7 +68,7 @@ class ActiveCashRegisterStats extends BaseWidget
                 ->color($isSupervisor ? 'info' : 'gray')
                 ->chart($isSupervisor ? [1, 1, 1, 1, 1, 1, 1] : [0, 0, 0, 0, 0, 0, 0]),
 
-            Stat::make('💵 Ventas Efectivo', $isSupervisor
+            Stat::make('Ventas Efectivo', $isSupervisor
                 ? 'S/ ' . number_format($openRegister->cash_sales, 2)
                 : 'Información reservada')
                 ->description($isSupervisor

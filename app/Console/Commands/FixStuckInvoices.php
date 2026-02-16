@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Invoice;
-use App\Services\SunatService;
 use App\Services\QpsService;
+use App\Helpers\SunatServiceHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -136,8 +136,13 @@ class FixStuckInvoices extends Command
                         $qpsService = new QpsService();
                         $result = $qpsService->sendInvoiceViaQps($invoice);
                     } else {
-                        $sunatService = new SunatService();
-                        $result = $sunatService->emitirFactura($invoice->id);
+                        $sunatService = SunatServiceHelper::createIfNotTesting();
+                        if ($sunatService === null) {
+                            $this->line("   ⚠️  Saltando envío a SUNAT en modo testing");
+                            $result = ['success' => true, 'message' => 'Modo testing - SUNAT deshabilitado'];
+                        } else {
+                            $result = $sunatService->emitirFactura($invoice->id);
+                        }
                     }
                     
                     if ($result['success'] ?? false) {

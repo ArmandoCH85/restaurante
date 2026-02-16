@@ -3,7 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use App\Models\Invoice;
 
 class ValidateSunatXml extends Command
@@ -76,7 +76,11 @@ class ValidateSunatXml extends Command
             $this->line('');
             
             // Simular generación de XML
-            $sunatService = new SunatService();
+            $sunatService = SunatServiceHelper::createIfNotTesting();
+            if ($sunatService === null) {
+                $this->warn("⚠️  Modo testing - Saltando validación de XML");
+                return;
+            }
             
             // Usar reflexión para acceder al método privado
             $reflection = new \ReflectionClass($sunatService);

@@ -12,8 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Modificar el enum para incluir 'EN_PROCESO'
-        DB::statement("ALTER TABLE summaries MODIFY COLUMN status ENUM('PENDIENTE', 'EN_PROCESO', 'ENVIADO', 'ACEPTADO', 'RECHAZADO', 'ERROR') DEFAULT 'PENDIENTE'");
+        if (DB::getDriverName() !== 'sqlite') {
+            // Modificar el enum para incluir 'EN_PROCESO'
+            DB::statement("ALTER TABLE summaries MODIFY COLUMN status ENUM('PENDIENTE', 'EN_PROCESO', 'ENVIADO', 'ACEPTADO', 'RECHAZADO', 'ERROR') DEFAULT 'PENDIENTE'");
+        }
     }
 
     /**
@@ -21,7 +23,9 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revertir al enum original
-        DB::statement("ALTER TABLE summaries MODIFY COLUMN status ENUM('PENDIENTE', 'ENVIADO', 'ACEPTADO', 'RECHAZADO', 'ERROR') DEFAULT 'PENDIENTE'");
+        if (DB::getDriverName() !== 'sqlite') {
+            // Revertir al enum original
+            DB::statement("ALTER TABLE summaries MODIFY COLUMN status ENUM('PENDIENTE', 'ENVIADO', 'ACEPTADO', 'RECHAZADO', 'ERROR') DEFAULT 'PENDIENTE'");
+        }
     }
 };

@@ -35,10 +35,7 @@ Route::get('/delivery-redirect', [\App\Http\Controllers\DeliveryRedirectControll
     ->name('delivery.redirect')
     ->middleware(['auth']);
 
-// Ruta para exportar detalle de caja a PDF
-Route::get('/cash-register-reports/{cashRegister}/export-pdf', [CashRegisterReportController::class, 'exportDetailPdf'])
-    ->name('cash.register.reports.export.pdf')
-    ->middleware(['auth']); // Asegurar que solo usuarios autenticados puedan acceder
+
 
 // Ruta para exportar informe de caja a PDF (sin cuadrículas)
 Route::get('/admin/export-cash-register-pdf/{id}', [\App\Http\Controllers\Filament\ExportCashRegisterPdfController::class, 'export'])
@@ -251,10 +248,7 @@ Route::get('/admin/reportes/accounting/excel-download', [\App\Http\Controllers\A
     ->name('admin.reportes.accounting.excel')
     ->middleware(['auth']);
 
-// Reporte de caja registradora SIMPLE (para pruebas)
-Route::get('/admin/reportes/cash-register/excel-simple', [\App\Http\Controllers\CashRegisterReportSimpleController::class, 'download'])
-    ->name('admin.reportes.cash-register.excel-simple')
-    ->middleware(['auth']);
+
 
 // Reporte de caja registradora DEBUG (para examinar archivo) - COMENTADO TEMPORALMENTE
 // Route::get('/admin/reportes/cash-register/excel-debug', [\App\Http\Controllers\CashRegisterReportDebugController::class, 'download'])

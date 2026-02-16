@@ -3,12 +3,14 @@
 namespace App\Filament\Widgets;
 
 use App\Models\CreditNote;
+use App\Helpers\SunatServiceHelper;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Actions\Action;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Storage;
 
 class LatestCreditNotesWidget extends BaseWidget
@@ -124,7 +126,16 @@ class LatestCreditNotesWidget extends BaseWidget
                     ->icon('heroicon-o-arrow-path')
                     ->action(function (CreditNote $record) {
                         try {
-                            $sunatService = app(\App\Services\SunatService::class);
+                            $sunatService = SunatServiceHelper::createIfNotTesting();
+                            if ($sunatService === null) {
+                                Notification::make()
+                                    ->title('Modo de pruebas')
+                                    ->body('El servicio SUNAT no está disponible en modo de pruebas.')
+                                    ->warning()
+                                    ->send();
+
+                                return;
+                            }
                             $result = $sunatService->emitirNotaCredito($record->invoice);
                             
                             if ($result['success']) {

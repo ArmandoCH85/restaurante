@@ -13,7 +13,7 @@ class TableFactory extends Factory
     public function definition()
     {
         return [
-            'floor_id' => Floor::factory(),
+            'floor_id' => null, // Simplificado para testing
             'number' => $this->faker->unique()->numberBetween(1, 50),
             'shape' => $this->faker->randomElement([Table::SHAPE_SQUARE, Table::SHAPE_ROUND]),
             'capacity' => $this->faker->numberBetween(2, 8),

@@ -5,7 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CreditNoteResource\Pages;
 use App\Models\CreditNote;
 use App\Models\Invoice;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -285,7 +285,14 @@ class CreditNoteResource extends Resource
                     ->modalDescription('¿Está seguro de que desea reenviar esta nota de crédito a SUNAT?')
                     ->action(function ($record) {
                         try {
-                            $sunatService = new SunatService();
+                            $sunatService = SunatServiceHelper::createIfNotTesting();
+                            if ($sunatService === null) {
+                                Notification::make()
+                                    ->title('Modo testing - SUNAT deshabilitado')
+                                    ->warning()
+                                    ->send();
+                                return;
+                            }
                             $result = $sunatService->emitirNotaCredito($record->invoice, $record->motivo_codigo, $record->motivo_descripcion);
                             
                             Notification::make()

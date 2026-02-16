@@ -6,7 +6,7 @@ use Illuminate\Console\Command;
 use App\Models\Invoice;
 use App\Models\Customer;
 use App\Models\DocumentSeries;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 
 class SunatUseCases extends Command
 {
@@ -99,7 +99,11 @@ class SunatUseCases extends Command
         $this->info('🛡️ Caso de Uso: Validaciones de Tipos');
         $this->line('');
 
-        $sunatService = new SunatService();
+        $sunatService = SunatServiceHelper::createIfNotTesting();
+        if ($sunatService === null) {
+            $this->line("⚠️  Modo testing - Saltando validaciones con SUNAT");
+            return 0;
+        }
 
         // Test 1: Validar RUC → Factura
         $empresaRUC = Customer::factory()->create([

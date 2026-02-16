@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\CreditNoteResource\Pages;
 
 use App\Filament\Resources\CreditNoteResource;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
@@ -28,7 +28,14 @@ class EditCreditNote extends EditRecord
                 ->modalDescription('¿Está seguro de que desea enviar esta nota de crédito a SUNAT? Una vez enviada, no podrá modificar los datos principales.')
                 ->action(function () {
                     try {
-                        $sunatService = new SunatService();
+                        $sunatService = SunatServiceHelper::createIfNotTesting();
+                        if ($sunatService === null) {
+                            Notification::make()
+                                ->title('Modo testing - SUNAT deshabilitado')
+                                ->warning()
+                                ->send();
+                            return;
+                        }
                         $result = $sunatService->emitirNotaCredito(
                             $this->record->invoice,
                             $this->record->motivo_codigo,

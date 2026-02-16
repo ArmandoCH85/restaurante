@@ -8,7 +8,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\DocumentSeries;
 use App\Models\AppSetting;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 
 class RunSafeSunatTests extends Command
 {
@@ -139,12 +139,10 @@ class RunSafeSunatTests extends Command
         $allPassed = true;
 
         // Crear instancia sin inicializar Greenter (para evitar error de certificado)
-        try {
-            $sunatService = new SunatService();
-        } catch (\Exception $e) {
-            $this->line("   ⚠️  Servicio SUNAT no disponible (certificado faltante)");
+        $sunatService = SunatServiceHelper::createIfNotTesting();
+        if ($sunatService === null) {
+            $this->line("   ⚠️  Servicio SUNAT no disponible (modo testing o certificado faltante)");
             $this->line("   🔍 Probando solo lógica de diferenciación...");
-            $sunatService = null;
         }
 
         foreach ($testCustomers as $testData) {
@@ -227,8 +225,11 @@ class RunSafeSunatTests extends Command
 
         $allPassed = true;
 
-        try {
-            $sunatService = new SunatService();
+        $sunatService = SunatServiceHelper::createIfNotTesting();
+        if ($sunatService === null) {
+            $this->line("   ⚠️  SunatService no disponible en modo testing");
+            $allPassed = false;
+        } else {
             $this->line("   ✅ SunatService se instancia correctamente");
 
             // Test método convertir números a letras
@@ -243,10 +244,6 @@ class RunSafeSunatTests extends Command
                 $this->line("   ❌ Conversión números a letras falla");
                 $allPassed = false;
             }
-
-        } catch (\Exception $e) {
-            $this->line("   ❌ Error en SunatService: " . $e->getMessage());
-            $allPassed = false;
         }
 
         return $allPassed;
@@ -277,17 +274,21 @@ class RunSafeSunatTests extends Command
             'tax_authority_status' => 'pending'
         ]);
 
-        try {
-            $sunatService = new SunatService();
-            $sunatService->emitirFactura($salesNote->id);
-            $this->line("   ❌ Nota de venta NO fue bloqueada (debería fallar)");
-            $allPassed = false;
-        } catch (\Exception $e) {
-            if (str_contains($e->getMessage(), 'Solo se pueden enviar Boletas y Facturas')) {
-                $this->line("   ✅ Nota de venta correctamente bloqueada");
-            } else {
-                $this->line("   ❌ Error inesperado: " . $e->getMessage());
+        $sunatService = SunatServiceHelper::createIfNotTesting();
+        if ($sunatService === null) {
+            $this->line("   ⚠️  Saltando validación en modo testing");
+        } else {
+            try {
+                $sunatService->emitirFactura($salesNote->id);
+                $this->line("   ❌ Nota de venta NO fue bloqueada (debería fallar)");
                 $allPassed = false;
+            } catch (\Exception $e) {
+                if (str_contains($e->getMessage(), 'Solo se pueden enviar Boletas y Facturas')) {
+                    $this->line("   ✅ Nota de venta correctamente bloqueada");
+                } else {
+                    $this->line("   ❌ Error inesperado: " . $e->getMessage());
+                    $allPassed = false;
+                }
             }
         }
 

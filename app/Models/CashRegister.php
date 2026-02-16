@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\CashRegisterCalculations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Log;
  */
 class CashRegister extends Model
 {
-    use HasFactory;
+    use HasFactory, CashRegisterCalculations;
 
     /**
      * Los atributos que son asignables masivamente.
@@ -196,25 +197,12 @@ class CashRegister extends Model
      */
     public static function getOpenRegister(): ?CashRegister
     {
-        // Usar una transacción para evitar condiciones de carrera
-        return DB::transaction(function () {
-            return self::where('is_active', self::STATUS_OPEN)
-                ->first();
-        });
+        return self::where('is_active', self::STATUS_OPEN)->first();
     }
 
-    /**
-     * Verifica si existe una caja abierta.
-     *
-     * @return bool
-     */
     public static function hasOpenRegister(): bool
     {
-        // Usar una transacción para evitar condiciones de carrera
-        return DB::transaction(function () {
-            return self::where('is_active', self::STATUS_OPEN)
-                ->exists();
-        });
+        return self::where('is_active', self::STATUS_OPEN)->exists();
     }
 
     /**
@@ -261,10 +249,14 @@ class CashRegister extends Model
      */
     private static function validateNoOpenRegisters(float $openingAmount): void
     {
-        if (self::where('is_active', self::STATUS_OPEN)->exists()) {
+        // lockForUpdate previene race conditions: dos cajeros abriendo caja simultaneamente
+        $exists = self::where('is_active', self::STATUS_OPEN)
+            ->lockForUpdate()
+            ->exists();
+
+        if ($exists) {
             Log::warning('Intento de abrir una caja cuando ya existe una abierta', [
                 'user_id' => Auth::id(),
-                'user_name' => Auth::user()->name,
                 'opening_amount' => $openingAmount
             ]);
             throw new \Exception('Ya existe una caja abierta. No se puede abrir otra.');
@@ -305,7 +297,6 @@ class CashRegister extends Model
         Log::info('Caja registradora abierta', [
             'cash_register_id' => $cashRegister->id,
             'user_id' => Auth::id(),
-            'user_name' => Auth::user()->name,
             'opening_amount' => $openingAmount,
             'opening_datetime' => $cashRegister->opening_datetime
         ]);
@@ -319,17 +310,19 @@ class CashRegister extends Model
      */
     public function close(array $data): bool
     {
-        $this->setClosingData($data);
-        $this->updateObservations($data);
-        $this->is_active = self::STATUS_CLOSED;
+        return DB::transaction(function () use ($data) {
+            $this->setClosingData($data);
+            $this->updateObservations($data);
+            $this->is_active = self::STATUS_CLOSED;
 
-        $saved = $this->save();
+            if (!$this->save()) {
+                throw new \RuntimeException("Error al guardar el cierre de caja #{$this->id}");
+            }
 
-        if ($saved) {
             $this->logRegisterClosing();
-        }
 
-        return $saved;
+            return true;
+        });
     }
 
     /**
@@ -372,7 +365,6 @@ class CashRegister extends Model
         Log::info('Caja registradora cerrada', [
             'cash_register_id' => $this->id,
             'user_id' => Auth::id(),
-            'user_name' => Auth::user()->name,
             'actual_amount' => $this->actual_amount,
             'expected_amount' => $this->expected_amount,
             'difference' => $this->difference,
@@ -466,17 +458,8 @@ class CashRegister extends Model
         ]);
     }
 
-    /**
-     * Calcula el monto esperado total al cierre.
-     * NUEVO CÁLCULO: Monto inicial + TODAS las ventas del día - Egresos
-     *
-     * @return float
-     */
-    public function calculateExpectedCash(): float
-    {
-        $expenses = $this->cashRegisterExpenses()->sum('amount');
-        return ($this->opening_amount + $this->getSystemTotalSales()) - $expenses;
-    }
+    // calculateExpectedCash() y getCachedExpenses() vienen del trait CashRegisterCalculations
+    // como unica fuente de verdad para estos calculos.
 
     /**
      * Calcula el total de efectivo contado (billetes y monedas).
@@ -546,16 +529,18 @@ class CashRegister extends Model
      */
     public function reconcile(bool $isApproved, ?string $notes = null, ?int $approvedBy = null): bool
     {
-        $this->validateCanBeReconciled();
-        $this->setReconciliationData($isApproved, $notes, $approvedBy);
+        return DB::transaction(function () use ($isApproved, $notes, $approvedBy) {
+            $this->validateCanBeReconciled();
+            $this->setReconciliationData($isApproved, $notes, $approvedBy);
 
-        $saved = $this->save();
+            if (!$this->save()) {
+                throw new \RuntimeException("Error al guardar la reconciliacion de caja #{$this->id}");
+            }
 
-        if ($saved) {
             $this->logReconciliation($isApproved, $notes);
-        }
 
-        return $saved;
+            return true;
+        });
     }
 
     /**
@@ -803,20 +788,12 @@ class CashRegister extends Model
     }
 
     /**
-     * Obtiene el total de ventas del sistema (todas las formas de pago no anuladas).
-     *
-     * @return float
+     * Delega al trait para mantener una sola fuente de verdad.
+     * Los metodos getSystem*Sales() individuales se mantienen por retrocompatibilidad
+     * con el Resource y otros consumidores.
      */
     public function getSystemTotalSales(): float
     {
-        return $this->getSystemCashSales()
-            + $this->getSystemYapeSales()
-            + $this->getSystemPlinSales()
-            + $this->getSystemCardSales()
-            + $this->getSystemDidiSales()
-            + $this->getSystemPedidosYaSales()
-            + $this->getSystemBitaExpressSales()
-            + $this->getSystemBankTransferSales()
-            + $this->getSystemOtherDigitalWalletSales();
+        return $this->getTotalSystemSales();
     }
 }

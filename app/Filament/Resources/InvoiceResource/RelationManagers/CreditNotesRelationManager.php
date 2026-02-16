@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\InvoiceResource\RelationManagers;
 
 use App\Models\CreditNote;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -258,7 +258,16 @@ class CreditNotesRelationManager extends RelationManager
                     ->action(function (array $data) {
                         try {
                             $invoice = $this->getOwnerRecord();
-                            $sunatService = new SunatService();
+                            $sunatService = SunatServiceHelper::createIfNotTesting();
+                            
+                            if ($sunatService === null) {
+                                Notification::make()
+                                    ->title('Modo testing - SUNAT deshabilitado')
+                                    ->body('La nota de crédito no se envió a SUNAT')
+                                    ->warning()
+                                    ->send();
+                                return;
+                            }
                             
                             $result = $sunatService->emitirNotaCredito(
                                 $invoice,
@@ -308,7 +317,14 @@ class CreditNotesRelationManager extends RelationManager
                     ->modalDescription('¿Está seguro de que desea reenviar esta nota de crédito a SUNAT?')
                     ->action(function (CreditNote $record) {
                         try {
-                            $sunatService = new SunatService();
+                            $sunatService = SunatServiceHelper::createIfNotTesting();
+                            if ($sunatService === null) {
+                                Notification::make()
+                                    ->title('Modo testing - SUNAT deshabilitado')
+                                    ->warning()
+                                    ->send();
+                                return;
+                            }
                             $result = $sunatService->emitirNotaCredito(
                                 $record->invoice,
                                 $record->motivo_codigo,

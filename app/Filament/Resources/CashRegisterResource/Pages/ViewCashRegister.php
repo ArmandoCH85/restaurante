@@ -118,7 +118,7 @@ class ViewCashRegister extends ViewRecord
 
                         // Mostrar notificación de éxito
                         Notification::make()
-                            ->title($data['is_approved'] ? '✅ Operación de caja aprobada' : '⚠️ Operación de caja rechazada')
+                            ->title($data['is_approved'] ? 'Operación de caja aprobada' : 'Operación de caja rechazada')
                             ->body($data['is_approved']
                                 ? 'La operación de caja ha sido aprobada y reconciliada exitosamente.'
                                 : 'La operación de caja ha sido marcada como no aprobada.')
@@ -155,7 +155,7 @@ class ViewCashRegister extends ViewRecord
         return $infolist
             ->schema([
                 // Header con información principal mejorado
-                Section::make('📋 Información General')
+                Section::make('Información General')
                     ->description('Datos principales de la operación de caja')
                     ->icon('heroicon-o-information-circle')
                     ->schema([
@@ -163,14 +163,14 @@ class ViewCashRegister extends ViewRecord
                         Grid::make(['default' => 1, 'md' => 3, 'lg' => 4])
                             ->schema([
                                 TextEntry::make('id')
-                                    ->label('🆔 ID de Caja')
+                                    ->label('ID de Caja')
                                     ->badge()
                                     ->size('xl')
                                     ->color('primary')
                                     ->icon('heroicon-o-hashtag')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('status')
-                                    ->label('📊 Estado')
+                                    ->label('Estado')
                                     ->state(fn($record) => $record->is_active ? 'Abierta' : 'Cerrada')
                                     ->badge()
                                     ->size('xl')
@@ -178,7 +178,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon(fn($record) => $record->is_active ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('opening_amount')
-                                    ->label('💰 Monto Inicial')
+                                    ->label('Monto Inicial')
                                     ->formatStateUsing(fn($state) => 'S/ ' . number_format($state ?? 0, 2))
                                     ->badge()
                                     ->size('xl')
@@ -186,7 +186,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-banknotes')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('opening_datetime')
-                                    ->label('📅 Apertura')
+                                    ->label('Apertura')
                                     ->dateTime('d/m/Y H:i')
                                     ->badge()
                                     ->color('info')
@@ -197,12 +197,12 @@ class ViewCashRegister extends ViewRecord
                         Grid::make(['default' => 1, 'md' => 2, 'lg' => 4])
                             ->schema([
                                 TextEntry::make('openedBy.name')
-                                    ->label('👤 Abierto por')
+                                    ->label('Abierto por')
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-user-circle'),
                                 TextEntry::make('closedBy.name')
-                                    ->label('👤 Cerrado por')
+                                    ->label('Cerrado por')
                                     ->placeholder('Aún abierta')
                                     ->badge()
                                     ->color('warning')
@@ -215,7 +215,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('warning')
                                     ->icon('heroicon-o-calendar-days'),
                                 TextEntry::make('duration')
-                                    ->label('⏱️ Duración')
+                                    ->label('Duración')
                                     ->state(function ($record) {
                                         if ($record->is_active) {
                                             $duration = now()->diff($record->opening_datetime);
@@ -232,7 +232,7 @@ class ViewCashRegister extends ViewRecord
 
                         // Observaciones mejoradas
                         TextEntry::make('observations')
-                            ->label('📝 Observaciones')
+                            ->label('Observaciones')
                             ->state(function ($record) {
                                 if (!$record->observations) {
                                     return $record->is_active ? 'Sin observaciones' : 'Sin observaciones';
@@ -255,7 +255,7 @@ class ViewCashRegister extends ViewRecord
                     ->persistCollapsed(),
 
                 // Resumen de Ventas con mejor diseño
-                Section::make('💰 Resumen de Ventas')
+                Section::make('Resumen de Ventas')
                     ->description($isSupervisor ? 'Desglose detallado de ventas por método de pago' : 'Información disponible solo para supervisores')
                     ->icon('heroicon-o-chart-bar')
                     ->schema([
@@ -263,7 +263,7 @@ class ViewCashRegister extends ViewRecord
                         Grid::make(['default' => 1, 'sm' => 2, 'lg' => 6])
                             ->schema([
                                 TextEntry::make('cash_sales_live')
-                                    ->label('💵 Efectivo')
+                                    ->label('Efectivo')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor)
                                             return 'Restringido';
@@ -275,7 +275,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-banknotes')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('card_sales_live')
-                                    ->label('💳 Tarjetas')
+                                    ->label('Tarjetas')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor)
                                             return 'Restringido';
@@ -287,7 +287,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-credit-card')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('yape_sales_live')
-                                    ->label('📱 Yape')
+                                    ->label('Yape')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor)
                                             return 'Restringido';
@@ -299,7 +299,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-device-phone-mobile')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('plin_sales_live')
-                                    ->label('📱 Plin')
+                                    ->label('Plin')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor)
                                             return 'Restringido';
@@ -311,7 +311,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-device-phone-mobile')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('pedidosya_sales_live')
-                                    ->label('🛒 PedidosYa')
+                                    ->label('PedidosYa')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor)
                                             return 'Restringido';
@@ -323,7 +323,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-shopping-bag')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('didi_sales_live')
-                                    ->label('🍕 Didi Food')
+                                    ->label('Didi Food')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor)
                                             return 'Restringido';
@@ -335,7 +335,7 @@ class ViewCashRegister extends ViewRecord
                                     ->icon('heroicon-o-truck')
                                     ->weight(FontWeight::Bold),
                                 TextEntry::make('bita_express_sales_live')
-                                    ->label('🚀 Bita Express')
+                                    ->label('Bita Express')
                                     ->state(function ($record) use ($isSupervisor) {
                                         if (!$isSupervisor)
                                             return 'Restringido';
@@ -384,7 +384,7 @@ class ViewCashRegister extends ViewRecord
                                                 ->icon('heroicon-o-chart-bar-square')
                                                 ->visible($isSupervisor),
                                             TextEntry::make('actual_amount')
-                                                ->label('💵 Montos de Cierre')
+                                                ->label('Montos de Cierre')
                                                 ->formatStateUsing(function ($record) {
                                                     // Suma de todos los ingresos manuales
                                                     $efectivo = $record->calculateCountedCash();
@@ -401,7 +401,7 @@ class ViewCashRegister extends ViewRecord
                                                 ->color('primary')
                                                 ->icon('heroicon-o-banknotes'),
                                             TextEntry::make('difference')
-                                                ->label('⚖️ Diferencia')
+                                                ->label('Diferencia')
                                                 ->formatStateUsing(function ($record) {
                                                     // La diferencia ahora debe ser 0 porque comparamos ventas reales vs ventas reales
                                                     return 'S/ 0.00';
@@ -454,7 +454,7 @@ class ViewCashRegister extends ViewRecord
 
                         // Notas de aprobación/rechazo
                         TextEntry::make('approval_notes')
-                            ->label(fn($record) => $record->is_approved ? '📝 Notas de Aprobación' : '❌ Motivo del Rechazo')
+                            ->label(fn($record) => $record->is_approved ? 'Notas de Aprobación' : 'Motivo del Rechazo')
                             ->placeholder('Sin notas adicionales')
                             ->color(fn($record) => !$record->is_approved && $record->approval_notes ? 'danger' : 'gray')
                             ->icon(fn($record) => $record->is_approved ? 'heroicon-o-document-check' : 'heroicon-o-exclamation-triangle')
@@ -539,14 +539,14 @@ class ViewCashRegister extends ViewRecord
                     ->visible($isSupervisor),
 
                 // Métodos de Pago mejorados
-                Section::make('💳 Métodos de Pago')
+                Section::make('Métodos de Pago')
                     ->description('Desglose de pagos por método utilizado')
                     ->icon('heroicon-o-credit-card')
                     ->schema([
                         Grid::make(['default' => 1, 'md' => 3, 'lg' => 6])
                             ->schema([
                                 TextEntry::make('payments_count_cash')
-                                    ->label('💵 Efectivo')
+                                    ->label('Efectivo')
                                     ->state(function ($record) {
                                         return $record->payments()->where('payment_method', Payment::METHOD_CASH)->count() . ' usos';
                                     })
@@ -564,7 +564,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('info')
                                     ->icon('heroicon-o-credit-card'),
                                 TextEntry::make('payments_count_yape')
-                                    ->label('📱 Yape')
+                                    ->label('Yape')
                                     ->state(function ($record) {
                                         return $record->payments()->where('payment_method', 'yape')->count() . ' usos';
                                     })
@@ -573,7 +573,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('warning')
                                     ->icon('heroicon-o-device-phone-mobile'),
                                 TextEntry::make('payments_count_plin')
-                                    ->label('📱 Plin')
+                                    ->label('Plin')
                                     ->state(function ($record) {
                                         return $record->payments()->where('payment_method', 'plin')->count() . ' usos';
                                     })
@@ -582,7 +582,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('warning')
                                     ->icon('heroicon-o-device-phone-mobile'),
                                 TextEntry::make('payments_count_pedidosya')
-                                    ->label('🛒 PedidosYa')
+                                    ->label('PedidosYa')
                                     ->state(function ($record) {
                                         return $record->payments()->where('payment_method', 'pedidos_ya')->count() . ' usos';
                                     })
@@ -591,7 +591,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('orange')
                                     ->icon('heroicon-o-shopping-bag'),
                                 TextEntry::make('payments_count_didi')
-                                    ->label('🍕 Didi Food')
+                                    ->label('Didi Food')
                                     ->state(function ($record) {
                                         return $record->payments()->where('payment_method', 'didi_food')->count() . ' usos';
                                     })
@@ -600,7 +600,7 @@ class ViewCashRegister extends ViewRecord
                                     ->color('orange')
                                     ->icon('heroicon-o-truck'),
                                 TextEntry::make('payments_count_bita_express')
-                                    ->label('🚀 Bita Express')
+                                    ->label('Bita Express')
                                     ->state(function ($record) {
                                         return $record->payments()->where('payment_method', 'bita_express')->count() . ' usos';
                                     })
@@ -613,7 +613,7 @@ class ViewCashRegister extends ViewRecord
                     ->collapsible(),
 
                 // Vouchers de Tarjeta mejorados
-                Section::make('🧾 Vouchers de Tarjeta')
+                Section::make('Vouchers de Tarjeta')
                     ->description('Detalle de transacciones con tarjeta y sus códigos de voucher')
                     ->icon('heroicon-o-document-text')
                     ->schema([
@@ -623,7 +623,7 @@ class ViewCashRegister extends ViewRecord
                                 ->icon('heroicon-o-list-bullet')
                                 ->schema([
                                     TextEntry::make('card_vouchers')
-                                        ->label('📋 Vouchers Registrados')
+                                        ->label('Vouchers Registrados')
                                         ->state(function ($record) {
                                             $cardPayments = $record->payments()
                                                 ->where('payment_method', Payment::METHOD_CARD)
@@ -643,7 +643,7 @@ class ViewCashRegister extends ViewRecord
                                                 $amount = 'S/ ' . number_format($payment->amount, 2);
                                                 $voucher = $payment->reference_number;
 
-                                                $voucherList[] = "🎫 {$voucher} → {$amount} ({$datetime})";
+                                                $voucherList[] = "{$voucher} -> {$amount} ({$datetime})";
                                             }
 
                                             return implode("\n", $voucherList);
@@ -662,7 +662,7 @@ class ViewCashRegister extends ViewRecord
                                     Grid::make(['default' => 1, 'lg' => 2])
                                         ->schema([
                                             TextEntry::make('voucher_count')
-                                                ->label('📊 Total Vouchers')
+                                                ->label('Total Vouchers')
                                                 ->state(function ($record) {
                                                     return $record->payments()
                                                         ->where('payment_method', Payment::METHOD_CARD)

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Models\CashRegister;
+use App\Enums\ServiceTypeEnum;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -37,7 +38,7 @@ class CashRegisterReportResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
     protected static ?string $navigationLabel = 'Reportes de Caja';
-    protected static ?string $navigationGroup = '💰 Caja';
+    protected static ?string $navigationGroup = 'Caja';
     protected static ?string $modelLabel = 'Reporte de Caja';
     protected static ?string $pluralModelLabel = 'Reportes de Caja';
     protected static ?int $navigationSort = 6;
@@ -73,6 +74,13 @@ class CashRegisterReportResource extends Resource
                 return $query
                     ->select([
                         'cash_registers.id',
+                        'cash_registers.opening_datetime',
+                        'cash_registers.opening_amount',
+                        'cash_registers.actual_amount',
+                        'cash_registers.is_active',
+                        'cash_registers.closing_datetime',
+                        'cash_registers.opened_by',
+                        'cash_registers.closed_by',
                         'cash_registers.opening_datetime as date',
                         'cash_registers.opening_amount as total_opening_amount',
                         'cash_registers.actual_amount as total_actual_amount',
@@ -96,19 +104,31 @@ class CashRegisterReportResource extends Resource
                         'o.cash_register_id', '=', 'cash_registers.id'
                     )
                     ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(total) as total_dine FROM orders WHERE service_type = "dine_in" GROUP BY cash_register_id) as o_dine'),
+                        DB::raw(sprintf(
+                            '(SELECT cash_register_id, SUM(total) as total_dine FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_dine',
+                            ServiceTypeEnum::DINE_IN->value
+                        )),
                         'o_dine.cash_register_id', '=', 'cash_registers.id'
                     )
                     ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(total) as total_take FROM orders WHERE service_type = "takeout" GROUP BY cash_register_id) as o_take'),
+                        DB::raw(sprintf(
+                            '(SELECT cash_register_id, SUM(total) as total_take FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_take',
+                            ServiceTypeEnum::TAKEOUT->value
+                        )),
                         'o_take.cash_register_id', '=', 'cash_registers.id'
                     )
                     ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(total) as total_del FROM orders WHERE service_type = "delivery" GROUP BY cash_register_id) as o_del'),
+                        DB::raw(sprintf(
+                            '(SELECT cash_register_id, SUM(total) as total_del FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_del',
+                            ServiceTypeEnum::DELIVERY->value
+                        )),
                         'o_del.cash_register_id', '=', 'cash_registers.id'
                     )
                     ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(total) as total_self FROM orders WHERE service_type = "self_service" GROUP BY cash_register_id) as o_self'),
+                        DB::raw(sprintf(
+                            '(SELECT cash_register_id, SUM(total) as total_self FROM orders WHERE service_type = "%s" GROUP BY cash_register_id) as o_self',
+                            ServiceTypeEnum::SELF_SERVICE->value
+                        )),
                         'o_self.cash_register_id', '=', 'cash_registers.id'
                     )
                     ->orderBy('date', 'desc');
@@ -236,10 +256,10 @@ class CashRegisterReportResource extends Resource
                         Forms\Components\Select::make('service_type')
                             ->label('Tipo de Servicio')
                             ->options([
-                                'dine_in' => 'Mesa',
-                                'takeout' => 'Para Llevar',
-                                'delivery' => 'Delivery',
-                                'drive_thru' => 'Auto-Servicio',
+                                ServiceTypeEnum::DINE_IN->value => ServiceTypeEnum::DINE_IN->getLabel(),
+                                ServiceTypeEnum::TAKEOUT->value => ServiceTypeEnum::TAKEOUT->getLabel(),
+                                ServiceTypeEnum::DELIVERY->value => ServiceTypeEnum::DELIVERY->getLabel(),
+                                ServiceTypeEnum::SELF_SERVICE->value => ServiceTypeEnum::SELF_SERVICE->getLabel(),
                             ])
                             ->placeholder('Todos los tipos')
                             ->native(false),
@@ -260,11 +280,9 @@ class CashRegisterReportResource extends Resource
                 Tables\Actions\ViewAction::make()
                     ->label('Ver Detalle')
                     ->modalHeading('Detalle de Caja')
-                    ->modalWidth('7xl')
-                    ->modalContent(fn ($record) => view('filament.resources.cash-register-report-resource.detail', [
-                        'record' => $record,
-                        'movements' => $record->cashMovements()->with('approvedByUser')->get(),
-                        'orders' => $record->orders()->with(['user', 'payments'])->get(),
+                    ->modalWidth('4xl')
+                    ->modalContent(fn ($record): \Illuminate\View\View => view('filament.resources.cash-register-report-resource.detail', [
+                        'record' => CashRegister::with(['openedBy', 'closedBy', 'cashMovements.approvedByUser', 'orders.user', 'orders.payments'])->findOrFail($record->id),
                     ])),
             ])
             ->bulkActions([
@@ -288,6 +306,7 @@ class CashRegisterReportResource extends Resource
     {
         return [
             'index' => Pages\ListCashRegisterReports::route('/'),
+            'view' => Pages\ViewCashRegisterReport::route('/{record}'),
         ];
     }
 }

@@ -6,7 +6,7 @@ use App\Filament\Resources\InvoiceResource;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Actions;
 use Filament\Notifications\Notification;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use App\Helpers\PdfHelper;
 
 class EditInvoice extends EditRecord
@@ -27,7 +27,11 @@ class EditInvoice extends EditRecord
                 ->modalSubmitActionLabel('Enviar')
                 ->action(function () {
                     try {
-                        $service = new SunatService();
+                        $service = SunatServiceHelper::createIfNotTesting();
+                        if ($service === null) {
+                            Notification::make()->title('Modo testing - SUNAT deshabilitado')->warning()->send();
+                            return;
+                        }
                         $result = $service->emitirFactura($this->record->id);
                         if ($result['success']) {
                             Notification::make()->title('Comprobante enviado correctamente')->success()->send();

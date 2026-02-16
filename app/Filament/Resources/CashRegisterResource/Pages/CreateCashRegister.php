@@ -27,11 +27,11 @@ class CreateCashRegister extends CreateRecord
             ->color('success')
             ->button()
             ->requiresConfirmation()
-            ->modalHeading('🏦 Confirmar apertura de caja')
+            ->modalHeading('Confirmar apertura de caja')
             ->modalDescription('¿Estás seguro de que deseas abrir una nueva caja? Verifica que el monto inicial sea correcto antes de continuar.')
             ->modalSubmitActionLabel('✅ Sí, abrir caja')
             ->modalIcon('heroicon-m-calculator')
-            ->successNotificationTitle('🎉 Caja abierta exitosamente')
+            ->successNotificationTitle('Caja abierta exitosamente')
             ->extraAttributes([
                 'class' => 'shadow-lg hover:shadow-xl transition-shadow duration-300',
             ]);
@@ -52,22 +52,18 @@ class CreateCashRegister extends CreateRecord
 
     protected function handleRecordCreation(array $data): Model
     {
-        // Verificar si el usuario tiene permiso para abrir caja
         $user = Auth::user();
-        $hasPermission = $user && $user->hasAnyRole(['cashier', 'admin', 'super_admin']);
 
-        if (!$hasPermission) {
+        if (!$user || !$user->hasAnyRole(['cashier', 'admin', 'super_admin'])) {
             Notification::make()
                 ->danger()
                 ->title('Error al abrir caja')
                 ->body('No tienes permiso para realizar una apertura de caja.')
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('index'));
-            return new CashRegister(); // Nunca se ejecutará debido al redirect
+            $this->halt();
         }
 
-        // Verificar si ya existe una caja abierta
         if (CashRegister::hasOpenRegister()) {
             Notification::make()
                 ->danger()
@@ -75,11 +71,9 @@ class CreateCashRegister extends CreateRecord
                 ->body('Ya existe una caja abierta. Cierre la caja actual antes de abrir una nueva.')
                 ->send();
 
-            $this->redirect($this->getResource()::getUrl('index'));
-            return new CashRegister(); // Nunca se ejecutará debido al redirect
+            $this->halt();
         }
 
-        // Crear la caja usando el método estático
         return CashRegister::openRegister(
             $data['opening_amount'],
             $data['observations'] ?? null

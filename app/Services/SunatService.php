@@ -35,7 +35,13 @@ class SunatService
 
     public function __construct()
     {
-        // Evitar inicializar si estamos en un comando de Artisan
+        // Evitar inicializar si estamos en entorno de testing
+        $env = $_ENV['APP_ENV'] ?? getenv('APP_ENV');
+        if (in_array($env, ['testing', 'test'], true)) {
+            return;
+        }
+
+        // Evitar inicializar si estamos en un comando de Artisan (pero no en tests)
         if (app()->runningInConsole() && !app()->runningUnitTests()) {
             return;
         }
@@ -1921,6 +1927,15 @@ class SunatService
      */
     public function emitirNotaCredito(Invoice $invoice, string $motivo = '01', string $descripcionMotivo = 'ANULACION DE LA OPERACION'): array
     {
+        // Verificar si estamos en entorno de testing
+        $env = $_ENV['APP_ENV'] ?? getenv('APP_ENV');
+        if (in_array($env, ['testing', 'test'], true)) {
+            return [
+                'success' => false,
+                'error' => 'SunatService no disponible en entorno de testing',
+            ];
+        }
+
         // Log inicio del proceso
         \App\Helpers\CreditNoteLogger::logCreationStart($invoice, $motivo, $descripcionMotivo);
         

@@ -4,7 +4,7 @@ namespace App\Filament\Resources\CreditNoteResource\Pages;
 
 use App\Filament\Resources\CreditNoteResource;
 use App\Models\Invoice;
-use App\Services\SunatService;
+use App\Helpers\SunatServiceHelper;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
@@ -51,7 +51,22 @@ class CreateCreditNote extends CreateRecord
             
             // Enviar a SUNAT automáticamente
             $invoice = Invoice::findOrFail($data['invoice_id']);
-            $sunatService = new SunatService();
+            $sunatService = SunatServiceHelper::createIfNotTesting();
+            
+            if ($sunatService === null) {
+                $creditNote->update([
+                    'sunat_status' => 'PENDIENTE',
+                    'sunat_response' => 'Modo testing - SUNAT deshabilitado',
+                ]);
+                
+                Notification::make()
+                    ->title('Nota de crédito creada (modo testing)')
+                    ->body("Serie: {$creditNote->serie}-{$creditNote->numero}")
+                    ->success()
+                    ->send();
+                
+                return $creditNote;
+            }
             
             $result = $sunatService->emitirNotaCredito(
                 $invoice,
