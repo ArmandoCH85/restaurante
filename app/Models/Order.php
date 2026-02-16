@@ -31,6 +31,16 @@ class Order extends Model
     const STATUS_COMPLETED = 'completed';
     const STATUS_CANCELLED = 'cancelled';
 
+    public static function pendingStatuses(): array
+    {
+        return [
+            self::STATUS_OPEN,
+            self::STATUS_IN_PREPARATION,
+            self::STATUS_READY,
+            self::STATUS_DELIVERED,
+        ];
+    }
+
     /**
      * Los atributos que son asignables masivamente.
      *
@@ -387,22 +397,7 @@ class Order extends Model
         $this->status = self::STATUS_COMPLETED;
         $this->save();
 
-        // Liberar la mesa si es una orden de servicio en local
-        if ($this->service_type === 'dine_in' && $this->table_id) {
-            $table = Table::find($this->table_id);
-            if ($table) {
-                $table->status = Table::STATUS_AVAILABLE;
-                $table->occupied_at = null;
-                $table->save();
-
-                // Registrar en el log
-                Log::info('Mesa liberada al completar la orden', [
-                    'order_id' => $this->id,
-                    'table_id' => $this->table_id,
-                    'table_number' => $table->number
-                ]);
-            }
-        }
+        $this->syncTableStatusFromPendingOrders();
 
         return true;
     }
@@ -427,25 +422,42 @@ class Order extends Model
         // Actualizar estado de los detalles de la orden
         $this->orderDetails()->update(['status' => 'cancelled']);
 
-        // Liberar la mesa al cancelar la orden
-        if ($this->service_type === 'dine_in' && $this->table_id) {
-            $table = Table::find($this->table_id);
-            if ($table) {
-                // Cambiar el estado de la mesa a disponible
-                $table->status = Table::STATUS_AVAILABLE;
-                $table->occupied_at = null;
-                $table->save();
-
-                // Registrar en el log
-                Log::info('Mesa liberada al cancelar orden', [
-                    'order_id' => $this->id,
-                    'table_id' => $this->table_id,
-                    'table_status' => $table->status
-                ]);
-            }
-        }
+        $this->syncTableStatusFromPendingOrders();
 
         return true;
+    }
+
+    public function syncTableStatusFromPendingOrders(): void
+    {
+        if ($this->service_type !== 'dine_in' || !$this->table_id) {
+            return;
+        }
+
+        $table = Table::find($this->table_id);
+        if (!$table) {
+            return;
+        }
+
+        $hasPendingOrders = self::query()
+            ->where('table_id', $this->table_id)
+            ->whereIn('status', self::pendingStatuses())
+            ->exists();
+
+        if ($hasPendingOrders) {
+            $table->status = Table::STATUS_OCCUPIED;
+        } else {
+            $table->status = Table::STATUS_AVAILABLE;
+            $table->occupied_at = null;
+        }
+
+        $table->save();
+
+        Log::info('Estado de mesa sincronizado por cuentas pendientes', [
+            'order_id' => $this->id,
+            'table_id' => $this->table_id,
+            'table_status' => $table->status,
+            'has_pending_orders' => $hasPendingOrders,
+        ]);
     }
 
     /**

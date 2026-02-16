@@ -4436,15 +4436,15 @@
 
         <!-- Dividir/Unir -->
         @if($this->tieneCuentasDivididas())
-            <button wire:click="unirCuentas" class="pos-quick-action-btn btn-unir success" title="Unir todas las cuentas divididas">
-                <span class="btn-label">Unir</span>
+            <button wire:click="unirCuentas" class="pos-quick-action-btn btn-unir success" title="Unir todas las cuentas divididas en una sola">
+                <span class="btn-label">Unir cuentas</span>
             </button>
-            <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !$this->puedeDividirMas() ? 'disabled' : '' }} title="Dividir cuenta entre mesas">
-                <span class="btn-label">Dividir+</span>
+            <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !$this->puedeDividirMas() ? 'disabled' : '' }} title="Crear otra división de la cuenta actual">
+                <span class="btn-label">Seguir dividiendo</span>
             </button>
         @else
-            <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }} title="Dividir cuenta entre mesas">
-                <span class="btn-label">Dividir</span>
+            <button wire:click="mountAction('split_items')" class="pos-quick-action-btn btn-dividir tertiary" {{ !($this->order !== null && count($this->order->orderDetails ?? []) > 0) ? 'disabled' : '' }} title="Dividir esta cuenta en una nueva cuenta">
+                <span class="btn-label">Dividir cuenta</span>
             </button>
         @endif
 

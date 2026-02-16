@@ -189,9 +189,9 @@ class TableMap extends Page
     public function selectOrderToManageAction(): Action
     {
         return Action::make('selectOrderToManage')
-            ->label('Seleccionar Cuenta')
-            ->modalHeading('Múltiples Cuentas Abiertas')
-            ->modalDescription('Esta mesa tiene varias cuentas. Por favor, selecciona cuál deseas gestionar.')
+            ->label('Seleccionar cuenta')
+            ->modalHeading('Elegir cuenta de la mesa')
+            ->modalDescription('Selecciona una cuenta para cobrar o administrar.')
             ->modalWidth('md')
             ->modalSubmitAction(false) // Ocultar botón de "Aceptar" por defecto
             ->modalCancelAction(fn(StaticAction $action) => $action->label('Cerrar'))
@@ -216,25 +216,31 @@ class TableMap extends Page
                 $table->refresh();
 
                 $buttons = [];
-                $tieneCuentasDivididas = $table->openOrders->whereNotNull('parent_id')->isNotEmpty();
+                $openOrders = $table->openOrders
+                    ->sortBy([
+                        fn ($order) => $order->parent_id ? 1 : 0,
+                        fn ($order) => $order->id,
+                    ])
+                    ->values();
+                $tieneCuentasDivididas = $openOrders->whereNotNull('parent_id')->isNotEmpty();
 
                 // Paso 3: Mostrar los totales correctos y actualizados
-                foreach ($table->openOrders as $index => $order) {
-                    $label = $order->parent_id
-                        ? sprintf('Cuenta Separada #%d (Total: S/. %s)', $order->id, number_format($order->total, 2))
-                        : sprintf('Cuenta Principal #%d (Total: S/. %s)', $order->id, number_format($order->total, 2));
+                foreach ($openOrders as $order) {
+                    $accountType = $order->parent_id ? 'Cuenta dividida' : 'Cuenta original';
+                    $label = sprintf('%s #%d | Total: S/. %s', $accountType, $order->id, number_format($order->total, 2));
 
                     $buttons[] = \Filament\Forms\Components\Actions\Action::make('select_order_' . $order->id)
                         ->label($label)
                         ->button()
                         ->color('primary')
+                        ->tooltip('Abrir esta cuenta para cobrar o editar.')
                         ->action(fn() => $this->goToPos($table->id, $order->id));
                 }
 
                 // Agregar botón "Unir Cuentas" si hay cuentas divididas
                 if ($tieneCuentasDivididas) {
                     $buttons[] = \Filament\Forms\Components\Actions\Action::make('unir_cuentas')
-                        ->label('🔗 Unir Todas las Cuentas')
+                        ->label('Unir cuentas en una sola')
                         ->button()
                         ->color('success')
                         ->outlined()
@@ -242,7 +248,7 @@ class TableMap extends Page
                     
                     // Agregar botón "Dividir Más" si hay cuentas divididas
                     $buttons[] = \Filament\Forms\Components\Actions\Action::make('dividir_mas')
-                        ->label('✂️ Dividir Más')
+                        ->label('Seguir dividiendo cuenta')
                         ->button()
                         ->color('warning')
                         ->outlined()
@@ -250,6 +256,9 @@ class TableMap extends Page
                 }
 
                 return [
+                    Forms\Components\Placeholder::make('manage_accounts_help')
+                        ->label('')
+                        ->content('Mesa ' . $table->number . ': esta mesa tiene ' . $openOrders->count() . ' cuenta(s) abierta(s).'),
                     Forms\Components\Actions::make($buttons)->fullWidth()
                 ];
             });

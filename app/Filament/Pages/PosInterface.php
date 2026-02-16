@@ -688,12 +688,15 @@ class PosInterface extends Page
                 ->modalDescription('¿Estás seguro de que deseas marcar esta orden como PAGADA y liberar la mesa? Esta acción no se puede deshacer.')
                 ->action(function () {
                     if ($this->order) {
-                        $table = $this->order->table;
                         $this->order->update(['status' => Order::STATUS_COMPLETED]);
-                        if ($table) {
-                            $table->update(['status' => TableModel::STATUS_AVAILABLE]);
-                        }
-                        Notification::make()->title('Mesa Liberada')->success()->send();
+                        $this->order->syncTableStatusFromPendingOrders();
+
+                        $table = $this->order->table?->fresh();
+                        $message = $table && $table->status === TableModel::STATUS_AVAILABLE
+                            ? 'Mesa liberada'
+                            : 'Hay otras cuentas pendientes en la mesa';
+
+                        Notification::make()->title($message)->success()->send();
                         return redirect(TableMap::getUrl());
                     }
                 })
@@ -708,12 +711,15 @@ class PosInterface extends Page
                 ->modalDescription('¿Estás seguro de que deseas CANCELAR esta orden? Los productos no se cobrarán y la mesa quedará libre. Esta acción no se puede deshacer.')
                 ->action(function () {
                     if ($this->order) {
-                        $table = $this->order->table;
                         $this->order->update(['status' => Order::STATUS_CANCELLED]);
-                        if ($table) {
-                            $table->update(['status' => TableModel::STATUS_AVAILABLE]);
-                        }
-                        Notification::make()->title('Orden Cancelada')->success()->send();
+                        $this->order->syncTableStatusFromPendingOrders();
+
+                        $table = $this->order->table?->fresh();
+                        $message = $table && $table->status === TableModel::STATUS_AVAILABLE
+                            ? 'Orden cancelada y mesa liberada'
+                            : 'Orden cancelada. La mesa sigue ocupada por otras cuentas';
+
+                        Notification::make()->title($message)->success()->send();
                         return redirect(TableMap::getUrl());
                     }
                 })
@@ -2150,13 +2156,23 @@ class PosInterface extends Page
 
             // 🔍 VERIFICAR SI LA ORDEN ORIGEN QUEDÓ VACÍA
             if ($this->order->orderDetails()->count() === 0) {
-                // Liberar mesa origen
+                // Sincronizar estado de mesa origen según cuentas pendientes
                 $sourceTable = $this->order->table;
                 if ($sourceTable) {
-                    $sourceTable->update([
-                        'status' => TableModel::STATUS_AVAILABLE,
-                        'occupied_at' => null
-                    ]);
+                    $hasOtherPendingOrders = Order::query()
+                        ->where('table_id', $sourceTable->id)
+                        ->where('id', '!=', $this->order->id)
+                        ->whereIn('status', Order::pendingStatuses())
+                        ->exists();
+
+                    if ($hasOtherPendingOrders) {
+                        $sourceTable->update(['status' => TableModel::STATUS_OCCUPIED]);
+                    } else {
+                        $sourceTable->update([
+                            'status' => TableModel::STATUS_AVAILABLE,
+                            'occupied_at' => null,
+                        ]);
+                    }
                 }
 
                 // Eliminar orden vacía
@@ -3603,12 +3619,15 @@ class PosInterface extends Page
             ->modalDescription('¿Estás seguro de que deseas marcar esta orden como PAGADA y liberar la mesa? Esta acción no se puede deshacer.')
             ->action(function () {
                 if ($this->order) {
-                    $table = $this->order->table;
                     $this->order->update(['status' => Order::STATUS_COMPLETED]);
-                    if ($table) {
-                        $table->update(['status' => TableModel::STATUS_AVAILABLE]);
-                    }
-                    Notification::make()->title('Mesa Liberada')->success()->send();
+                    $this->order->syncTableStatusFromPendingOrders();
+
+                    $table = $this->order->table?->fresh();
+                    $message = $table && $table->status === TableModel::STATUS_AVAILABLE
+                        ? 'Mesa liberada'
+                        : 'Hay otras cuentas pendientes en la mesa';
+
+                    Notification::make()->title($message)->success()->send();
                     return redirect(TableMap::getUrl());
                 }
             })
@@ -3629,12 +3648,15 @@ class PosInterface extends Page
             ->modalDescription('¿Estás seguro de que deseas CANCELAR esta orden? Los productos no se cobrarán y la mesa quedará libre. Esta acción no se puede deshacer.')
             ->action(function () {
                 if ($this->order) {
-                    $table = $this->order->table;
                     $this->order->update(['status' => Order::STATUS_CANCELLED]);
-                    if ($table) {
-                        $table->update(['status' => TableModel::STATUS_AVAILABLE]);
-                    }
-                    Notification::make()->title('Orden Cancelada')->success()->send();
+                    $this->order->syncTableStatusFromPendingOrders();
+
+                    $table = $this->order->table?->fresh();
+                    $message = $table && $table->status === TableModel::STATUS_AVAILABLE
+                        ? 'Orden cancelada y mesa liberada'
+                        : 'Orden cancelada. La mesa sigue ocupada por otras cuentas';
+
+                    Notification::make()->title($message)->success()->send();
                     return redirect(TableMap::getUrl());
                 }
             })
@@ -3724,12 +3746,27 @@ class PosInterface extends Page
             ->size('lg')
             ->slideOver()
             ->modalWidth('2xl')
+            ->modalHeading('Dividir cuenta')
+            ->modalDescription('Define cuántas unidades pasarás a una nueva cuenta de esta misma mesa.')
+            ->modalSubmitActionLabel('Confirmar división')
             ->form([
                 Forms\Components\Section::make('Productos a Dividir')
-                    ->description('Selecciona la cantidad de cada producto que deseas mover a la nueva cuenta')
+                    ->description('Ingresa solo la cantidad a mover. El resto quedará en la cuenta actual.')
                     ->icon('heroicon-o-shopping-cart')
                     ->schema([
+                        Forms\Components\Placeholder::make('split_summary')
+                            ->label('Resumen')
+                            ->content(function (Get $get): string {
+                                $items = collect($get('split_items') ?? []);
+                                $selectedRows = $items->filter(fn ($item) => (int) ($item['split_quantity'] ?? 0) > 0);
+                                $units = $selectedRows->sum(fn ($item) => (int) ($item['split_quantity'] ?? 0));
+                                $total = $selectedRows->sum(fn ($item) => ((int) ($item['split_quantity'] ?? 0)) * ((float) ($item['unit_price'] ?? 0)));
+
+                                return "Productos seleccionados: {$selectedRows->count()} | Unidades a mover: {$units} | Total nueva cuenta: S/ " . number_format($total, 2);
+                            }),
                         Forms\Components\Repeater::make('split_items')
+                            ->label('Productos para dividir')
+                            ->addActionLabel('Agregar otro producto a dividir')
                             ->schema([
                                 Forms\Components\Grid::make(12)
                                     ->schema([
@@ -3750,6 +3787,9 @@ class PosInterface extends Page
                                             ->numeric()
                                             ->default(0)
                                             ->minValue(0)
+                                            ->maxValue(fn (Get $get): int => (int) ($get('quantity') ?? 0))
+                                            ->helperText(fn (Get $get): string => 'Máx: ' . (int) ($get('quantity') ?? 0))
+                                            ->live(debounce: 250)
                                             ->columnSpan(4)
                                     ])
                             ])
