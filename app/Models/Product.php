@@ -3,9 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\ProductStock;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
@@ -20,7 +19,9 @@ class Product extends Model
      * Los tipos de productos disponibles.
      */
     const TYPE_INGREDIENT = 'ingredient';
+
     const TYPE_SALE_ITEM = 'sale_item';
+
     const TYPE_BOTH = 'both';
 
     /**
@@ -37,10 +38,11 @@ class Product extends Model
         'current_stock',
         'product_type',
         'category_id',
+        'area_id',
         'active',
         'has_recipe',
         'image_path',
-        'available'
+        'available',
     ];
 
     /**
@@ -52,12 +54,13 @@ class Product extends Model
         'sale_price' => 'decimal:2',
         'current_cost' => 'decimal:2',
         'current_stock' => 'decimal:3',
+        'area_id' => 'integer',
         'active' => 'boolean',
         'has_recipe' => 'boolean',
         'available' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -75,11 +78,11 @@ class Product extends Model
      */
     public function getImageAttribute()
     {
-        if (!$this->image_path) {
+        if (! $this->image_path) {
             return null;
         }
 
-        return asset('storage/' . $this->image_path);
+        return asset('storage/'.$this->image_path);
     }
 
     /**
@@ -88,6 +91,14 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'category_id');
+    }
+
+    /**
+     * Obtiene el área de preparación del producto.
+     */
+    public function area(): BelongsTo
+    {
+        return $this->belongsTo(Area::class, 'area_id');
     }
 
     /**
@@ -140,6 +151,7 @@ class Product extends Model
     public function updateCurrentStock(): bool
     {
         $this->current_stock = $this->calculateCurrentStock();
+
         return $this->save();
     }
 
@@ -179,17 +191,18 @@ class Product extends Model
     public function updateAverageCost(): bool
     {
         $this->current_cost = $this->calculateAverageCost();
+
         return $this->save();
     }
 
     /**
      * Agrega stock al producto utilizando el método FIFO.
      *
-     * @param float $quantity Cantidad a agregar
-     * @param float $unitCost Costo unitario
-     * @param int|null $warehouseId ID del almacén
-     * @param string|null $expiryDate Fecha de vencimiento (formato Y-m-d)
-     * @param int|null $purchaseId ID de la compra relacionada
+     * @param  float  $quantity  Cantidad a agregar
+     * @param  float  $unitCost  Costo unitario
+     * @param  int|null  $warehouseId  ID del almacén
+     * @param  string|null  $expiryDate  Fecha de vencimiento (formato Y-m-d)
+     * @param  int|null  $purchaseId  ID de la compra relacionada
      * @return IngredientStock|null El stock creado (si es un ingrediente) o null (si es un producto normal)
      */
     public function addStock(float $quantity, float $unitCost, ?int $warehouseId = null, ?string $expiryDate = null, ?int $purchaseId = null)
@@ -198,11 +211,11 @@ class Product extends Model
         if ($this->isIngredient()) {
             // Buscar el ingrediente correspondiente por código
             $ingredient = Ingredient::where('code', $this->code)->first();
-            
-            if (!$ingredient) {
+
+            if (! $ingredient) {
                 throw new \Exception("No se encontró el ingrediente correspondiente para el producto: {$this->name} (código: {$this->code})");
             }
-            
+
             // Crear un nuevo registro de stock
             $stock = IngredientStock::create([
                 'ingredient_id' => $ingredient->id,
@@ -211,7 +224,7 @@ class Product extends Model
                 'unit_cost' => $unitCost,
                 'expiry_date' => $expiryDate,
                 'status' => IngredientStock::STATUS_AVAILABLE,
-                'purchase_id' => $purchaseId
+                'purchase_id' => $purchaseId,
             ]);
 
             // Actualizar el stock total y el costo promedio del ingrediente
@@ -233,7 +246,7 @@ class Product extends Model
                 'unit_cost' => $unitCost,
                 'expiry_date' => $expiryDate,
                 'status' => 'available',
-                'purchase_id' => $purchaseId
+                'purchase_id' => $purchaseId,
             ]);
 
             $this->current_stock += $quantity;
