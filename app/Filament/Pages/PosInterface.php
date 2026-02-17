@@ -2876,6 +2876,19 @@ class PosInterface extends Page
                                         Forms\Components\Hidden::make('new_customer_phone'),
                                         Forms\Components\Hidden::make('new_customer_address'),
                                     ]),
+                                Forms\Components\Section::make('Notas de venta')
+                                    ->compact()->extraAttributes(['class' => $card . ' ' . $innerPad . ' space-y-3'])
+                                    ->visible(fn(Get $get) => $get('document_type') === 'sales_note'
+                                        && ($this->selectedTableId === null || (($this->order?->table_id ?? null) === null))
+                                        && (($this->order?->service_type ?? null) !== 'delivery'))
+                                    ->schema([
+                                        Forms\Components\TextInput::make('direct_sale_customer_name')
+                                            ->label('Nombre del cliente')
+                                            ->placeholder('Ej: Juan Perez')
+                                            ->helperText('Se imprimira como contacto en la Nota de Venta.')
+                                            ->maxLength(120)
+                                            ->dehydrated(true),
+                                    ]),
                             ])->columnSpan(['md' => 8, 'lg' => 9])->extraAttributes(['class' => 'space-y-4']),
                         ]),
                 ];
@@ -2907,6 +2920,7 @@ class PosInterface extends Page
                         'payment_methods' => [['method' => 'cash', 'amount' => $this->total]],
                         'document_type' => $documentType,
                         'customer_id' => $this->originalCustomerData['customer_id'],
+                        'direct_sale_customer_name' => $this->customerNameForComanda ?: (session('direct_sale_customer_name') ?? ''),
                         'new_customer_name' => '',
                     ];
                 }
@@ -2919,6 +2933,7 @@ class PosInterface extends Page
                     'payment_methods' => [['method' => 'cash', 'amount' => $this->total]],
                     'document_type' => 'sales_note',
                     'customer_id' => null,
+                    'direct_sale_customer_name' => $this->customerNameForComanda ?: (session('direct_sale_customer_name') ?? ''),
                     'new_customer_name' => '',
                 ];
             })
@@ -2971,6 +2986,22 @@ class PosInterface extends Page
                 // Validar pago dividido si está activado
                 if ($data['split_payment'] ?? false) {
                     $this->validateSplitPayment($data['payment_methods'] ?? []);
+                }
+
+                // Guardar nombre de cliente para Nota de Venta en Venta Directa (solo este caso)
+                if (
+                    ($data['document_type'] ?? 'receipt') === 'sales_note'
+                    && ($this->selectedTableId === null || (($this->order->table_id ?? null) === null))
+                    && (($this->order->service_type ?? null) !== 'delivery')
+                ) {
+                    $directSaleCustomerName = trim((string) ($data['direct_sale_customer_name'] ?? $this->customerNameForComanda));
+
+                    if ($directSaleCustomerName !== '') {
+                        $this->customerNameForComanda = $directSaleCustomerName;
+                        session(['direct_sale_customer_name' => $directSaleCustomerName]);
+                    } else {
+                        session()->forget('direct_sale_customer_name');
+                    }
                 }
 
                 // Obtener o crear cliente

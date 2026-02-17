@@ -302,12 +302,6 @@
         </div>
         @endif
         
-        @if($invoice->client_address)
-        <div class="info-row">
-            <span class="label">Dirección:</span>
-            <span>{{ $invoice->client_address }}</span>
-        </div>
-        @endif
         <div class="info-row">
             <span class="label">Atendido:</span>
             <span>{{ $invoice->order->user->name ?? 'N/A' }}</span>

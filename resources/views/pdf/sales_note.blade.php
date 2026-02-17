@@ -224,13 +224,6 @@
             @endif
 
             {{-- Mostrar dirección del cliente siempre que esté disponible --}}
-            @if($invoice->client_address)
-                <tr>
-                    <td><strong>Dirección:</strong></td>
-                    <td>{{ $invoice->client_address }}</td>
-                </tr>
-            @endif
-
             @if(($invoice->order && empty($invoice->order->table_id)) && ($invoice->order->service_type ?? null) !== 'delivery' && !empty($direct_sale_customer_name))
                 <tr>
                     <td><strong>Contacto:</strong></td>
