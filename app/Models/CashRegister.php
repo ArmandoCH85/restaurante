@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\PaymentMethodEnum;
 use App\Traits\CashRegisterCalculations;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -172,6 +174,21 @@ class CashRegister extends Model
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * Obtiene los comprobantes asociados a esta caja a través de sus órdenes.
+     */
+    public function invoices(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            Invoice::class,
+            Order::class,
+            'cash_register_id',
+            'order_id',
+            'id',
+            'id'
+        );
     }
 
     /**
@@ -669,10 +686,7 @@ class CashRegister extends Model
      */
     public function getSystemCashSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', Payment::METHOD_CASH)
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::CASH);
     }
 
     /**
@@ -682,10 +696,7 @@ class CashRegister extends Model
      */
     public function getSystemYapeSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', 'yape')
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::YAPE);
     }
 
     /**
@@ -695,10 +706,7 @@ class CashRegister extends Model
      */
     public function getSystemPlinSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', 'plin')
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::PLIN);
     }
 
     /**
@@ -708,14 +716,7 @@ class CashRegister extends Model
      */
     public function getSystemCardSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->whereIn('payment_method', [
-                Payment::METHOD_CARD,
-                Payment::METHOD_CREDIT_CARD,
-                Payment::METHOD_DEBIT_CARD
-            ])
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::CARD);
     }
 
     /**
@@ -725,10 +726,7 @@ class CashRegister extends Model
      */
     public function getSystemBankTransferSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', Payment::METHOD_BANK_TRANSFER)
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::BANK_TRANSFER);
     }
 
     /**
@@ -738,14 +736,7 @@ class CashRegister extends Model
      */
     public function getSystemOtherDigitalWalletSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', Payment::METHOD_DIGITAL_WALLET)
-            ->where(function ($query) {
-                $query->where('reference_number', 'NOT LIKE', '%Tipo: yape%')
-                    ->where('reference_number', 'NOT LIKE', '%Tipo: plin%');
-            })
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::DIGITAL_WALLET);
     }
 
     /**
@@ -755,10 +746,7 @@ class CashRegister extends Model
      */
     public function getSystemDidiSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', 'didi_food')
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::DIDI_FOOD);
     }
 
     /**
@@ -768,10 +756,7 @@ class CashRegister extends Model
      */
     public function getSystemPedidosYaSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', 'pedidos_ya')
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::PEDIDOS_YA);
     }
 
     /**
@@ -781,10 +766,7 @@ class CashRegister extends Model
      */
     public function getSystemBitaExpressSales(): float
     {
-        return $this->payments()
-            ->whereNull('void_reason')
-            ->where('payment_method', 'bita_express')
-            ->sum('amount');
+        return $this->getSalesByMethod(PaymentMethodEnum::BITA_EXPRESS);
     }
 
     /**

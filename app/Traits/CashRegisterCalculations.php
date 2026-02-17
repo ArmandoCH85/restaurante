@@ -3,11 +3,21 @@
 namespace App\Traits;
 
 use App\Enums\PaymentMethodEnum;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Builder;
 
 trait CashRegisterCalculations
 {
     protected array $cachedSales = [];
+
+    protected function getIssuedInvoicesQuery()
+    {
+        return $this->invoices()
+            ->whereNull('invoices.voided_date')
+            ->where(function (Builder $query) {
+                $query->whereNull('invoices.tax_authority_status')
+                    ->orWhereRaw('LOWER(invoices.tax_authority_status) <> ?', ['voided']);
+            });
+    }
 
     protected function getSalesByMethod(PaymentMethodEnum $method): float
     {
@@ -17,27 +27,22 @@ trait CashRegisterCalculations
             return $this->cachedSales[$cacheKey];
         }
 
-        $query = $this->payments()
-            ->whereNull('void_reason');
+        $query = $this->getIssuedInvoicesQuery();
 
         match ($method) {
-            PaymentMethodEnum::CASH => $query->where('payment_method', 'cash'),
-            PaymentMethodEnum::CARD => $query->whereIn('payment_method', ['card', 'credit_card', 'debit_card']),
-            PaymentMethodEnum::YAPE => $query->where('payment_method', 'yape'),
-            PaymentMethodEnum::PLIN => $query->where('payment_method', 'plin'),
-            PaymentMethodEnum::DIDI_FOOD => $query->where('payment_method', 'didi_food'),
-            PaymentMethodEnum::PEDIDOS_YA => $query->where('payment_method', 'pedidos_ya'),
-            PaymentMethodEnum::BITA_EXPRESS => $query->where('payment_method', 'bita_express'),
-            PaymentMethodEnum::BANK_TRANSFER => $query->where('payment_method', 'bank_transfer'),
-            PaymentMethodEnum::DIGITAL_WALLET => $query->where('payment_method', 'digital_wallet')
-                ->where(function ($q) {
-                    $q->where('reference_number', 'NOT LIKE', '%Tipo: yape%')
-                        ->where('reference_number', 'NOT LIKE', '%Tipo: plin%');
-                }),
-            default => $query->where('payment_method', $method->value),
+            PaymentMethodEnum::CASH => $query->where('invoices.payment_method', 'cash'),
+            PaymentMethodEnum::CARD => $query->whereIn('invoices.payment_method', ['card', 'credit_card', 'debit_card']),
+            PaymentMethodEnum::YAPE => $query->where('invoices.payment_method', 'yape'),
+            PaymentMethodEnum::PLIN => $query->where('invoices.payment_method', 'plin'),
+            PaymentMethodEnum::DIDI_FOOD => $query->where('invoices.payment_method', 'didi_food'),
+            PaymentMethodEnum::PEDIDOS_YA => $query->where('invoices.payment_method', 'pedidos_ya'),
+            PaymentMethodEnum::BITA_EXPRESS => $query->where('invoices.payment_method', 'bita_express'),
+            PaymentMethodEnum::BANK_TRANSFER => $query->where('invoices.payment_method', 'bank_transfer'),
+            PaymentMethodEnum::DIGITAL_WALLET => $query->where('invoices.payment_method', 'digital_wallet'),
+            default => $query->where('invoices.payment_method', $method->value),
         };
 
-        $this->cachedSales[$cacheKey] = (float) $query->sum('amount');
+        $this->cachedSales[$cacheKey] = (float) $query->sum('invoices.total');
 
         return $this->cachedSales[$cacheKey];
     }
@@ -70,7 +75,15 @@ trait CashRegisterCalculations
 
     public function getTotalSystemSales(): float
     {
-        return array_sum($this->getAllSalesByMethod());
+        $cacheKey = "sales_total_issued_{$this->id}";
+
+        if (isset($this->cachedSales[$cacheKey])) {
+            return $this->cachedSales[$cacheKey];
+        }
+
+        $this->cachedSales[$cacheKey] = (float) $this->getIssuedInvoicesQuery()->sum('invoices.total');
+
+        return $this->cachedSales[$cacheKey];
     }
 
     public function calculateExpectedCash(): float

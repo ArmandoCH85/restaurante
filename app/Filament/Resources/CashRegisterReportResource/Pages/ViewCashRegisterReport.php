@@ -21,6 +21,7 @@ class ViewCashRegisterReport extends ViewRecord
             'cashMovements.approvedByUser',
             'cashRegisterExpenses',
             'payments',
+            'invoices.customer',
             'orders.user',
             'orders.payments'
         ]);

@@ -25,7 +25,11 @@
 
     @php
         $initialAmount = (float) $record->opening_amount;
-        $totalIngresos = (float) ($record->orders->sum('total') + $record->cashMovements->where('movement_type', 'ingreso')->sum('amount'));
+        $issuedInvoices = $record->invoices->filter(function ($invoice) {
+            return is_null($invoice->voided_date)
+                && strtolower((string) $invoice->tax_authority_status) !== 'voided';
+        });
+        $totalIngresos = (float) $issuedInvoices->sum('total');
         $totalEgresos = (float) ($record->cashRegisterExpenses->sum('amount') + $record->cashMovements->where('movement_type', 'egreso')->sum('amount'));
         $saldoTeorico = ($initialAmount + $totalIngresos) - $totalEgresos;
     @endphp
@@ -45,7 +49,7 @@
                 <p class="text-2xl font-bold text-green-600">
                     S/ {{ number_format($totalIngresos, 2) }}
                 </p>
-                <p class="text-xs text-gray-500 mt-1">Ventas y entradas</p>
+                <p class="text-xs text-gray-500 mt-1">Comprobantes emitidos no anulados</p>
             </div>
         </x-filament::card>
 
@@ -80,17 +84,21 @@
                     'plin' => 'Plin',
                     'pedidos_ya' => 'PedidosYa',
                     'didi_food' => 'Didi Food',
+                    'otros' => 'Otros / Mixto',
                 ];
 
                 $cardMethods = ['card', 'credit_card', 'debit_card'];
 
                 $paymentTotals = [];
-                foreach ($record->payments->whereNull('voided_at') as $payment) {
-                    $method = in_array($payment->payment_method, $cardMethods) ? 'card' : $payment->payment_method;
-                    $paymentTotals[$method] = ($paymentTotals[$method] ?? 0) + $payment->amount;
+                foreach ($issuedInvoices as $invoice) {
+                    $method = in_array($invoice->payment_method, $cardMethods, true) ? 'card' : $invoice->payment_method;
+                    if (!array_key_exists($method, $paymentMethods)) {
+                        $method = 'otros';
+                    }
+                    $paymentTotals[$method] = ($paymentTotals[$method] ?? 0) + (float) $invoice->total;
                 }
 
-                $totalOrders = $record->orders->sum('total');
+                $totalVentasEmitidas = $totalIngresos;
             @endphp
 
             @foreach($paymentMethods as $method => $label)
@@ -98,9 +106,9 @@
                     <div class="p-4">
                         <p class="text-sm font-medium text-gray-500">{{ $label }}</p>
                         <p class="text-xl font-bold">S/ {{ number_format($paymentTotals[$method] ?? 0, 2) }}</p>
-                        @if ($totalOrders > 0 && isset($paymentTotals[$method]) && $paymentTotals[$method] > 0)
+                        @if ($totalVentasEmitidas > 0 && isset($paymentTotals[$method]) && $paymentTotals[$method] > 0)
                             <p class="text-xs text-gray-500 mt-1">
-                                {{ number_format(($paymentTotals[$method] / $totalOrders) * 100, 1) }}% del total
+                                {{ number_format(($paymentTotals[$method] / $totalVentasEmitidas) * 100, 1) }}% del total
                             </p>
                         @endif
                     </div>
@@ -121,7 +129,7 @@
                         'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300': activeTab !== 'sales',
                     }"
                     class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm cursor-pointer focus-visible:ring-2 focus-visible:ring-offset-2 outline-none">
-                    Ventas ({{ count($record->orders) }})
+                    Comprobantes ({{ count($issuedInvoices) }})
                 </button>
                 <button @click="activeTab = 'expenses'" :class="{
                         'border-primary-500 text-primary-600': activeTab === 'expenses',
@@ -163,49 +171,43 @@
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($record->orders as $order)
+                            @forelse($issuedInvoices as $invoice)
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $order->order_datetime?->format('d/m/Y H:i') ?? 'N/A' }}
+                                        {{ $invoice->issue_date?->format('d/m/Y') ?? ($invoice->created_at?->format('d/m/Y H:i') ?? 'N/A') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        #{{ $order->id }}
+                                        {{ $invoice->series }}-{{ $invoice->number }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                                        S/ {{ number_format($order->total, 2) }}
+                                        S/ {{ number_format($invoice->total, 2) }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        @if($order->payments->isNotEmpty())
-                                            @foreach($order->payments as $payment)
-                                                <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">
-                                                    {{ $payment->payment_method }}
-                                                </span>
-                                            @endforeach
-                                        @else
-                                            <span class="text-gray-500">No especificado</span>
-                                        @endif
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-1">
+                                            {{ $invoice->payment_method ?: 'no especificado' }}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $order->user?->name ?? 'No asignado' }}
+                                        {{ $invoice->customer?->name ?? $invoice->client_name ?? 'No asignado' }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
                                     <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
-                                        No hay ventas registradas
+                                        No hay comprobantes emitidos
                                     </td>
                                 </tr>
                             @endforelse
                         </tbody>
-                        @if($record->orders->isNotEmpty())
+                        @if($issuedInvoices->isNotEmpty())
                             <tfoot class="bg-gray-50">
                                 <tr>
                                     <td colspan="2" class="px-6 py-3 text-right text-sm font-bold text-gray-700">
                                         Total Ventas:
                                     </td>
                                     <td class="px-6 py-3 text-right text-sm font-bold text-gray-900">
-                                        S/ {{ number_format($record->orders->sum('total'), 2) }}
+                                        S/ {{ number_format($totalIngresos, 2) }}
                                     </td>
                                     <td colspan="2"></td>
                                 </tr>

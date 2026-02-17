@@ -25,7 +25,11 @@
 
     @php
         $initialAmount = (float) $record->opening_amount;
-        $totalIngresos = (float) ($record->orders->sum('total') + $record->cashMovements->where('movement_type', 'ingreso')->sum('amount'));
+        $issuedInvoices = $record->invoices->filter(function ($invoice) {
+            return is_null($invoice->voided_date)
+                && strtolower((string) $invoice->tax_authority_status) !== 'voided';
+        });
+        $totalIngresos = (float) $issuedInvoices->sum('total');
         $totalEgresos = (float) ($record->cashRegisterExpenses->sum('amount') + $record->cashMovements->where('movement_type', 'egreso')->sum('amount'));
         $saldoTeorico = ($initialAmount + $totalIngresos) - $totalEgresos;
     @endphp
@@ -45,7 +49,7 @@
                 <p class="text-2xl font-bold text-green-600">
                     S/ {{ number_format($totalIngresos, 2) }}
                 </p>
-                <p class="text-xs text-gray-500 mt-1">Ventas y entradas</p>
+                <p class="text-xs text-gray-500 mt-1">Comprobantes emitidos no anulados</p>
             </div>
         </x-filament::card>
 

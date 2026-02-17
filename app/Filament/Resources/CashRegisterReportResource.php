@@ -80,19 +80,13 @@ class CashRegisterReportResource extends Resource
                         'cash_registers.closing_datetime',
                         'cash_registers.opened_by',
                         'cash_registers.opening_datetime as date',
-                        DB::raw('COALESCE(o.total, 0) + COALESCE(cm_in.total, 0) as ingresos_totales'),
+                        DB::raw('COALESCE(inv.total, 0) as ingresos_totales'),
                         DB::raw('COALESCE(cre.total, 0) + COALESCE(cm_out.total, 0) as egresos_totales'),
-                        DB::raw('(cash_registers.opening_amount + COALESCE(o.total, 0) + COALESCE(cm_in.total, 0)) - (COALESCE(cre.total, 0) + COALESCE(cm_out.total, 0)) as saldo_teorico'),
+                        DB::raw('(cash_registers.opening_amount + COALESCE(inv.total, 0)) - (COALESCE(cre.total, 0) + COALESCE(cm_out.total, 0)) as saldo_teorico'),
                     ])
                     ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(total) as total FROM orders GROUP BY cash_register_id) as o'),
-                        'o.cash_register_id',
-                        '=',
-                        'cash_registers.id'
-                    )
-                    ->leftJoin(
-                        DB::raw('(SELECT cash_register_id, SUM(amount) as total FROM cash_movements WHERE movement_type = "ingreso" GROUP BY cash_register_id) as cm_in'),
-                        'cm_in.cash_register_id',
+                        DB::raw('(SELECT o.cash_register_id, SUM(i.total) as total FROM invoices i INNER JOIN orders o ON o.id = i.order_id WHERE i.voided_date IS NULL AND (i.tax_authority_status IS NULL OR LOWER(i.tax_authority_status) <> "voided") GROUP BY o.cash_register_id) as inv'),
+                        'inv.cash_register_id',
                         '=',
                         'cash_registers.id'
                     )
@@ -228,7 +222,7 @@ class CashRegisterReportResource extends Resource
                     ->modalHeading('Detalle de Caja')
                     ->modalWidth('4xl')
                     ->modalContent(fn($record): \Illuminate\View\View => view('filament.resources.cash-register-report-resource.detail', [
-                        'record' => CashRegister::with(['openedBy', 'closedBy', 'cashMovements.approvedByUser', 'cashRegisterExpenses', 'orders.user', 'orders.payments'])->findOrFail($record->id),
+                        'record' => CashRegister::with(['openedBy', 'closedBy', 'cashMovements.approvedByUser', 'cashRegisterExpenses', 'orders.user', 'orders.payments', 'invoices.customer'])->findOrFail($record->id),
                     ])),
             ])
             ->bulkActions([

@@ -2,6 +2,8 @@
 
 use App\Models\CashRegister;
 use App\Models\CashRegisterExpense;
+use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\User;
@@ -9,6 +11,31 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 // RefreshDatabase ejecuta las migraciones
 uses(RefreshDatabase::class);
+
+function createIssuedInvoiceForOrder(Order $order, string $paymentMethod, float $total, array $overrides = []): Invoice
+{
+    $customer = Customer::factory()->create();
+    $taxableAmount = round($total / 1.18, 2);
+    $tax = round($total - $taxableAmount, 2);
+
+    return Invoice::create(array_merge([
+        'invoice_type' => 'sales_note',
+        'series' => 'NVT1',
+        'number' => str_pad((string) random_int(1, 99999999), 8, '0', STR_PAD_LEFT),
+        'issue_date' => now()->toDateString(),
+        'customer_id' => $customer->id,
+        'taxable_amount' => $taxableAmount,
+        'tax' => $tax,
+        'total' => $total,
+        'tax_authority_status' => 'pending',
+        'order_id' => $order->id,
+        'payment_method' => $paymentMethod,
+        'payment_amount' => $total,
+        'change_amount' => 0,
+        'advance_payment_received' => 0,
+        'pending_balance' => 0,
+    ], $overrides));
+}
 
 // ============================================
 // UC-1: APERTURA DE CAJA
@@ -199,131 +226,77 @@ test('total_sales es la suma de cash_card_y_other_sales', function () {
 // UC-4: CALCULOS DEL SISTEMA
 // ============================================
 
-test('getSystemCashSales suma pagos en efectivo no anulados', function () {
+test('getSystemCashSales suma comprobantes emitidos en efectivo no anulados', function () {
     $cashRegister = CashRegister::factory()->create(['is_active' => true]);
-    $userId = User::factory()->create()->id;
 
-    $order1 = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order1->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'cash',
-        'amount' => 100.00,
-        'payment_datetime' => now(),
-        'received_by' => $userId,
-    ]);
+    $order1 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order1, 'cash', 100.00);
 
-    $order2 = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order2->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'cash',
-        'amount' => 50.00,
-        'payment_datetime' => now(),
-        'received_by' => $userId,
-    ]);
+    $order2 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order2, 'cash', 50.00);
 
-    $order3 = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order3->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'cash',
-        'amount' => 25.00,
-        'payment_datetime' => now(),
-        'void_reason' => 'Anulado',
-        'voided_at' => now(),
-        'received_by' => $userId,
+    $order3 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order3, 'cash', 25.00, [
+        'tax_authority_status' => 'voided',
+        'voided_date' => now()->toDateString(),
     ]);
 
     expect((float) $cashRegister->getSystemCashSales())->toEqual(150.0);
 });
 
-test('getSystemYapeSales suma pagos yape', function () {
+test('getSystemYapeSales suma comprobantes emitidos en yape', function () {
     $cashRegister = CashRegister::factory()->create(['is_active' => true]);
-    $userId = User::factory()->create()->id;
 
-    $order1 = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order1->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'yape',
-        'amount' => 80.00,
-        'payment_datetime' => now(),
-        'received_by' => $userId,
-    ]);
+    $order1 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order1, 'yape', 80.00);
 
-    $order2 = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order2->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'yape',
-        'amount' => 20.00,
-        'payment_datetime' => now(),
-        'received_by' => $userId,
-    ]);
+    $order2 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order2, 'yape', 20.00);
 
     expect((float) $cashRegister->getSystemYapeSales())->toEqual(100.0);
 });
 
-test('getSystemPlinSales suma pagos plin', function () {
+test('getSystemPlinSales suma comprobantes emitidos en plin', function () {
     $cashRegister = CashRegister::factory()->create(['is_active' => true]);
-    $userId = User::factory()->create()->id;
 
-    $order = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'plin',
-        'amount' => 75.00,
-        'payment_datetime' => now(),
-        'received_by' => $userId,
-    ]);
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'plin', 75.00);
 
     expect((float) $cashRegister->getSystemPlinSales())->toEqual(75.0);
 });
 
-test('getSystemCardSales suma pagos con tarjeta', function () {
+test('getSystemCardSales suma comprobantes emitidos con tarjeta', function () {
     $cashRegister = CashRegister::factory()->create(['is_active' => true]);
-    $userId = User::factory()->create()->id;
 
-    $order1 = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order1->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'card',
-        'amount' => 300.00,
-        'payment_datetime' => now(),
-        'received_by' => $userId,
-    ]);
+    $order1 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order1, 'card', 300.00);
 
-    $order2 = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order2->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'credit_card',
-        'amount' => 150.00,
-        'payment_datetime' => now(),
-        'received_by' => $userId,
-    ]);
+    $order2 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order2, 'credit_card', 150.00);
 
     expect((float) $cashRegister->getSystemCardSales())->toEqual(450.0);
 });
 
-test('getSystemTotalSales suma todos los metodos de pago', function () {
+test('getSystemTotalSales suma comprobantes emitidos no anulados', function () {
     $cashRegister = CashRegister::factory()->create(['is_active' => true]);
-    $userId = User::factory()->create()->id;
 
-    $order1 = Order::factory()->create();
-    Payment::create(['order_id' => $order1->id, 'cash_register_id' => $cashRegister->id, 'payment_method' => 'cash', 'amount' => 100.00, 'payment_datetime' => now(), 'received_by' => $userId]);
+    $order1 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order1, 'cash', 100.00);
 
-    $order2 = Order::factory()->create();
-    Payment::create(['order_id' => $order2->id, 'cash_register_id' => $cashRegister->id, 'payment_method' => 'card', 'amount' => 200.00, 'payment_datetime' => now(), 'received_by' => $userId]);
+    $order2 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order2, 'card', 200.00);
 
-    $order3 = Order::factory()->create();
-    Payment::create(['order_id' => $order3->id, 'cash_register_id' => $cashRegister->id, 'payment_method' => 'yape', 'amount' => 50.00, 'payment_datetime' => now(), 'received_by' => $userId]);
+    $order3 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order3, 'yape', 50.00);
 
-    $order4 = Order::factory()->create();
-    Payment::create(['order_id' => $order4->id, 'cash_register_id' => $cashRegister->id, 'payment_method' => 'plin', 'amount' => 30.00, 'payment_datetime' => now(), 'received_by' => $userId]);
+    $order4 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order4, 'plin', 30.00);
+
+    $order5 = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order5, 'cash', 25.00, [
+        'tax_authority_status' => 'voided',
+        'voided_date' => now()->toDateString(),
+    ]);
 
     expect((float) $cashRegister->getSystemTotalSales())->toEqual(380.0);
 });
@@ -333,10 +306,9 @@ test('calculateExpectedCash calcula apertura mas ventas menos egresos', function
         'is_active' => true,
         'opening_amount' => 200.00,
     ]);
-    $userId = User::factory()->create()->id;
 
-    $order = Order::factory()->create();
-    Payment::create(['order_id' => $order->id, 'cash_register_id' => $cashRegister->id, 'payment_method' => 'cash', 'amount' => 500.00, 'payment_datetime' => now(), 'received_by' => $userId]);
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'cash', 500.00);
 
     CashRegisterExpense::create([
         'cash_register_id' => $cashRegister->id,
@@ -469,15 +441,8 @@ test('registrar ventas actualiza el saldo esperado', function () {
 
     $cashRegister = CashRegister::openRegister(200.00);
 
-    $order = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'cash',
-        'amount' => 150.00,
-        'payment_datetime' => now(),
-        'received_by' => $user->id,
-    ]);
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'cash', 150.00);
 
     $cashRegister = CashRegister::find($cashRegister->id);
     expect((float) $cashRegister->calculateExpectedCash())->toEqual(350.0);
@@ -490,15 +455,8 @@ test('cierre con saldo exacto tiene diferencia cero', function () {
 
     $cashRegister = CashRegister::openRegister(300.00);
 
-    $order = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'cash',
-        'amount' => 400.00,
-        'payment_datetime' => now(),
-        'received_by' => $user->id,
-    ]);
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'cash', 400.00);
 
     $cashRegister = CashRegister::find($cashRegister->id);
     $expectedCash = $cashRegister->calculateExpectedCash();
@@ -521,15 +479,8 @@ test('diferencia_por_pago verifica sobrante en yape', function () {
 
     $cashRegister = CashRegister::openRegister(100.00);
 
-    $order = Order::factory()->create();
-    Payment::create([
-        'order_id' => $order->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'yape',
-        'amount' => 70.00,
-        'payment_datetime' => now(),
-        'received_by' => $user->id,
-    ]);
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'yape', 70.00);
 
     $cashRegister->update(['manual_yape' => 80.00]);
     $cashRegister = CashRegister::find($cashRegister->id);
@@ -549,25 +500,8 @@ test('calculo_final_difference contado menos esperado', function () {
 
     $cashRegister = CashRegister::openRegister(100.00);
 
-    $order = Order::factory()->create();
-
-    Payment::create([
-        'order_id' => $order->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'cash',
-        'amount' => 200.00,
-        'payment_datetime' => now(),
-        'received_by' => $user->id,
-    ]);
-
-    Payment::create([
-        'order_id' => $order->id,
-        'cash_register_id' => $cashRegister->id,
-        'payment_method' => 'yape',
-        'amount' => 150.00,
-        'payment_datetime' => now(),
-        'received_by' => $user->id,
-    ]);
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'cash', 350.00);
 
     $cashRegister = CashRegister::find($cashRegister->id);
     $cashRegister->update(['manual_yape' => 180.00, 'bill_200' => 1]);
