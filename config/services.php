@@ -46,4 +46,10 @@ return [
         'use_dynamic_config' => env('QPS_USE_DYNAMIC_CONFIG', true),
     ],
 
+    'nominatim' => [
+        'base_url' => env('NOMINATIM_BASE_URL', 'https://nominatim.openstreetmap.org'),
+        'user_agent' => env('NOMINATIM_USER_AGENT', 'RestauranteDeliveryMap/1.0 (contacto@restaurante.test)'),
+        'referer' => env('NOMINATIM_REFERER', env('APP_URL', 'http://localhost')),
+    ],
+
 ];

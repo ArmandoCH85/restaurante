@@ -3,36 +3,31 @@
 namespace App\Filament\Resources\OrderResource\Pages;
 
 use App\Filament\Resources\OrderResource;
+use App\Models\Order;
+use App\Models\OrderDetail;
+use App\Models\Payment;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Filament\Actions;
 use Filament\Forms;
-use Filament\Resources\Pages\ListRecords;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
-use Filament\Notifications\Notification;
-use App\Models\Order;
-use App\Models\Payment;
-use App\Models\OrderDetail;
-use Carbon\Carbon;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Filament\Resources\Pages\ListRecords;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\Color;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Database\QueryException;
-use Exception;
 
 class ListOrders extends ListRecords
 {
     use HasFiltersForm;
-    
+
     protected static string $resource = OrderResource::class;
 
     // 🎯 TÍTULO DEL DASHBOARD
     protected static ?string $title = '📊 Dashboard de Ventas';
 
     // 🎨 GRID RESPONSIVO SEGÚN MEJORES PRÁCTICAS FILAMENT
-    public function getColumns(): int | string | array
+    public function getColumns(): int|string|array
     {
         return [
             'default' => 1,  // Móvil: 1 columna
@@ -180,7 +175,7 @@ class ListOrders extends ListRecords
                 ->tooltip('Ir al sistema POS para nueva venta')
                 ->url('/admin/pos-interface')
                 ->extraAttributes([
-                    'class' => 'transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                    'class' => 'transition-all duration-200 hover:scale-105 hover:shadow-lg',
                 ]),
 
             Actions\Action::make('go_to_tables')
@@ -190,7 +185,17 @@ class ListOrders extends ListRecords
                 ->tooltip('Ver mapa de mesas del restaurante')
                 ->url('/admin/mapa-mesas')
                 ->extraAttributes([
-                    'class' => 'transition-all duration-200 hover:scale-105 hover:shadow-lg'
+                    'class' => 'transition-all duration-200 hover:scale-105 hover:shadow-lg',
+                ]),
+
+            Actions\Action::make('go_to_delivery_heatmap')
+                ->label('🗺️ Heatmap Delivery')
+                ->icon('heroicon-o-map')
+                ->color('warning')
+                ->tooltip('Abrir mapa de calor de pedidos delivery')
+                ->url('/admin/reportes/mapa-calor-delivery?fromDateTime='.urlencode(now()->startOfDay()->format('Y-m-d H:i')).'&toDateTime='.urlencode(now()->endOfDay()->format('Y-m-d H:i')))
+                ->extraAttributes([
+                    'class' => 'transition-all duration-200 hover:scale-105 hover:shadow-lg',
                 ]),
         ];
     }
@@ -204,6 +209,7 @@ class ListOrders extends ListRecords
     public function getSubheading(): ?string
     {
         $currentDate = now()->format('d/m/Y H:i');
+
         return "📅 Actualizado: {$currentDate} | 🔄 Datos en tiempo real | 🚀 Para nuevas ventas: POS o Mapa de Mesas";
     }
 
@@ -231,8 +237,8 @@ class ListOrders extends ListRecords
     // 🎨 CSS PERSONALIZADO OPTIMIZADO PARA FILAMENT
     private function getCustomCss(): string
     {
-        return "
-            <link rel=\"stylesheet\" href=\"" . asset('css/dashboard-widgets.css') . "\">
+        return '
+            <link rel="stylesheet" href="'.asset('css/dashboard-widgets.css').'">
             <style>
                 /* 🎯 ESTILOS ESPECÍFICOS PARA DASHBOARD DE VENTAS */
                 .fi-header-heading {
@@ -274,7 +280,7 @@ class ListOrders extends ListRecords
                     }
                 }
             </style>
-        ";
+        ';
     }
 
     // 📄 EXPORTACIÓN A PDF
@@ -295,7 +301,7 @@ class ListOrders extends ListRecords
             'serviceType' => $serviceType,
         ]);
 
-        $filename = 'dashboard_ventas_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+        $filename = 'dashboard_ventas_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.pdf';
 
         return response()->streamDownload(function () use ($pdf) {
             echo $pdf->output();
@@ -314,10 +320,10 @@ class ListOrders extends ListRecords
         $dashboardData = $this->getDashboardData($startDate, $endDate, $serviceType);
 
         // 📑 CREAR EXCEL
-        $spreadsheet = new Spreadsheet();
+        $spreadsheet = new Spreadsheet;
         $this->createExcelSheets($spreadsheet, $dashboardData, $sections, $startDate, $endDate, $serviceType);
 
-        $filename = 'dashboard_ventas_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+        $filename = 'dashboard_ventas_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.xlsx';
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);
@@ -366,9 +372,9 @@ class ListOrders extends ListRecords
         // 🍽️ VENTAS POR TIPO
         $salesByType = [
             'mesa' => $orders->whereNotNull('table_id')->sum('total'),
-            'delivery' => $orders->filter(fn($order) => $order->deliveryOrder)->sum('total'),
+            'delivery' => $orders->filter(fn ($order) => $order->deliveryOrder)->sum('total'),
             'apps' => $this->calculateAppsSales($orders),
-            'directa' => $orders->filter(fn($order) => is_null($order->table_id) && !$order->deliveryOrder && !$this->isAppsOrder($order))->sum('total'),
+            'directa' => $orders->filter(fn ($order) => is_null($order->table_id) && ! $order->deliveryOrder && ! $this->isAppsOrder($order))->sum('total'),
         ];
 
         // 🏆 PRODUCTOS MÁS VENDIDOS
@@ -386,7 +392,7 @@ class ListOrders extends ListRecords
             ->groupBy('payment_method')
             ->get()
             ->mapWithKeys(function ($payment) {
-                $method = match($payment->payment_method) {
+                $method = match ($payment->payment_method) {
                     'cash' => '💵 Efectivo',
                     'credit_card', 'debit_card', 'card' => '💳 Tarjetas',
                     'yape' => '📱 Yape',
@@ -398,6 +404,7 @@ class ListOrders extends ListRecords
                     'pedidos_ya' => '🍕 Pedidos Ya',
                     default => $payment->payment_method,
                 };
+
                 return [$method => $payment->total_amount];
             });
 
@@ -479,31 +486,31 @@ class ListOrders extends ListRecords
 
         // Encabezados
         $sheet->setCellValue('A1', 'DASHBOARD DE VENTAS - ESTADÍSTICAS GENERALES');
-        $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
-        $sheet->setCellValue('A3', 'Tipo de Servicio: ' . ucfirst($serviceType));
+        $sheet->setCellValue('A2', 'Período: '.$startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'));
+        $sheet->setCellValue('A3', 'Tipo de Servicio: '.ucfirst($serviceType));
 
         // Estadísticas principales
         $sheet->setCellValue('A5', 'RESUMEN GENERAL');
         $sheet->setCellValue('A6', 'Total Ventas:');
-        $sheet->setCellValue('B6', 'S/ ' . number_format($stats['total_sales'], 2));
+        $sheet->setCellValue('B6', 'S/ '.number_format($stats['total_sales'], 2));
         $sheet->setCellValue('A7', 'Total Órdenes:');
         $sheet->setCellValue('B7', $stats['total_orders']);
         $sheet->setCellValue('A8', 'Ticket Promedio:');
-        $sheet->setCellValue('B8', 'S/ ' . number_format($stats['average_ticket'], 2));
+        $sheet->setCellValue('B8', 'S/ '.number_format($stats['average_ticket'], 2));
 
         // Ventas por tipo
         $sheet->setCellValue('A10', 'VENTAS POR TIPO DE SERVICIO');
         $row = 11;
         foreach ($stats['sales_by_type'] as $type => $amount) {
-            $typeLabel = match($type) {
+            $typeLabel = match ($type) {
                 'mesa' => '🍽️ Mesa',
                 'delivery' => '🚚 Delivery',
                 'apps' => '📱 Apps',
                 'directa' => '🥡 Venta Directa',
                 default => $type,
             };
-            $sheet->setCellValue('A' . $row, $typeLabel . ':');
-            $sheet->setCellValue('B' . $row, 'S/ ' . number_format($amount, 2));
+            $sheet->setCellValue('A'.$row, $typeLabel.':');
+            $sheet->setCellValue('B'.$row, 'S/ '.number_format($amount, 2));
             $row++;
         }
 
@@ -531,17 +538,17 @@ class ListOrders extends ListRecords
         $row = 4;
         foreach ($topProducts as $index => $product) {
             $ranking = $index + 1;
-            $medal = match($ranking) {
+            $medal = match ($ranking) {
                 1 => '🥇',
                 2 => '🥈',
                 3 => '🥉',
                 default => $ranking,
             };
 
-            $sheet->setCellValue('A' . $row, $medal);
-            $sheet->setCellValue('B' . $row, $product->product->name ?? 'Producto eliminado');
-            $sheet->setCellValue('C' . $row, $product->total_quantity);
-            $sheet->setCellValue('D' . $row, 'S/ ' . number_format($product->total_revenue, 2));
+            $sheet->setCellValue('A'.$row, $medal);
+            $sheet->setCellValue('B'.$row, $product->product->name ?? 'Producto eliminado');
+            $sheet->setCellValue('C'.$row, $product->total_quantity);
+            $sheet->setCellValue('D'.$row, 'S/ '.number_format($product->total_revenue, 2));
             $row++;
         }
 
@@ -573,9 +580,9 @@ class ListOrders extends ListRecords
         foreach ($paymentMethods as $method => $amount) {
             $percentage = $totalAmount > 0 ? ($amount / $totalAmount) * 100 : 0;
 
-            $sheet->setCellValue('A' . $row, $method);
-            $sheet->setCellValue('B' . $row, 'S/ ' . number_format($amount, 2));
-            $sheet->setCellValue('C' . $row, number_format($percentage, 1) . '%');
+            $sheet->setCellValue('A'.$row, $method);
+            $sheet->setCellValue('B'.$row, 'S/ '.number_format($amount, 2));
+            $sheet->setCellValue('C'.$row, number_format($percentage, 1).'%');
             $row++;
         }
 
@@ -601,8 +608,8 @@ class ListOrders extends ListRecords
         // Datos
         $row = 4;
         foreach ($salesByHour as $hour => $amount) {
-            $sheet->setCellValue('A' . $row, $hour);
-            $sheet->setCellValue('B' . $row, 'S/ ' . number_format($amount, 2));
+            $sheet->setCellValue('A'.$row, $hour);
+            $sheet->setCellValue('B'.$row, 'S/ '.number_format($amount, 2));
             $row++;
         }
 
@@ -633,7 +640,7 @@ class ListOrders extends ListRecords
 
         foreach ($appsPlatforms as $platform => $amount) {
             if ($amount > 0) {
-                $platformName = match($platform) {
+                $platformName = match ($platform) {
                     'rappi' => '🛵 Rappi',
                     'bita_express' => '🚚 Bita Express',
                     'didi_food' => '🚗 Didi Food',
@@ -645,17 +652,17 @@ class ListOrders extends ListRecords
                 $ordersCount = Payment::where('payment_method', $platform)
                     ->whereHas('order', function ($query) {
                         $query->whereBetween('created_at', [request('start_date', now()->startOfMonth()), request('end_date', now())])
-                              ->where('billed', true);
+                            ->where('billed', true);
                     })
                     ->distinct('order_id')
                     ->count('order_id');
 
                 $averageTicket = $ordersCount > 0 ? $amount / $ordersCount : 0;
 
-                $sheet->setCellValue('A' . $row, $platformName);
-                $sheet->setCellValue('B' . $row, 'S/ ' . number_format($amount, 2));
-                $sheet->setCellValue('C' . $row, $ordersCount);
-                $sheet->setCellValue('D' . $row, 'S/ ' . number_format($averageTicket, 2));
+                $sheet->setCellValue('A'.$row, $platformName);
+                $sheet->setCellValue('B'.$row, 'S/ '.number_format($amount, 2));
+                $sheet->setCellValue('C'.$row, $ordersCount);
+                $sheet->setCellValue('D'.$row, 'S/ '.number_format($averageTicket, 2));
 
                 $totalAppsSales += $amount;
                 $totalAppsOrders += $ordersCount;
@@ -665,10 +672,10 @@ class ListOrders extends ListRecords
 
         // Totales
         if ($totalAppsSales > 0) {
-            $sheet->setCellValue('A' . $row, '📊 TOTAL APPS');
-            $sheet->setCellValue('B' . $row, 'S/ ' . number_format($totalAppsSales, 2));
-            $sheet->setCellValue('C' . $row, $totalAppsOrders);
-            $sheet->getStyle('A' . $row . ':D' . $row)->getFont()->setBold(true);
+            $sheet->setCellValue('A'.$row, '📊 TOTAL APPS');
+            $sheet->setCellValue('B'.$row, 'S/ '.number_format($totalAppsSales, 2));
+            $sheet->setCellValue('C'.$row, $totalAppsOrders);
+            $sheet->getStyle('A'.$row.':D'.$row)->getFont()->setBold(true);
         }
 
         // Estilos
@@ -702,12 +709,12 @@ class ListOrders extends ListRecords
                           ($order->deliveryOrder ? '🚚 Delivery' :
                           ($this->getAppsPlatformName($order) ?: '🥡 Directa'));
 
-            $sheet->setCellValue('A' . $row, $order->id);
-            $sheet->setCellValue('B' . $row, $order->created_at->format('d/m/Y H:i'));
-            $sheet->setCellValue('C' . $row, $order->table->number ?? 'N/A');
-            $sheet->setCellValue('D' . $row, $serviceType);
-            $sheet->setCellValue('E' . $row, 'S/ ' . number_format($order->total, 2));
-            $sheet->setCellValue('F' . $row, $order->billed ? '✅ Facturado' : '⏳ Pendiente');
+            $sheet->setCellValue('A'.$row, $order->id);
+            $sheet->setCellValue('B'.$row, $order->created_at->format('d/m/Y H:i'));
+            $sheet->setCellValue('C'.$row, $order->table->number ?? 'N/A');
+            $sheet->setCellValue('D'.$row, $serviceType);
+            $sheet->setCellValue('E'.$row, 'S/ '.number_format($order->total, 2));
+            $sheet->setCellValue('F'.$row, $order->billed ? '✅ Facturado' : '⏳ Pendiente');
             $row++;
         }
 
@@ -753,7 +760,7 @@ class ListOrders extends ListRecords
      */
     private function getAppsPlatformName($order): ?string
     {
-        if (!$this->isAppsOrder($order)) {
+        if (! $this->isAppsOrder($order)) {
             return null;
         }
 
@@ -762,7 +769,7 @@ class ListOrders extends ListRecords
         });
 
         if ($platformPayment) {
-            return match($platformPayment->payment_method) {
+            return match ($platformPayment->payment_method) {
                 'rappi' => '🛵 Rappi',
                 'bita_express' => '🚚 Bita Express',
                 'didi_food' => '🚗 Didi Food',
@@ -784,20 +791,20 @@ class ListOrders extends ListRecords
 
         // Errores de clave foránea (foreign key)
         if ($errorCode == 23000 && str_contains($errorMessage, 'foreign key constraint')) {
-            return "🚫 Hay pedidos que no se pueden mostrar porque tienen datos relacionados eliminados.";
+            return '🚫 Hay pedidos que no se pueden mostrar porque tienen datos relacionados eliminados.';
         }
 
         // Errores de conexión
         if (in_array($errorCode, ['2002', '2003', '2006'])) {
-            return "🌐 Problema de conexión al cargar la lista de pedidos. Espera 10 segundos y vuelve a intentar.";
+            return '🌐 Problema de conexión al cargar la lista de pedidos. Espera 10 segundos y vuelve a intentar.';
         }
 
         // Deadlock o bloqueo de datos
         if ($errorCode == 1213) {
-            return "⏳ Los datos están ocupados. Cierra esta ventana, espera 5 segundos y abre de nuevo.";
+            return '⏳ Los datos están ocupados. Cierra esta ventana, espera 5 segundos y abre de nuevo.';
         }
 
         // Error genérico
-        return "😅 Ocurrió un problema al cargar la lista de pedidos. Intenta recargar la página.";
+        return '😅 Ocurrió un problema al cargar la lista de pedidos. Intenta recargar la página.';
     }
 }

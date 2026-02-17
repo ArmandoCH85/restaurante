@@ -3,131 +3,119 @@
 namespace App\Filament\Resources\DeliveryOrderResource\Pages;
 
 use App\Filament\Resources\DeliveryOrderResource;
-use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
-use Filament\Notifications\Notification;
-use Illuminate\Database\QueryException;
+use App\Jobs\GeocodeDeliveryOrderJob;
 use Exception;
+use Filament\Actions;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\QueryException;
 
 class EditDeliveryOrder extends EditRecord
 {
     protected static string $resource = DeliveryOrderResource::class;
 
     /**
-     * Convierte errores técnicos de base de datos en mensajes simples para usuarios
+     * Convierte errores tecnicos de base de datos en mensajes simples para usuarios.
      */
     private function getFriendlyErrorMessage(QueryException $exception): string
     {
         $errorCode = $exception->getCode();
         $errorMessage = $exception->getMessage();
 
-        // Errores de clave foránea (foreign key) - cuando el pedido está siendo usado
         if ($errorCode == 23000 && str_contains($errorMessage, 'foreign key constraint')) {
             if (str_contains($errorMessage, 'delivery_orders')) {
-                return "🚫 No se puede eliminar porque este pedido de delivery tiene registros relacionados. Primero elimina los registros relacionados.";
+                return 'No se puede eliminar porque este pedido de delivery tiene registros relacionados.';
             }
-            return "🚫 No se puede eliminar porque este pedido está siendo usado en otras partes del sistema.";
-        }
 
-        // Errores de clave foránea (foreign key)
-        if ($errorCode == 23000 && str_contains($errorMessage, 'foreign key constraint')) {
             if (str_contains($errorMessage, 'customer_id')) {
-                return "🚫 El cliente seleccionado no existe. Verifica que esté registrado correctamente.";
+                return 'El cliente seleccionado no existe. Verifica que este registrado.';
             }
+
             if (str_contains($errorMessage, 'product_id')) {
-                return "🚫 Uno de los productos seleccionados no existe. Revisa la lista de productos.";
+                return 'Uno de los productos seleccionados no existe.';
             }
+
             if (str_contains($errorMessage, 'delivery_person_id')) {
-                return "🚫 El repartidor seleccionado no existe. Elige otro repartidor.";
+                return 'El repartidor seleccionado no existe. Elige otro repartidor.';
             }
-            return "🚫 Hay datos relacionados que no existen. Revisa las selecciones.";
+
+            return 'Hay datos relacionados que no existen. Revisa las selecciones.';
         }
 
-        // Errores de campo requerido (not null)
         if ($errorCode == 23000 && str_contains($errorMessage, 'cannot be null')) {
             if (str_contains($errorMessage, 'customer_id')) {
-                return "👤 Es obligatorio seleccionar un cliente para el delivery.";
+                return 'Es obligatorio seleccionar un cliente para el delivery.';
             }
+
             if (str_contains($errorMessage, 'delivery_address')) {
-                return "📍 La dirección de delivery es obligatoria. Completa la dirección.";
+                return 'La direccion de delivery es obligatoria.';
             }
-            if (str_contains($errorMessage, 'delivery_phone')) {
-                return "📞 El teléfono de delivery es obligatorio. Completa el teléfono.";
-            }
-            return "📝 Faltan completar algunos campos obligatorios. Revisa los marcados con asterisco (*).";
+
+            return 'Faltan completar campos obligatorios. Revisa el formulario.';
         }
 
-        // Errores de conexión
         if (in_array($errorCode, ['2002', '2003', '2006'])) {
-            return "🌐 Problema de conexión. Espera 10 segundos y vuelve a intentar.";
+            return 'Problema de conexion. Espera unos segundos e intenta de nuevo.';
         }
 
-        // Deadlock o bloqueo de datos
         if ($errorCode == 1213) {
-            return "⏳ Los datos están ocupados. Cierra esta ventana, espera 5 segundos y abre de nuevo.";
+            return 'Los datos estan ocupados. Intenta nuevamente en unos segundos.';
         }
 
-        // Error genérico
-        return "😅 Ocurrió un problema al guardar los cambios. Revisa los datos e intenta de nuevo.";
+        return 'Ocurrio un problema al guardar los cambios. Revisa los datos e intenta de nuevo.';
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()
-                ->before(function () {
-                    // Verificar si el pedido de delivery puede ser eliminado
-                    $deliveryOrder = $this->record;
+            Actions\Action::make('re_geocode')
+                ->label('Re-geocodificar')
+                ->icon('heroicon-o-map-pin')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Re-geocodificar direccion')
+                ->modalDescription('Se encolara el proceso para obtener latitud y longitud con Nominatim.')
+                ->action(function (): void {
+                    GeocodeDeliveryOrderJob::dispatch($this->record->id, true)->afterCommit();
 
-                    // Verificar si tiene registros relacionados que impidan la eliminación
-                    // Aquí puedes agregar validaciones específicas según el modelo DeliveryOrder
-                })
+                    Notification::make()
+                        ->title('Re-geocodificacion en proceso')
+                        ->body('La direccion se procesara en segundos.')
+                        ->info()
+                        ->send();
+
+                    $this->record->refresh();
+                }),
+
+            Actions\DeleteAction::make()
                 ->action(function () {
                     try {
                         $deliveryOrder = $this->record;
-                        $orderNumber = $deliveryOrder->order_number ?? 'sin número';
+                        $orderNumber = $deliveryOrder->order_number ?? 'sin numero';
 
                         $deliveryOrder->delete();
 
                         Notification::make()
-                            ->title('¡Pedido de delivery eliminado!')
-                            ->body("El pedido de delivery {$orderNumber} ha sido eliminado correctamente ✅")
+                            ->title('Pedido de delivery eliminado')
+                            ->body("El pedido {$orderNumber} fue eliminado correctamente.")
                             ->success()
                             ->send();
 
                         return redirect()->route('filament.admin.resources.delivery-orders.index');
-
                     } catch (QueryException $e) {
-                        $friendlyMessage = $this->getFriendlyErrorMessage($e);
-
                         Notification::make()
                             ->title('No se puede eliminar el pedido de delivery')
-                            ->body($friendlyMessage)
+                            ->body($this->getFriendlyErrorMessage($e))
                             ->danger()
                             ->persistent()
                             ->send();
-
-                        \Illuminate\Support\Facades\Log::error('Error al eliminar pedido de delivery: ' . $e->getMessage(), [
-                            'delivery_order_id' => $this->record->id,
-                            'order_number' => $this->record->order_number ?? null,
-                            'error_code' => $e->getCode(),
-                            'error_message' => $e->getMessage()
-                        ]);
-
                     } catch (Exception $e) {
-                        $friendlyMessage = "🚫 " . $e->getMessage();
-
                         Notification::make()
                             ->title('No se puede eliminar el pedido de delivery')
-                            ->body($friendlyMessage)
+                            ->body($e->getMessage())
                             ->danger()
                             ->persistent()
                             ->send();
-
-                        \Illuminate\Support\Facades\Log::error('Error general al eliminar pedido de delivery: ' . $e->getMessage(), [
-                            'delivery_order_id' => $this->record->id,
-                            'order_number' => $this->record->order_number ?? null
-                        ]);
                     }
                 }),
         ];
@@ -137,38 +125,31 @@ class EditDeliveryOrder extends EditRecord
     {
         try {
             Notification::make()
-                ->title('¡Pedido de delivery actualizado!')
-                ->body('Los cambios han sido guardados correctamente ✅')
+                ->title('Pedido de delivery actualizado')
+                ->body('Los cambios fueron guardados correctamente.')
                 ->success()
                 ->send();
 
+            if (is_null($this->record->delivery_latitude) || is_null($this->record->delivery_longitude)) {
+                Notification::make()
+                    ->title('Sin geolocalizar')
+                    ->body('Si corregiste direccion, usa la accion Re-geocodificar.')
+                    ->warning()
+                    ->send();
+            }
         } catch (QueryException $e) {
-            $friendlyMessage = $this->getFriendlyErrorMessage($e);
-
             Notification::make()
                 ->title('Problema al guardar los cambios')
-                ->body($friendlyMessage)
+                ->body($this->getFriendlyErrorMessage($e))
                 ->danger()
                 ->persistent()
                 ->send();
-
-            \Illuminate\Support\Facades\Log::error('Error en afterSave de DeliveryOrder: ' . $e->getMessage(), [
-                'delivery_order_id' => $this->record->id ?? null,
-                'error_code' => $e->getCode(),
-                'error_message' => $e->getMessage()
-            ]);
-
-        } catch (Exception $e) {
+        } catch (Exception) {
             Notification::make()
                 ->title('Problema inesperado')
-                ->body('😅 Ocurrió algo inesperado. Cierra esta ventana y abre de nuevo para continuar.')
+                ->body('Ocurrio un error inesperado. Intenta nuevamente.')
                 ->danger()
                 ->send();
-
-            \Illuminate\Support\Facades\Log::error('Error general en afterSave de DeliveryOrder: ' . $e->getMessage(), [
-                'delivery_order_id' => $this->record->id ?? null,
-                'error_message' => $e->getMessage()
-            ]);
         }
     }
 }

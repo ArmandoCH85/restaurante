@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Carbon\Carbon;
-use App\Models\User;
 
 class DeliveryOrder extends Model
 {
@@ -27,26 +26,26 @@ class DeliveryOrder extends Model
                 'order_id' => $deliveryOrder->order_id,
                 'status' => $deliveryOrder->status,
                 'address' => $deliveryOrder->delivery_address,
-                'is_new' => $deliveryOrder->wasRecentlyCreated
+                'is_new' => $deliveryOrder->wasRecentlyCreated,
             ]);
 
             $logPath = storage_path('logs/delivery_model.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] SAVING DeliveryOrder: ' .
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] SAVING DeliveryOrder: '.
                 json_encode([
                     'delivery_id' => $deliveryOrder->id,
                     'order_id' => $deliveryOrder->order_id,
                     'status' => $deliveryOrder->status,
                     'address' => $deliveryOrder->delivery_address,
                     'is_new' => $deliveryOrder->wasRecentlyCreated,
-                    'changes' => $deliveryOrder->getDirty()
+                    'changes' => $deliveryOrder->getDirty(),
                 ], JSON_PRETTY_PRINT);
 
             // Asegurarse de que el directorio existe
-            if (!file_exists(dirname($logPath))) {
+            if (! file_exists(dirname($logPath))) {
                 mkdir(dirname($logPath), 0755, true);
             }
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
         });
 
         // Evento después de guardar
@@ -55,19 +54,20 @@ class DeliveryOrder extends Model
                 'delivery_id' => $deliveryOrder->id,
                 'order_id' => $deliveryOrder->order_id,
                 'status' => $deliveryOrder->status,
-                'was_created' => $deliveryOrder->wasRecentlyCreated
+                'was_created' => $deliveryOrder->wasRecentlyCreated,
             ]);
 
             $logPath = storage_path('logs/delivery_model.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] SAVED DeliveryOrder: ' .
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] SAVED DeliveryOrder: '.
                 json_encode([
                     'delivery_id' => $deliveryOrder->id,
                     'order_id' => $deliveryOrder->order_id,
                     'status' => $deliveryOrder->status,
-                    'was_created' => $deliveryOrder->wasRecentlyCreated
+                    'was_created' => $deliveryOrder->wasRecentlyCreated,
                 ], JSON_PRETTY_PRINT);
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
+
         });
 
         // Evento después de crear
@@ -75,19 +75,19 @@ class DeliveryOrder extends Model
             \Illuminate\Support\Facades\Log::info('Pedido de delivery creado', [
                 'delivery_id' => $deliveryOrder->id,
                 'order_id' => $deliveryOrder->order_id,
-                'status' => $deliveryOrder->status
+                'status' => $deliveryOrder->status,
             ]);
 
             $logPath = storage_path('logs/delivery_model.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] CREATED DeliveryOrder: ' .
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] CREATED DeliveryOrder: '.
                 json_encode([
                     'delivery_id' => $deliveryOrder->id,
                     'order_id' => $deliveryOrder->order_id,
                     'status' => $deliveryOrder->status,
-                    'address' => $deliveryOrder->delivery_address
+                    'address' => $deliveryOrder->delivery_address,
                 ], JSON_PRETTY_PRINT);
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
         });
 
         // No existe un evento saveException en Laravel, así que usamos un try-catch en el método save
@@ -95,18 +95,18 @@ class DeliveryOrder extends Model
         try {
             // Registramos que estamos configurando los eventos
             $logPath = storage_path('logs/delivery_model.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] Eventos de modelo DeliveryOrder configurados correctamente';
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] Eventos de modelo DeliveryOrder configurados correctamente';
 
             // Asegurarse de que el directorio existe
-            if (!file_exists(dirname($logPath))) {
+            if (! file_exists(dirname($logPath))) {
                 mkdir(dirname($logPath), 0755, true);
             }
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Error al configurar eventos del modelo DeliveryOrder', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
         }
     }
@@ -115,9 +115,13 @@ class DeliveryOrder extends Model
      * Estados disponibles para los pedidos de delivery.
      */
     const STATUS_PENDING = 'pending';
+
     const STATUS_ASSIGNED = 'assigned';
+
     const STATUS_IN_TRANSIT = 'in_transit';
+
     const STATUS_DELIVERED = 'delivered';
+
     const STATUS_CANCELLED = 'cancelled';
 
     /**
@@ -147,6 +151,8 @@ class DeliveryOrder extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'delivery_latitude' => 'decimal:7',
+        'delivery_longitude' => 'decimal:7',
         'estimated_delivery_time' => 'datetime',
         'actual_delivery_time' => 'datetime',
         'created_at' => 'datetime',
@@ -227,37 +233,37 @@ class DeliveryOrder extends Model
             'delivery_id' => $this->id,
             'order_id' => $this->order_id,
             'employee_id' => $employee->id,
-            'current_status' => $this->status
+            'current_status' => $this->status,
         ]);
 
         // Guardar en archivo de log específico
         $logPath = storage_path('logs/delivery_operations.log');
-        $logContent = '[' . now()->format('Y-m-d H:i:s') . '] Intentando asignar repartidor: ' .
+        $logContent = '['.now()->format('Y-m-d H:i:s').'] Intentando asignar repartidor: '.
             json_encode([
                 'delivery_id' => $this->id,
                 'order_id' => $this->order_id,
                 'employee_id' => $employee->id,
                 'employee_name' => $employee->full_name ?? $employee->name ?? 'Sin nombre',
-                'current_status' => $this->status
+                'current_status' => $this->status,
             ], JSON_PRETTY_PRINT);
 
         // Asegurarse de que el directorio existe
-        if (!file_exists(dirname($logPath))) {
+        if (! file_exists(dirname($logPath))) {
             mkdir(dirname($logPath), 0755, true);
         }
 
-        file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+        file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
 
-        if (!$this->isPending()) {
+        if (! $this->isPending()) {
             \Illuminate\Support\Facades\Log::warning('No se puede asignar repartidor: pedido no está pendiente', [
                 'delivery_id' => $this->id,
-                'current_status' => $this->status
+                'current_status' => $this->status,
             ]);
 
             $logPath = storage_path('logs/delivery_operations.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] ERROR: No se puede asignar repartidor, pedido no está pendiente. Estado actual: ' . $this->status;
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] ERROR: No se puede asignar repartidor, pedido no está pendiente. Estado actual: '.$this->status;
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
 
             return false;
         }
@@ -273,14 +279,14 @@ class DeliveryOrder extends Model
                 'success' => $result,
                 'delivery_id' => $this->id,
                 'employee_id' => $employee->id,
-                'new_status' => $this->status
+                'new_status' => $this->status,
             ]);
 
             $logPath = storage_path('logs/delivery_operations.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] Resultado de asignar repartidor: ' .
-                ($result ? 'ÉXITO' : 'FALLO') . ' - ID: ' . $this->id;
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] Resultado de asignar repartidor: '.
+                ($result ? 'ÉXITO' : 'FALLO').' - ID: '.$this->id;
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
 
             return $result;
 
@@ -289,20 +295,20 @@ class DeliveryOrder extends Model
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'delivery_id' => $this->id,
-                'employee_id' => $employee->id
+                'employee_id' => $employee->id,
             ]);
 
             $logPath = storage_path('logs/delivery_errors.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] ERROR al asignar repartidor: ' .
-                $e->getMessage() . "\nDelivery ID: " . $this->id .
-                "\nEmployee ID: " . $employee->id . "\nTrace: " . $e->getTraceAsString();
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] ERROR al asignar repartidor: '.
+                $e->getMessage()."\nDelivery ID: ".$this->id.
+                "\nEmployee ID: ".$employee->id."\nTrace: ".$e->getTraceAsString();
 
             // Asegurarse de que el directorio existe
-            if (!file_exists(dirname($logPath))) {
+            if (! file_exists(dirname($logPath))) {
                 mkdir(dirname($logPath), 0755, true);
             }
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
 
             throw $e; // Re-lanzar la excepción para que sea manejada por el código que llama
         }
@@ -313,11 +319,12 @@ class DeliveryOrder extends Model
      */
     public function markAsInTransit(): bool
     {
-        if (!$this->isAssigned()) {
+        if (! $this->isAssigned()) {
             return false;
         }
 
         $this->status = self::STATUS_IN_TRANSIT;
+
         return $this->save();
     }
 
@@ -326,7 +333,7 @@ class DeliveryOrder extends Model
      */
     public function markAsDelivered(): bool
     {
-        if (!$this->isInTransit()) {
+        if (! $this->isInTransit()) {
             return false;
         }
 
@@ -368,7 +375,7 @@ class DeliveryOrder extends Model
      */
     public function getEstimatedDeliveryTimeAttribute($value)
     {
-        if (!$value) {
+        if (! $value) {
             return null;
         }
 
@@ -388,7 +395,7 @@ class DeliveryOrder extends Model
      */
     public function getRemainingTimeAttribute(): ?string
     {
-        if (!$this->estimated_delivery_time) {
+        if (! $this->estimated_delivery_time) {
             return null;
         }
 
@@ -413,32 +420,32 @@ class DeliveryOrder extends Model
                 'color' => '#92400e', // Naranja oscuro
                 'bg' => '#fef3c7',    // Amarillo claro
                 'text' => 'Pendiente',
-                'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+                'icon' => 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
             ],
             'assigned' => [
                 'color' => '#1e40af', // Azul oscuro
                 'bg' => '#dbeafe',    // Azul claro
                 'text' => 'Asignado',
-                'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'
+                'icon' => 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
             ],
             'in_transit' => [
                 'color' => '#4338ca', // Índigo oscuro
                 'bg' => '#e0e7ff',    // Índigo claro
                 'text' => 'En tránsito',
-                'icon' => 'M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0'
+                'icon' => 'M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0',
             ],
             'delivered' => [
                 'color' => '#065f46', // Verde oscuro
                 'bg' => '#d1fae5',    // Verde claro
                 'text' => 'Entregado',
-                'icon' => 'M5 13l4 4L19 7'
+                'icon' => 'M5 13l4 4L19 7',
             ],
             'cancelled' => [
                 'color' => '#991b1b', // Rojo oscuro
                 'bg' => '#fee2e2',    // Rojo claro
                 'text' => 'Cancelado',
-                'icon' => 'M6 18L18 6M6 6l12 12'
-            ]
+                'icon' => 'M6 18L18 6M6 6l12 12',
+            ],
         ];
 
         return $statusInfo[$this->status] ?? $statusInfo['pending'];
@@ -471,7 +478,6 @@ class DeliveryOrder extends Model
     /**
      * Sobrescribe el método save para capturar errores y registrarlos
      *
-     * @param array $options
      * @return bool
      */
     public function save(array $options = [])
@@ -479,32 +485,32 @@ class DeliveryOrder extends Model
         try {
             // Registrar intento de guardado
             $logPath = storage_path('logs/delivery_save.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] INTENTANDO GUARDAR DeliveryOrder: ' .
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] INTENTANDO GUARDAR DeliveryOrder: '.
                 json_encode([
                     'delivery_id' => $this->id,
                     'order_id' => $this->order_id,
                     'status' => $this->status,
                     'address' => $this->delivery_address,
                     'attributes' => $this->getAttributes(),
-                    'changes' => $this->getDirty()
+                    'changes' => $this->getDirty(),
                 ], JSON_PRETTY_PRINT);
 
             // Asegurarse de que el directorio existe
-            if (!file_exists(dirname($logPath))) {
+            if (! file_exists(dirname($logPath))) {
                 mkdir(dirname($logPath), 0755, true);
             }
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
 
             // Llamar al método save original
             $result = parent::save($options);
 
             // Registrar resultado
             $logPath = storage_path('logs/delivery_save.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] RESULTADO GUARDAR: ' .
-                ($result ? 'ÉXITO' : 'FALLO') . ' - ID: ' . $this->id;
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] RESULTADO GUARDAR: '.
+                ($result ? 'ÉXITO' : 'FALLO').' - ID: '.$this->id;
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
 
             return $result;
 
@@ -517,25 +523,25 @@ class DeliveryOrder extends Model
                 'trace' => $e->getTraceAsString(),
                 'line' => $e->getLine(),
                 'file' => $e->getFile(),
-                'attributes' => $this->getAttributes()
+                'attributes' => $this->getAttributes(),
             ]);
 
             // Guardar en archivo de log específico
             $logPath = storage_path('logs/delivery_errors.log');
-            $logContent = '[' . now()->format('Y-m-d H:i:s') . '] ERROR CRÍTICO AL GUARDAR DeliveryOrder: ' .
-                $e->getMessage() . "\nDelivery ID: " . ($this->id ?? 'no_id') .
-                "\nOrder ID: " . ($this->order_id ?? 'no_order_id') .
-                "\nLínea: " . $e->getLine() .
-                "\nArchivo: " . $e->getFile() .
-                "\nAtributos: " . json_encode($this->getAttributes(), JSON_PRETTY_PRINT) .
-                "\nTrace: " . $e->getTraceAsString();
+            $logContent = '['.now()->format('Y-m-d H:i:s').'] ERROR CRÍTICO AL GUARDAR DeliveryOrder: '.
+                $e->getMessage()."\nDelivery ID: ".($this->id ?? 'no_id').
+                "\nOrder ID: ".($this->order_id ?? 'no_order_id').
+                "\nLínea: ".$e->getLine().
+                "\nArchivo: ".$e->getFile().
+                "\nAtributos: ".json_encode($this->getAttributes(), JSON_PRETTY_PRINT).
+                "\nTrace: ".$e->getTraceAsString();
 
             // Asegurarse de que el directorio existe
-            if (!file_exists(dirname($logPath))) {
+            if (! file_exists(dirname($logPath))) {
                 mkdir(dirname($logPath), 0755, true);
             }
 
-            file_put_contents($logPath, $logContent . PHP_EOL, FILE_APPEND);
+            file_put_contents($logPath, $logContent.PHP_EOL, FILE_APPEND);
 
             // Re-lanzar la excepción para que sea manejada por el código que llama
             throw $e;

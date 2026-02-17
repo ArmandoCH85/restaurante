@@ -50,7 +50,7 @@ class DeliveryOrderResource extends Resource
                 'order.customer',
                 'order.table',
                 'order.orderDetails.product',
-                'deliveryPerson'
+                'deliveryPerson',
             ]);
 
         // Obtener el usuario actual
@@ -68,7 +68,7 @@ class DeliveryOrderResource extends Resource
                 // Registrar para depuración
                 \Illuminate\Support\Facades\Log::info('Filtrando pedidos de delivery por repartidor', [
                     'user_id' => $user->id,
-                    'employee_id' => $employee->id
+                    'employee_id' => $employee->id,
                 ]);
             }
         }
@@ -182,10 +182,10 @@ class DeliveryOrderResource extends Resource
                         ->placeholder('Sin teléfono')
                         ->weight('medium')
                         ->extraAttributes([
-                            'class' => 'text-cyan-600 dark:text-cyan-400 font-semibold'
+                            'class' => 'text-cyan-600 dark:text-cyan-400 font-semibold',
                         ]),
                 ])
-                ->space(1),
+                    ->space(1),
 
                 // Columna de dirección con icono
                 Tables\Columns\TextColumn::make('delivery_address')
@@ -194,6 +194,7 @@ class DeliveryOrderResource extends Resource
                     ->limit(25)
                     ->tooltip(function (Tables\Columns\TextColumn $column): ?string {
                         $state = $column->getState();
+
                         return strlen($state) > 25 ? $state : null;
                     })
                     ->wrap()
@@ -209,7 +210,7 @@ class DeliveryOrderResource extends Resource
                         ->icon('heroicon-m-user-circle')
                         ->color(fn ($state) => $state ? 'info' : 'gray')
                         ->extraAttributes(fn ($state) => [
-                            'class' => $state ? 'text-blue-700 dark:text-blue-400' : 'text-gray-500'
+                            'class' => $state ? 'text-blue-700 dark:text-blue-400' : 'text-gray-500',
                         ]),
                     Tables\Columns\TextColumn::make('deliveryPerson.phone')
                         ->size('sm')
@@ -219,10 +220,10 @@ class DeliveryOrderResource extends Resource
                         ->placeholder('')
                         ->weight('medium')
                         ->extraAttributes([
-                            'class' => 'text-cyan-600 dark:text-cyan-400 font-semibold'
+                            'class' => 'text-cyan-600 dark:text-cyan-400 font-semibold',
                         ]),
                 ])
-                ->space(1),
+                    ->space(1),
 
                 // Badge column para estado con colores dinámicos optimizados para POS
                 Tables\Columns\BadgeColumn::make('status')
@@ -279,7 +280,7 @@ class DeliveryOrderResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: false)
                     ->visibleFrom('sm')
                     ->extraAttributes([
-                        'class' => 'text-green-700 dark:text-green-400 font-bold text-base'
+                        'class' => 'text-green-700 dark:text-green-400 font-bold text-base',
                     ])
                     ->size('md'),
             ])
@@ -314,7 +315,8 @@ class DeliveryOrderResource extends Resource
                     ->preload()
                     ->visible(function () {
                         $user = \Illuminate\Support\Facades\Auth::user();
-                        return !($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0));
+
+                        return ! ($user && ($user->roles->where('name', 'delivery')->count() > 0 || $user->roles->where('name', 'Delivery')->count() > 0));
                     }),
 
                 Tables\Filters\Filter::make('date_range')
@@ -338,21 +340,20 @@ class DeliveryOrderResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when($data['from'], fn ($query, $date) =>
-                                $query->whereDate('created_at', '>=', $date))
-                            ->when($data['until'], fn ($query, $date) =>
-                                $query->whereDate('created_at', '<=', $date));
+                            ->when($data['from'], fn ($query, $date) => $query->whereDate('created_at', '>=', $date))
+                            ->when($data['until'], fn ($query, $date) => $query->whereDate('created_at', '<=', $date));
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['from'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Desde ' . \Carbon\Carbon::parse($data['from'])->format('d/m/Y'))
+                            $indicators[] = Tables\Filters\Indicator::make('Desde '.\Carbon\Carbon::parse($data['from'])->format('d/m/Y'))
                                 ->removeField('from');
                         }
                         if ($data['until'] ?? null) {
-                            $indicators[] = Tables\Filters\Indicator::make('Hasta ' . \Carbon\Carbon::parse($data['until'])->format('d/m/Y'))
+                            $indicators[] = Tables\Filters\Indicator::make('Hasta '.\Carbon\Carbon::parse($data['until'])->format('d/m/Y'))
                                 ->removeField('until');
                         }
+
                         return $indicators;
                     }),
 
@@ -365,7 +366,7 @@ class DeliveryOrderResource extends Resource
                     ->label('Esta Semana')
                     ->query(fn (Builder $query): Builder => $query->whereBetween('created_at', [
                         now()->startOfWeek(),
-                        now()->endOfWeek()
+                        now()->endOfWeek(),
                     ]))
                     ->toggle(),
 
@@ -378,10 +379,10 @@ class DeliveryOrderResource extends Resource
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when($data['value'], function ($query, $value) {
-                            return match($value) {
-                                'low' => $query->whereHas('order', fn($q) => $q->where('total', '<', 50)),
-                                'medium' => $query->whereHas('order', fn($q) => $q->whereBetween('total', [50, 100])),
-                                'high' => $query->whereHas('order', fn($q) => $q->where('total', '>', 100)),
+                            return match ($value) {
+                                'low' => $query->whereHas('order', fn ($q) => $q->where('total', '<', 50)),
+                                'medium' => $query->whereHas('order', fn ($q) => $q->whereBetween('total', [50, 100])),
+                                'high' => $query->whereHas('order', fn ($q) => $q->where('total', '>', 100)),
                                 default => $query,
                             };
                         });
@@ -397,12 +398,12 @@ class DeliveryOrderResource extends Resource
                     ->color('warning')
                     ->size('sm')
                     ->url(function (DeliveryOrder $record): string {
-                        return '/admin/pos-interface?order_id=' . $record->order_id;
+                        return '/admin/pos-interface?order_id='.$record->order_id;
                     })
                     ->openUrlInNewTab()
                     ->tooltip('Procesar Pago en POS')
                     ->visible(function (DeliveryOrder $record): bool {
-                        return $record->order && !$record->order->billed && in_array($record->status, ['pending', 'assigned', 'in_transit']);
+                        return $record->order && ! $record->order->billed && in_array($record->status, ['pending', 'assigned', 'in_transit']);
                     }),
 
                 // Grupo de acciones de gestión
@@ -469,86 +470,86 @@ class DeliveryOrderResource extends Resource
                                         Forms\Components\Placeholder::make('delivery_person_name')
                                             ->label('Repartidor')
                                             ->content($record->deliveryPerson ?
-                                                ($record->deliveryPerson->first_name . ' ' . $record->deliveryPerson->last_name) :
+                                                ($record->deliveryPerson->first_name.' '.$record->deliveryPerson->last_name) :
                                                 'Sin asignar'),
                                     ])
                                     ->columns(2),
 
-                            // Sección de Productos del Pedido - Siguiendo estándares de la industria
-                            Forms\Components\Section::make('🛍️ Productos del Pedido')
-                                ->description('Detalle de los productos incluidos en este pedido')
-                                ->icon('heroicon-o-shopping-bag')
-                                ->collapsible()
-                                ->collapsed(false)
-                                ->schema([
-                                    Forms\Components\Repeater::make('order_details')
-                                        ->label('')
-                                        ->schema([
-                                            Forms\Components\Grid::make(4)
-                                                ->schema([
-                                                    Forms\Components\TextInput::make('product_name')
-                                                        ->label('Producto')
-                                                        ->disabled()
-                                                        ->prefixIcon('heroicon-o-cube'),
-                                                    Forms\Components\TextInput::make('quantity')
-                                                        ->label('Cantidad')
-                                                        ->disabled()
-                                                        ->prefixIcon('heroicon-o-hashtag')
-                                                        ->suffix('unid.'),
-                                                    Forms\Components\TextInput::make('unit_price')
-                                                        ->label('Precio Unit.')
-                                                        ->disabled()
-                                                        ->prefix('S/')
-                                                        ->prefixIcon('heroicon-o-currency-dollar'),
-                                                    Forms\Components\TextInput::make('subtotal')
-                                                        ->label('Subtotal')
-                                                        ->disabled()
-                                                        ->prefix('S/')
-                                                        ->prefixIcon('heroicon-o-calculator')
-                                                        ->extraAttributes(['class' => 'font-semibold']),
-                                                ]),
-                                            Forms\Components\Textarea::make('notes')
-                                                ->label('💬 Notas/Instrucciones Especiales')
-                                                ->disabled()
-                                                ->rows(2)
-                                                ->placeholder('Sin instrucciones especiales')
-                                                ->visible(fn ($state) => !empty($state)),
-                                        ])
-                                        ->disabled()
-                                        ->addable(false)
-                                        ->deletable(false)
-                                        ->reorderable(false)
-                                        ->itemLabel(fn (array $state): ?string => $state['product_name'] ?? 'Producto')
-                                        ->cloneable(false)
-                                        ->columnSpanFull(),
+                                // Sección de Productos del Pedido - Siguiendo estándares de la industria
+                                Forms\Components\Section::make('🛍️ Productos del Pedido')
+                                    ->description('Detalle de los productos incluidos en este pedido')
+                                    ->icon('heroicon-o-shopping-bag')
+                                    ->collapsible()
+                                    ->collapsed(false)
+                                    ->schema([
+                                        Forms\Components\Repeater::make('order_details')
+                                            ->label('')
+                                            ->schema([
+                                                Forms\Components\Grid::make(4)
+                                                    ->schema([
+                                                        Forms\Components\TextInput::make('product_name')
+                                                            ->label('Producto')
+                                                            ->disabled()
+                                                            ->prefixIcon('heroicon-o-cube'),
+                                                        Forms\Components\TextInput::make('quantity')
+                                                            ->label('Cantidad')
+                                                            ->disabled()
+                                                            ->prefixIcon('heroicon-o-hashtag')
+                                                            ->suffix('unid.'),
+                                                        Forms\Components\TextInput::make('unit_price')
+                                                            ->label('Precio Unit.')
+                                                            ->disabled()
+                                                            ->prefix('S/')
+                                                            ->prefixIcon('heroicon-o-currency-dollar'),
+                                                        Forms\Components\TextInput::make('subtotal')
+                                                            ->label('Subtotal')
+                                                            ->disabled()
+                                                            ->prefix('S/')
+                                                            ->prefixIcon('heroicon-o-calculator')
+                                                            ->extraAttributes(['class' => 'font-semibold']),
+                                                    ]),
+                                                Forms\Components\Textarea::make('notes')
+                                                    ->label('💬 Notas/Instrucciones Especiales')
+                                                    ->disabled()
+                                                    ->rows(2)
+                                                    ->placeholder('Sin instrucciones especiales')
+                                                    ->visible(fn ($state) => ! empty($state)),
+                                            ])
+                                            ->disabled()
+                                            ->addable(false)
+                                            ->deletable(false)
+                                            ->reorderable(false)
+                                            ->itemLabel(fn (array $state): ?string => $state['product_name'] ?? 'Producto')
+                                            ->cloneable(false)
+                                            ->columnSpanFull(),
 
-                                    // Campos ocultos para datos de resumen
-                                    Forms\Components\Hidden::make('items_count'),
-                                    Forms\Components\Hidden::make('subtotal_amount'),
-                                    Forms\Components\Hidden::make('total_amount'),
+                                        // Campos ocultos para datos de resumen
+                                        Forms\Components\Hidden::make('items_count'),
+                                        Forms\Components\Hidden::make('subtotal_amount'),
+                                        Forms\Components\Hidden::make('total_amount'),
 
-                                    // Resumen del pedido
-                                    Forms\Components\Grid::make(3)
-                                        ->schema([
-                                            Forms\Components\Placeholder::make('items_summary')
-                                                ->label('📦 Total de Items')
-                                                ->content($totalItems . ' productos'),
-                                            Forms\Components\Placeholder::make('subtotal_summary')
-                                                ->label('💰 Subtotal')
-                                                ->content('S/ ' . number_format($subtotal, 2)),
-                                            Forms\Components\Placeholder::make('total_summary')
-                                                ->label('🧾 Total Final')
-                                                ->content('S/ ' . number_format($total, 2))
-                                                ->extraAttributes(['class' => 'font-bold text-lg']),
-                                        ])
-                                        ->columnSpanFull(),
-                                ]),
+                                        // Resumen del pedido
+                                        Forms\Components\Grid::make(3)
+                                            ->schema([
+                                                Forms\Components\Placeholder::make('items_summary')
+                                                    ->label('📦 Total de Items')
+                                                    ->content($totalItems.' productos'),
+                                                Forms\Components\Placeholder::make('subtotal_summary')
+                                                    ->label('💰 Subtotal')
+                                                    ->content('S/ '.number_format($subtotal, 2)),
+                                                Forms\Components\Placeholder::make('total_summary')
+                                                    ->label('🧾 Total Final')
+                                                    ->content('S/ '.number_format($total, 2))
+                                                    ->extraAttributes(['class' => 'font-bold text-lg']),
+                                            ])
+                                            ->columnSpanFull(),
+                                    ]),
 
                                 Forms\Components\Section::make('Información del Pedido')
                                     ->schema([
                                         Forms\Components\Placeholder::make('order_total')
                                             ->label('Total')
-                                            ->content('S/ ' . number_format($total, 2)),
+                                            ->content('S/ '.number_format($total, 2)),
                                         Forms\Components\Placeholder::make('status')
                                             ->label('Estado')
                                             ->content(match ($record->status) {
@@ -560,14 +561,14 @@ class DeliveryOrderResource extends Resource
                                                 default => strtoupper($record->status),
                                             })
                                             ->extraAttributes([
-                                                'class' => 'font-bold text-lg ' . match ($record->status) {
+                                                'class' => 'font-bold text-lg '.match ($record->status) {
                                                     'pending' => 'text-gray-600',
                                                     'assigned' => 'text-blue-600',
                                                     'in_transit' => 'text-amber-600',
                                                     'delivered' => 'text-green-600',
                                                     'cancelled' => 'text-red-600',
                                                     default => 'text-gray-600',
-                                                }
+                                                },
                                             ]),
                                         Forms\Components\Placeholder::make('created_at')
                                             ->label('Fecha de Creación')
@@ -643,7 +644,8 @@ class DeliveryOrderResource extends Resource
                         ->visible(function (DeliveryOrder $record) {
                             $user = \Illuminate\Support\Facades\Auth::user();
                             $isDeliveryPerson = $user && $user->roles->where('name', 'Delivery')->count() > 0;
-                            return !$isDeliveryPerson && $record->isPending();
+
+                            return ! $isDeliveryPerson && $record->isPending();
                         }),
 
                     Tables\Actions\Action::make('mark_in_transit')
@@ -695,7 +697,7 @@ class DeliveryOrderResource extends Resource
                                     ->send();
                             }
                         })
-                        ->visible(fn(DeliveryOrder $record): bool => $record->isAssigned()),
+                        ->visible(fn (DeliveryOrder $record): bool => $record->isAssigned()),
 
                     Tables\Actions\Action::make('mark_delivered')
                         ->label('Marcar Entregado')
@@ -738,7 +740,7 @@ class DeliveryOrderResource extends Resource
                                     ->send();
                             }
                         })
-                        ->visible(fn(DeliveryOrder $record): bool => $record->isInTransit()),
+                        ->visible(fn (DeliveryOrder $record): bool => $record->isInTransit()),
 
                     // Separator removido - no disponible en Filament 3
 
@@ -820,12 +822,29 @@ class DeliveryOrderResource extends Resource
                             } catch (\Exception $e) {
                                 \Filament\Notifications\Notification::make()
                                     ->title('❌ Error al actualizar')
-                                    ->body('No se pudieron guardar los cambios: ' . $e->getMessage())
+                                    ->body('No se pudieron guardar los cambios: '.$e->getMessage())
                                     ->danger()
                                     ->send();
                             }
                         })
-                        ->visible(fn(DeliveryOrder $record): bool => !$record->isDelivered() && !$record->isCancelled()),
+                        ->visible(fn (DeliveryOrder $record): bool => ! $record->isDelivered() && ! $record->isCancelled()),
+
+                    Tables\Actions\Action::make('re_geocode')
+                        ->label('Re-geocodificar')
+                        ->icon('heroicon-o-map-pin')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Re-geocodificar dirección')
+                        ->modalDescription('Se encolará el proceso para ubicar nuevamente esta dirección con Nominatim.')
+                        ->action(function (DeliveryOrder $record): void {
+                            \App\Jobs\GeocodeDeliveryOrderJob::dispatch($record->id, true)->afterCommit();
+
+                            \Filament\Notifications\Notification::make()
+                                ->title('Re-geocodificación en proceso')
+                                ->body('La dirección se procesará en segundos.')
+                                ->info()
+                                ->send();
+                        }),
 
                     Tables\Actions\Action::make('cancel')
                         ->label('Cancelar Pedido')
@@ -864,13 +883,13 @@ class DeliveryOrderResource extends Resource
                                     ->send();
                             }
                         })
-                        ->visible(fn(DeliveryOrder $record): bool => !$record->isDelivered() && !$record->isCancelled()),
+                        ->visible(fn (DeliveryOrder $record): bool => ! $record->isDelivered() && ! $record->isCancelled()),
                 ])
-                ->label('Acciones')
-                ->icon('heroicon-m-ellipsis-vertical')
-                ->size('sm')
-                ->color('gray')
-                ->button(),
+                    ->label('Acciones')
+                    ->icon('heroicon-m-ellipsis-vertical')
+                    ->size('sm')
+                    ->color('gray')
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -1016,7 +1035,7 @@ class DeliveryOrderResource extends Resource
                             // Simular exportación
                             \Filament\Notifications\Notification::make()
                                 ->title('📄 Exportación completada')
-                                ->body("Se exportaron " . count($records) . " pedidos en formato {$format}")
+                                ->body('Se exportaron '.count($records)." pedidos en formato {$format}")
                                 ->success()
                                 ->duration(5000)
                                 ->actions([
