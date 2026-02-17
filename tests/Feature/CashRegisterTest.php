@@ -580,3 +580,47 @@ test('calculo_final_difference contado menos esperado', function () {
         ->and((float) $counted)->toEqual(380.0)
         ->and((float) $diff)->toEqual(-70.0); // 380 - 450 = -70 (faltante)
 });
+
+test('cierre de caja incluye bita express en el total manual', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $cashRegister = CashRegister::factory()->create([
+        'is_active' => true,
+        'opening_amount' => 0.00,
+    ]);
+
+    $page = new \App\Filament\Resources\CashRegisterResource\Pages\EditCashRegister;
+
+    $recordProperty = new ReflectionProperty($page, 'record');
+    $recordProperty->setAccessible(true);
+    $recordProperty->setValue($page, $cashRegister);
+
+    $mutateMethod = new ReflectionMethod($page, 'mutateFormDataBeforeSave');
+    $mutateMethod->setAccessible(true);
+
+    $data = $mutateMethod->invoke($page, [
+        'manual_yape' => 10.00,
+        'manual_plin' => 0.00,
+        'manual_card' => 0.00,
+        'manual_didi' => 0.00,
+        'manual_pedidos_ya' => 0.00,
+        'manual_bita_express' => 13.50,
+        'manual_otros' => 0.00,
+        'bill_200' => 0,
+        'bill_100' => 0,
+        'bill_50' => 0,
+        'bill_20' => 0,
+        'bill_10' => 0,
+        'coin_5' => 0,
+        'coin_2' => 0,
+        'coin_1' => 0,
+        'coin_050' => 0,
+        'coin_020' => 0,
+        'coin_010' => 0,
+    ]);
+
+    expect((float) $data['actual_amount'])->toEqual(23.5)
+        ->and((float) $data['difference'])->toEqual(23.5)
+        ->and($data['observations'])->toContain('Bita Express: S/ 13.50');
+});

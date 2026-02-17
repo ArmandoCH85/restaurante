@@ -48,7 +48,9 @@ class EditCashRegister extends EditRecord
             ($data['manual_plin'] ?? 0) +
             ($data['manual_card'] ?? 0) +
             ($data['manual_didi'] ?? 0) +
-            ($data['manual_pedidos_ya'] ?? 0);
+            ($data['manual_pedidos_ya'] ?? 0) +
+            ($data['manual_bita_express'] ?? 0) +
+            ($data['manual_otros'] ?? 0);
 
         // Total contado = efectivo + otros métodos
         $totalCounted = $totalCashCounted + $otherPaymentsCounted;
@@ -113,6 +115,12 @@ class EditCashRegister extends EditRecord
                 $denominationDetails .= "Didi: S/ " . number_format($data['manual_didi'], 2) . " | ";
             if (($data['manual_pedidos_ya'] ?? 0) > 0)
                 $denominationDetails .= "Pedidos Ya: S/ " . number_format($data['manual_pedidos_ya'], 2) . " | ";
+            if (($data['manual_bita_express'] ?? 0) > 0) {
+                $denominationDetails .= "Bita Express: S/ " . number_format($data['manual_bita_express'], 2) . " | ";
+            }
+            if (($data['manual_otros'] ?? 0) > 0) {
+                $denominationDetails .= "Otros: S/ " . number_format($data['manual_otros'], 2) . " | ";
+            }
             $denominationDetails .= "\n\n";
         }
 
