@@ -11,6 +11,10 @@ class SalesByAreaReportService
     public function aggregateQuery(string $from, string $to, ?int $areaId, string $groupBy): Builder
     {
         $periodSql = $this->getPeriodSql($groupBy);
+        $groupByColumns = array_merge(
+            $this->getPeriodGroupByColumns($groupBy),
+            ['a.id', 'a.name']
+        );
 
         return InvoiceDetail::query()
             ->join('invoices as i', 'invoice_details.invoice_id', '=', 'i.id')
@@ -31,7 +35,7 @@ class SalesByAreaReportService
             ->selectRaw("{$periodSql} as period_label")
             ->selectRaw('SUM(invoice_details.quantity) as units_sold')
             ->selectRaw('SUM(invoice_details.subtotal) as net_sold')
-            ->groupBy(DB::raw("{$periodSql}"), 'a.id', 'a.name')
+            ->groupBy(...$groupByColumns)
             ->orderBy('period_key')
             ->orderBy('area_name');
     }
@@ -76,7 +80,26 @@ class SalesByAreaReportService
 
         return $this->usesSqlite()
             ? "strftime('%Y-%m', i.issue_date)"
-            : "DATE_FORMAT(i.issue_date, '%Y-%m')";
+            : "CONCAT(LPAD(YEAR(i.issue_date), 4, '0'), '-', LPAD(MONTH(i.issue_date), 2, '0'))";
+    }
+
+    /**
+     * @return array<int, \Illuminate\Contracts\Database\Query\Expression|string>
+     */
+    private function getPeriodGroupByColumns(string $groupBy): array
+    {
+        if ($groupBy !== 'month') {
+            return [DB::raw('DATE(i.issue_date)')];
+        }
+
+        if ($this->usesSqlite()) {
+            return [DB::raw("strftime('%Y-%m', i.issue_date)")];
+        }
+
+        return [
+            DB::raw('YEAR(i.issue_date)'),
+            DB::raw('MONTH(i.issue_date)'),
+        ];
     }
 
     private function getMonthFilterSql(): string
