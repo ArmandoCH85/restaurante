@@ -10,7 +10,7 @@ class SalesByAreaReportService
 {
     public function aggregateQuery(string $from, string $to, ?int $areaId, string $groupBy): Builder
     {
-        $periodSql = $this->getPeriodSql($groupBy);
+        $periodSelectSql = $this->getPeriodSelectSql($groupBy);
         $groupByColumns = array_merge(
             $this->getPeriodGroupByColumns($groupBy),
             ['a.id', 'a.name']
@@ -31,8 +31,8 @@ class SalesByAreaReportService
             ->selectRaw('MIN(invoice_details.id) as id')
             ->selectRaw('a.id as area_id')
             ->selectRaw('a.name as area_name')
-            ->selectRaw("{$periodSql} as period_key")
-            ->selectRaw("{$periodSql} as period_label")
+            ->selectRaw("{$periodSelectSql} as period_key")
+            ->selectRaw("{$periodSelectSql} as period_label")
             ->selectRaw('SUM(invoice_details.quantity) as units_sold')
             ->selectRaw('SUM(invoice_details.subtotal) as net_sold')
             ->groupBy(...$groupByColumns)
@@ -72,15 +72,15 @@ class SalesByAreaReportService
             ->orderBy('product_name');
     }
 
-    private function getPeriodSql(string $groupBy): string
+    private function getPeriodSelectSql(string $groupBy): string
     {
         if ($groupBy !== 'month') {
-            return 'DATE(i.issue_date)';
+            return 'DATE(MIN(i.issue_date))';
         }
 
         return $this->usesSqlite()
-            ? "strftime('%Y-%m', i.issue_date)"
-            : "CONCAT(LPAD(YEAR(i.issue_date), 4, '0'), '-', LPAD(MONTH(i.issue_date), 2, '0'))";
+            ? "strftime('%Y-%m', MIN(i.issue_date))"
+            : "DATE_FORMAT(MIN(i.issue_date), '%Y-%m')";
     }
 
     /**
