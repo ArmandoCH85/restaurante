@@ -19,7 +19,7 @@ class FixCashRegisterDifferences extends Command
      *
      * @var string
      */
-    protected $description = 'Corrige las diferencias de las cajas registradoras cerradas usando la nueva fórmula: Contado - Esperado';
+    protected $description = 'Corrige las diferencias de las cajas registradoras cerradas usando la fórmula de cierre: (Contado + Inicial) - Esperado';
 
     /**
      * Execute the console command.
@@ -27,62 +27,64 @@ class FixCashRegisterDifferences extends Command
     public function handle()
     {
         $this->info('🔧 Iniciando corrección de diferencias en cajas registradoras...');
-        
+
         $isDryRun = $this->option('dry-run');
-        
+
         if ($isDryRun) {
             $this->warn('⚠️  MODO DRY-RUN: Los cambios no se aplicarán realmente');
         }
-        
+
         // Obtener todas las cajas cerradas
         $closedCashRegisters = CashRegister::where('is_active', false)
             ->whereNotNull('actual_amount')
             ->whereNotNull('expected_amount')
             ->get();
-            
+
         if ($closedCashRegisters->isEmpty()) {
             $this->info('ℹ️  No se encontraron cajas cerradas para corregir.');
+
             return Command::SUCCESS;
         }
-        
+
         $this->info("📊 Encontradas {$closedCashRegisters->count()} cajas cerradas para revisar");
         $this->newLine();
-        
+
         $correctedCount = 0;
         $unchangedCount = 0;
-        
+
         foreach ($closedCashRegisters as $cashRegister) {
             $oldDifference = $cashRegister->difference;
-            
-            // Nueva fórmula: Contado - Esperado (positivo = sobrante, negativo = faltante)
-            $newDifference = $cashRegister->actual_amount - $cashRegister->expected_amount;
-            
+
+            // Fórmula de cierre: (Contado + Inicial) - Esperado (positivo = sobrante, negativo = faltante)
+            $newDifference = ($cashRegister->actual_amount + $cashRegister->opening_amount) - $cashRegister->expected_amount;
+
             // Verificar si hay cambio
             if (abs($oldDifference - $newDifference) < 0.01) {
                 $unchangedCount++;
+
                 continue;
             }
-            
+
             $this->displayCashRegisterChange($cashRegister, $oldDifference, $newDifference);
-            
-            if (!$isDryRun) {
+
+            if (! $isDryRun) {
                 // Aplicar el cambio
                 $cashRegister->difference = $newDifference;
                 $cashRegister->save();
-                
+
                 // Actualizar las observaciones si es necesario
                 $this->updateObservations($cashRegister, $oldDifference, $newDifference);
             }
-            
+
             $correctedCount++;
         }
-        
+
         $this->newLine();
         $this->displaySummary($correctedCount, $unchangedCount, $isDryRun);
-        
+
         return Command::SUCCESS;
     }
-    
+
     /**
      * Muestra los cambios de una caja registradora.
      */
@@ -90,41 +92,41 @@ class FixCashRegisterDifferences extends Command
     {
         $this->info("🏦 Caja ID: {$cashRegister->id}");
         $this->line("   📅 Fecha: {$cashRegister->closing_datetime->format('d/m/Y H:i')}");
-        $this->line("   💰 Esperado: S/ " . number_format($cashRegister->expected_amount, 2));
-        $this->line("   💵 Contado:  S/ " . number_format($cashRegister->actual_amount, 2));
-        
+        $this->line('   💰 Esperado: S/ '.number_format($cashRegister->expected_amount, 2));
+        $this->line('   💵 Contado:  S/ '.number_format($cashRegister->actual_amount, 2));
+
         // Mostrar diferencia anterior
         $oldLabel = $oldDifference > 0 ? 'FALTANTE' : ($oldDifference < 0 ? 'SOBRANTE' : 'SIN DIFERENCIA');
-        $this->line("   ❌ Anterior: S/ " . number_format($oldDifference, 2) . " ({$oldLabel})");
-        
+        $this->line('   ❌ Anterior: S/ '.number_format($oldDifference, 2)." ({$oldLabel})");
+
         // Mostrar diferencia nueva
         $newLabel = $newDifference > 0 ? 'SOBRANTE' : ($newDifference < 0 ? 'FALTANTE' : 'SIN DIFERENCIA');
-        $this->line("   ✅ Corregida: S/ " . number_format($newDifference, 2) . " ({$newLabel})");
-        
+        $this->line('   ✅ Corregida: S/ '.number_format($newDifference, 2)." ({$newLabel})");
+
         $this->newLine();
     }
-    
+
     /**
      * Actualiza las observaciones de la caja con la corrección.
      */
     private function updateObservations(CashRegister $cashRegister, float $oldDifference, float $newDifference): void
     {
         $correctionNote = "\n\n=== CORRECCIÓN AUTOMÁTICA ===\n";
-        $correctionNote .= "Fecha: " . now()->format('d/m/Y H:i') . "\n";
-        $correctionNote .= "Motivo: Aplicación de nueva fórmula de cálculo\n";
-        $correctionNote .= "Diferencia anterior: S/ " . number_format($oldDifference, 2) . "\n";
-        $correctionNote .= "Diferencia corregida: S/ " . number_format($newDifference, 2) . "\n";
-        $correctionNote .= "Nueva fórmula: Total Contado - Monto Esperado\n";
-        
+        $correctionNote .= 'Fecha: '.now()->format('d/m/Y H:i')."\n";
+        $correctionNote .= "Motivo: Aplicación de fórmula de cierre consistente\n";
+        $correctionNote .= 'Diferencia anterior: S/ '.number_format($oldDifference, 2)."\n";
+        $correctionNote .= 'Diferencia corregida: S/ '.number_format($newDifference, 2)."\n";
+        $correctionNote .= "Nueva fórmula: (Total Contado + Monto Inicial) - Monto Esperado\n";
+
         if ($cashRegister->observations) {
             $cashRegister->observations .= $correctionNote;
         } else {
             $cashRegister->observations = trim($correctionNote);
         }
-        
+
         $cashRegister->save();
     }
-    
+
     /**
      * Muestra el resumen final.
      */
@@ -135,11 +137,11 @@ class FixCashRegisterDifferences extends Command
         } else {
             $this->info('✅ RESUMEN FINAL:');
         }
-        
+
         $this->line("   📊 Cajas corregidas: {$correctedCount}");
         $this->line("   📊 Cajas sin cambios: {$unchangedCount}");
-        $this->line("   📊 Total revisadas: " . ($correctedCount + $unchangedCount));
-        
+        $this->line('   📊 Total revisadas: '.($correctedCount + $unchangedCount));
+
         if ($correctedCount > 0) {
             if ($isDryRun) {
                 $this->newLine();

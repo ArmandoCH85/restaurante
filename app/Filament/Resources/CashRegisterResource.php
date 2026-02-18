@@ -7,12 +7,10 @@ use App\Models\CashRegister;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Support\Colors\Color;
-use Filament\Navigation\NavigationItem;
 
 class CashRegisterResource extends Resource
 {
@@ -83,7 +81,7 @@ class CashRegisterResource extends Resource
                             ->columnSpan(2),
                         Forms\Components\TextInput::make('opened_by_name')
                             ->label('Abierto por')
-                            ->formatStateUsing(fn($record) => $record->openedBy->name ?? '')
+                            ->formatStateUsing(fn ($record) => $record->openedBy->name ?? '')
                             ->disabled()
                             ->dehydrated(false)
                             ->columnSpan(2),
@@ -91,7 +89,7 @@ class CashRegisterResource extends Resource
                             ->disabled(),
                     ])
                     ->columns(2)
-                    ->visible(fn($record) => $record && !$record->is_active),
+                    ->visible(fn ($record) => $record && ! $record->is_active),
 
                 Forms\Components\Section::make('Información de Apertura')
                     ->description('Datos de apertura de caja')
@@ -134,10 +132,7 @@ class CashRegisterResource extends Resource
                             ->columnSpan(2),
                     ])
                     ->columns(2)
-                    ->visible(fn($record) => !$record || $record->is_active),
-
-
-
+                    ->visible(fn ($record) => ! $record || $record->is_active),
 
                 Forms\Components\Section::make('Resumen de Ventas')
                     ->description('Comparativo: Sistema vs Conteo Manual')
@@ -160,13 +155,26 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\Placeholder::make('metodo_efectivo')->label('Método')->content('Efectivo'),
                                                 Forms\Components\Placeholder::make('sistema_efectivo')->label('Sistema')->content(function ($record) {
-                                                    return $record ? 'S/ ' . number_format($record->getSystemCashSales(), 2) : 'S/ 0.00';
+                                                    return $record ? 'S/ '.number_format($record->getSystemCashSales(), 2) : 'S/ 0.00';
                                                 }),
                                                 Forms\Components\TextInput::make('manual_cash')
                                                     ->label('Contado')
                                                     ->numeric()
                                                     ->prefix('S/')
                                                     ->default(0)
+                                                    ->helperText(function ($record) {
+                                                        if (! $record) {
+                                                            return null;
+                                                        }
+
+                                                        $systemCash = (float) $record->getSystemCashSales();
+
+                                                        if ($systemCash <= 0.009) {
+                                                            return 'El sistema no registra ventas en efectivo para este turno.';
+                                                        }
+
+                                                        return 'Si dejas este valor en 0.00 no podrás cerrar la caja. Efectivo sistema: S/ '.number_format($systemCash, 2);
+                                                    })
                                                     ->live(),
                                                 Forms\Components\Placeholder::make('diff_efectivo')
                                                     ->label('Diferencia')
@@ -176,7 +184,8 @@ class CashRegisterResource extends Resource
                                                         $manual = floatval($get('manual_cash') ?? 0);
                                                         $diff = $manual - $sistema;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                         Forms\Components\Grid::make()
@@ -184,7 +193,7 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\Placeholder::make('metodo_yape')->label('Método')->content('Yape'),
                                                 Forms\Components\Placeholder::make('sistema_yape')->label('Sistema')->content(function ($record) {
-                                                    return $record ? 'S/ ' . number_format($record->getSystemYapeSales(), 2) : 'S/ 0.00';
+                                                    return $record ? 'S/ '.number_format($record->getSystemYapeSales(), 2) : 'S/ 0.00';
                                                 }),
                                                 Forms\Components\TextInput::make('manual_yape')
                                                     ->label('Contado')
@@ -200,7 +209,8 @@ class CashRegisterResource extends Resource
                                                         $manual = floatval($get('manual_yape') ?? 0);
                                                         $diff = $manual - $sistema;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                         Forms\Components\Grid::make()
@@ -208,7 +218,7 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\Placeholder::make('metodo_plin')->label('Método')->content('Plin'),
                                                 Forms\Components\Placeholder::make('sistema_plin')->label('Sistema')->content(function ($record) {
-                                                    return $record ? 'S/ ' . number_format($record->getSystemPlinSales(), 2) : 'S/ 0.00';
+                                                    return $record ? 'S/ '.number_format($record->getSystemPlinSales(), 2) : 'S/ 0.00';
                                                 }),
                                                 Forms\Components\TextInput::make('manual_plin')
                                                     ->label('Contado')
@@ -224,7 +234,8 @@ class CashRegisterResource extends Resource
                                                         $manual = floatval($get('manual_plin') ?? 0);
                                                         $diff = $manual - $sistema;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                         Forms\Components\Grid::make()
@@ -232,7 +243,7 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\Placeholder::make('metodo_tarjetas')->label('Método')->content('Tarjetas'),
                                                 Forms\Components\Placeholder::make('sistema_tarjetas')->label('Sistema')->content(function ($record) {
-                                                    return $record ? 'S/ ' . number_format($record->getSystemCardSales(), 2) : 'S/ 0.00';
+                                                    return $record ? 'S/ '.number_format($record->getSystemCardSales(), 2) : 'S/ 0.00';
                                                 }),
                                                 Forms\Components\TextInput::make('manual_card')
                                                     ->label('Contado')
@@ -248,7 +259,8 @@ class CashRegisterResource extends Resource
                                                         $manual = floatval($get('manual_card') ?? 0);
                                                         $diff = $manual - $sistema;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                         Forms\Components\Grid::make()
@@ -256,7 +268,7 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\Placeholder::make('metodo_didi')->label('Método')->content('Didi Food'),
                                                 Forms\Components\Placeholder::make('sistema_didi')->label('Sistema')->content(function ($record) {
-                                                    return $record ? 'S/ ' . number_format($record->getSystemDidiSales(), 2) : 'S/ 0.00';
+                                                    return $record ? 'S/ '.number_format($record->getSystemDidiSales(), 2) : 'S/ 0.00';
                                                 }),
                                                 Forms\Components\TextInput::make('manual_didi')
                                                     ->label('Contado')
@@ -272,7 +284,8 @@ class CashRegisterResource extends Resource
                                                         $manual = floatval($get('manual_didi') ?? 0);
                                                         $diff = $manual - $sistema;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                         Forms\Components\Grid::make()
@@ -280,7 +293,7 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\Placeholder::make('metodo_pedidosya')->label('Método')->content('PedidosYa'),
                                                 Forms\Components\Placeholder::make('sistema_pedidosya')->label('Sistema')->content(function ($record) {
-                                                    return $record ? 'S/ ' . number_format($record->getSystemPedidosYaSales(), 2) : 'S/ 0.00';
+                                                    return $record ? 'S/ '.number_format($record->getSystemPedidosYaSales(), 2) : 'S/ 0.00';
                                                 }),
                                                 Forms\Components\TextInput::make('manual_pedidos_ya')
                                                     ->label('Contado')
@@ -296,7 +309,8 @@ class CashRegisterResource extends Resource
                                                         $manual = floatval($get('manual_pedidos_ya') ?? 0);
                                                         $diff = $manual - $sistema;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                         Forms\Components\Grid::make()
@@ -304,7 +318,7 @@ class CashRegisterResource extends Resource
                                             ->schema([
                                                 Forms\Components\Placeholder::make('metodo_bita')->label('Método')->content('Bita Express'),
                                                 Forms\Components\Placeholder::make('sistema_bita')->label('Sistema')->content(function ($record) {
-                                                    return $record ? 'S/ ' . number_format($record->getSystemBitaExpressSales(), 2) : 'S/ 0.00';
+                                                    return $record ? 'S/ '.number_format($record->getSystemBitaExpressSales(), 2) : 'S/ 0.00';
                                                 }),
                                                 Forms\Components\TextInput::make('manual_bita_express')
                                                     ->label('Contado')
@@ -320,7 +334,8 @@ class CashRegisterResource extends Resource
                                                         $manual = floatval($get('manual_bita_express') ?? 0);
                                                         $diff = $manual - $sistema;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                         Forms\Components\Grid::make()
@@ -332,25 +347,29 @@ class CashRegisterResource extends Resource
                                                     ->label('TOTAL')
                                                     ->live()
                                                     ->content(function ($record, $get) {
-                                                        return $record ? 'S/ ' . number_format($record->getSystemTotalSales(), 2) : 'S/ 0.00';
+                                                        return $record ? 'S/ '.number_format($record->getSystemTotalSales(), 2) : 'S/ 0.00';
                                                     }),
                                                 Forms\Components\Placeholder::make('total_contado')
                                                     ->label('TOTAL')
                                                     ->live()
                                                     ->content(function ($get) {
                                                         $total = floatval($get('manual_cash') ?? 0) + floatval($get('manual_yape') ?? 0) + floatval($get('manual_plin') ?? 0) + floatval($get('manual_card') ?? 0) + floatval($get('manual_didi') ?? 0) + floatval($get('manual_pedidos_ya') ?? 0) + floatval($get('manual_bita_express') ?? 0);
-                                                        return 'S/ ' . number_format($total, 2);
+
+                                                        return 'S/ '.number_format($total, 2);
                                                     }),
                                                 Forms\Components\Placeholder::make('diferencia_total')
-                                                    ->label('DIFERENCIA')
+                                                    ->label('DIFERENCIA CIERRE')
                                                     ->live()
                                                     ->content(function ($record, $get) {
-                                                        if (!$record) return 'S/ 0.00';
-                                                        $sistema = $record->getSystemTotalSales();
+                                                        if (! $record) {
+                                                            return 'S/ 0.00';
+                                                        }
                                                         $contado = floatval($get('manual_cash') ?? 0) + floatval($get('manual_yape') ?? 0) + floatval($get('manual_plin') ?? 0) + floatval($get('manual_card') ?? 0) + floatval($get('manual_didi') ?? 0) + floatval($get('manual_pedidos_ya') ?? 0) + floatval($get('manual_bita_express') ?? 0);
-                                                        $diff = $contado - $sistema;
+                                                        $expected = (float) $record->calculateExpectedCash();
+                                                        $diff = ($contado + (float) $record->opening_amount) - $expected;
                                                         $color = abs($diff) < 0.01 ? 'success' : ($diff > 0 ? 'warning' : 'danger');
-                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ " . number_format($diff, 2) . "</span>");
+
+                                                        return new \Illuminate\Support\HtmlString("<span class='text-{$color}-600 font-bold'>S/ ".number_format($diff, 2).'</span>');
                                                     }),
                                             ]),
                                     ]),
@@ -366,13 +385,24 @@ class CashRegisterResource extends Resource
                                 ->label('Efectivo Contado')
                                 ->numeric()
                                 ->prefix('S/')
+                                ->helperText(function ($record) {
+                                    if (! $record) {
+                                        return null;
+                                    }
+
+                                    $systemCash = (float) $record->getSystemCashSales();
+
+                                    if ($systemCash <= 0.009) {
+                                        return 'El sistema no registra ventas en efectivo para este turno.';
+                                    }
+
+                                    return 'Si dejas este valor en 0.00 no podrás cerrar la caja. Efectivo sistema: S/ '.number_format($systemCash, 2);
+                                })
                                 ->default(0),
                         ];
                     })
                     ->columns(1)
-                    ->visible(fn($record) => $record && $record->is_active),
-
-
+                    ->visible(fn ($record) => $record && $record->is_active),
 
                 Forms\Components\Section::make('Resumen de Cierre')
                     ->description('Resumen del cierre de caja')
@@ -383,30 +413,36 @@ class CashRegisterResource extends Resource
                                 Forms\Components\Placeholder::make('monto_inicial')
                                     ->label('Monto Inicial')
                                     ->content(function ($record) {
-                                        return $record ? 'S/ ' . number_format($record->opening_amount, 2) : 'S/ 0.00';
+                                        return $record ? 'S/ '.number_format($record->opening_amount, 2) : 'S/ 0.00';
                                     }),
                                 Forms\Components\Placeholder::make('total_ingresos')
                                     ->label('Ingresos')
                                     ->content(function ($record) {
-                                        return $record ? 'S/ ' . number_format($record->getSystemTotalSales(), 2) : 'S/ 0.00';
+                                        return $record ? 'S/ '.number_format($record->getSystemTotalSales(), 2) : 'S/ 0.00';
                                     }),
                                 Forms\Components\Placeholder::make('total_egresos')
                                     ->label('Egresos')
                                     ->content(function ($record) {
-                                        if (!$record) return 'S/ 0.00';
-                                        return 'S/ ' . number_format($record->getCachedExpenses(), 2);
+                                        if (! $record) {
+                                            return 'S/ 0.00';
+                                        }
+
+                                        return 'S/ '.number_format($record->getCachedExpenses(), 2);
                                     }),
                                 Forms\Components\Placeholder::make('ganancia_real')
                                     ->label('Ganancia Real')
                                     ->content(function ($record) {
-                                        if (!$record) return 'S/ 0.00';
+                                        if (! $record) {
+                                            return 'S/ 0.00';
+                                        }
                                         $ingresos = $record->getSystemTotalSales();
                                         $egresos = $record->getCachedExpenses();
-                                        return 'S/ ' . number_format($ingresos - $egresos, 2);
+
+                                        return 'S/ '.number_format($ingresos - $egresos, 2);
                                     }),
                             ]),
                     ])
-                    ->visible(fn($record) => $record && $record->is_active),
+                    ->visible(fn ($record) => $record && $record->is_active),
             ]);
     }
 
@@ -419,7 +455,7 @@ class CashRegisterResource extends Resource
                     ->prefix('#'),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Estado')
-                    ->getStateUsing(fn($record) => $record->is_active ? 'Abierta' : 'Cerrada')
+                    ->getStateUsing(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
                     ->colors([
                         'success' => 'Abierta',
                         'danger' => 'Cerrada',
@@ -439,7 +475,7 @@ class CashRegisterResource extends Resource
                 Tables\Columns\TextColumn::make('opening_amount')
                     ->label('Monto Inicial')
                     ->money('PEN')
-                    ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
             ])
             ->filters([
                 // Filtro de estado mejorado con iconos
@@ -462,7 +498,7 @@ class CashRegisterResource extends Resource
                     ])
                     ->placeholder('Todos los estados')
                     ->default(null)
-                    ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
 
                 // Filtro de responsable
                 Tables\Filters\SelectFilter::make('opened_by')
@@ -534,22 +570,22 @@ class CashRegisterResource extends Resource
                         return $query
                             ->when(
                                 $data['desde'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('opening_datetime', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('opening_datetime', '>=', $date),
                             )
                             ->when(
                                 $data['hasta'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('opening_datetime', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('opening_datetime', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
 
                         if ($data['desde'] ?? null) {
-                            $indicators['desde'] = 'Desde: ' . \Carbon\Carbon::parse($data['desde'])->format('d/m/Y');
+                            $indicators['desde'] = 'Desde: '.\Carbon\Carbon::parse($data['desde'])->format('d/m/Y');
                         }
 
                         if ($data['hasta'] ?? null) {
-                            $indicators['hasta'] = 'Hasta: ' . \Carbon\Carbon::parse($data['hasta'])->format('d/m/Y');
+                            $indicators['hasta'] = 'Hasta: '.\Carbon\Carbon::parse($data['hasta'])->format('d/m/Y');
                         }
 
                         return $indicators;
@@ -566,22 +602,22 @@ class CashRegisterResource extends Resource
                         return $query
                             ->when(
                                 $data['desde_cierre'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('closing_datetime', '>=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('closing_datetime', '>=', $date),
                             )
                             ->when(
                                 $data['hasta_cierre'],
-                                fn(Builder $query, $date): Builder => $query->whereDate('closing_datetime', '<=', $date),
+                                fn (Builder $query, $date): Builder => $query->whereDate('closing_datetime', '<=', $date),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
 
                         if ($data['desde_cierre'] ?? null) {
-                            $indicators['desde_cierre'] = 'Cierre desde ' . $data['desde_cierre'];
+                            $indicators['desde_cierre'] = 'Cierre desde '.$data['desde_cierre'];
                         }
 
                         if ($data['hasta_cierre'] ?? null) {
-                            $indicators['hasta_cierre'] = 'Cierre hasta ' . $data['hasta_cierre'];
+                            $indicators['hasta_cierre'] = 'Cierre hasta '.$data['hasta_cierre'];
                         }
 
                         return $indicators;
@@ -615,27 +651,27 @@ class CashRegisterResource extends Resource
                         return $query
                             ->when(
                                 $data['min_difference'] !== null,
-                                fn(Builder $query, $min): Builder => $query->where('difference', '>=', $data['min_difference']),
+                                fn (Builder $query, $min): Builder => $query->where('difference', '>=', $data['min_difference']),
                             )
                             ->when(
                                 $data['max_difference'] !== null,
-                                fn(Builder $query, $max): Builder => $query->where('difference', '<=', $data['max_difference']),
+                                fn (Builder $query, $max): Builder => $query->where('difference', '<=', $data['max_difference']),
                             );
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
 
                         if (isset($data['min_difference'])) {
-                            $indicators['min_difference'] = 'Diferencia mín: S/ ' . $data['min_difference'];
+                            $indicators['min_difference'] = 'Diferencia mín: S/ '.$data['min_difference'];
                         }
 
                         if (isset($data['max_difference'])) {
-                            $indicators['max_difference'] = 'Diferencia máx: S/ ' . $data['max_difference'];
+                            $indicators['max_difference'] = 'Diferencia máx: S/ '.$data['max_difference'];
                         }
 
                         return $indicators;
                     })
-                    ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
             ])
             ->filtersFormColumns(3)
             ->defaultSort('id', 'desc')
@@ -646,18 +682,18 @@ class CashRegisterResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->label('Cerrar')
                     ->icon('heroicon-m-lock-closed')
-                    ->visible(fn($record) => $record->is_active),
+                    ->visible(fn ($record) => $record->is_active),
                 Tables\Actions\Action::make('print')
                     ->label('Imprimir')
                     ->icon('heroicon-m-printer')
                     ->color('gray')
-                    ->url(fn($record) => url('/admin/print-cash-register/' . $record->id))
+                    ->url(fn ($record) => url('/admin/print-cash-register/'.$record->id))
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('approve')
                     ->label('Aprobar')
                     ->icon('heroicon-m-check-circle')
                     ->color('success')
-                    ->visible(fn($record) => !$record->is_active && !$record->is_approved && auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
+                    ->visible(fn ($record) => ! $record->is_active && ! $record->is_approved && auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
                     ->requiresConfirmation()
                     ->action(function ($record) {
                         $record->update(['is_approved' => true, 'approval_notes' => 'Aprobado manualmente']);
@@ -671,7 +707,7 @@ class CashRegisterResource extends Resource
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make()
-                        ->visible(fn() => auth()->user()->hasAnyRole(['admin', 'super_admin'])),
+                        ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin'])),
                 ]),
             ])
             ->headerActions([
@@ -683,12 +719,13 @@ class CashRegisterResource extends Resource
                     ->size('lg')
                     ->button()
                     ->visible(function () {
-                        return !CashRegister::getOpenRegister();
+                        return ! CashRegister::getOpenRegister();
                     })
                     ->mutateFormDataUsing(function (array $data): array {
                         $data['opened_by'] = auth()->id();
                         $data['opening_datetime'] = now();
                         $data['is_active'] = true;
+
                         return $data;
                     })
                     ->successNotificationTitle('Caja abierta correctamente')
@@ -704,9 +741,10 @@ class CashRegisterResource extends Resource
                     ->button()
                     ->visible(function () {
                         $user = auth()->user();
-                        if (!$user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])) {
+                        if (! $user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])) {
                             return false;
                         }
+
                         // Solo mostrar si hay cajas pendientes de reconciliar
                         return CashRegister::where('is_active', false)
                             ->where('is_approved', false)

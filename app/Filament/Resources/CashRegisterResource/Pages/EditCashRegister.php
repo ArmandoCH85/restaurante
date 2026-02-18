@@ -3,11 +3,10 @@
 namespace App\Filament\Resources\CashRegisterResource\Pages;
 
 use App\Filament\Resources\CashRegisterResource;
-use App\Models\CashRegisterExpense;
-use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class EditCashRegister extends EditRecord
 {
@@ -25,23 +24,48 @@ class EditCashRegister extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Calcular el total de efectivo contado (billetes y monedas)
-        $totalCashCounted = 0;
+        // Total alternativo por denominaciones para mantener compatibilidad.
+        $denominationsCashTotal = 0;
+        $denominationsCashTotal += ($data['bill_10'] ?? 0) * 10;
+        $denominationsCashTotal += ($data['bill_20'] ?? 0) * 20;
+        $denominationsCashTotal += ($data['bill_50'] ?? 0) * 50;
+        $denominationsCashTotal += ($data['bill_100'] ?? 0) * 100;
+        $denominationsCashTotal += ($data['bill_200'] ?? 0) * 200;
+        $denominationsCashTotal += ($data['coin_010'] ?? 0) * 0.1;
+        $denominationsCashTotal += ($data['coin_020'] ?? 0) * 0.2;
+        $denominationsCashTotal += ($data['coin_050'] ?? 0) * 0.5;
+        $denominationsCashTotal += ($data['coin_1'] ?? 0) * 1;
+        $denominationsCashTotal += ($data['coin_2'] ?? 0) * 2;
+        $denominationsCashTotal += ($data['coin_5'] ?? 0) * 5;
 
-        // Billetes
-        $totalCashCounted += ($data['bill_10'] ?? 0) * 10;
-        $totalCashCounted += ($data['bill_20'] ?? 0) * 20;
-        $totalCashCounted += ($data['bill_50'] ?? 0) * 50;
-        $totalCashCounted += ($data['bill_100'] ?? 0) * 100;
-        $totalCashCounted += ($data['bill_200'] ?? 0) * 200;
+        // manual_cash es la fuente principal del flujo actual.
+        $manualCashInput = null;
+        if (array_key_exists('manual_cash', $data) && $data['manual_cash'] !== null && $data['manual_cash'] !== '') {
+            $manualCashInput = (float) $data['manual_cash'];
+        }
 
-        // Monedas
-        $totalCashCounted += ($data['coin_010'] ?? 0) * 0.1;
-        $totalCashCounted += ($data['coin_020'] ?? 0) * 0.2;
-        $totalCashCounted += ($data['coin_050'] ?? 0) * 0.5;
-        $totalCashCounted += ($data['coin_1'] ?? 0) * 1;
-        $totalCashCounted += ($data['coin_2'] ?? 0) * 2;
-        $totalCashCounted += ($data['coin_5'] ?? 0) * 5;
+        // Alerta y bloqueo: hay efectivo en sistema pero no se registró efectivo contado.
+        $systemCashSales = (float) $this->record->getSystemCashSales();
+        if (
+            $systemCashSales > 0.009 &&
+            (($manualCashInput ?? 0.0) <= 0.009) &&
+            $denominationsCashTotal <= 0.009
+        ) {
+            Notification::make()
+                ->warning()
+                ->title('Falta registrar el efectivo contado')
+                ->body('El sistema registra S/ '.number_format($systemCashSales, 2).' en efectivo. Ingrese `manual_cash` para continuar.')
+                ->send();
+
+            throw ValidationException::withMessages([
+                'manual_cash' => 'Debe ingresar el efectivo contado. El sistema registra S/ '.number_format($systemCashSales, 2).' en efectivo.',
+            ]);
+        }
+
+        // Priorizar manual_cash; si no hay dato útil, usar denominaciones.
+        $totalCashCounted = ($manualCashInput !== null && $manualCashInput > 0)
+            ? $manualCashInput
+            : $denominationsCashTotal;
 
         // Calcular total de otros métodos de pago
         $otherPaymentsCounted = ($data['manual_yape'] ?? 0) +
@@ -63,9 +87,9 @@ class EditCashRegister extends EditRecord
         // Monto esperado consistente con el modelo
         $expectedAmount = $this->record->calculateExpectedCash();
 
-        // NUEVA FÓRMULA (Ajuste Usuario): Diferencia = (Total Contado + Apertura - Egresos) - Esperado
-        // Donde Total Contado representa las Ventas Brutas Reportadas por el Cajero
-        $totalCalculadoCajero = $totalCounted + $this->record->opening_amount - $totalExpenses;
+        // Diferencia de cierre: (Total Contado + Apertura) - Esperado.
+        // Nota: el monto esperado ya descuenta egresos.
+        $totalCalculadoCajero = $totalCounted + $this->record->opening_amount;
         $difference = $totalCalculadoCajero - $expectedAmount;
 
         // Añadir datos para el cierre de caja
@@ -84,42 +108,47 @@ class EditCashRegister extends EditRecord
         $denominationDetails = "=== CIERRE DE CAJA - RESUMEN COMPLETO ===\n\n";
 
         // Información del cierre
-        $denominationDetails .= "TOTAL INGRESOS: S/ " . number_format($totalIngresos, 2) . "\n";
-        $denominationDetails .= "TOTAL EGRESOS: S/ " . number_format($totalExpenses, 2) . "\n";
-        $denominationDetails .= "GANANCIA REAL: S/ " . number_format($gananciaReal, 2) . "\n";
+        $denominationDetails .= 'TOTAL INGRESOS: S/ '.number_format($totalIngresos, 2)."\n";
+        $denominationDetails .= 'TOTAL EGRESOS: S/ '.number_format($totalExpenses, 2)."\n";
+        $denominationDetails .= 'GANANCIA REAL: S/ '.number_format($gananciaReal, 2)."\n";
         $denominationDetails .= "   (Ingresos - Egresos)\n\n";
 
-        $denominationDetails .= "MONTO ESPERADO: S/ " . number_format($expectedAmount, 2) . "\n";
-        $denominationDetails .= "   (Monto inicial: S/ " . number_format($this->record->opening_amount, 2);
-        $denominationDetails .= " + Ventas del día: S/ " . number_format($totalIngresos, 2) . ")\n\n";
+        $denominationDetails .= 'MONTO ESPERADO: S/ '.number_format($expectedAmount, 2)."\n";
+        $denominationDetails .= '   (Monto inicial: S/ '.number_format($this->record->opening_amount, 2);
+        $denominationDetails .= ' + Ventas del día: S/ '.number_format($totalIngresos, 2).")\n\n";
 
         // Efectivo contado
-        $denominationDetails .= "EFECTIVO CONTADO: S/ " . number_format($totalCashCounted, 2) . "\n";
-        $denominationDetails .= "Billetes: ";
-        $denominationDetails .= "S/200×" . ($data['bill_200'] ?? 0) . " | S/100×" . ($data['bill_100'] ?? 0) . " | S/50×" . ($data['bill_50'] ?? 0) . " | ";
-        $denominationDetails .= "S/20×" . ($data['bill_20'] ?? 0) . " | S/10×" . ($data['bill_10'] ?? 0) . "\n";
-        $denominationDetails .= "Monedas: ";
-        $denominationDetails .= "S/5×" . ($data['coin_5'] ?? 0) . " | S/2×" . ($data['coin_2'] ?? 0) . " | S/1×" . ($data['coin_1'] ?? 0) . " | ";
-        $denominationDetails .= "S/0.50×" . ($data['coin_050'] ?? 0) . " | S/0.20×" . ($data['coin_020'] ?? 0) . " | S/0.10×" . ($data['coin_010'] ?? 0) . "\n\n";
+        $denominationDetails .= 'EFECTIVO CONTADO: S/ '.number_format($totalCashCounted, 2)."\n";
+        $denominationDetails .= 'Billetes: ';
+        $denominationDetails .= 'S/200×'.($data['bill_200'] ?? 0).' | S/100×'.($data['bill_100'] ?? 0).' | S/50×'.($data['bill_50'] ?? 0).' | ';
+        $denominationDetails .= 'S/20×'.($data['bill_20'] ?? 0).' | S/10×'.($data['bill_10'] ?? 0)."\n";
+        $denominationDetails .= 'Monedas: ';
+        $denominationDetails .= 'S/5×'.($data['coin_5'] ?? 0).' | S/2×'.($data['coin_2'] ?? 0).' | S/1×'.($data['coin_1'] ?? 0).' | ';
+        $denominationDetails .= 'S/0.50×'.($data['coin_050'] ?? 0).' | S/0.20×'.($data['coin_020'] ?? 0).' | S/0.10×'.($data['coin_010'] ?? 0)."\n\n";
 
         // Otros métodos de pago
         if ($otherPaymentsCounted > 0) {
-            $denominationDetails .= "OTROS METODOS DE PAGO: S/ " . number_format($otherPaymentsCounted, 2) . "\n";
-            if (($data['manual_yape'] ?? 0) > 0)
-                $denominationDetails .= "Yape: S/ " . number_format($data['manual_yape'], 2) . " | ";
-            if (($data['manual_plin'] ?? 0) > 0)
-                $denominationDetails .= "Plin: S/ " . number_format($data['manual_plin'], 2) . " | ";
-            if (($data['manual_card'] ?? 0) > 0)
-                $denominationDetails .= "Tarjeta: S/ " . number_format($data['manual_card'], 2) . " | ";
-            if (($data['manual_didi'] ?? 0) > 0)
-                $denominationDetails .= "Didi: S/ " . number_format($data['manual_didi'], 2) . " | ";
-            if (($data['manual_pedidos_ya'] ?? 0) > 0)
-                $denominationDetails .= "Pedidos Ya: S/ " . number_format($data['manual_pedidos_ya'], 2) . " | ";
+            $denominationDetails .= 'OTROS METODOS DE PAGO: S/ '.number_format($otherPaymentsCounted, 2)."\n";
+            if (($data['manual_yape'] ?? 0) > 0) {
+                $denominationDetails .= 'Yape: S/ '.number_format($data['manual_yape'], 2).' | ';
+            }
+            if (($data['manual_plin'] ?? 0) > 0) {
+                $denominationDetails .= 'Plin: S/ '.number_format($data['manual_plin'], 2).' | ';
+            }
+            if (($data['manual_card'] ?? 0) > 0) {
+                $denominationDetails .= 'Tarjeta: S/ '.number_format($data['manual_card'], 2).' | ';
+            }
+            if (($data['manual_didi'] ?? 0) > 0) {
+                $denominationDetails .= 'Didi: S/ '.number_format($data['manual_didi'], 2).' | ';
+            }
+            if (($data['manual_pedidos_ya'] ?? 0) > 0) {
+                $denominationDetails .= 'Pedidos Ya: S/ '.number_format($data['manual_pedidos_ya'], 2).' | ';
+            }
             if (($data['manual_bita_express'] ?? 0) > 0) {
-                $denominationDetails .= "Bita Express: S/ " . number_format($data['manual_bita_express'], 2) . " | ";
+                $denominationDetails .= 'Bita Express: S/ '.number_format($data['manual_bita_express'], 2).' | ';
             }
             if (($data['manual_otros'] ?? 0) > 0) {
-                $denominationDetails .= "Otros: S/ " . number_format($data['manual_otros'], 2) . " | ";
+                $denominationDetails .= 'Otros: S/ '.number_format($data['manual_otros'], 2).' | ';
             }
             $denominationDetails .= "\n\n";
         }
@@ -127,13 +156,13 @@ class EditCashRegister extends EditRecord
         // Desglose de egresos (ahora se obtienen del módulo separado)
         if ($totalExpenses > 0) {
             $denominationDetails .= "EGRESOS REGISTRADOS (desde modulo de Egresos):\n";
-            $denominationDetails .= "  Total: S/ " . number_format($totalExpenses, 2) . "\n";
+            $denominationDetails .= '  Total: S/ '.number_format($totalExpenses, 2)."\n";
             $denominationDetails .= "  Ver detalles en: /admin/egresos\n\n";
         }
 
         // Totales finales
-        $denominationDetails .= "TOTAL MANUAL (Ventas): S/ " . number_format($totalCounted, 2) . "\n";
-        $denominationDetails .= "DIFERENCIA: S/ " . number_format($difference, 2);
+        $denominationDetails .= 'TOTAL MANUAL (Ventas): S/ '.number_format($totalCounted, 2)."\n";
+        $denominationDetails .= 'DIFERENCIA: S/ '.number_format($difference, 2);
         if ($difference > 0) {
             $denominationDetails .= " (SOBRANTE)\n";
         } elseif ($difference < 0) {
@@ -141,16 +170,17 @@ class EditCashRegister extends EditRecord
         } else {
             $denominationDetails .= " (SIN DIFERENCIA)\n";
         }
-        $denominationDetails .= "   Fórmula: (Manual + Inicial - Egresos) - Esperado\n";
+        $denominationDetails .= "   Fórmula: (Manual + Inicial) - Esperado\n";
+        $denominationDetails .= "   Nota: El Esperado ya considera egresos.\n";
         $denominationDetails .= "\n";
 
-        if (!empty($data['closing_observations'])) {
+        if (! empty($data['closing_observations'])) {
             $denominationDetails .= "Observaciones: {$data['closing_observations']}\n";
         }
 
         // Añadir a las observaciones existentes
-        if (!empty($this->record->observations)) {
-            $data['observations'] = $this->record->observations . "\n\n" . $denominationDetails;
+        if (! empty($this->record->observations)) {
+            $data['observations'] = $this->record->observations."\n\n".$denominationDetails;
         } else {
             $data['observations'] = $denominationDetails;
         }
@@ -161,7 +191,7 @@ class EditCashRegister extends EditRecord
     protected function beforeSave(): void
     {
         // Verificar si la caja está abierta
-        if (!$this->record->is_active) {
+        if (! $this->record->is_active) {
             Notification::make()
                 ->danger()
                 ->title('Error al cerrar caja')
@@ -169,12 +199,13 @@ class EditCashRegister extends EditRecord
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('index'));
+
             return;
         }
 
         // Verificar si el usuario tiene permiso para cerrar cajas
         $user = Auth::user();
-        if (!$user || !$user->hasAnyRole(['cashier', 'admin', 'super_admin', 'manager'])) {
+        if (! $user || ! $user->hasAnyRole(['cashier', 'admin', 'super_admin', 'manager'])) {
             Notification::make()
                 ->danger()
                 ->title('Error al cerrar caja')
@@ -182,6 +213,7 @@ class EditCashRegister extends EditRecord
                 ->send();
 
             $this->redirect($this->getResource()::getUrl('index'));
+
             return;
         }
 
@@ -238,20 +270,20 @@ class EditCashRegister extends EditRecord
         if ($isSupervisor) {
             // Para supervisores, mostrar información detallada
             if ($difference > 0) {
-                $notification->body("La caja ha sido cerrada con un SOBRANTE de S/ " . number_format($difference, 2));
+                $notification->body('La caja ha sido cerrada con un SOBRANTE de S/ '.number_format($difference, 2));
             } elseif ($difference < 0) {
-                $notification->body("La caja ha sido cerrada con un FALTANTE de S/ " . number_format(abs($difference), 2));
+                $notification->body('La caja ha sido cerrada con un FALTANTE de S/ '.number_format(abs($difference), 2));
             } else {
-                $notification->body("La caja ha sido cerrada sin diferencias. Total Ventas: S/" . number_format($this->record->actual_amount, 2));
+                $notification->body('La caja ha sido cerrada sin diferencias. Total Ventas: S/'.number_format($this->record->actual_amount, 2));
             }
 
             // Si hay diferencia significativa, añadir instrucción
             if ($significantDifference) {
-                $notification->body($notification->getBody() . " Se requiere revisión detallada.");
+                $notification->body($notification->getBody().' Se requiere revisión detallada.');
             }
         } else {
             // Para cajeros, solo mostrar confirmación
-            $notification->body("La caja ha sido cerrada. Un supervisor revisará el cierre.");
+            $notification->body('La caja ha sido cerrada. Un supervisor revisará el cierre.');
         }
 
         return $notification;

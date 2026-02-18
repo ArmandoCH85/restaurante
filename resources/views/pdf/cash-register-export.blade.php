@@ -462,6 +462,21 @@
                         <div class="method-name">Didi Food</div>
                         <div class="amount">S/ {{ number_format($systemSales['didi_food'], 2) }}</div>
                     </div>
+                    <div class="sales-card">
+                        <div class="icon">🚚</div>
+                        <div class="method-name">Bita Express</div>
+                        <div class="amount">S/ {{ number_format($systemSales['bita_express'], 2) }}</div>
+                    </div>
+                    <div class="sales-card">
+                        <div class="icon">🏦</div>
+                        <div class="method-name">Transferencia</div>
+                        <div class="amount">S/ {{ number_format($systemSales['bank_transfer'], 2) }}</div>
+                    </div>
+                    <div class="sales-card">
+                        <div class="icon">📲</div>
+                        <div class="method-name">Billetera</div>
+                        <div class="amount">S/ {{ number_format($systemSales['other_digital_wallet'], 2) }}</div>
+                    </div>
                 </div>
                 
                 <div class="totals-section">
@@ -474,20 +489,26 @@
             <!-- Montos de Cierre -->
             <div class="section">
                 <div class="section-title">🔒 MONTOS DE CIERRE</div>
+                @php
+                    $expectedAmount = (float) ($cashRegister->expected_amount ?? 0);
+                    $actualAmount = (float) ($cashRegister->actual_amount ?? 0);
+                    $differenceAmount = (float) ($cashRegister->difference ?? 0);
+                    $differenceLabel = $differenceAmount < 0 ? 'FALTANTE' : ($differenceAmount > 0 ? 'SOBRANTE' : 'SIN DIFERENCIA');
+                @endphp
                 <div class="comparison-grid">
                     <div class="comparison-card expected">
-                        <div class="comparison-title">Monto Esperado (Ventas del Sistema)</div>
-                        <div class="comparison-amount">S/ {{ number_format($systemSales['total'], 2) }}</div>
+                        <div class="comparison-title">Monto Esperado (Apertura + Ventas - Egresos)</div>
+                        <div class="comparison-amount">S/ {{ number_format($expectedAmount, 2) }}</div>
                     </div>
                     <div class="comparison-card actual">
-                        <div class="comparison-title">Montos de Cierre (Ingresos Manuales)</div>
-                        <div class="comparison-amount">S/ {{ number_format($systemSales['total'], 2) }}</div>
+                        <div class="comparison-title">Monto Contado (Cierre manual)</div>
+                        <div class="comparison-amount">S/ {{ number_format($actualAmount, 2) }}</div>
                     </div>
                 </div>
                 
                 <div class="difference-card">
-                    <h3>✅ DIFERENCIA: S/ 0.00</h3>
-                    <p><small>La diferencia es 0 porque ambos montos representan las mismas ventas reales del sistema</small></p>
+                    <h3>DIFERENCIA: S/ {{ number_format($differenceAmount, 2) }} ({{ $differenceLabel }})</h3>
+                    <p><small>Comparación entre monto contado y monto esperado.</small></p>
                 </div>
             </div>
             @endif
@@ -526,24 +547,31 @@
                         <div class="payment-name">Didi Food</div>
                         <div class="payment-count">{{ $paymentCounts['didi_food'] }} usos</div>
                     </div>
+                    <div class="payment-card">
+                        <div class="payment-icon">🚚</div>
+                        <div class="payment-name">Bita Express</div>
+                        <div class="payment-count">{{ $paymentCounts['bita_express'] }} usos</div>
+                    </div>
+                    <div class="payment-card">
+                        <div class="payment-icon">🏦</div>
+                        <div class="payment-name">Transferencia</div>
+                        <div class="payment-count">{{ $paymentCounts['bank_transfer'] }} usos</div>
+                    </div>
+                    <div class="payment-card">
+                        <div class="payment-icon">📲</div>
+                        <div class="payment-name">Billetera</div>
+                        <div class="payment-count">{{ $paymentCounts['digital_wallet'] }} usos</div>
+                    </div>
                 </div>
             </div>
             @endif
 
-            <!-- Observaciones - Filtradas para quitar diferencias incorrectas -->
+            <!-- Observaciones -->
             @if($cashRegister->observations)
             <div class="section">
                 <div class="section-title">📝 OBSERVACIONES</div>
                 <div class="observations">
-                    {{-- Filtrar observaciones para mostrar solo información relevante sin diferencias incorrectas --}}
-                    @php
-                        $filteredObservations = $cashRegister->observations;
-                        // Eliminar líneas que contengan diferencias incorrectas
-                        $filteredObservations = preg_replace('/⚖️ DIFERENCIA:.*?\n/', "⚖️ DIFERENCIA: S/ 0.00 (SIN DIFERENCIA)\n", $filteredObservations);
-                        $filteredObservations = preg_replace('/\(FALTANTE\)/', '(SIN DIFERENCIA)', $filteredObservations);
-                        $filteredObservations = preg_replace('/\(SOBRANTE\)/', '(SIN DIFERENCIA)', $filteredObservations);
-                    @endphp
-                    {{ $filteredObservations }}
+                    {{ $cashRegister->observations }}
                 </div>
             </div>
             @endif

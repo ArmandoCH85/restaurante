@@ -558,3 +558,147 @@ test('cierre de caja incluye bita express en el total manual', function () {
         ->and((float) $data['difference'])->toEqual(23.5)
         ->and($data['observations'])->toContain('Bita Express: S/ 13.50');
 });
+
+test('cierre de caja usa manual_cash cuando no se ingresan denominaciones', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $cashRegister = CashRegister::factory()->create([
+        'is_active' => true,
+        'opening_amount' => 0.00,
+    ]);
+
+    $page = new \App\Filament\Resources\CashRegisterResource\Pages\EditCashRegister;
+
+    $recordProperty = new ReflectionProperty($page, 'record');
+    $recordProperty->setAccessible(true);
+    $recordProperty->setValue($page, $cashRegister);
+
+    $mutateMethod = new ReflectionMethod($page, 'mutateFormDataBeforeSave');
+    $mutateMethod->setAccessible(true);
+
+    $data = $mutateMethod->invoke($page, [
+        'manual_cash' => 614.70,
+        'manual_yape' => 757.00,
+        'manual_plin' => 0.00,
+        'manual_card' => 161.30,
+        'manual_didi' => 0.00,
+        'manual_pedidos_ya' => 0.00,
+        'manual_bita_express' => 0.00,
+        'manual_otros' => 0.00,
+        'bill_200' => 0,
+        'bill_100' => 0,
+        'bill_50' => 0,
+        'bill_20' => 0,
+        'bill_10' => 0,
+        'coin_5' => 0,
+        'coin_2' => 0,
+        'coin_1' => 0,
+        'coin_050' => 0,
+        'coin_020' => 0,
+        'coin_010' => 0,
+    ]);
+
+    expect((float) $data['actual_amount'])->toEqual(1533.0)
+        ->and((float) $data['difference'])->toEqual(1533.0)
+        ->and($data['observations'])->toContain('EFECTIVO CONTADO: S/ 614.70');
+});
+
+test('cierre de caja justifica faltante con egresos registrados', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $cashRegister = CashRegister::factory()->create([
+        'is_active' => true,
+        'opening_amount' => 0.00,
+    ]);
+
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'cash', 100.00);
+
+    CashRegisterExpense::create([
+        'cash_register_id' => $cashRegister->id,
+        'amount' => 20.00,
+        'concept' => 'Compra de bolsas',
+    ]);
+
+    $page = new \App\Filament\Resources\CashRegisterResource\Pages\EditCashRegister;
+
+    $recordProperty = new ReflectionProperty($page, 'record');
+    $recordProperty->setAccessible(true);
+    $recordProperty->setValue($page, $cashRegister);
+
+    $mutateMethod = new ReflectionMethod($page, 'mutateFormDataBeforeSave');
+    $mutateMethod->setAccessible(true);
+
+    $data = $mutateMethod->invoke($page, [
+        'manual_cash' => 80.00,
+        'manual_yape' => 0.00,
+        'manual_plin' => 0.00,
+        'manual_card' => 0.00,
+        'manual_didi' => 0.00,
+        'manual_pedidos_ya' => 0.00,
+        'manual_bita_express' => 0.00,
+        'manual_otros' => 0.00,
+        'bill_200' => 0,
+        'bill_100' => 0,
+        'bill_50' => 0,
+        'bill_20' => 0,
+        'bill_10' => 0,
+        'coin_5' => 0,
+        'coin_2' => 0,
+        'coin_1' => 0,
+        'coin_050' => 0,
+        'coin_020' => 0,
+        'coin_010' => 0,
+    ]);
+
+    expect((float) $data['actual_amount'])->toEqual(80.0)
+        ->and((float) $data['expected_amount'])->toEqual(80.0)
+        ->and((float) $data['total_expenses'])->toEqual(20.0)
+        ->and((float) $data['difference'])->toEqual(0.0);
+});
+
+test('cierre de caja exige efectivo contado cuando el sistema reporta ventas en efectivo', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $cashRegister = CashRegister::factory()->create([
+        'is_active' => true,
+        'opening_amount' => 0.00,
+    ]);
+
+    $order = Order::factory()->create(['cash_register_id' => $cashRegister->id]);
+    createIssuedInvoiceForOrder($order, 'cash', 100.00);
+
+    $page = new \App\Filament\Resources\CashRegisterResource\Pages\EditCashRegister;
+
+    $recordProperty = new ReflectionProperty($page, 'record');
+    $recordProperty->setAccessible(true);
+    $recordProperty->setValue($page, $cashRegister);
+
+    $mutateMethod = new ReflectionMethod($page, 'mutateFormDataBeforeSave');
+    $mutateMethod->setAccessible(true);
+
+    expect(fn () => $mutateMethod->invoke($page, [
+        'manual_cash' => 0.00,
+        'manual_yape' => 0.00,
+        'manual_plin' => 0.00,
+        'manual_card' => 0.00,
+        'manual_didi' => 0.00,
+        'manual_pedidos_ya' => 0.00,
+        'manual_bita_express' => 0.00,
+        'manual_otros' => 0.00,
+        'bill_200' => 0,
+        'bill_100' => 0,
+        'bill_50' => 0,
+        'bill_20' => 0,
+        'bill_10' => 0,
+        'coin_5' => 0,
+        'coin_2' => 0,
+        'coin_1' => 0,
+        'coin_050' => 0,
+        'coin_020' => 0,
+        'coin_010' => 0,
+    ]))->toThrow(\Illuminate\Validation\ValidationException::class);
+});

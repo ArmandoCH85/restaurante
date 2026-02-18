@@ -15,7 +15,7 @@ class ExportCashRegisterPdfController extends Controller
     {
         // Verificar permisos
         $user = Auth::user();
-        if (!$user || !$user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])) {
+        if (! $user || ! $user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])) {
             abort(403, 'No tienes permisos para exportar informes de caja.');
         }
 
@@ -41,9 +41,12 @@ class ExportCashRegisterPdfController extends Controller
             'plin' => $cashRegister->getSystemPlinSales(),
             'didi_food' => $cashRegister->getSystemDidiSales(),
             'pedidos_ya' => $cashRegister->getSystemPedidosYaSales(),
+            'bita_express' => $cashRegister->getSystemBitaExpressSales(),
+            'bank_transfer' => $cashRegister->getSystemBankTransferSales(),
+            'other_digital_wallet' => $cashRegister->getSystemOtherDigitalWalletSales(),
         ];
 
-        $systemSales['total'] = array_sum($systemSales);
+        $systemSales['total'] = $cashRegister->getSystemTotalSales();
 
         // Calcular montos de cierre (ahora igual a las ventas del sistema)
         $cierreAmounts = [
@@ -53,6 +56,9 @@ class ExportCashRegisterPdfController extends Controller
             'tarjetas' => $systemSales['tarjetas'],
             'didi_food' => $systemSales['didi_food'],
             'pedidos_ya' => $systemSales['pedidos_ya'],
+            'bita_express' => $systemSales['bita_express'],
+            'bank_transfer' => $systemSales['bank_transfer'],
+            'other_digital_wallet' => $systemSales['other_digital_wallet'],
         ];
 
         $cierreAmounts['total'] = $systemSales['total'];
@@ -65,10 +71,13 @@ class ExportCashRegisterPdfController extends Controller
             'plin' => $cashRegister->payments()->where('payment_method', 'plin')->count(),
             'didi_food' => $cashRegister->payments()->where('payment_method', 'didi_food')->count(),
             'pedidos_ya' => $cashRegister->payments()->where('payment_method', 'pedidos_ya')->count(),
+            'bita_express' => $cashRegister->payments()->where('payment_method', 'bita_express')->count(),
+            'bank_transfer' => $cashRegister->payments()->where('payment_method', 'bank_transfer')->count(),
+            'digital_wallet' => $cashRegister->payments()->where('payment_method', 'digital_wallet')->count(),
         ];
 
-        // Filtrar observaciones para corregir diferencias
-        $filteredObservations = $this->filterObservations($cashRegister->observations ?? '');
+        // Mostrar observaciones reales sin modificar faltantes/sobrantes.
+        $filteredObservations = $cashRegister->observations ?? '';
 
         // Datos para el PDF
         $data = [
@@ -84,7 +93,7 @@ class ExportCashRegisterPdfController extends Controller
 
         // Generar PDF con vista optimizada
         $pdf = Pdf::loadView('pdf.cash-register-native', $data);
-        
+
         // Configurar el PDF para mejor rendimiento
         $pdf->setPaper('A4', 'landscape')
             ->setOptions([
@@ -102,29 +111,11 @@ class ExportCashRegisterPdfController extends Controller
                 'debugLayoutInline' => false,
                 'debugLayoutPaddingBox' => false,
             ]);
-        
+
         // Nombre del archivo
-        $filename = "informe-caja-{$cashRegister->id}-" . now()->format('Y-m-d-H-i-s') . ".pdf";
-        
+        $filename = "informe-caja-{$cashRegister->id}-".now()->format('Y-m-d-H-i-s').'.pdf';
+
         // Descargar el PDF
         return $pdf->download($filename);
-    }
-
-    /**
-     * Filtra las observaciones para corregir diferencias incorrectas
-     */
-    private function filterObservations(string $observations): string
-    {
-        if (empty($observations)) {
-            return '';
-        }
-
-        // Reemplazar diferencias incorrectas
-        $filtered = preg_replace('/⚖️ DIFERENCIA: S\/ -?\d+\.\d+ \((FALTANTE|SOBRANTE)\)/', '⚖️ DIFERENCIA: S/ 0.00 (SIN DIFERENCIA)', $observations);
-        
-        // Reemplazar cualquier mención de faltante o sobrante
-        $filtered = str_replace(['(FALTANTE)', '(SOBRANTE)'], '(SIN DIFERENCIA)', $filtered);
-        
-        return $filtered;
     }
 }

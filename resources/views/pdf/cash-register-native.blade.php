@@ -115,7 +115,7 @@
             text-align: center;
             vertical-align: middle;
             background: #f8f9fa;
-            width: 16.66%;
+            width: 11.11%;
             font-size: 9px;
         }
         
@@ -195,7 +195,7 @@
         
         .payment-cell {
             display: table-cell;
-            width: 16.66%;
+            width: 11.11%;
             padding: 6px;
             text-align: center;
             border: 1px solid #bdc3c7;
@@ -382,6 +382,9 @@
                     <div class="data-cell header">📱 Plin</div>
                     <div class="data-cell header">🛒 PedidosYa</div>
                     <div class="data-cell header">🍕 Didi Food</div>
+                    <div class="data-cell header">🚚 Bita Express</div>
+                    <div class="data-cell header">🏦 Transferencia</div>
+                    <div class="data-cell header">📲 Billetera</div>
                 </div>
                 <div class="data-row">
                     <div class="data-cell amount">S/ {{ number_format($systemSales['efectivo'], 2) }}</div>
@@ -390,6 +393,9 @@
                     <div class="data-cell amount">S/ {{ number_format($systemSales['plin'], 2) }}</div>
                     <div class="data-cell amount">S/ {{ number_format($systemSales['pedidos_ya'], 2) }}</div>
                     <div class="data-cell amount">S/ {{ number_format($systemSales['didi_food'], 2) }}</div>
+                    <div class="data-cell amount">S/ {{ number_format($systemSales['bita_express'], 2) }}</div>
+                    <div class="data-cell amount">S/ {{ number_format($systemSales['bank_transfer'], 2) }}</div>
+                    <div class="data-cell amount">S/ {{ number_format($systemSales['other_digital_wallet'], 2) }}</div>
                 </div>
             </div>
             
@@ -403,6 +409,12 @@
         <!-- Montos de Cierre -->
         <div class="section no-break">
             <div class="section-title">🔒 MONTOS DE CIERRE</div>
+            @php
+                $expectedAmount = (float) ($cashRegister->expected_amount ?? 0);
+                $actualAmount = (float) ($cashRegister->actual_amount ?? 0);
+                $differenceAmount = (float) ($cashRegister->difference ?? 0);
+                $differenceLabel = $differenceAmount < 0 ? 'FALTANTE' : ($differenceAmount > 0 ? 'SOBRANTE' : 'SIN DIFERENCIA');
+            @endphp
             <table class="comparison-table">
                 <thead>
                     <tr>
@@ -413,24 +425,24 @@
                 </thead>
                 <tbody>
                     <tr class="expected">
-                        <td><strong>Monto Esperado</strong><br><small>(Ventas del Sistema)</small></td>
-                        <td><strong>S/ {{ number_format($systemSales['total'], 2) }}</strong></td>
-                        <td>Solo ventas registradas</td>
+                        <td><strong>Monto Esperado</strong><br><small>(Apertura + Ventas - Egresos)</small></td>
+                        <td><strong>S/ {{ number_format($expectedAmount, 2) }}</strong></td>
+                        <td>Saldo teórico de caja</td>
                     </tr>
                     <tr class="actual">
-                        <td><strong>Montos de Cierre</strong><br><small>(Ingresos Manuales)</small></td>
-                        <td><strong>S/ {{ number_format($systemSales['total'], 2) }}</strong></td>
-                        <td>Igual a ventas del sistema</td>
+                        <td><strong>Monto Contado</strong><br><small>(Cierre manual registrado)</small></td>
+                        <td><strong>S/ {{ number_format($actualAmount, 2) }}</strong></td>
+                        <td>Dato ingresado al cerrar caja</td>
                     </tr>
                     <tr class="difference">
                         <td><strong>DIFERENCIA</strong></td>
-                        <td><strong>S/ 0.00</strong></td>
-                        <td>✅ SIN DIFERENCIA</td>
+                        <td><strong>S/ {{ number_format($differenceAmount, 2) }}</strong></td>
+                        <td>{{ $differenceLabel }}</td>
                     </tr>
                 </tbody>
             </table>
             <div class="text-center mb-15">
-                <small><em>La diferencia es 0 porque ambos montos representan las mismas ventas reales del sistema</em></small>
+                <small><em>La diferencia compara monto contado contra monto esperado.</em></small>
             </div>
         </div>
         @endif
@@ -469,6 +481,21 @@
                         <div class="payment-icon">🍕</div>
                         <div class="payment-name">Didi Food</div>
                         <div class="payment-count">{{ $paymentCounts['didi_food'] }} usos</div>
+                    </div>
+                    <div class="payment-cell">
+                        <div class="payment-icon">🚚</div>
+                        <div class="payment-name">Bita Express</div>
+                        <div class="payment-count">{{ $paymentCounts['bita_express'] }} usos</div>
+                    </div>
+                    <div class="payment-cell">
+                        <div class="payment-icon">🏦</div>
+                        <div class="payment-name">Transferencia</div>
+                        <div class="payment-count">{{ $paymentCounts['bank_transfer'] }} usos</div>
+                    </div>
+                    <div class="payment-cell">
+                        <div class="payment-icon">📲</div>
+                        <div class="payment-name">Billetera</div>
+                        <div class="payment-count">{{ $paymentCounts['digital_wallet'] }} usos</div>
                     </div>
                 </div>
             </div>
