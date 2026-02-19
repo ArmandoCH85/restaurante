@@ -1,0 +1,432 @@
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===

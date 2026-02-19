@@ -292,10 +292,15 @@ class ReportViewerPage extends Page implements HasForms
                 $dateRange = request('dateRange');
                 $this->setDateRange($dateRange);
             } else {
-                // Cargar SIN FILTROS - todos los datos históricos
-                $this->dateRange = null;
-                $this->startDate = null;
-                $this->endDate = null;
+                // Para este reporte, aplicar "hoy" por defecto.
+                if ($this->reportType === 'products_by_channel') {
+                    $this->setDateRange('today');
+                } else {
+                    // Cargar SIN FILTROS - todos los datos históricos
+                    $this->dateRange = null;
+                    $this->startDate = null;
+                    $this->endDate = null;
+                }
             }
             
             // Initialize form
@@ -1955,7 +1960,7 @@ class ReportViewerPage extends Page implements HasForms
             'all_sales' => 'Reporte de Todas las Ventas',
             'delivery_sales' => 'Reporte de Ventas por Delivery',
             'sales_by_waiter' => 'Reporte de Ventas por Mesero',
-            'products_by_channel' => 'Reporte de Productos por Canal de Venta',
+            'products_by_channel' => 'Reporte de Ganancia por Canal de Venta',
             'payment_methods' => 'Reporte de Formas de Pago',
             
             // PURCHASES REPORTS

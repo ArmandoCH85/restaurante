@@ -923,7 +923,7 @@ class ReportesPage extends Page implements HasForms
             'sales' => [
                 'all_sales' => 'Reporte para Todas las ventas',
                 'delivery_sales' => 'Reporte de Ventas por delivery',
-                'products_by_channel' => 'Productos vendidos por canal de venta',
+                'products_by_channel' => 'Reporte de Ganancia por Canal de Venta',
                 'sales_by_waiter' => 'Reporte de Ventas por mesero',
                 'payment_methods' => 'Reporte de Formas de pago'
             ],

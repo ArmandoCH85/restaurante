@@ -85,7 +85,7 @@ class ProductsByChannelReportController extends Controller
             $sheet = $spreadsheet->getActiveSheet();
             
             // Configurar título y encabezados
-            $sheet->setCellValue('A1', 'REPORTE DE PRODUCTOS POR CANAL DE VENTA');
+            $sheet->setCellValue('A1', 'REPORTE DE GANANCIA POR CANAL DE VENTA');
             $sheet->setCellValue('A2', 'Período: ' . $startDate . ' - ' . $endDate);
             
             if ($channelFilter) {
