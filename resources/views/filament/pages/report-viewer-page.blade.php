@@ -117,56 +117,6 @@
             <div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
                 <div class="px-4 py-6 sm:px-0">
                     
-                    <!-- Stats Cards -->
-                    <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
-                        <div class="p-6">
-                            <div class="overflow-x-auto">
-                                <table class="w-full">
-                                    <tr>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-blue-600">{{ number_format($page->reportStats['total_operations'] ?? 0) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-green-600">S/ {{ number_format($page->reportStats['total_sales'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-purple-600">S/ {{ number_format($page->reportStats['total_sales_notes'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-yellow-600">S/ {{ number_format($page->reportStats['total_receipts'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-indigo-600">S/ {{ number_format($page->reportStats['total_invoices'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-red-600">S/ {{ number_format($page->reportStats['total_cancelled'] ?? 0, 2) }}</div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">N° Operaciones</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Ventas</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Notas de Venta</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Boletas</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Facturas</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Anulados</div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Filtros -->
                     <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
                         <div class="px-4 py-5 sm:p-6">
@@ -642,6 +592,56 @@
                                     <p class="text-gray-500">No se encontraron registros para el período seleccionado.</p>
                                 </div>
                             @endif
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Cards -->
+                    <div class="bg-white overflow-hidden shadow rounded-lg mt-6">
+                        <div class="p-6">
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <tr>
+                                        <td class="text-center px-4 py-2">
+                                            <div class="text-3xl font-bold text-blue-600">{{ number_format($page->reportStats['total_operations'] ?? 0) }}</div>
+                                        </td>
+                                        <td class="text-center px-4 py-2">
+                                            <div class="text-3xl font-bold text-green-600">S/ {{ number_format($page->reportStats['total_sales'] ?? 0, 2) }}</div>
+                                        </td>
+                                        <td class="text-center px-4 py-2">
+                                            <div class="text-3xl font-bold text-purple-600">S/ {{ number_format($page->reportStats['total_sales_notes'] ?? 0, 2) }}</div>
+                                        </td>
+                                        <td class="text-center px-4 py-2">
+                                            <div class="text-3xl font-bold text-yellow-600">S/ {{ number_format($page->reportStats['total_receipts'] ?? 0, 2) }}</div>
+                                        </td>
+                                        <td class="text-center px-4 py-2">
+                                            <div class="text-3xl font-bold text-indigo-600">S/ {{ number_format($page->reportStats['total_invoices'] ?? 0, 2) }}</div>
+                                        </td>
+                                        <td class="text-center px-4 py-2">
+                                            <div class="text-3xl font-bold text-red-600">S/ {{ number_format($page->reportStats['total_cancelled'] ?? 0, 2) }}</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-center px-4 py-1">
+                                            <div class="text-sm text-gray-600 font-medium">N° Operaciones</div>
+                                        </td>
+                                        <td class="text-center px-4 py-1">
+                                            <div class="text-sm text-gray-600 font-medium">Total Ventas</div>
+                                        </td>
+                                        <td class="text-center px-4 py-1">
+                                            <div class="text-sm text-gray-600 font-medium">Total Notas de Venta</div>
+                                        </td>
+                                        <td class="text-center px-4 py-1">
+                                            <div class="text-sm text-gray-600 font-medium">Total Boletas</div>
+                                        </td>
+                                        <td class="text-center px-4 py-1">
+                                            <div class="text-sm text-gray-600 font-medium">Total Facturas</div>
+                                        </td>
+                                        <td class="text-center px-4 py-1">
+                                            <div class="text-sm text-gray-600 font-medium">Total Anulados</div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
