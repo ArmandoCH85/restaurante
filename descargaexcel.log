@@ -1,0 +1,3838 @@
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:14:52
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:19:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:23:50
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:27:12
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:31:21
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+
+############################################################
+=== GET PRODUCTS BY CHANNEL - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter (parámetro): null
+  invoiceType (parámetro): null
+  this->channelFilter (propiedad): null
+  this->invoiceType (propiedad): null
+CONSTRUYENDO QUERY INICIAL...
+Query base construida con whereBetween order_datetime y where('orders.billed', true)
+NO SE APLICA FILTRO DE CANAL
+NO SE APLICA FILTRO DE TIPO DE COMPROBANTE
+SQL FINAL: select * from `order_details` inner join `orders` on `order_details`.`order_id` = `orders`.`id` inner join `products` on `order_details`.`product_id` = `products`.`id` where `orders`.`order_datetime` between ? and ? and `orders`.`billed` = ?
+BINDINGS: ["2026-02-19T05:00:00.000000Z","2026-02-20T04:59:59.999999Z",true]
+RESULTADOS OBTENIDOS: 3 registros
+MUESTRA DE PRIMEROS 3 RESULTADOS (agrupado por canal):
+  [0] service_type: dine_in, total_quantity: 20, total_sales: 189.10
+  [1] service_type: takeout, total_quantity: 31, total_sales: 472.80
+  [2] service_type: delivery, total_quantity: 6, total_sales: 92.90
+=== GET PRODUCTS BY CHANNEL - FIN ===
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 18:37:20
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+=== DEBUG MOUNT ===
+Category: sales
+ReportType: products_by_channel
+shouldShowChannelFilter(): true
+
+=== INICIO MOUNT ===
+Fecha/Hora: 2026-02-19 19:25:29
+Categoría recibida: sales
+Tipo de reporte recibido: products_by_channel
+Parámetros GET: {"dateRange":"today"}
+
+================================================================================
+=== MOUNT() - INICIO DE CAPTURA DE PARÁMETROS ===
+TIMESTAMP: 2026-02-19 19:25:29
+URL COMPLETA: http://restaurante.test/admin/report-viewer/sales/products_by_channel?dateRange=today
+MÉTODO HTTP: GET
+QUERY STRING: dateRange=today
+=== TODOS LOS PARÁMETROS DEL REQUEST ===
+  - dateRange: today
+=== VALORES ASIGNADOS A PROPIEDADES ===
+  invoiceType (antes de asignar): null
+  channelFilter (antes de asignar): null
+  invoiceType (después de asignar): null (tipo: NULL)
+  channelFilter (después de asignar): null (tipo: NULL)
+=== ESTADO ACTUAL DEL COMPONENTE ===
+  category: sales
+  reportType: products_by_channel
+  dateRange: today
+  startDate: null
+  endDate: null
+=== MOUNT() - FIN DE CAPTURA ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:25:30
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:25:30
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:25:30
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:25:30
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:25:30
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:25:30
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+=== DEBUG MOUNT ===
+Category: sales
+ReportType: products_by_channel
+shouldShowChannelFilter(): true
+
+=== INICIO MOUNT ===
+Fecha/Hora: 2026-02-19 19:26:08
+Categoría recibida: sales
+Tipo de reporte recibido: products_by_channel
+Parámetros GET: {"dateRange":"today"}
+
+================================================================================
+=== MOUNT() - INICIO DE CAPTURA DE PARÁMETROS ===
+TIMESTAMP: 2026-02-19 19:26:08
+URL COMPLETA: http://restaurante.test/admin/report-viewer/sales/products_by_channel?dateRange=today
+MÉTODO HTTP: GET
+QUERY STRING: dateRange=today
+=== TODOS LOS PARÁMETROS DEL REQUEST ===
+  - dateRange: today
+=== VALORES ASIGNADOS A PROPIEDADES ===
+  invoiceType (antes de asignar): null
+  channelFilter (antes de asignar): null
+  invoiceType (después de asignar): null (tipo: NULL)
+  channelFilter (después de asignar): null (tipo: NULL)
+=== ESTADO ACTUAL DEL COMPONENTE ===
+  category: sales
+  reportType: products_by_channel
+  dateRange: today
+  startDate: null
+  endDate: null
+=== MOUNT() - FIN DE CAPTURA ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:08
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:08
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:08
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:08
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:08
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:08
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+=== DEBUG MOUNT ===
+Category: sales
+ReportType: products_by_channel
+shouldShowChannelFilter(): true
+
+=== INICIO MOUNT ===
+Fecha/Hora: 2026-02-19 19:26:36
+Categoría recibida: sales
+Tipo de reporte recibido: products_by_channel
+Parámetros GET: {"dateRange":"today"}
+
+================================================================================
+=== MOUNT() - INICIO DE CAPTURA DE PARÁMETROS ===
+TIMESTAMP: 2026-02-19 19:26:36
+URL COMPLETA: http://restaurante.test/admin/report-viewer/sales/products_by_channel?dateRange=today
+MÉTODO HTTP: GET
+QUERY STRING: dateRange=today
+=== TODOS LOS PARÁMETROS DEL REQUEST ===
+  - dateRange: today
+=== VALORES ASIGNADOS A PROPIEDADES ===
+  invoiceType (antes de asignar): null
+  channelFilter (antes de asignar): null
+  invoiceType (después de asignar): null (tipo: NULL)
+  channelFilter (después de asignar): null (tipo: NULL)
+=== ESTADO ACTUAL DEL COMPONENTE ===
+  category: sales
+  reportType: products_by_channel
+  dateRange: today
+  startDate: null
+  endDate: null
+=== MOUNT() - FIN DE CAPTURA ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:36
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:36
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:36
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:36
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:36
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:26:36
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+=== DEBUG MOUNT ===
+Category: sales
+ReportType: products_by_channel
+shouldShowChannelFilter(): true
+
+=== INICIO MOUNT ===
+Fecha/Hora: 2026-02-19 19:28:23
+Categoría recibida: sales
+Tipo de reporte recibido: products_by_channel
+Parámetros GET: {"dateRange":"today"}
+
+================================================================================
+=== MOUNT() - INICIO DE CAPTURA DE PARÁMETROS ===
+TIMESTAMP: 2026-02-19 19:28:23
+URL COMPLETA: http://restaurante.test/admin/report-viewer/sales/products_by_channel?dateRange=today
+MÉTODO HTTP: GET
+QUERY STRING: dateRange=today
+=== TODOS LOS PARÁMETROS DEL REQUEST ===
+  - dateRange: today
+=== VALORES ASIGNADOS A PROPIEDADES ===
+  invoiceType (antes de asignar): null
+  channelFilter (antes de asignar): null
+  invoiceType (después de asignar): null (tipo: NULL)
+  channelFilter (después de asignar): null (tipo: NULL)
+=== ESTADO ACTUAL DEL COMPONENTE ===
+  category: sales
+  reportType: products_by_channel
+  dateRange: today
+  startDate: null
+  endDate: null
+=== MOUNT() - FIN DE CAPTURA ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:28:23
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:28:23
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:28:23
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:28:23
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:28:23
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:28:23
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:32:29
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:32:29
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:32:29
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:33:37
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:33:37
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:33:37
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:41:56
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:41:56
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:41:56
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:42:55
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:42:55
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:42:55
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:26
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:26
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:26
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:26
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:26
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:26
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:33
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:33
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:33
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:33
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:33
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:45:33
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:46:54
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:46:54
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:46:54
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:47:27
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:47:27
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:47:27
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:47:27
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:47:27
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:47:27
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:57:37
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:57:37
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:57:38
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:57:43
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:57:43
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:57:43
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:03
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:03
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:03
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:43
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:43
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:43
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:43
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:43
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:58:43
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:59:15
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-18
+  endDate: 2026-02-18
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-18 00:00:00
+  endDateTime: 2026-02-18 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:59:15
+PARÁMETROS:
+  startDateTime: 2026-02-18 00:00:00
+  endDateTime: 2026-02-18 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 2 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 2 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:59:15
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-18 00:00:00
+  endDateTime: 2026-02-18 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 59 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 59
+  total_sales: 1252.8
+  total_sales_notes: 1018.4
+  total_receipts: 234.4
+  total_invoices: 0
+  total_cancelled: 16.5
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:59:28
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-01
+  endDate: 2026-02-18
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-01 00:00:00
+  endDateTime: 2026-02-18 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 19:59:28
+PARÁMETROS:
+  startDateTime: 2026-02-01 00:00:00
+  endDateTime: 2026-02-18 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 19:59:28
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-01 00:00:00
+  endDateTime: 2026-02-18 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 1296 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 1296
+  total_sales: 33025.7
+  total_sales_notes: 27322.9
+  total_receipts: 4836.6
+  total_invoices: 866.2
+  total_cancelled: 209.9
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:00:06
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-01-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-01-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:00:07
+PARÁMETROS:
+  startDateTime: 2026-01-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:00:07
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-01-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 2096 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 2096
+  total_sales: 52688.8
+  total_sales_notes: 42776.2
+  total_receipts: 8936.9
+  total_invoices: 975.7
+  total_cancelled: 248.8
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:01:23
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2025-10-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2025-10-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:01:23
+PARÁMETROS:
+  startDateTime: 2025-10-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:01:24
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2025-10-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 9195 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 9195
+  total_sales: 220576.99999999
+  total_sales_notes: 183740.49999999
+  total_receipts: 32000
+  total_invoices: 4836.5
+  total_cancelled: 809
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:05
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2025-08-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:05
+PARÁMETROS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:05
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:08
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2025-08-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:09
+PARÁMETROS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:09
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:11
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2025-08-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:11
+PARÁMETROS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:12
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:18
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2025-08-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:18
+PARÁMETROS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:18
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:25
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2025-08-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:25
+PARÁMETROS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:25
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2025-08-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:39
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2025-09-01
+  endDate: 2026-01-31
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2025-09-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:39
+PARÁMETROS:
+  startDateTime: 2025-09-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:02:39
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2025-09-01 00:00:00
+  endDateTime: 2026-01-31 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 11520 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 11520
+  total_sales: 274716.99999998
+  total_sales_notes: 230556.19999998
+  total_receipts: 38388.7
+  total_invoices: 5772.1
+  total_cancelled: 1039.9
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:19:05
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:19:05
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:19:05
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:19:05
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:19:05
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:19:05
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:23:23
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:23:23
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:23:23
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:32
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:32
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:32
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:32
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:32
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:32
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:39
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:39
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:39
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:39
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:39
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:39
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:47
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-03
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-03 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:47
+PARÁMETROS:
+  startDateTime: 2026-02-03 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:47
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-03 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 1191 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 1191
+  total_sales: 30389.6
+  total_sales_notes: 25277.9
+  total_receipts: 4448.8
+  total_invoices: 662.9
+  total_cancelled: 171.9
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:49
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:49
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:49
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:49
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:49
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:24:49
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:26:04
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:26:04
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:26:04
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:26:04
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:26:04
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:26:04
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:22
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:22
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:22
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:44
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:44
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:44
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:44
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:44
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:34:44
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:35:18
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:35:18
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:35:18
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:35:18
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:35:18
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:35:18
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:10
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:10
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:10
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:22
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:22
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:22
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:22
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:22
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:22
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:27
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:27
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:27
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:27
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:27
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:38:28
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:40:58
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:40:58
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:40:58
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:41:25
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:41:25
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:41:25
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:41:25
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-19
+  endDate: 2026-02-19
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-19 20:41:25
+PARÁMETROS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-19 20:41:25
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-19 00:00:00
+  endDateTime: 2026-02-19 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 31 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 31
+  total_sales: 754.8
+  total_sales_notes: 727
+  total_receipts: 27.8
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===

@@ -146,6 +146,7 @@
                                                required>
                                     </div>
                                     
+                                    @if($page->reportType !== 'products_by_channel')
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">🕐 Hora Inicio (opcional)</label>
                                         <input type="time" 
@@ -161,6 +162,7 @@
                                                value="{{ request('endTime', $page->endTime) }}"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
+                                    @endif
 
                                     @if($page->reportType === 'products_by_channel')
                                     <div>
@@ -175,16 +177,6 @@
                                         </select>
                                     </div>
 
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1">📄 Tipo de Comprobante</label>
-                                        <select name="invoiceType"
-                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                                            <option value="">Todos los tipos</option>
-                                            <option value="sales_note" {{ request('invoiceType') === 'sales_note' ? 'selected' : '' }}>🧾 Nota de venta</option>
-                                            <option value="receipt" {{ request('invoiceType') === 'receipt' ? 'selected' : '' }}>🧾 Boleta</option>
-                                            <option value="invoice" {{ request('invoiceType') === 'invoice' ? 'selected' : '' }}>📋 Factura</option>
-                                        </select>
-                                    </div>
                                     @endif
                                     
                                     @if($page->reportType === 'accounting_reports')
@@ -199,11 +191,17 @@
                                     </div>
                                     @endif
                                     
-                                    <div class="md:col-span-6">
+                                    <div class="md:col-span-6 flex flex-wrap gap-2">
                                         <button type="button" onclick="applyCustomFilter()"
                                                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             🔍 Aplicar Filtro Personalizado
                                         </button>
+                                        @if($page->reportType === 'products_by_channel')
+                                        <button type="button" onclick="clearCustomFilter()"
+                                                class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                            Limpiar filtros
+                                        </button>
+                                        @endif
                                     </div>
                                 </form>
                             </div>
@@ -233,13 +231,24 @@
                                     </span>
                                 </h3>
                                 
-                                <button 
-                                    type="button"
-                                    onclick="exportToExcel()"
-                                    class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                >
-                                    📥 Exportar a Excel
-                                </button>
+                                <div class="flex items-center gap-2">
+                                    @if($page->reportType === 'products_by_channel')
+                                    <button
+                                        type="button"
+                                        onclick="openReportPrintModal()"
+                                        class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                    >
+                                        🖨️ Imprimir
+                                    </button>
+                                    @endif
+                                    <button 
+                                        type="button"
+                                        onclick="exportToExcel()"
+                                        class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                    >
+                                        📥 Exportar a Excel
+                                    </button>
+                                </div>
                             </div>
 
                             @if($page->reportData->isNotEmpty())
@@ -719,6 +728,83 @@
         </div>
     </div>
 
+    @if($page->reportType === 'products_by_channel')
+    <div id="reportPrintModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-8 mx-auto p-5 border w-11/12 md:w-4/5 lg:w-3/4 shadow-lg rounded-md bg-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-gray-900">🖨️ Vista previa de impresión</h3>
+                <button onclick="closeReportPrintModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="max-h-[70vh] overflow-y-auto border rounded-md">
+                <div id="reportPrintContent" class="p-6 bg-white text-gray-900">
+                    <h2 class="text-2xl font-bold mb-2">{{ $page->getTitle() }}</h2>
+                    <p class="text-sm text-gray-600 mb-1">Período: {{ $page->reportStats['period'] ?? 'N/A' }}</p>
+                    @if(request('channelFilter'))
+                        @php
+                            $channelLabelsPrint = [
+                                'dine_in' => 'En Mesa',
+                                'takeout' => 'Para Llevar',
+                                'delivery' => 'Delivery',
+                                'drive_thru' => 'Auto Servicio'
+                            ];
+                        @endphp
+                        <p class="text-sm text-gray-600 mb-1">Canal: {{ $channelLabelsPrint[request('channelFilter')] ?? request('channelFilter') }}</p>
+                    @endif
+                    <p class="text-sm text-gray-600 mb-4">Generado: {{ now()->format('d/m/Y H:i') }}</p>
+
+                    <table class="w-full border border-gray-300 text-sm">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-300 px-3 py-2 text-left">Canal de Venta</th>
+                                <th class="border border-gray-300 px-3 py-2 text-right">Cantidad</th>
+                                <th class="border border-gray-300 px-3 py-2 text-right">Ganancia</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $channelLabelsPrintRows = [
+                                    'dine_in' => 'En Mesa',
+                                    'takeout' => 'Para Llevar',
+                                    'delivery' => 'Delivery',
+                                    'drive_thru' => 'Auto Servicio'
+                                ];
+                            @endphp
+                            @foreach($page->reportData as $item)
+                                <tr>
+                                    <td class="border border-gray-300 px-3 py-2">{{ $channelLabelsPrintRows[$item->service_type] ?? $item->service_type }}</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">{{ number_format($item->total_quantity, 2) }}</td>
+                                    <td class="border border-gray-300 px-3 py-2 text-right">S/ {{ number_format($item->total_profit, 2) }}</td>
+                                </tr>
+                            @endforeach
+                            <tr class="bg-gray-100 font-semibold">
+                                <td class="border border-gray-300 px-3 py-2">TOTAL GENERAL</td>
+                                <td class="border border-gray-300 px-3 py-2 text-right">{{ number_format($page->reportData->sum('total_quantity'), 2) }}</td>
+                                <td class="border border-gray-300 px-3 py-2 text-right">S/ {{ number_format($page->reportData->sum('total_profit'), 2) }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 mt-4">
+                <button onclick="closeReportPrintModal()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                    Cerrar
+                </button>
+                <button onclick="printCurrentReport()"
+                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                    Imprimir ahora
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <script>
         
         // Función para aplicar filtro personalizado (única implementación vigente)
@@ -780,6 +866,63 @@
             window.location.href = newUrl;
         }
 
+        window.clearCustomFilter = function() {
+            const currentUrl = new URL(window.location.href);
+            window.location.href = currentUrl.pathname;
+        }
+
+        window.openReportPrintModal = function() {
+            const modal = document.getElementById('reportPrintModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        window.closeReportPrintModal = function() {
+            const modal = document.getElementById('reportPrintModal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+
+        window.printCurrentReport = function() {
+            const printContent = document.getElementById('reportPrintContent');
+            if (!printContent) {
+                return;
+            }
+
+            const reportTitle = @json($page->getTitle());
+            const printWindow = window.open('', '_blank', 'width=1000,height=800');
+
+            if (!printWindow) {
+                alert('No se pudo abrir la ventana de impresión.');
+                return;
+            }
+
+            const doc = printWindow.document;
+            doc.title = reportTitle;
+            doc.body.innerHTML = '';
+
+            const style = doc.createElement('style');
+            style.textContent = `
+                body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
+                h1, h2, h3 { margin: 0 0 8px 0; }
+                table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+                th, td { border: 1px solid #d1d5db; padding: 8px; font-size: 12px; }
+                th { background: #f3f4f6; text-align: left; }
+                .text-right { text-align: right; }
+                @media print { body { margin: 0; } }
+            `;
+            doc.head.appendChild(style);
+
+            doc.body.appendChild(printContent.cloneNode(true));
+
+            printWindow.focus();
+            setTimeout(function() {
+                printWindow.print();
+            }, 150);
+        }
+
         // Función para abrir el modal de detalle
         function openOrderModal(orderId) {
             const modal = document.getElementById('orderModal');
@@ -822,11 +965,21 @@
                 closeOrderModal();
             }
         });
+
+        const reportPrintModal = document.getElementById('reportPrintModal');
+        if (reportPrintModal) {
+            reportPrintModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeReportPrintModal();
+                }
+            });
+        }
         
         // Cerrar modal con tecla Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeOrderModal();
+                closeReportPrintModal();
             }
         });
         
