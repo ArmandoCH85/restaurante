@@ -1,24 +1,22 @@
+@php
+    $isLivewireContext = isset($__livewire);
+    $page = $page ?? ($__livewire ?? null);
+@endphp
+
+@unless ($isLivewireContext)
 <!DOCTYPE html>
-<!--
-  VISTA: Plantilla de Visualización de Reportes
-  Esta vista implementa la interfaz de usuario para la visualización detallada
-  de reportes con filtros avanzados y exportación a Excel.
-  
-  CAMBIOS RECIENTES:
-  - Se implementó sistema de filtrado personalizado por fechas y horas
-  - Se agregaron filtros específicos para tipo de comprobante en reportes de contabilidad
-  - Se mejoró la visualización de datos con tabla responsive y columnas fijas
-  - Se optimizó la exportación a Excel con JavaScript asíncrono
-  - Se implementaron modales para visualización detallada de órdenes
-  - Se agregaron estadísticas visuales en la parte superior
--->
 <html lang="es" class="h-full bg-gray-50">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $page->getTitle() }}</title>
+    <title>{{ $page?->getTitle() ?? 'Reporte' }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    @livewireStyles
+</head>
+<body class="h-full bg-gray-50">
+@endunless
+
+<div class="min-h-full bg-gray-50">
+
     <style>
         [x-cloak] { display: none !important; }
         
@@ -96,8 +94,6 @@
             }
         }
     </style>
-</head>
-<body class="h-full">
     <div class="min-h-full">
         <!-- Header -->
         <header class="bg-white shadow">
@@ -127,7 +123,7 @@
                             <!-- Filtro Personalizado -->
                             <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                                 <p class="text-sm font-medium mb-3">🎯 Filtro Personalizado</p>
-                                <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-5 gap-4" onsubmit="console.log('Formulario enviado - URL:', this.action, ' - Método:', this.method, ' - Parámetros:', new FormData(this))">
+                                <form method="GET" action="" class="grid grid-cols-1 md:grid-cols-6 gap-4" onsubmit="console.log('Formulario enviado - URL:', this.action, ' - Método:', this.method, ' - Parámetros:', new FormData(this))">
                                     <input type="hidden" name="dateRange" value="custom">
                                     <input type="hidden" name="category" value="{{ $page->category }}">
                                     <input type="hidden" name="reportType" value="{{ $page->reportType }}">
@@ -165,6 +161,31 @@
                                                value="{{ request('endTime', $page->endTime) }}"
                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                                     </div>
+
+                                    @if($page->reportType === 'products_by_channel')
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">🛒 Canal de Venta</label>
+                                        <select name="channelFilter"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Todos los canales</option>
+                                            <option value="dine_in" {{ request('channelFilter') === 'dine_in' ? 'selected' : '' }}>🍽️ En Mesa</option>
+                                            <option value="takeout" {{ request('channelFilter') === 'takeout' ? 'selected' : '' }}>📦 Para Llevar</option>
+                                            <option value="delivery" {{ request('channelFilter') === 'delivery' ? 'selected' : '' }}>🚚 Delivery</option>
+                                            <option value="drive_thru" {{ request('channelFilter') === 'drive_thru' ? 'selected' : '' }}>🚗 Auto Servicio</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">📄 Tipo de Comprobante</label>
+                                        <select name="invoiceType"
+                                                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="">Todos los tipos</option>
+                                            <option value="sales_note" {{ request('invoiceType') === 'sales_note' ? 'selected' : '' }}>🧾 Nota de venta</option>
+                                            <option value="receipt" {{ request('invoiceType') === 'receipt' ? 'selected' : '' }}>🧾 Boleta</option>
+                                            <option value="invoice" {{ request('invoiceType') === 'invoice' ? 'selected' : '' }}>📋 Factura</option>
+                                        </select>
+                                    </div>
+                                    @endif
                                     
                                     @if($page->reportType === 'accounting_reports')
                                     <div>
@@ -178,7 +199,7 @@
                                     </div>
                                     @endif
                                     
-                                    <div class="md:col-span-5">
+                                    <div class="md:col-span-6">
                                         <button type="button" onclick="applyCustomFilter()"
                                                 class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-sm text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             🔍 Aplicar Filtro Personalizado
@@ -241,10 +262,9 @@
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Órdenes</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Ventas</th>
                                                 @elseif($page->reportType === 'products_by_channel')
-                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Canal de Venta</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
-                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Ventas</th>
+                                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ganancia</th>
                                                 @elseif($page->reportType === 'payment_methods')
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Forma de Pago</th>
                                                     <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">N° Operaciones</th>
@@ -424,7 +444,6 @@
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ $item->total_orders }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold">S/ {{ number_format($item->total_sales, 2) }}</td>
                                                     @elseif($page->reportType === 'products_by_channel')
-                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">{{ $item->product_name }}</td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">
                                                             @php
                                                                 $channelConfig = [
@@ -440,7 +459,7 @@
                                                             </span>
                                                         </td>
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm">{{ number_format($item->total_quantity, 2) }}</td>
-                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_sales, 2) }}</td>
+                                                        <td class="px-4 py-4 whitespace-nowrap text-sm font-semibold text-green-600">S/ {{ number_format($item->total_profit, 2) }}</td>
                                                     @elseif($page->reportType === 'payment_methods')
                                                         <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                                                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -569,14 +588,14 @@
                                             {{-- Fila de totales para products_by_channel --}}
                                             @if($page->reportType === 'products_by_channel' && $page->reportData->isNotEmpty())
                                                 <tr class="bg-gray-100 border-t-2 border-gray-300">
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900" colspan="2">
+                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                                                         TOTAL GENERAL
                                                     </td>
                                                     <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                                                         {{ number_format($page->reportData->sum('total_quantity'), 2) }}
                                                     </td>
                                                     <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-green-700">
-                                                        S/ {{ number_format($page->reportData->sum('total_sales'), 2) }}
+                                                        S/ {{ number_format($page->reportData->sum('total_profit'), 2) }}
                                                     </td>
                                                 </tr>
                                             @endif
@@ -598,50 +617,67 @@
                     <!-- Stats Cards -->
                     <div class="bg-white overflow-hidden shadow rounded-lg mt-6">
                         <div class="p-6">
-                            <div class="overflow-x-auto">
-                                <table class="w-full">
-                                    <tr>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-blue-600">{{ number_format($page->reportStats['total_operations'] ?? 0) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-green-600">S/ {{ number_format($page->reportStats['total_sales'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-purple-600">S/ {{ number_format($page->reportStats['total_sales_notes'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-yellow-600">S/ {{ number_format($page->reportStats['total_receipts'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-indigo-600">S/ {{ number_format($page->reportStats['total_invoices'] ?? 0, 2) }}</div>
-                                        </td>
-                                        <td class="text-center px-4 py-2">
-                                            <div class="text-3xl font-bold text-red-600">S/ {{ number_format($page->reportStats['total_cancelled'] ?? 0, 2) }}</div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">N° Operaciones</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Ventas</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Notas de Venta</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Boletas</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Facturas</div>
-                                        </td>
-                                        <td class="text-center px-4 py-1">
-                                            <div class="text-sm text-gray-600 font-medium">Total Anulados</div>
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
+                            @if($page->reportType === 'products_by_channel')
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                        <div class="text-3xl font-bold text-blue-600">{{ number_format($page->reportData->count()) }}</div>
+                                        <div class="text-sm text-gray-700 font-medium mt-1">Canales con venta</div>
+                                    </div>
+                                    <div class="text-center p-4 bg-amber-50 rounded-lg">
+                                        <div class="text-3xl font-bold text-amber-600">{{ number_format($page->reportData->sum('total_quantity'), 2) }}</div>
+                                        <div class="text-sm text-gray-700 font-medium mt-1">Cantidad total</div>
+                                    </div>
+                                    <div class="text-center p-4 bg-green-50 rounded-lg">
+                                        <div class="text-3xl font-bold text-green-600">S/ {{ number_format($page->reportData->sum('total_profit'), 2) }}</div>
+                                        <div class="text-sm text-gray-700 font-medium mt-1">Ganancia total</div>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="overflow-x-auto">
+                                    <table class="w-full">
+                                        <tr>
+                                            <td class="text-center px-4 py-2">
+                                                <div class="text-3xl font-bold text-blue-600">{{ number_format($page->reportStats['total_operations'] ?? 0) }}</div>
+                                            </td>
+                                            <td class="text-center px-4 py-2">
+                                                <div class="text-3xl font-bold text-green-600">S/ {{ number_format($page->reportStats['total_sales'] ?? 0, 2) }}</div>
+                                            </td>
+                                            <td class="text-center px-4 py-2">
+                                                <div class="text-3xl font-bold text-purple-600">S/ {{ number_format($page->reportStats['total_sales_notes'] ?? 0, 2) }}</div>
+                                            </td>
+                                            <td class="text-center px-4 py-2">
+                                                <div class="text-3xl font-bold text-yellow-600">S/ {{ number_format($page->reportStats['total_receipts'] ?? 0, 2) }}</div>
+                                            </td>
+                                            <td class="text-center px-4 py-2">
+                                                <div class="text-3xl font-bold text-indigo-600">S/ {{ number_format($page->reportStats['total_invoices'] ?? 0, 2) }}</div>
+                                            </td>
+                                            <td class="text-center px-4 py-2">
+                                                <div class="text-3xl font-bold text-red-600">S/ {{ number_format($page->reportStats['total_cancelled'] ?? 0, 2) }}</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="text-center px-4 py-1">
+                                                <div class="text-sm text-gray-600 font-medium">N° Operaciones</div>
+                                            </td>
+                                            <td class="text-center px-4 py-1">
+                                                <div class="text-sm text-gray-600 font-medium">Total Ventas</div>
+                                            </td>
+                                            <td class="text-center px-4 py-1">
+                                                <div class="text-sm text-gray-600 font-medium">Total Notas de Venta</div>
+                                            </td>
+                                            <td class="text-center px-4 py-1">
+                                                <div class="text-sm text-gray-600 font-medium">Total Boletas</div>
+                                            </td>
+                                            <td class="text-center px-4 py-1">
+                                                <div class="text-sm text-gray-600 font-medium">Total Facturas</div>
+                                            </td>
+                                            <td class="text-center px-4 py-1">
+                                                <div class="text-sm text-gray-600 font-medium">Total Anulados</div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -718,8 +754,8 @@
             const params = new URLSearchParams();
             
             // Mantener parámetros existentes
-            params.set('category', currentUrl.searchParams.get('category') || 'sales');
-            params.set('reportType', currentUrl.searchParams.get('reportType') || 'products_by_channel');
+            params.set('category', '{{ $page->category }}');
+            params.set('reportType', '{{ $page->reportType }}');
             
             // Agregar fechas
             params.set('startDate', startDate);
@@ -916,7 +952,15 @@
                 // Crear enlace de descarga
                 const link = document.createElement('a');
                 link.href = blobUrl;
-                link.download = 'reporte_caja_' + new Date().toISOString().slice(0, 10) + '.xlsx';
+                const filenames = {
+                    products_by_channel: 'ganancia_por_canal',
+                    all_sales: 'ventas',
+                    payment_methods: 'metodos_pago',
+                    cash_register: 'caja',
+                    accounting_reports: 'contabilidad',
+                };
+                const baseName = filenames[reportType] || 'reporte';
+                link.download = `${baseName}_${new Date().toISOString().slice(0, 10)}.xlsx`;
                 link.style.display = 'none';
                 document.body.appendChild(link);
                 link.click();
@@ -954,7 +998,9 @@
             });
         });
     </script>
+</div>
 
-    @livewireScripts
+@unless ($isLivewireContext)
 </body>
 </html>
+@endunless

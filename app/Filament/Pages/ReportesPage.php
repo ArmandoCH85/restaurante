@@ -1,4 +1,5 @@
 <?php
+
 /*
  * REPORTE: Sistema de Generación de Reportes del Restaurante
  *
@@ -29,32 +30,44 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Filament\Support\Exceptions\Halt;
 
 class ReportesPage extends Page implements HasForms
 {
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-chart-bar';
+
     protected static ?string $navigationLabel = 'Reportes';
+
     protected static ?string $title = 'Reportes';
+
     protected static ?string $navigationGroup = '📊 Reportes y Análisis';
+
     protected static ?int $navigationSort = 5;
+
     protected static ?string $slug = 'reportes';
 
     protected static string $view = 'filament.pages.reportes-page';
 
     protected ?string $heading = 'Reportes';
+
     protected ?string $maxContentWidth = 'full';
 
     // Propiedades del formulario
     public ?string $reportType = 'sales';
+
     public ?string $dateRange = 'today';
+
     public ?string $startDate = null;
+
     public ?string $endDate = null;
+
     public ?string $format = 'pdf';
+
     public ?string $selectedCategory = null;
+
     public ?string $selectedReport = null;
+
     public ?string $timeFilter = null;
 
     public function mount(): void
@@ -148,7 +161,6 @@ class ReportesPage extends Page implements HasForms
             ]);
     }
 
-
     public function exportReport(): void
     {
         $this->generate();
@@ -221,12 +233,12 @@ class ReportesPage extends Page implements HasForms
                 ->send();
         } catch (\Exception $e) {
             // Registrar el error para depuración
-            Log::error('Error al generar reporte: ' . $e->getMessage(), [
+            Log::error('Error al generar reporte: '.$e->getMessage(), [
                 'exception' => $e,
                 'reportType' => $this->reportType,
                 'startDate' => $this->startDate,
                 'endDate' => $this->endDate,
-                'format' => $this->format
+                'format' => $this->format,
             ]);
 
             Notification::make()
@@ -267,7 +279,7 @@ class ReportesPage extends Page implements HasForms
                 'averageTicket' => $averageTicket,
             ]);
 
-            $filename = 'ventas_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $filename = 'ventas_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.pdf';
 
             // Generar el contenido del PDF
             $pdfContent = $pdf->output();
@@ -285,12 +297,12 @@ class ReportesPage extends Page implements HasForms
             );
         } else {
             // Crear archivo Excel
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Encabezados
             $sheet->setCellValue('A1', 'Reporte de Ventas');
-            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A2', 'Período: '.$startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'));
             $sheet->setCellValue('A4', 'Fecha');
             $sheet->setCellValue('B4', 'Total Ventas (S/)');
             $sheet->setCellValue('C4', 'Cantidad de Órdenes');
@@ -299,21 +311,21 @@ class ReportesPage extends Page implements HasForms
             // Datos
             $row = 5;
             foreach ($salesData as $data) {
-                $sheet->setCellValue('A' . $row, Carbon::parse($data->date)->format('d/m/Y'));
-                $sheet->setCellValue('B' . $row, $data->total);
-                $sheet->setCellValue('C' . $row, $data->count);
-                $sheet->setCellValue('D' . $row, $data->average);
+                $sheet->setCellValue('A'.$row, Carbon::parse($data->date)->format('d/m/Y'));
+                $sheet->setCellValue('B'.$row, $data->total);
+                $sheet->setCellValue('C'.$row, $data->count);
+                $sheet->setCellValue('D'.$row, $data->average);
                 $row++;
             }
 
             // Totales
-            $sheet->setCellValue('A' . ($row + 1), 'TOTALES');
-            $sheet->setCellValue('B' . ($row + 1), $totalSales);
-            $sheet->setCellValue('C' . ($row + 1), $totalOrders);
-            $sheet->setCellValue('D' . ($row + 1), $averageTicket);
+            $sheet->setCellValue('A'.($row + 1), 'TOTALES');
+            $sheet->setCellValue('B'.($row + 1), $totalSales);
+            $sheet->setCellValue('C'.($row + 1), $totalOrders);
+            $sheet->setCellValue('D'.($row + 1), $averageTicket);
 
             // Guardar en memoria
-            $filename = 'ventas_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $filename = 'ventas_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.xlsx';
             $writer = new Xlsx($spreadsheet);
             ob_start();
             $writer->save('php://output');
@@ -337,9 +349,9 @@ class ReportesPage extends Page implements HasForms
     {
         // Obtener datos de productos vendidos
         $productsData = OrderDetail::whereHas('order', function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('order_datetime', [$startDate, $endDate])
-                    ->where('billed', true);
-            })
+            $query->whereBetween('order_datetime', [$startDate, $endDate])
+                ->where('billed', true);
+        })
             ->select(
                 'product_id',
                 DB::raw('SUM(quantity) as quantity_sold'),
@@ -379,7 +391,7 @@ class ReportesPage extends Page implements HasForms
                 'endDate' => $endDate,
             ]);
 
-            $filename = 'productos_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $filename = 'productos_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.pdf';
 
             // Generar el contenido del PDF
             $pdfContent = $pdf->output();
@@ -397,12 +409,12 @@ class ReportesPage extends Page implements HasForms
             );
         } else {
             // Crear archivo Excel
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Encabezados
             $sheet->setCellValue('A1', 'Reporte de Productos Vendidos');
-            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A2', 'Período: '.$startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'));
             $sheet->setCellValue('A4', 'Producto');
             $sheet->setCellValue('B4', 'Categoría');
             $sheet->setCellValue('C4', 'Cantidad Vendida');
@@ -415,19 +427,19 @@ class ReportesPage extends Page implements HasForms
             // Datos
             $row = 5;
             foreach ($reportData as $data) {
-                $sheet->setCellValue('A' . $row, $data['product_name']);
-                $sheet->setCellValue('B' . $row, $data['category']);
-                $sheet->setCellValue('C' . $row, $data['quantity_sold']);
-                $sheet->setCellValue('D' . $row, $data['total_sales']);
-                $sheet->setCellValue('E' . $row, $data['average_price']);
-                $sheet->setCellValue('F' . $row, $data['total_cost']);
-                $sheet->setCellValue('G' . $row, $data['profit']);
-                $sheet->setCellValue('H' . $row, number_format($data['margin'], 2));
+                $sheet->setCellValue('A'.$row, $data['product_name']);
+                $sheet->setCellValue('B'.$row, $data['category']);
+                $sheet->setCellValue('C'.$row, $data['quantity_sold']);
+                $sheet->setCellValue('D'.$row, $data['total_sales']);
+                $sheet->setCellValue('E'.$row, $data['average_price']);
+                $sheet->setCellValue('F'.$row, $data['total_cost']);
+                $sheet->setCellValue('G'.$row, $data['profit']);
+                $sheet->setCellValue('H'.$row, number_format($data['margin'], 2));
                 $row++;
             }
 
             // Guardar en memoria
-            $filename = 'productos_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $filename = 'productos_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.xlsx';
             $writer = new Xlsx($spreadsheet);
             ob_start();
             $writer->save('php://output');
@@ -491,7 +503,7 @@ class ReportesPage extends Page implements HasForms
                 'totalOrders' => $totalOrders,
             ]);
 
-            $filename = 'tipos_servicio_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $filename = 'tipos_servicio_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.pdf';
 
             // Generar el contenido del PDF
             $pdfContent = $pdf->output();
@@ -509,12 +521,12 @@ class ReportesPage extends Page implements HasForms
             );
         } else {
             // Crear archivo Excel
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Encabezados
             $sheet->setCellValue('A1', 'Reporte de Ventas por Tipo de Servicio');
-            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A2', 'Período: '.$startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'));
             $sheet->setCellValue('A4', 'Tipo de Servicio');
             $sheet->setCellValue('B4', 'Total Ventas (S/)');
             $sheet->setCellValue('C4', 'Cantidad de Órdenes');
@@ -526,22 +538,22 @@ class ReportesPage extends Page implements HasForms
             foreach ($reportData as $data) {
                 $percentage = $totalSales > 0 ? ($data['total'] / $totalSales) * 100 : 0;
 
-                $sheet->setCellValue('A' . $row, $data['service_type_name']);
-                $sheet->setCellValue('B' . $row, $data['total']);
-                $sheet->setCellValue('C' . $row, $data['count']);
-                $sheet->setCellValue('D' . $row, $data['average']);
-                $sheet->setCellValue('E' . $row, number_format($percentage, 2));
+                $sheet->setCellValue('A'.$row, $data['service_type_name']);
+                $sheet->setCellValue('B'.$row, $data['total']);
+                $sheet->setCellValue('C'.$row, $data['count']);
+                $sheet->setCellValue('D'.$row, $data['average']);
+                $sheet->setCellValue('E'.$row, number_format($percentage, 2));
                 $row++;
             }
 
             // Totales
-            $sheet->setCellValue('A' . ($row + 1), 'TOTALES');
-            $sheet->setCellValue('B' . ($row + 1), $totalSales);
-            $sheet->setCellValue('C' . ($row + 1), $totalOrders);
-            $sheet->setCellValue('E' . ($row + 1), '100.00');
+            $sheet->setCellValue('A'.($row + 1), 'TOTALES');
+            $sheet->setCellValue('B'.($row + 1), $totalSales);
+            $sheet->setCellValue('C'.($row + 1), $totalOrders);
+            $sheet->setCellValue('E'.($row + 1), '100.00');
 
             // Guardar en memoria
-            $filename = 'tipos_servicio_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $filename = 'tipos_servicio_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.xlsx';
             $writer = new Xlsx($spreadsheet);
             ob_start();
             $writer->save('php://output');
@@ -577,9 +589,9 @@ class ReportesPage extends Page implements HasForms
 
         // Obtener datos de costos
         $costsData = OrderDetail::whereHas('order', function ($query) use ($startDate, $endDate) {
-                $query->whereBetween('order_datetime', [$startDate, $endDate])
-                    ->where('billed', true);
-            })
+            $query->whereBetween('order_datetime', [$startDate, $endDate])
+                ->where('billed', true);
+        })
             ->join('orders', 'order_details.order_id', '=', 'orders.id')
             ->join('products', 'order_details.product_id', '=', 'products.id')
             ->select(
@@ -636,7 +648,7 @@ class ReportesPage extends Page implements HasForms
                 'totalMargin' => $totalMargin,
             ]);
 
-            $filename = 'ganancias_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $filename = 'ganancias_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.pdf';
 
             // Generar el contenido del PDF
             $pdfContent = $pdf->output();
@@ -654,12 +666,12 @@ class ReportesPage extends Page implements HasForms
             );
         } else {
             // Crear archivo Excel
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Encabezados
             $sheet->setCellValue('A1', 'Reporte de Ganancias');
-            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A2', 'Período: '.$startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'));
             $sheet->setCellValue('A4', 'Fecha');
             $sheet->setCellValue('B4', 'Ventas (S/)');
             $sheet->setCellValue('C4', 'Costos (S/)');
@@ -669,23 +681,23 @@ class ReportesPage extends Page implements HasForms
             // Datos
             $row = 5;
             foreach ($reportData as $data) {
-                $sheet->setCellValue('A' . $row, Carbon::parse($data['date'])->format('d/m/Y'));
-                $sheet->setCellValue('B' . $row, $data['sales']);
-                $sheet->setCellValue('C' . $row, $data['costs']);
-                $sheet->setCellValue('D' . $row, $data['profit']);
-                $sheet->setCellValue('E' . $row, number_format($data['margin'], 2));
+                $sheet->setCellValue('A'.$row, Carbon::parse($data['date'])->format('d/m/Y'));
+                $sheet->setCellValue('B'.$row, $data['sales']);
+                $sheet->setCellValue('C'.$row, $data['costs']);
+                $sheet->setCellValue('D'.$row, $data['profit']);
+                $sheet->setCellValue('E'.$row, number_format($data['margin'], 2));
                 $row++;
             }
 
             // Totales
-            $sheet->setCellValue('A' . ($row + 1), 'TOTALES');
-            $sheet->setCellValue('B' . ($row + 1), $totalSales);
-            $sheet->setCellValue('C' . ($row + 1), $totalCosts);
-            $sheet->setCellValue('D' . ($row + 1), $totalProfit);
-            $sheet->setCellValue('E' . ($row + 1), number_format($totalMargin, 2));
+            $sheet->setCellValue('A'.($row + 1), 'TOTALES');
+            $sheet->setCellValue('B'.($row + 1), $totalSales);
+            $sheet->setCellValue('C'.($row + 1), $totalCosts);
+            $sheet->setCellValue('D'.($row + 1), $totalProfit);
+            $sheet->setCellValue('E'.($row + 1), number_format($totalMargin, 2));
 
             // Guardar en memoria
-            $filename = 'ganancias_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $filename = 'ganancias_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.xlsx';
             $writer = new Xlsx($spreadsheet);
             ob_start();
             $writer->save('php://output');
@@ -734,19 +746,19 @@ class ReportesPage extends Page implements HasForms
                 'totalSales' => $totalSales,
             ]);
 
-            $filename = 'caja_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $filename = 'caja_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.pdf';
             $this->dispatch('download-pdf', [
                 'content' => base64_encode($pdf->output()),
-                'filename' => $filename
+                'filename' => $filename,
             ]);
         } else {
             // Crear archivo Excel
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Encabezados
             $sheet->setCellValue('A1', 'Reporte de Caja');
-            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A2', 'Período: '.$startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'));
             $sheet->setCellValue('A4', 'Fecha Apertura');
             $sheet->setCellValue('B4', 'Fecha Cierre');
             $sheet->setCellValue('C4', 'Usuario');
@@ -764,26 +776,26 @@ class ReportesPage extends Page implements HasForms
                 $expected = $register->initial_amount + $totalMovements + $totalSales;
                 $difference = $register->final_amount - $expected;
 
-                $sheet->setCellValue('A' . $row, $register->opened_at->format('d/m/Y H:i'));
-                $sheet->setCellValue('B' . $row, $register->closed_at ? $register->closed_at->format('d/m/Y H:i') : 'En curso');
-                $sheet->setCellValue('C' . $row, $register->user->name);
-                $sheet->setCellValue('D' . $row, $register->initial_amount);
-                $sheet->setCellValue('E' . $row, $register->final_amount);
-                $sheet->setCellValue('F' . $row, $totalMovements);
-                $sheet->setCellValue('G' . $row, $totalSales);
-                $sheet->setCellValue('H' . $row, $difference);
+                $sheet->setCellValue('A'.$row, $register->opened_at->format('d/m/Y H:i'));
+                $sheet->setCellValue('B'.$row, $register->closed_at ? $register->closed_at->format('d/m/Y H:i') : 'En curso');
+                $sheet->setCellValue('C'.$row, $register->user->name);
+                $sheet->setCellValue('D'.$row, $register->initial_amount);
+                $sheet->setCellValue('E'.$row, $register->final_amount);
+                $sheet->setCellValue('F'.$row, $totalMovements);
+                $sheet->setCellValue('G'.$row, $totalSales);
+                $sheet->setCellValue('H'.$row, $difference);
                 $row++;
             }
 
             // Totales
-            $sheet->setCellValue('A' . ($row + 1), 'TOTALES');
-            $sheet->setCellValue('D' . ($row + 1), $totalInitial);
-            $sheet->setCellValue('E' . ($row + 1), $totalFinal);
-            $sheet->setCellValue('F' . ($row + 1), $totalMovements);
-            $sheet->setCellValue('G' . ($row + 1), $totalSales);
+            $sheet->setCellValue('A'.($row + 1), 'TOTALES');
+            $sheet->setCellValue('D'.($row + 1), $totalInitial);
+            $sheet->setCellValue('E'.($row + 1), $totalFinal);
+            $sheet->setCellValue('F'.($row + 1), $totalMovements);
+            $sheet->setCellValue('G'.($row + 1), $totalSales);
 
             // Guardar archivo
-            $filename = 'caja_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $filename = 'caja_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.xlsx';
             $writer = new Xlsx($spreadsheet);
             ob_start();
             $writer->save('php://output');
@@ -791,7 +803,7 @@ class ReportesPage extends Page implements HasForms
 
             $this->dispatch('download-excel', [
                 'content' => base64_encode($content),
-                'filename' => $filename
+                'filename' => $filename,
             ]);
         }
     }
@@ -827,19 +839,19 @@ class ReportesPage extends Page implements HasForms
                 'averageTicket' => $averageTicket,
             ]);
 
-            $filename = 'ventas_por_usuario_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.pdf';
+            $filename = 'ventas_por_usuario_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.pdf';
             $this->dispatch('download-pdf', [
                 'content' => base64_encode($pdf->output()),
-                'filename' => $filename
+                'filename' => $filename,
             ]);
         } else {
             // Crear archivo Excel
-            $spreadsheet = new Spreadsheet();
+            $spreadsheet = new Spreadsheet;
             $sheet = $spreadsheet->getActiveSheet();
 
             // Encabezados
             $sheet->setCellValue('A1', 'Reporte de Ventas por Usuario');
-            $sheet->setCellValue('A2', 'Período: ' . $startDate->format('d/m/Y') . ' - ' . $endDate->format('d/m/Y'));
+            $sheet->setCellValue('A2', 'Período: '.$startDate->format('d/m/Y').' - '.$endDate->format('d/m/Y'));
             $sheet->setCellValue('A4', 'Usuario');
             $sheet->setCellValue('B4', 'N° Ventas');
             $sheet->setCellValue('C4', 'Total Ventas (S/)');
@@ -851,23 +863,23 @@ class ReportesPage extends Page implements HasForms
             foreach ($salesData as $data) {
                 $percentage = $totalSales > 0 ? ($data->total_sales / $totalSales) * 100 : 0;
 
-                $sheet->setCellValue('A' . $row, $data->user_name);
-                $sheet->setCellValue('B' . $row, $data->total_orders);
-                $sheet->setCellValue('C' . $row, $data->total_sales);
-                $sheet->setCellValue('D' . $row, $data->average_ticket);
-                $sheet->setCellValue('E' . $row, number_format($percentage, 2));
+                $sheet->setCellValue('A'.$row, $data->user_name);
+                $sheet->setCellValue('B'.$row, $data->total_orders);
+                $sheet->setCellValue('C'.$row, $data->total_sales);
+                $sheet->setCellValue('D'.$row, $data->average_ticket);
+                $sheet->setCellValue('E'.$row, number_format($percentage, 2));
                 $row++;
             }
 
             // Totales
-            $sheet->setCellValue('A' . ($row + 1), 'TOTALES');
-            $sheet->setCellValue('B' . ($row + 1), $totalOrders);
-            $sheet->setCellValue('C' . ($row + 1), $totalSales);
-            $sheet->setCellValue('D' . ($row + 1), $averageTicket);
-            $sheet->setCellValue('E' . ($row + 1), '100.00');
+            $sheet->setCellValue('A'.($row + 1), 'TOTALES');
+            $sheet->setCellValue('B'.($row + 1), $totalOrders);
+            $sheet->setCellValue('C'.($row + 1), $totalSales);
+            $sheet->setCellValue('D'.($row + 1), $averageTicket);
+            $sheet->setCellValue('E'.($row + 1), '100.00');
 
             // Guardar archivo
-            $filename = 'ventas_por_usuario_' . $startDate->format('Y-m-d') . '_' . $endDate->format('Y-m-d') . '.xlsx';
+            $filename = 'ventas_por_usuario_'.$startDate->format('Y-m-d').'_'.$endDate->format('Y-m-d').'.xlsx';
             $writer = new Xlsx($spreadsheet);
             ob_start();
             $writer->save('php://output');
@@ -875,7 +887,7 @@ class ReportesPage extends Page implements HasForms
 
             $this->dispatch('download-excel', [
                 'content' => base64_encode($content),
-                'filename' => $filename
+                'filename' => $filename,
             ]);
         }
     }
@@ -896,13 +908,13 @@ class ReportesPage extends Page implements HasForms
     {
         $this->selectedReport = $report;
         $this->reportType = $report;
-        
-        // Redirigir a la nueva URL del reporte
+
+        // Redirigir a la URL del reporte
         $url = route('filament.admin.pages.report-viewer', [
             'category' => $this->selectedCategory,
-            'reportType' => $report
+            'reportType' => $report,
         ]);
-        
+
         $this->redirect($url);
     }
 
@@ -925,23 +937,23 @@ class ReportesPage extends Page implements HasForms
                 'delivery_sales' => 'Reporte de Ventas por delivery',
                 'products_by_channel' => 'Reporte de Ganancia por Canal de Venta',
                 'sales_by_waiter' => 'Reporte de Ventas por mesero',
-                'payment_methods' => 'Reporte de Formas de pago'
+                'payment_methods' => 'Reporte de Formas de pago',
             ],
             'purchases' => [
                 'all_purchases' => 'Todas las compras',
                 'purchases_by_supplier' => 'Compras por proveedor',
-                'purchases_by_category' => 'Compras por categoría'
+                'purchases_by_category' => 'Compras por categoría',
             ],
             'finance' => [
                 'cash_register' => 'Movimientos de Caja',
                 'profits' => 'Reporte de Ganancias',
                 'daily_closing' => 'Cierres diarios',
-                'accounting_reports' => 'Reportes de Contabilidad'
+                'accounting_reports' => 'Reportes de Contabilidad',
             ],
             'operations' => [
                 'sales_by_user' => 'Ventas por Usuario',
                 'user_activity' => 'Actividad de usuarios',
-                'system_logs' => 'Logs del sistema'
+                'system_logs' => 'Logs del sistema',
             ],
             default => []
         };

@@ -1,4 +1,5 @@
 <?php
+
 /*
  * RUTAS: Sistema de Rutas de la Aplicación Restaurante
  *
@@ -9,21 +10,18 @@
  * - Se optimizaron las rutas de impresión y generación de comprobantes
  */
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PosController;
-use App\Livewire\TableMap\TableMapView;
-use App\Http\Controllers\CashRegisterController;
-use App\Http\Controllers\TableController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\CashRegisterReportController;
+use App\Http\Controllers\PosController;
+use App\Http\Controllers\PreBillPrintController;
+use App\Http\Controllers\TableController;
+use App\Livewire\TableMap\TableMapView;
+use App\Models\CompanyConfig;
 use App\Models\Invoice;
 use App\Models\Order;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Models\Customer;
-use Illuminate\Support\Facades\Log;
-use App\Models\CompanyConfig;
 use Illuminate\Support\Facades\Blade;
-use App\Http\Controllers\PreBillPrintController;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     // Mostrar la página principal del sitio
@@ -34,8 +32,6 @@ Route::get('/', function () {
 Route::get('/delivery-redirect', [\App\Http\Controllers\DeliveryRedirectController::class, 'redirectBasedOnRole'])
     ->name('delivery.redirect')
     ->middleware(['auth']);
-
-
 
 // Ruta para exportar informe de caja a PDF (sin cuadrículas)
 Route::get('/admin/export-cash-register-pdf/{id}', [\App\Http\Controllers\Filament\ExportCashRegisterPdfController::class, 'export'])
@@ -80,14 +76,14 @@ Route::middleware(['auth', 'role:cashier|admin|super_admin'])->group(function ()
 });
 
 // Ruta para imprimir ticket (abre PDF directamente) evitando respuesta JSON Livewire
-Route::middleware(['auth','role:cashier|admin|super_admin'])->get('/admin/invoices/{invoice}/print-ticket', [\App\Http\Controllers\InvoiceController::class, 'printTicket'])
+Route::middleware(['auth', 'role:cashier|admin|super_admin'])->get('/admin/invoices/{invoice}/print-ticket', [\App\Http\Controllers\InvoiceController::class, 'printTicket'])
     ->name('filament.admin.invoices.print-ticket');
 
 // Ruta de impresión de comprobantes - DESHABILITADA - ahora se usa la ruta de Filament
 // Route::get('/invoices/print/{invoice}', [\App\Http\Controllers\InvoiceController::class, 'printInvoice'])->name('invoices.print');
 Route::get('/thermal-preview/command/{order}', [\App\Http\Controllers\PosController::class, 'thermalPreviewCommand'])->name('thermal.preview.command');
 Route::get('/thermal-preview/pre-bill/{order}', [\App\Http\Controllers\PosController::class, 'thermalPreviewPreBill'])->name('thermal.preview.prebill');
-Route::get('/thermal-preview/demo', function() {
+Route::get('/thermal-preview/demo', function () {
     return view('thermal-preview');
 })->name('thermal.preview.demo');
 
@@ -120,14 +116,16 @@ Route::middleware(['auth', 'pos.access'])->group(function () {
 });
 
 // Ruta de prueba para imágenes
-Route::get('/test-images', function() {
+Route::get('/test-images', function () {
     $products = \App\Models\Product::whereNotNull('image_path')->limit(5)->get();
+
     return view('test-images', ['products' => $products]);
 });
 
 // Nueva ruta de prueba para imágenes
-Route::get('/image-test', function() {
+Route::get('/image-test', function () {
     $products = \App\Models\Product::whereNotNull('image_path')->limit(10)->get();
+
     return view('image-test', ['products' => $products]);
 });
 
@@ -159,8 +157,6 @@ Route::middleware(['auth'])->group(function () {
 
 // Ruta para resetear el estado de todas las mesas a disponible
 Route::get('/tables/reset-status', [\App\Http\Controllers\TableResetController::class, 'resetAllTables'])->name('tables.reset-status');
-
-
 
 // Rutas para mantenimiento de mesas
 Route::middleware(['auth', 'tables.maintenance.access'])->group(function () {
@@ -209,20 +205,20 @@ Route::middleware(['web', 'auth'])->group(function () {
 // Ruta para descargar archivos temporales (Excel, etc.)
 Route::get('/download/temp/{path}', function ($path) {
     $tempDir = sys_get_temp_dir();
-    $fullPath = $tempDir . DIRECTORY_SEPARATOR . $path;
-    
+    $fullPath = $tempDir.DIRECTORY_SEPARATOR.$path;
+
     // Verificar que el archivo exista y sea un archivo temporal válido
     if (file_exists($fullPath) && strpos($fullPath, $tempDir) === 0) {
         $fileName = request('name', 'archivo_descarga.xlsx');
-        
+
         return response()->download($fullPath, $fileName, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
-            'Expires' => '0'
+            'Expires' => '0',
         ])->deleteFileAfterSend(true);
     }
-    
+
     abort(404, 'Archivo no encontrado');
 })->name('download.temp.file')->middleware(['auth']);
 
@@ -232,7 +228,8 @@ Route::get('/admin/reportes/sales/excel-download', [\App\Http\Controllers\SalesR
     ->name('admin.reportes.sales.excel');
 
 Route::get('/admin/reportes/products-by-channel/excel-download', [\App\Http\Controllers\ProductsByChannelReportController::class, 'download'])
-    ->name('admin.reportes.products-by-channel.excel');
+    ->name('admin.reportes.products-by-channel.excel')
+    ->middleware(['auth']);
 
 Route::get('/admin/reportes/purchases/excel-download', [\App\Http\Controllers\PurchaseReportController::class, 'downloadAll'])
     ->name('admin.reportes.purchases.excel');
@@ -248,8 +245,6 @@ Route::get('/admin/reportes/accounting/excel-download', [\App\Http\Controllers\A
     ->name('admin.reportes.accounting.excel')
     ->middleware(['auth']);
 
-
-
 // Reporte de caja registradora DEBUG (para examinar archivo) - COMENTADO TEMPORALMENTE
 // Route::get('/admin/reportes/cash-register/excel-debug', [\App\Http\Controllers\CashRegisterReportDebugController::class, 'download'])
 //     ->name('admin.reportes.cash-register.excel-debug')
@@ -258,10 +253,6 @@ Route::get('/admin/reportes/accounting/excel-download', [\App\Http\Controllers\A
 // Route::get('/download-debug/{filename}', [\App\Http\Controllers\CashRegisterReportDebugController::class, 'downloadFile'])
 //     ->name('download.debug')
 //     ->middleware(['auth']);
-
-
-
-
 
 // Rutas para descargas de comprobantes SUNAT
 Route::middleware(['web', 'auth'])->group(function () {
@@ -286,19 +277,20 @@ Route::middleware(['web', 'auth'])->group(function () {
         ->name('download.cdr');
 });
 
-Route::get('/invoices/{invoice}/download-pdf', function(Invoice $invoice) {
+Route::get('/invoices/{invoice}/download-pdf', function (Invoice $invoice) {
     // Determinar la vista según el tipo de comprobante
-    $view = match($invoice->invoice_type) {
+    $view = match ($invoice->invoice_type) {
         'receipt' => 'pdf.receipt',
         'sales_note' => 'pdf.sales_note',
         default => 'pdf.invoice'
     };
 
     $pdf = Pdf::loadView($view, compact('invoice'));
+
     return $pdf->stream("comprobante-{$invoice->id}.pdf");
 })->name('invoices.download-pdf');
 
-Route::get('/orders/{order}/download-comanda-pdf', function(Order $order) {
+Route::get('/orders/{order}/download-comanda-pdf', function (Order $order) {
     // ✅ Capturar el nombre del cliente desde la URL para venta directa
     $customerNameForComanda = request()->get('customerName', '');
 
@@ -306,17 +298,16 @@ Route::get('/orders/{order}/download-comanda-pdf', function(Order $order) {
     $customer = $order->customer ?? \App\Models\Customer::getGenericCustomer();
 
     // Verificar que el cliente no sea nulo
-    if (!$customer) {
+    if (! $customer) {
         $customer = \App\Models\Customer::getGenericCustomer();
     }
 
     $pdf = Pdf::loadView('pdf.comanda', compact('order', 'customerNameForComanda', 'customer'));
+
     return $pdf->stream("comanda-{$order->id}.pdf");
 })->name('orders.comanda.pdf');
 
 // Ruta eliminada para evitar conflicto - se usa la ruta pos.prebill.pdf existente
-
-
 
 // Ruta optimizada para pre-cuentas
 Route::middleware(['web'])->group(function () {
@@ -326,13 +317,13 @@ Route::middleware(['web'])->group(function () {
 });
 
 // Ruta optimizada para impresión térmica desde POS (ÚNICA VERSIÓN)
-Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
+Route::get('/print/invoice/{invoice}', function (Invoice $invoice) {
     // Log para debugging
     Log::info('🖨️ ACCESO A RUTA DE IMPRESIÓN', [
         'invoice_id' => $invoice->id,
         'invoice_type' => $invoice->invoice_type,
         'user_id' => auth()->check() ? auth()->user()->id : null,
-        'timestamp' => now()
+        'timestamp' => now(),
     ]);
 
     // Obtener configuración de empresa usando los métodos estáticos
@@ -356,11 +347,11 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
     $data = [
         'invoice' => $invoice,
         'company' => $company,
-        'direct_sale_customer_name' => $directSaleName
+        'direct_sale_customer_name' => $directSaleName,
     ];
 
     // Determinar la vista según el tipo de documento
-    $view = match($invoice->invoice_type) {
+    $view = match ($invoice->invoice_type) {
         'receipt' => 'pdf.receipt',
         'sales_note' => 'pdf.sales_note',
         default => 'pdf.invoice'
@@ -420,9 +411,9 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
 
         // Insertar optimización térmica antes del cierre de </head> o al inicio de <body>
         if (strpos($html, '</head>') !== false) {
-            $html = str_replace('</head>', $thermal_optimization . '</head>', $html);
+            $html = str_replace('</head>', $thermal_optimization.'</head>', $html);
         } else {
-            $html = '<html><head>' . $thermal_optimization . '</head><body>' . $html . '</body></html>';
+            $html = '<html><head>'.$thermal_optimization.'</head><body>'.$html.'</body></html>';
         }
 
         Log::info('✅ HTML DE IMPRESIÓN GENERADO CORRECTAMENTE', ['invoice_id' => $invoice->id]);
@@ -436,7 +427,7 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
             'Content-Type' => 'text/html; charset=utf-8',
             'Cache-Control' => 'no-cache, no-store, must-revalidate',
             'Pragma' => 'no-cache',
-            'Expires' => '0'
+            'Expires' => '0',
         ]);
 
     } catch (\Exception $e) {
@@ -444,18 +435,16 @@ Route::get('/print/invoice/{invoice}', function(Invoice $invoice) {
             'invoice_id' => $invoice->id,
             'error' => $e->getMessage(),
             'file' => $e->getFile(),
-            'line' => $e->getLine()
+            'line' => $e->getLine(),
         ]);
 
-        return response('Error al generar comprobante: ' . $e->getMessage(), 500);
+        return response('Error al generar comprobante: '.$e->getMessage(), 500);
     }
 })->middleware(['web'])->name('print.invoice');
 
-
-
 // Rutas para visualización individual de reportes
 Route::middleware(['web', 'auth'])->group(function () {
-    Route::get('/admin/reportes/{category}/{reportType}', function($category, $reportType) {
+    Route::get('/admin/reportes/{category}/{reportType}', function ($category, $reportType) {
         try {
             // Crear una instancia de la página y configurar propiedades públicas
             $page = new \App\Filament\Pages\ReportViewerPage;
@@ -487,35 +476,35 @@ Route::middleware(['web', 'auth'])->group(function () {
             return view('filament.pages.report-viewer-page', [
                 'page' => $page,
                 'reportType' => $reportType,
-                'category' => $category
+                'category' => $category,
             ]);
         } catch (\Exception $e) {
             // En caso de error, mostrar mensaje amigable
             return response()->view('errors.generic', [
-                'message' => 'Error al cargar el reporte: ' . $e->getMessage(),
-                'backUrl' => route('filament.admin.pages.reportes')
+                'message' => 'Error al cargar el reporte: '.$e->getMessage(),
+                'backUrl' => route('filament.admin.pages.reportes'),
             ], 500);
         }
     })->name('filament.admin.pages.report-viewer');
 
     // Rutas para modal de detalle y impresión de órdenes
-    Route::get('/admin/orders/{order}/detail', function($orderId) {
+    Route::get('/admin/orders/{order}/detail', function ($orderId) {
         try {
             $order = \App\Models\Order::with(['customer', 'user', 'table', 'orderDetails.product'])->findOrFail($orderId);
 
             return view('filament.modals.order-detail', compact('order'));
         } catch (\Exception $e) {
-            return response('<div class="text-center p-4 text-red-600">Error: ' . $e->getMessage() . '</div>', 404);
+            return response('<div class="text-center p-4 text-red-600">Error: '.$e->getMessage().'</div>', 404);
         }
     })->name('admin.orders.detail');
 
-    Route::get('/admin/orders/{order}/print', function($orderId) {
+    Route::get('/admin/orders/{order}/print', function ($orderId) {
         try {
             $order = \App\Models\Order::with(['customer', 'user', 'table', 'orderDetails.product'])->findOrFail($orderId);
 
             return view('filament.modals.order-print', compact('order'));
         } catch (\Exception $e) {
-            return response('Error al cargar la orden: ' . $e->getMessage(), 500);
+            return response('Error al cargar la orden: '.$e->getMessage(), 500);
         }
     })->name('admin.orders.print');
 });
@@ -525,11 +514,11 @@ Route::middleware(['auth'])->group(function () {
     // Vista principal de prueba SUNAT
     Route::get('/sunat-test', [\App\Http\Controllers\SunatTestController::class, 'index'])
         ->name('sunat-test.index');
-    
+
     // Envío de factura de prueba a SUNAT
     Route::post('/sunat-test/send', [\App\Http\Controllers\SunatTestController::class, 'sendToSunat'])
         ->name('sunat-test.send');
-    
+
     // Obtener logs del sistema en tiempo real
     Route::get('/sunat-test/logs', [\App\Http\Controllers\SunatTestController::class, 'logs'])
         ->name('sunat-test.logs');
@@ -544,6 +533,3 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/login', function () {
     return redirect()->route('filament.admin.auth.login');
 })->name('login');
-
-
-
