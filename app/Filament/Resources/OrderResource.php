@@ -25,7 +25,7 @@ class OrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar-square';
 
-    protected static ?string $navigationGroup = '📊 Reportes y Analytics';
+    protected static ?string $navigationGroup = 'Reportes y Analisis';
 
     protected static ?string $navigationLabel = 'Dashboard de Ventas';
 

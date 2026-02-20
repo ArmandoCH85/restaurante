@@ -3,12 +3,12 @@
 namespace App\Filament\Resources\PurchaseResource\Pages;
 
 use App\Filament\Resources\PurchaseResource;
-use App\Models\InventoryMovement;
 use App\Models\Purchase;
-use Filament\Resources\Pages\CreateRecord;
-use Filament\Notifications\Notification;
-use Illuminate\Database\QueryException;
 use Exception;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 class CreatePurchase extends CreateRecord
 {
@@ -20,120 +20,93 @@ class CreatePurchase extends CreateRecord
     }
 
     /**
-     * Convierte errores técnicos de base de datos en mensajes simples para usuarios
+     * Convierte errores tecnicos de base de datos en mensajes simples para usuarios.
      */
     private function getFriendlyErrorMessage(QueryException $exception): string
     {
-        $errorCode = $exception->getCode();
+        $errorCode = (string) $exception->getCode();
         $errorMessage = $exception->getMessage();
 
-        // Errores de clave foránea (foreign key)
-        if ($errorCode == 23000 && str_contains($errorMessage, 'foreign key constraint')) {
+        if ($errorCode === '23000' && str_contains($errorMessage, 'foreign key constraint')) {
             if (str_contains($errorMessage, 'supplier_id')) {
-                return "🚫 El proveedor seleccionado no existe. Verifica que esté registrado correctamente.";
+                return 'El proveedor seleccionado no existe. Verifica que este registrado correctamente.';
             }
             if (str_contains($errorMessage, 'product_id')) {
-                return "🚫 Uno de los productos seleccionados no existe. Revisa la lista de productos.";
+                return 'Uno de los productos seleccionados no existe. Revisa la lista de productos.';
             }
             if (str_contains($errorMessage, 'warehouse_id')) {
-                return "🚫 El almacén seleccionado no existe. Elige otro almacén.";
+                return 'El almacen seleccionado no existe. Elige otro almacen.';
             }
-            return "🚫 No se puede guardar porque hay datos relacionados que no existen.";
+
+            return 'No se puede guardar porque hay datos relacionados que no existen.';
         }
 
-        // Errores de duplicado (unique constraint)
-        if ($errorCode == 23000 && str_contains($errorMessage, 'Duplicate entry')) {
+        if ($errorCode === '23000' && str_contains($errorMessage, 'Duplicate entry')) {
             if (str_contains($errorMessage, 'document_number')) {
-                return "📄 Ya existe una compra con ese número de documento. Cambia el número.";
+                return 'Ya existe una compra con ese numero de documento. Cambia el numero.';
             }
-            return "📝 Ya existe un registro con esos datos. Revisa y cambia los valores duplicados.";
+
+            return 'Ya existe un registro con esos datos. Revisa y cambia los valores duplicados.';
         }
 
-        // Errores de campo requerido (not null)
-        if ($errorCode == 23000 && str_contains($errorMessage, 'cannot be null')) {
-            return "📝 Faltan completar algunos campos obligatorios. Revisa los marcados con asterisco (*).";
+        if ($errorCode === '23000' && str_contains($errorMessage, 'cannot be null')) {
+            return 'Faltan completar algunos campos obligatorios. Revisa los marcados con asterisco (*).';
         }
 
-        // Errores de conexión
-        if (in_array($errorCode, ['2002', '2003', '2006'])) {
-            return "🌐 Problema de conexión. Espera 10 segundos y vuelve a intentar.";
+        if (in_array($errorCode, ['2002', '2003', '2006'], true)) {
+            return 'Problema de conexion. Espera unos segundos y vuelve a intentar.';
         }
 
-        // Deadlock o bloqueo de datos
-        if ($errorCode == 1213) {
-            return "⏳ Los datos están ocupados por otro proceso. Cierra esta ventana, espera 5 segundos y abre de nuevo.";
+        if ($errorCode === '1213') {
+            return 'Los datos estan ocupados por otro proceso. Cierra esta ventana y vuelve a intentar.';
         }
 
-        // Error genérico
-        return "😅 Ocurrió un problema al guardar. Revisa los datos e intenta de nuevo.";
+        return 'Ocurrio un problema al guardar. Revisa los datos e intenta de nuevo.';
     }
 
     protected function afterCreate(): void
     {
         try {
-            // Registrar automáticamente el stock después de crear la compra
-            $purchase = $this->record;
+            $purchase = $this->record->fresh();
 
-            // Recorrer todos los detalles de la compra
-            foreach ($purchase->details as $detail) {
-                // Buscar el producto (puede ser ingrediente u otro tipo de producto)
-                $product = \App\Models\Product::find($detail->product_id);
+            if ($purchase?->status === Purchase::STATUS_COMPLETED) {
+                Notification::make()
+                    ->title('Compra registrada exitosamente')
+                    ->body('La compra se guardo como COMPLETADA y el stock se registro automaticamente.')
+                    ->success()
+                    ->send();
 
-                if ($product) {
-                    // Crear movimiento de inventario
-                    InventoryMovement::createPurchaseMovement(
-                        $detail->product_id,
-                        $purchase->warehouse_id,
-                        $detail->quantity,
-                        $detail->unit_cost,
-                        $purchase->id,
-                        $purchase->document_number,
-                        $purchase->created_by,
-                        "Compra: {$purchase->document_type} {$purchase->document_number}"
-                    );
-                }
+                return;
             }
 
-            // Actualizar el estado de la compra a completado
-            $purchase->status = Purchase::STATUS_COMPLETED;
-            $purchase->save();
-
             Notification::make()
-                ->title('🎉 COMPRA REGISTRADA EXITOSAMENTE')
-                ->body('✅ La compra y el stock han sido registrados correctamente en el sistema')
+                ->title('Compra registrada')
+                ->body('La compra quedo en PENDIENTE. El stock se registrara cuando pase a COMPLETADA.')
                 ->success()
                 ->send();
-
         } catch (QueryException $e) {
-            // Error de base de datos - mostrar mensaje amigable
-            $friendlyMessage = $this->getFriendlyErrorMessage($e);
-
             Notification::make()
-                ->title('⚠️ PROBLEMA AL REGISTRAR STOCK')
-                ->body($friendlyMessage)
+                ->title('Problema al registrar compra')
+                ->body($this->getFriendlyErrorMessage($e))
                 ->danger()
                 ->persistent()
                 ->send();
 
-            // Log del error técnico para debugging
-            \Illuminate\Support\Facades\Log::error('Error en afterCreate de Purchase: ' . $e->getMessage(), [
+            Log::error('Error en afterCreate de Purchase', [
                 'purchase_id' => $this->record->id ?? null,
                 'error_code' => $e->getCode(),
-                'error_message' => $e->getMessage()
+                'error_message' => $e->getMessage(),
             ]);
-
         } catch (Exception $e) {
-            // Error general - mostrar mensaje amigable
             Notification::make()
-                ->title('🚫 PROBLEMA INESPERADO')
-                ->body('😅 Ocurrió algo inesperado. Por favor, cierra esta ventana y abre de nuevo para continuar.')
+                ->title('Problema inesperado')
+                ->body('Ocurrio algo inesperado. Intenta nuevamente.')
                 ->danger()
                 ->send();
 
-            // Log del error técnico
-            \Illuminate\Support\Facades\Log::error('Error general en afterCreate de Purchase: ' . $e->getMessage(), [
+            Log::error('Error general en afterCreate de Purchase', [
                 'purchase_id' => $this->record->id ?? null,
-                'error_message' => $e->getMessage()
+                'error_message' => $e->getMessage(),
             ]);
         }
     }

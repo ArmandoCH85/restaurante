@@ -14,11 +14,13 @@ class SalesChartWidget extends ChartWidget
     use InteractsWithPageFilters;
     use DateRangeFilterTrait;
 
-    protected static ?string $heading = '📈 Tendencia de Ventas por Tipo';
+    protected static ?string $heading = 'Tendencia de Ventas por Canal';
 
     protected static ?int $sort = 2;
 
-    protected static ?string $maxHeight = '400px';
+    protected static ?string $maxHeight = '544px';
+
+    protected static ?string $description = 'Comparativo Diario por Canal';
 
     // 📐 ANCHO COMPLETO PARA EL GRÁFICO
     protected int | string | array $columnSpan = 'full';
@@ -38,38 +40,58 @@ class SalesChartWidget extends ChartWidget
         return [
             'datasets' => [
                 [
-                    'label' => '🍽️ Mesa',
+                    'label' => 'Mesa',
                     'data' => $data['mesa'],
-                    'backgroundColor' => 'rgba(59, 130, 246, 0.1)', // Azul
-                    'borderColor' => 'rgb(59, 130, 246)',
-                    'pointBackgroundColor' => 'rgb(59, 130, 246)',
+                    'backgroundColor' => 'rgba(21, 93, 166, 0.15)',
+                    'borderColor' => 'rgb(21, 93, 166)',
+                    'pointBackgroundColor' => 'rgb(21, 93, 166)',
+                    'pointBorderColor' => '#ffffff',
+                    'pointBorderWidth' => 1.5,
+                    'pointRadius' => 2.5,
+                    'pointHoverRadius' => 5,
+                    'borderWidth' => 2.6,
                     'tension' => 0.4,
                     'fill' => true,
                 ],
                 [
-                    'label' => '🚚 Delivery',
+                    'label' => 'Delivery',
                     'data' => $data['delivery'],
-                    'backgroundColor' => 'rgba(245, 158, 11, 0.1)', // Ámbar
-                    'borderColor' => 'rgb(245, 158, 11)',
-                    'pointBackgroundColor' => 'rgb(245, 158, 11)',
+                    'backgroundColor' => 'rgba(180, 83, 9, 0.14)',
+                    'borderColor' => 'rgb(180, 83, 9)',
+                    'pointBackgroundColor' => 'rgb(180, 83, 9)',
+                    'pointBorderColor' => '#ffffff',
+                    'pointBorderWidth' => 1.5,
+                    'pointRadius' => 2.5,
+                    'pointHoverRadius' => 5,
+                    'borderWidth' => 2.6,
                     'tension' => 0.4,
                     'fill' => true,
                 ],
                 [
-                    'label' => '📱 Apps',
+                    'label' => 'Apps',
                     'data' => $data['apps'],
-                    'backgroundColor' => 'rgba(147, 51, 234, 0.1)', // Púrpura
-                    'borderColor' => 'rgb(147, 51, 234)',
-                    'pointBackgroundColor' => 'rgb(147, 51, 234)',
+                    'backgroundColor' => 'rgba(51, 65, 85, 0.14)',
+                    'borderColor' => 'rgb(51, 65, 85)',
+                    'pointBackgroundColor' => 'rgb(51, 65, 85)',
+                    'pointBorderColor' => '#ffffff',
+                    'pointBorderWidth' => 1.5,
+                    'pointRadius' => 2.5,
+                    'pointHoverRadius' => 5,
+                    'borderWidth' => 2.6,
                     'tension' => 0.4,
                     'fill' => true,
                 ],
                 [
-                    'label' => '🥡 Venta Directa',
+                    'label' => 'Venta directa',
                     'data' => $data['directa'],
-                    'backgroundColor' => 'rgba(34, 197, 94, 0.1)', // Verde
-                    'borderColor' => 'rgb(34, 197, 94)',
-                    'pointBackgroundColor' => 'rgb(34, 197, 94)',
+                    'backgroundColor' => 'rgba(5, 150, 105, 0.14)',
+                    'borderColor' => 'rgb(5, 150, 105)',
+                    'pointBackgroundColor' => 'rgb(5, 150, 105)',
+                    'pointBorderColor' => '#ffffff',
+                    'pointBorderWidth' => 1.5,
+                    'pointRadius' => 2.5,
+                    'pointHoverRadius' => 5,
+                    'borderWidth' => 2.6,
                     'tension' => 0.4,
                     'fill' => true,
                 ],
@@ -264,10 +286,19 @@ class SalesChartWidget extends ChartWidget
                 'legend' => [
                     'display' => true,
                     'position' => 'top',
+                    'labels' => [
+                        'usePointStyle' => true,
+                        'boxWidth' => 10,
+                        'padding' => 16,
+                    ],
                 ],
                 'tooltip' => [
                     'mode' => 'index',
                     'intersect' => false,
+                    'backgroundColor' => 'rgba(15, 23, 42, 0.95)',
+                    'borderColor' => 'rgba(148, 163, 184, 0.3)',
+                    'borderWidth' => 1,
+                    'padding' => 12,
                     'callbacks' => [
                         'label' => 'function(context) {
                             return context.dataset.label + ": S/ " + context.parsed.y.toFixed(2);
@@ -278,6 +309,9 @@ class SalesChartWidget extends ChartWidget
             'scales' => [
                 'x' => [
                     'display' => true,
+                    'grid' => [
+                        'display' => false,
+                    ],
                     'title' => [
                         'display' => true,
                         'text' => 'Período',
@@ -285,6 +319,9 @@ class SalesChartWidget extends ChartWidget
                 ],
                 'y' => [
                     'display' => true,
+                    'grid' => [
+                        'color' => 'rgba(148, 163, 184, 0.2)',
+                    ],
                     'title' => [
                         'display' => true,
                         'text' => 'Ventas (S/)',
@@ -295,6 +332,23 @@ class SalesChartWidget extends ChartWidget
                             return "S/ " + value.toFixed(0);
                         }'
                     ],
+                ],
+            ],
+            'animation' => [
+                'duration' => 900,
+                'easing' => 'easeOutCubic',
+            ],
+            'elements' => [
+                'line' => [
+                    'capBezierPoints' => true,
+                ],
+            ],
+            'layout' => [
+                'padding' => [
+                    'top' => 8,
+                    'right' => 12,
+                    'bottom' => 4,
+                    'left' => 4,
                 ],
             ],
             'interaction' => [

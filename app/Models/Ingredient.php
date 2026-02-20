@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ingredient extends Model
 {
@@ -26,7 +26,7 @@ class Ingredient extends Model
         'current_stock',
         'current_cost',
         'supplier_id',
-        'active'
+        'active',
     ];
 
     /**
@@ -41,7 +41,7 @@ class Ingredient extends Model
         'active' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'deleted_at' => 'datetime'
+        'deleted_at' => 'datetime',
     ];
 
     /**
@@ -87,8 +87,11 @@ class Ingredient extends Model
     /**
      * Actualizar el stock y costo del ingrediente.
      */
-    public function updateStock(float $quantity, ?float $cost = null): bool
+    public function updateStock(float $quantity, ?float $cost = null, ?int $warehouseId = null): bool
     {
+        // $warehouseId is kept for compatibility with inventory movement callers.
+        unset($warehouseId);
+
         // Actualizar stock
         $this->current_stock += $quantity;
 
@@ -104,11 +107,11 @@ class Ingredient extends Model
     /**
      * Agregar stock utilizando el método FIFO.
      *
-     * @param float $quantity Cantidad a agregar
-     * @param float $unitCost Costo unitario
-     * @param int|null $warehouseId ID del almacén
-     * @param string|null $expiryDate Fecha de vencimiento (formato Y-m-d)
-     * @param int|null $purchaseId ID de la compra relacionada
+     * @param  float  $quantity  Cantidad a agregar
+     * @param  float  $unitCost  Costo unitario
+     * @param  int|null  $warehouseId  ID del almacén
+     * @param  string|null  $expiryDate  Fecha de vencimiento (formato Y-m-d)
+     * @param  int|null  $purchaseId  ID de la compra relacionada
      * @return IngredientStock El stock creado
      */
     public function addStock(float $quantity, float $unitCost, ?int $warehouseId = null, ?string $expiryDate = null, ?int $purchaseId = null): IngredientStock
@@ -121,7 +124,7 @@ class Ingredient extends Model
             'unit_cost' => $unitCost,
             'expiry_date' => $expiryDate,
             'status' => IngredientStock::STATUS_AVAILABLE,
-            'purchase_id' => $purchaseId
+            'purchase_id' => $purchaseId,
         ]);
 
         // Actualizar el stock total y el costo promedio del ingrediente
@@ -133,8 +136,8 @@ class Ingredient extends Model
     /**
      * Consumir stock utilizando el método FIFO.
      *
-     * @param float $quantity Cantidad a consumir
-     * @param int|null $warehouseId ID del almacén
+     * @param  float  $quantity  Cantidad a consumir
+     * @param  int|null  $warehouseId  ID del almacén
      * @return array Detalles del consumo
      */
     public function consumeStock(float $quantity, ?int $warehouseId = null): array
@@ -152,7 +155,7 @@ class Ingredient extends Model
     /**
      * Calcular el costo promedio ponderado del stock disponible.
      *
-     * @param int|null $warehouseId ID del almacén
+     * @param  int|null  $warehouseId  ID del almacén
      * @return float Costo promedio ponderado
      */
     public function calculateAverageCost(?int $warehouseId = null): float
@@ -181,12 +184,12 @@ class Ingredient extends Model
     /**
      * Actualizar el costo promedio del ingrediente basado en el stock disponible.
      *
-     * @param int|null $warehouseId ID del almacén
-     * @return bool
+     * @param  int|null  $warehouseId  ID del almacén
      */
     public function updateAverageCost(?int $warehouseId = null): bool
     {
         $this->current_cost = $this->calculateAverageCost($warehouseId);
+
         return $this->save();
     }
 }

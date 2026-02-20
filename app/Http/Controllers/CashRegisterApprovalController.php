@@ -14,8 +14,9 @@ class CashRegisterApprovalController extends Controller
             $cashRegister = CashRegister::findOrFail($id);
             
             // Verificar permisos
-            $user = auth()->user();
-            if (!$user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])) {
+            /** @var \App\Models\User|null $user */
+            $user = $request->user();
+            if (!$user || !$user->hasAnyRole(['admin', 'super_admin', 'manager'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No tiene permisos para aprobar cajas'
@@ -38,7 +39,7 @@ class CashRegisterApprovalController extends Controller
             }
             
             // Aprobar la caja
-            $cashRegister->reconcile(true, 'Aprobado desde lista por ' . $user->name);
+            $cashRegister->reconcile(true, 'Aprobado desde lista por '.$user->name, $user->id);
             
             return response()->json([
                 'success' => true,

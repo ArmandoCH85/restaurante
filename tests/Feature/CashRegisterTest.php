@@ -74,6 +74,14 @@ test('el monto inicial debe ser mayor o igual a cero', function () {
     expect((float) $cashRegister->opening_amount)->toEqual(0.0);
 });
 
+test('no se puede abrir caja con monto inicial negativo', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    expect(fn () => CashRegister::openRegister(-1.00))
+        ->toThrow(\InvalidArgumentException::class, 'El monto inicial debe ser mayor o igual a cero.');
+});
+
 test('la apertura registra opened_by y opening_datetime', function () {
     $user = User::factory()->create();
     $this->actingAs($user);
@@ -105,6 +113,23 @@ test('getOpenRegister devuelve la caja abierta', function () {
     $result = CashRegister::getOpenRegister();
 
     expect($result->id)->toBe($open->id);
+});
+
+test('getOpenRegister devuelve la caja abierta mas reciente', function () {
+    $older = CashRegister::factory()->create([
+        'is_active' => true,
+        'opening_datetime' => now()->subHour(),
+    ]);
+
+    $newer = CashRegister::factory()->create([
+        'is_active' => true,
+        'opening_datetime' => now(),
+    ]);
+
+    $result = CashRegister::getOpenRegister();
+
+    expect($result->id)->toBe($newer->id)
+        ->and($result->id)->not->toBe($older->id);
 });
 
 test('getActiveCashRegisterId devuelve el id de la caja activa', function () {

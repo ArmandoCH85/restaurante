@@ -19,7 +19,7 @@ class TopProductsWidget extends BaseWidget
     use InteractsWithPageFilters;
     use DateRangeFilterTrait;
 
-    protected static ?string $heading = '🏆 Productos Más Vendidos';
+    protected static ?string $heading = 'Top Productos Vendidos';
 
     protected static ?int $sort = 3;
 
@@ -49,50 +49,50 @@ class TopProductsWidget extends BaseWidget
                     ->label('#')
                     ->badge()
                     ->color(fn ($record, $rowLoop) => match($rowLoop->iteration) {
-                        1 => 'warning',  // 🥇 Oro
-                        2 => 'gray',     // 🥈 Plata
-                        3 => 'danger',   // 🥉 Bronce
+                        1 => 'warning',
+                        2 => 'gray',
+                        3 => 'danger',
                         default => 'primary'
                     })
                     ->formatStateUsing(fn ($record, $rowLoop) => match($rowLoop->iteration) {
-                        1 => '🥇 1°',
-                        2 => '🥈 2°',
-                        3 => '🥉 3°',
+                        1 => 'TOP 1',
+                        2 => 'TOP 2',
+                        3 => 'TOP 3',
                         default => $rowLoop->iteration . '°'
                     }),
 
                 Tables\Columns\TextColumn::make('product.name')
-                    ->label('🍽️ Producto')
+                    ->label('Producto')
                     ->searchable()
                     ->weight('bold')
                     ->limit(30)
                     ->tooltip(fn ($record) => $record->product->name),
 
                 Tables\Columns\TextColumn::make('product.category.name')
-                    ->label('📂 Categoría')
+                    ->label('Categoria')
                     ->badge()
                     ->color('info'),
 
                 Tables\Columns\TextColumn::make('total_quantity')
-                    ->label('📊 Vendidos')
+                    ->label('Vendidos')
                     ->alignCenter()
                     ->weight('bold')
                     ->color('success')
                     ->formatStateUsing(fn ($state) => $state . ' unid.'),
 
                 Tables\Columns\TextColumn::make('total_revenue')
-                    ->label('💰 Ingresos')
+                    ->label('Ingresos')
                     ->money('PEN')
                     ->weight('bold')
                     ->color('success'),
 
                 Tables\Columns\TextColumn::make('avg_price')
-                    ->label('💵 Precio Prom.')
+                    ->label('Precio prom.')
                     ->money('PEN')
                     ->color('gray'),
 
                 Tables\Columns\TextColumn::make('percentage')
-                    ->label('📈 % Ventas')
+                    ->label('% ventas')
                     ->alignCenter()
                     ->color('warning')
                     ->formatStateUsing(fn ($state) => number_format($state, 1) . '%'),
@@ -108,7 +108,6 @@ class TopProductsWidget extends BaseWidget
             ])
             ->defaultSort('total_quantity', 'desc')
             ->paginated([10])
-            ->poll('60s') // Actualización cada minuto
             ->striped();
     }
 

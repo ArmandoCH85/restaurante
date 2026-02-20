@@ -26,7 +26,7 @@ class ElectronicBillingConfigResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Configuraciones de Facturación';
 
-    protected static ?string $navigationGroup = '⚙️ Configuración';
+    protected static ?string $navigationGroup = 'Configuracion';
 
     protected static ?int $navigationSort = 2;
 

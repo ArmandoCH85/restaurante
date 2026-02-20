@@ -2294,7 +2294,7 @@
                     </svg>
                     Transferir Mesa
                 </h3>
-                <button onclick="cerrarModalTransferencia()" class="p-1 text-gray-400 transition-all duration-200 bg-gray-100 rounded-full hover:text-gray-600 dark:hover:text-gray-300 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
+                <button onclick="cerrarModalTransferencia()" type="button" aria-label="Cerrar modal de transferencia" class="p-1 text-gray-400 transition-all duration-200 bg-gray-100 rounded-full hover:text-gray-600 dark:hover:text-gray-300 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>

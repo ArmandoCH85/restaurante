@@ -72,6 +72,25 @@ class SalesByAreaReportService
             ->orderBy('product_name');
     }
 
+    public function productsSummaryForPeriod(string $from, string $to, int $areaId, string $groupBy, string $period): string
+    {
+        $rows = $this->drillDownQuery($from, $to, $areaId, $groupBy, $period)->get();
+
+        if ($rows->isEmpty()) {
+            return 'Sin productos';
+        }
+
+        return $rows
+            ->map(function (object $row): string {
+                $name = (string) $row->product_name;
+                $units = number_format((float) $row->units_sold, 3, '.', '');
+                $net = number_format((float) $row->net_sold, 2, '.', '');
+
+                return "{$name} ({$units} u | S/ {$net})";
+            })
+            ->implode(' | ');
+    }
+
     private function getPeriodSelectSql(string $groupBy): string
     {
         if ($groupBy !== 'month') {

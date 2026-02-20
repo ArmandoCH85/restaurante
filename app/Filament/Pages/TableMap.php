@@ -31,7 +31,7 @@ class TableMap extends Page
 
     // IMPORTANTE: Slug debe coincidir con la ruta esperada
     protected static ?string $slug = 'mapa-mesas';
-    protected static ?string $navigationGroup = '🏪 Operaciones Diarias';
+    protected static ?string $navigationGroup = 'Operaciones Diarias';
     protected static ?int $navigationSort = 2;
 
     // Nueva vista 100% Filament nativo

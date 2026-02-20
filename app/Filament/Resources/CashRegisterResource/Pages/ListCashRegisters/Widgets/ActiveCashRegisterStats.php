@@ -27,20 +27,20 @@ class ActiveCashRegisterStats extends BaseWidget
                     ->descriptionIcon('heroicon-m-plus-circle')
                     ->color('gray')
                     ->chart([0, 0, 0, 0, 0, 0, 0])
-                    ->extraAttributes([
-                        'class' => 'cursor-pointer hover:bg-gray-50 transition-colors',
-                    ]),
+                    ->extraAttributes($this->buildCardAttributes('#ffffff', '#d9e2ef')),
 
                 Stat::make('Operaciones Hoy', $this->getTodayOperationsCount())
                     ->description('Cajas cerradas en el día')
-                    ->descriptionIcon('heroicon-m-archive-box')
+                    ->descriptionIcon('heroicon-m-calendar-days')
                     ->color('info')
-                    ->chart($this->getTodayOperationsChart()),
+                    ->chart($this->getTodayOperationsChart())
+                    ->extraAttributes($this->buildCardAttributes('#f8fbff', '#bfdbfe')),
 
                 Stat::make('Tiempo Promedio', $this->getAverageOperationTime())
                     ->description('Duración promedio de operaciones')
                     ->descriptionIcon('heroicon-m-clock')
-                    ->color('warning'),
+                    ->color('warning')
+                    ->extraAttributes($this->buildCardAttributes('#fffaf0', '#fde68a')),
             ];
         }
 
@@ -51,12 +51,10 @@ class ActiveCashRegisterStats extends BaseWidget
         return [
             Stat::make('Caja Activa', '#' . $openRegister->id)
                 ->description("Abierta hace {$duration} por {$openedByName}")
-                ->descriptionIcon('heroicon-m-user')
+                ->descriptionIcon('heroicon-m-lock-open')
                 ->color('success')
                 ->chart([1, 2, 3, 4, 5, 6, 7])
-                ->extraAttributes([
-                    'class' => 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200',
-                ]),
+                ->extraAttributes($this->buildCardAttributes('#f0fdf4', '#86efac')),
 
             Stat::make('Monto Inicial', $isSupervisor
                 ? 'S/ ' . number_format($openRegister->opening_amount, 2)
@@ -66,7 +64,8 @@ class ActiveCashRegisterStats extends BaseWidget
                     : 'Solo visible para supervisores')
                 ->descriptionIcon('heroicon-m-banknotes')
                 ->color($isSupervisor ? 'info' : 'gray')
-                ->chart($isSupervisor ? [1, 1, 1, 1, 1, 1, 1] : [0, 0, 0, 0, 0, 0, 0]),
+                ->chart($isSupervisor ? [1, 1, 1, 1, 1, 1, 1] : [0, 0, 0, 0, 0, 0, 0])
+                ->extraAttributes($this->buildCardAttributes('#f8fbff', '#bfdbfe')),
 
             Stat::make('Ventas Efectivo', $isSupervisor
                 ? 'S/ ' . number_format($openRegister->cash_sales, 2)
@@ -74,18 +73,26 @@ class ActiveCashRegisterStats extends BaseWidget
                 ->description($isSupervisor
                     ? 'Total ventas: S/ ' . number_format($openRegister->total_sales, 2)
                     : 'Solo visible para supervisores')
-                ->descriptionIcon('heroicon-m-currency-dollar')
+                ->descriptionIcon('heroicon-m-wallet')
                 ->color($isSupervisor ? 'success' : 'gray')
                 ->chart($isSupervisor ? $this->getSalesChart($openRegister) : [0, 0, 0, 0, 0, 0, 0])
-                ->extraAttributes([
-                    'class' => $isSupervisor ? 'bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200' : '',
-                ]),
+                ->extraAttributes($isSupervisor
+                    ? $this->buildCardAttributes('#eff6ff', '#93c5fd')
+                    : $this->buildCardAttributes('#ffffff', '#e2e8f0')),
 
-            Stat::make('📈 Rendimiento', $this->getPerformanceIndicator($openRegister))
+            Stat::make('Rendimiento', $this->getPerformanceIndicator($openRegister))
                 ->description($this->getPerformanceDescription($openRegister))
                 ->descriptionIcon('heroicon-m-chart-bar-square')
                 ->color($this->getPerformanceColor($openRegister))
-                ->chart($this->getPerformanceChart($openRegister)),
+                ->chart($this->getPerformanceChart($openRegister))
+                ->extraAttributes($this->buildCardAttributes('#fffaf0', '#fde68a')),
+        ];
+    }
+
+    protected function buildCardAttributes(string $background, string $border): array
+    {
+        return [
+            'style' => "border: 1px solid {$border}; background: {$background}; border-radius: 12px;",
         ];
     }
 

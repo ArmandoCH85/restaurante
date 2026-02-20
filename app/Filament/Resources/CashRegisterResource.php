@@ -6,8 +6,10 @@ use App\Filament\Resources\CashRegisterResource\Pages;
 use App\Models\CashRegister;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Support\Colors\Color;
+use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,7 +48,7 @@ class CashRegisterResource extends Resource
     // Aplicar color de fondo destacado al item de navegación
     public static function getNavigationLabel(): string
     {
-        return 'Apertura y Cierre de Caja';
+        return 'Operaciones de Caja';
     }
 
     public static function getNavigationIcon(): ?string
@@ -139,7 +141,7 @@ class CashRegisterResource extends Resource
                     ->icon('heroicon-m-chart-bar')
                     ->schema(function () {
                         $user = auth()->user();
-                        $isSupervisor = $user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']);
+                        $isSupervisor = $user->hasAnyRole(['admin', 'super_admin', 'manager']);
 
                         if ($isSupervisor) {
                             return [
@@ -446,36 +448,63 @@ class CashRegisterResource extends Resource
             ]);
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with([
+            'openedBy',
+            'closedBy',
+            'approvedBy',
+        ]);
+    }
+
     public static function table(Table $table): Table
     {
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
                     ->label('ID')
-                    ->prefix('#'),
-                Tables\Columns\BadgeColumn::make('status')
+                    ->prefix('#')
+                    ->badge()
+                    ->color('gray')
+                    ->icon('heroicon-m-hashtag')
+                    ->weight(FontWeight::SemiBold),
+                Tables\Columns\TextColumn::make('status')
                     ->label('Estado')
                     ->getStateUsing(fn ($record) => $record->is_active ? 'Abierta' : 'Cerrada')
-                    ->colors([
-                        'success' => 'Abierta',
-                        'danger' => 'Cerrada',
-                    ]),
+                    ->badge()
+                    ->color(fn ($record) => $record->is_active ? 'success' : 'danger')
+                    ->icon(fn ($record) => $record->is_active ? 'heroicon-m-lock-open' : 'heroicon-m-lock-closed')
+                    ->weight(FontWeight::Bold),
                 Tables\Columns\TextColumn::make('opening_datetime')
                     ->label('Apertura')
-                    ->dateTime('d/m/Y H:i'),
+                    ->dateTime('d/m/Y H:i')
+                    ->icon('heroicon-m-calendar-days')
+                    ->color('gray'),
                 Tables\Columns\TextColumn::make('closing_datetime')
                     ->label('Cierre')
                     ->dateTime('d/m/Y H:i')
-                    ->placeholder('En curso'),
+                    ->placeholder('En curso')
+                    ->icon('heroicon-m-clock')
+                    ->color('gray'),
                 Tables\Columns\TextColumn::make('openedBy.name')
-                    ->label('Abierto por'),
+                    ->label('Abierto por')
+                    ->badge()
+                    ->color('success')
+                    ->icon('heroicon-m-user-circle')
+                    ->placeholder('Sin registro'),
                 Tables\Columns\TextColumn::make('closedBy.name')
                     ->label('Cerrado por')
-                    ->placeholder('En curso'),
+                    ->placeholder('En curso')
+                    ->badge()
+                    ->color('warning')
+                    ->icon('heroicon-m-user-circle'),
                 Tables\Columns\TextColumn::make('opening_amount')
                     ->label('Monto Inicial')
                     ->money('PEN')
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->badge()
+                    ->color('info')
+                    ->icon('heroicon-m-banknotes')
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
             ])
             ->filters([
                 // Filtro de estado mejorado con iconos
@@ -494,11 +523,11 @@ class CashRegisterResource extends Resource
                     ->label('Estado de Aprobación')
                     ->options([
                         1 => 'Aprobada',
-                        0 => 'Pendiente/Rechazada',
+                        0 => 'Pendiente',
                     ])
                     ->placeholder('Todos los estados')
                     ->default(null)
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
 
                 // Filtro de responsable
                 Tables\Filters\SelectFilter::make('opened_by')
@@ -624,12 +653,6 @@ class CashRegisterResource extends Resource
                     })
                     ->label('Fecha de Cierre'),
 
-                Tables\Filters\SelectFilter::make('opened_by')
-                    ->label('Abierto por')
-                    ->relationship('openedBy', 'name')
-                    ->searchable()
-                    ->preload(),
-
                 Tables\Filters\SelectFilter::make('closed_by')
                     ->label('Cerrado por')
                     ->relationship('closedBy', 'name')
@@ -671,18 +694,145 @@ class CashRegisterResource extends Resource
 
                         return $indicators;
                     })
-                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])),
+                    ->visible(fn () => auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager'])),
             ])
             ->filtersFormColumns(3)
-            ->defaultSort('id', 'desc')
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->label('Ver')
-                    ->icon('heroicon-m-eye'),
-                Tables\Actions\EditAction::make()
+                    ->icon('heroicon-m-eye')
+                    ->color('info'),
+                Tables\Actions\Action::make('close_register')
                     ->label('Cerrar')
                     ->icon('heroicon-m-lock-closed')
-                    ->visible(fn ($record) => $record->is_active),
+                    ->color('warning')
+                    ->visible(fn ($record) => $record->is_active)
+                    ->slideOver()
+                    ->modalHeading('Cerrar caja')
+                    ->modalDescription('Registra el conteo final para cerrar la caja sin salir del listado.')
+                    ->modalSubmitActionLabel('Cerrar caja')
+                    ->form([
+                        Forms\Components\Section::make('Resumen de sistema')
+                            ->schema([
+                                Forms\Components\Placeholder::make('expected_amount_info')
+                                    ->label('Monto esperado')
+                                    ->content(fn ($record) => 'S/ '.number_format((float) $record->calculateExpectedCash(), 2)),
+                                Forms\Components\Placeholder::make('system_cash_info')
+                                    ->label('Efectivo del sistema')
+                                    ->content(fn ($record) => 'S/ '.number_format((float) $record->getSystemCashSales(), 2)),
+                            ])
+                            ->columns(2),
+                        Forms\Components\Section::make('Conteo manual')
+                            ->schema([
+                                Forms\Components\TextInput::make('manual_cash')
+                                    ->label('Efectivo contado')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->required()
+                                    ->prefix('S/')
+                                    ->helperText('Ingresa el efectivo real contado en caja.'),
+                                Forms\Components\TextInput::make('manual_yape')
+                                    ->label('Yape')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefix('S/'),
+                                Forms\Components\TextInput::make('manual_plin')
+                                    ->label('Plin')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefix('S/'),
+                                Forms\Components\TextInput::make('manual_card')
+                                    ->label('Tarjeta')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefix('S/'),
+                                Forms\Components\TextInput::make('manual_didi')
+                                    ->label('Didi Food')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefix('S/'),
+                                Forms\Components\TextInput::make('manual_pedidos_ya')
+                                    ->label('PedidosYa')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefix('S/'),
+                                Forms\Components\TextInput::make('manual_bita_express')
+                                    ->label('Bita Express')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->default(0)
+                                    ->prefix('S/'),
+                                Forms\Components\Textarea::make('closing_observations')
+                                    ->label('Observaciones de cierre')
+                                    ->rows(3)
+                                    ->placeholder('Anota incidencias del cierre (opcional)')
+                                    ->columnSpanFull(),
+                            ])
+                            ->columns(3),
+                    ])
+                    ->action(function (CashRegister $record, array $data): void {
+                        $manualCash = (float) ($data['manual_cash'] ?? 0);
+                        $systemCash = (float) $record->getSystemCashSales();
+
+                        if ($systemCash > 0.009 && $manualCash <= 0.009) {
+                            Notification::make()
+                                ->warning()
+                                ->title('Falta registrar efectivo contado')
+                                ->body('El sistema registra S/ '.number_format($systemCash, 2).' en efectivo.')
+                                ->send();
+
+                            return;
+                        }
+
+                        $otherPayments = (float) ($data['manual_yape'] ?? 0)
+                            + (float) ($data['manual_plin'] ?? 0)
+                            + (float) ($data['manual_card'] ?? 0)
+                            + (float) ($data['manual_didi'] ?? 0)
+                            + (float) ($data['manual_pedidos_ya'] ?? 0)
+                            + (float) ($data['manual_bita_express'] ?? 0);
+
+                        $totalCounted = $manualCash + $otherPayments;
+                        $expectedAmount = (float) $record->calculateExpectedCash();
+                        $difference = ($totalCounted + (float) $record->opening_amount) - $expectedAmount;
+                        $totalExpenses = (float) $record->cashRegisterExpenses()->sum('amount');
+
+                        $record->update([
+                            'manual_yape' => (float) ($data['manual_yape'] ?? 0),
+                            'manual_plin' => (float) ($data['manual_plin'] ?? 0),
+                            'manual_card' => (float) ($data['manual_card'] ?? 0),
+                            'manual_didi' => (float) ($data['manual_didi'] ?? 0),
+                            'manual_pedidos_ya' => (float) ($data['manual_pedidos_ya'] ?? 0),
+                            'manual_bita_express' => (float) ($data['manual_bita_express'] ?? 0),
+                            'closed_by' => auth()->id(),
+                            'closing_datetime' => now(),
+                            'is_active' => false,
+                            'actual_amount' => $totalCounted,
+                            'expected_amount' => $expectedAmount,
+                            'difference' => $difference,
+                            'total_expenses' => $totalExpenses,
+                            'observations' => trim(($record->observations ? $record->observations."\n\n" : '').($data['closing_observations'] ?? '')),
+                        ]);
+
+                        $significantDifference = abs($difference) > 50 || ($expectedAmount > 0 && abs($difference) / $expectedAmount > 0.05);
+
+                        $notification = Notification::make()
+                            ->title($significantDifference ? 'Caja cerrada con diferencia significativa' : 'Caja cerrada correctamente')
+                            ->body('Diferencia de cierre: S/ '.number_format($difference, 2));
+
+                        if ($significantDifference) {
+                            $notification->warning()->duration(8000);
+                        } else {
+                            $notification->success();
+                        }
+
+                        $notification->send();
+                    }),
                 Tables\Actions\Action::make('print')
                     ->label('Imprimir')
                     ->icon('heroicon-m-printer')
@@ -691,12 +841,15 @@ class CashRegisterResource extends Resource
                     ->openUrlInNewTab(),
                 Tables\Actions\Action::make('approve')
                     ->label('Aprobar')
-                    ->icon('heroicon-m-check-circle')
+                    ->icon('heroicon-m-check-badge')
                     ->color('success')
-                    ->visible(fn ($record) => ! $record->is_active && ! $record->is_approved && auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier']))
+                    ->visible(fn ($record) => ! $record->is_active && ! $record->is_approved && auth()->user()->hasAnyRole(['admin', 'super_admin', 'manager']))
                     ->requiresConfirmation()
+                    ->modalHeading('Aprobar cierre de caja')
+                    ->modalDescription('Esta accion marcara la caja como revisada y aprobada por supervision.')
+                    ->modalSubmitActionLabel('Aprobar ahora')
                     ->action(function ($record) {
-                        $record->update(['is_approved' => true, 'approval_notes' => 'Aprobado manualmente']);
+                        $record->reconcile(true, 'Aprobado manualmente desde operaciones de caja');
 
                         \Filament\Notifications\Notification::make()
                             ->success()
@@ -718,6 +871,9 @@ class CashRegisterResource extends Resource
                     ->color('success')
                     ->size('lg')
                     ->button()
+                    ->modalHeading('Abrir nueva caja')
+                    ->modalDescription('Confirme el monto inicial antes de iniciar la operacion.')
+                    ->modalSubmitActionLabel('Abrir caja')
                     ->visible(function () {
                         return ! CashRegister::getOpenRegister();
                     })
@@ -728,20 +884,22 @@ class CashRegisterResource extends Resource
 
                         return $data;
                     })
-                    ->successNotificationTitle('Caja abierta correctamente')
-                    ->after(function () {
-                        redirect()->to('/admin/pos-interface');
-                    }),
+                    ->successNotification(
+                        Notification::make()
+                            ->success()
+                            ->title('Caja abierta correctamente')
+                            ->body('Ya puedes operar en POS o seguir revisando este listado.'),
+                    ),
 
                 // Reconciliación visible (principio KISS)
                 Tables\Actions\Action::make('reconcile_all')
                     ->label('Reconciliar Pendientes')
-                    ->icon('heroicon-m-scale')
-                    ->color('warning')
+                    ->icon('heroicon-m-clipboard-document-check')
+                    ->color('primary')
                     ->button()
                     ->visible(function () {
                         $user = auth()->user();
-                        if (! $user->hasAnyRole(['admin', 'super_admin', 'manager', 'cashier'])) {
+                        if (! $user->hasAnyRole(['admin', 'super_admin', 'manager'])) {
                             return false;
                         }
 
@@ -754,9 +912,15 @@ class CashRegisterResource extends Resource
                     ->modalHeading('Reconciliar Cajas Pendientes')
                     ->modalDescription('¿Desea marcar todas las cajas cerradas como reconciliadas?')
                     ->action(function () {
-                        $count = CashRegister::where('is_active', false)
+                        $pendingRegisters = CashRegister::where('is_active', false)
                             ->where('is_approved', false)
-                            ->update(['is_approved' => true, 'approval_notes' => 'Reconciliación masiva']);
+                            ->get();
+
+                        $count = 0;
+                        foreach ($pendingRegisters as $register) {
+                            $register->reconcile(true, 'Reconciliación masiva desde operaciones de caja');
+                            $count++;
+                        }
 
                         \Filament\Notifications\Notification::make()
                             ->success()
@@ -767,8 +931,8 @@ class CashRegisterResource extends Resource
                 // Exportar (acción secundaria simple)
                 Tables\Actions\Action::make('export_today')
                     ->label('Exportar Hoy')
-                    ->icon('heroicon-m-document-arrow-down')
-                    ->color('info')
+                    ->icon('heroicon-m-arrow-down-tray')
+                    ->color('gray')
                     ->button()
                     ->action(function () {
                         \Filament\Notifications\Notification::make()
@@ -779,9 +943,10 @@ class CashRegisterResource extends Resource
                     }),
             ])
             ->defaultSort('opening_datetime', 'desc')
+            ->striped()
             ->emptyStateIcon('heroicon-o-calculator')
             ->emptyStateHeading('No hay cajas registradas')
-            ->emptyStateDescription('Use el botón "Abrir Nueva Caja" en la parte superior para comenzar.');
+            ->emptyStateDescription('Use el boton "Abrir Nueva Caja" en la parte superior para iniciar operaciones.');
     }
 
     public static function getRelations(): array

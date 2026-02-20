@@ -3,65 +3,62 @@
 namespace App\Filament\Resources\PurchaseResource\Pages;
 
 use App\Filament\Resources\PurchaseResource;
-use App\Models\InventoryMovement;
 use App\Models\Purchase;
-use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
-use Filament\Notifications\Notification;
-use Illuminate\Database\QueryException;
 use Exception;
+use Filament\Actions;
+use Filament\Notifications\Actions\Action as NotificationAction;
+use Filament\Notifications\Notification;
+use Filament\Resources\Pages\EditRecord;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 
 class EditPurchase extends EditRecord
 {
     protected static string $resource = PurchaseResource::class;
 
     /**
-     * Convierte errores técnicos de base de datos en mensajes simples para usuarios
+     * Convierte errores tecnicos de base de datos en mensajes simples para usuarios.
      */
     private function getFriendlyErrorMessage(QueryException $exception): string
     {
-        $errorCode = $exception->getCode();
+        $errorCode = (string) $exception->getCode();
         $errorMessage = $exception->getMessage();
 
-        // Errores de clave foránea (foreign key)
-        if ($errorCode == 23000 && str_contains($errorMessage, 'foreign key constraint')) {
+        if ($errorCode === '23000' && str_contains($errorMessage, 'foreign key constraint')) {
             if (str_contains($errorMessage, 'supplier_id')) {
-                return "🚫 El proveedor seleccionado no existe. Verifica que esté registrado correctamente.";
+                return 'El proveedor seleccionado no existe. Verifica que este registrado correctamente.';
             }
             if (str_contains($errorMessage, 'product_id')) {
-                return "🚫 Uno de los productos seleccionados no existe. Revisa la lista de productos.";
+                return 'Uno de los productos seleccionados no existe. Revisa la lista de productos.';
             }
             if (str_contains($errorMessage, 'warehouse_id')) {
-                return "🚫 El almacén seleccionado no existe. Elige otro almacén.";
+                return 'El almacen seleccionado no existe. Elige otro almacen.';
             }
-            return "🚫 No se puede guardar porque hay datos relacionados que no existen.";
+
+            return 'No se puede guardar porque hay datos relacionados que no existen.';
         }
 
-        // Errores de duplicado (unique constraint)
-        if ($errorCode == 23000 && str_contains($errorMessage, 'Duplicate entry')) {
+        if ($errorCode === '23000' && str_contains($errorMessage, 'Duplicate entry')) {
             if (str_contains($errorMessage, 'document_number')) {
-                return "📄 Ya existe una compra con ese número de documento. Cambia el número.";
+                return 'Ya existe una compra con ese numero de documento. Cambia el numero.';
             }
-            return "📝 Ya existe un registro con esos datos. Revisa y cambia los valores duplicados.";
+
+            return 'Ya existe un registro con esos datos. Revisa y cambia los valores duplicados.';
         }
 
-        // Errores de campo requerido (not null)
-        if ($errorCode == 23000 && str_contains($errorMessage, 'cannot be null')) {
-            return "📝 Faltan completar algunos campos obligatorios. Revisa los marcados con asterisco (*).";
+        if ($errorCode === '23000' && str_contains($errorMessage, 'cannot be null')) {
+            return 'Faltan completar algunos campos obligatorios. Revisa los marcados con asterisco (*).';
         }
 
-        // Errores de conexión
-        if (in_array($errorCode, ['2002', '2003', '2006'])) {
-            return "🌐 Problema de conexión. Espera 10 segundos y vuelve a intentar.";
+        if (in_array($errorCode, ['2002', '2003', '2006'], true)) {
+            return 'Problema de conexion. Espera unos segundos y vuelve a intentar.';
         }
 
-        // Deadlock o bloqueo de datos
-        if ($errorCode == 1213) {
-            return "⏳ Los datos están ocupados por otro proceso. Cierra esta ventana, espera 5 segundos y abre de nuevo.";
+        if ($errorCode === '1213') {
+            return 'Los datos estan ocupados por otro proceso. Cierra esta ventana y vuelve a intentar.';
         }
 
-        // Error genérico
-        return "😅 Ocurrió un problema al guardar. Revisa los datos e intenta de nuevo.";
+        return 'Ocurrio un problema al guardar. Revisa los datos e intenta de nuevo.';
     }
 
     protected function getHeaderActions(): array
@@ -73,154 +70,88 @@ class EditPurchase extends EditRecord
                 ->icon('heroicon-o-clipboard-document-check')
                 ->color('success')
                 ->requiresConfirmation()
-                ->visible(fn () => $this->record->status !== Purchase::STATUS_COMPLETED)
-                ->action(function () {
-                    try {
-                        $purchase = $this->record;
-
-                        // Recorrer todos los detalles de la compra
-                        foreach ($purchase->details as $detail) {
-                            // Buscar el producto (puede ser ingrediente u otro tipo de producto)
-                            $product = \App\Models\Product::find($detail->product_id);
-
-                            if ($product) {
-                                // Crear movimiento de inventario
-                                InventoryMovement::createPurchaseMovement(
-                                    $product->id,
-                                    $purchase->warehouse_id,
-                                    $detail->quantity,
-                                    $detail->unit_cost,
-                                    $purchase->id,
-                                    $purchase->document_number,
-                                    $purchase->created_by,
-                                    "Compra: {$purchase->document_type} {$purchase->document_number}"
-                                );
-                            }
-                        }
-
-                        // Actualizar el estado de la compra a completado
-                        $purchase->status = Purchase::STATUS_COMPLETED;
-                        $purchase->save();
-
-                        Notification::make()
-                            ->title('¡Stock registrado!')
-                            ->body('El stock ha sido actualizado correctamente ✅')
-                            ->success()
-                            ->send();
-
-                    } catch (QueryException $e) {
-                        $friendlyMessage = $this->getFriendlyErrorMessage($e);
-
-                        Notification::make()
-                            ->title('Problema al registrar el stock')
-                            ->body($friendlyMessage)
-                            ->danger()
-                            ->persistent()
-                            ->send();
-
-                        \Illuminate\Support\Facades\Log::error('Error en register_stock action: ' . $e->getMessage(), [
-                            'purchase_id' => $this->record->id,
-                            'error_code' => $e->getCode()
-                        ]);
-
-                    } catch (Exception $e) {
-                        Notification::make()
-                            ->title('Problema inesperado')
-                            ->body('😅 Ocurrió algo inesperado. Intenta de nuevo.')
-                            ->danger()
-                            ->send();
-
-                        \Illuminate\Support\Facades\Log::error('Error general en register_stock: ' . $e->getMessage(), [
-                            'purchase_id' => $this->record->id
-                        ]);
-                    }
+                ->visible(fn (): bool => $this->record->status !== Purchase::STATUS_COMPLETED)
+                ->action(function (): void {
+                    $this->registerStock();
                 }),
         ];
     }
 
     protected function afterSave(): void
     {
-        // Si la compra está completada, no hacer nada
         if ($this->record->status === Purchase::STATUS_COMPLETED) {
             return;
         }
 
-        // Preguntar al usuario si desea registrar el stock
         Notification::make()
-            ->title('¿Desea registrar el stock?')
-            ->body('La compra ha sido guardada. Puede registrar el stock ahora o más tarde.')
+            ->title('Desea registrar el stock?')
+            ->body('La compra fue guardada. Puedes registrar el stock ahora o despues.')
             ->actions([
-                \Filament\Notifications\Actions\Action::make('register')
+                NotificationAction::make('register')
                     ->label('Registrar ahora')
                     ->color('success')
                     ->button()
                     ->close()
-                    ->action(function () {
-                        try {
-                            $purchase = $this->record;
-
-                            // Recorrer todos los detalles de la compra
-                            foreach ($purchase->details as $detail) {
-                                // Buscar el producto (puede ser ingrediente u otro tipo de producto)
-                                $product = \App\Models\Product::find($detail->product_id);
-
-                                if ($product) {
-                                    // Crear movimiento de inventario
-                                    InventoryMovement::createPurchaseMovement(
-                                        $product->id,
-                                        $purchase->warehouse_id,
-                                        $detail->quantity,
-                                        $detail->unit_cost,
-                                        $purchase->id,
-                                        $purchase->document_number,
-                                        $purchase->created_by,
-                                        "Compra: {$purchase->document_type} {$purchase->document_number}"
-                                    );
-                                }
-                            }
-
-                            // Actualizar el estado de la compra a completado
-                            $purchase->status = Purchase::STATUS_COMPLETED;
-                            $purchase->save();
-
-                            Notification::make()
-                                ->title('¡Stock registrado!')
-                                ->body('El stock ha sido actualizado correctamente ✅')
-                                ->success()
-                                ->send();
-
-                        } catch (QueryException $e) {
-                            $friendlyMessage = $this->getFriendlyErrorMessage($e);
-
-                            Notification::make()
-                                ->title('Problema al registrar el stock')
-                                ->body($friendlyMessage)
-                                ->danger()
-                                ->persistent()
-                                ->send();
-
-                            \Illuminate\Support\Facades\Log::error('Error en afterSave register action: ' . $e->getMessage(), [
-                                'purchase_id' => $this->record->id,
-                                'error_code' => $e->getCode()
-                            ]);
-
-                        } catch (Exception $e) {
-                            Notification::make()
-                                ->title('Problema inesperado')
-                                ->body('😅 Ocurrió algo inesperado. Intenta de nuevo.')
-                                ->danger()
-                                ->send();
-
-                            \Illuminate\Support\Facades\Log::error('Error general en afterSave register: ' . $e->getMessage(), [
-                                'purchase_id' => $this->record->id
-                            ]);
-                        }
+                    ->action(function (): void {
+                        $this->registerStock();
                     }),
-                \Filament\Notifications\Actions\Action::make('later')
-                    ->label('Más tarde')
+                NotificationAction::make('later')
+                    ->label('Mas tarde')
                     ->close(),
             ])
             ->persistent()
             ->send();
+    }
+
+    private function registerStock(): void
+    {
+        try {
+            $purchase = $this->record->fresh();
+
+            if (! $purchase || $purchase->status === Purchase::STATUS_COMPLETED) {
+                Notification::make()
+                    ->title('La compra ya esta completada')
+                    ->body('El stock ya fue registrado previamente.')
+                    ->warning()
+                    ->send();
+
+                return;
+            }
+
+            $purchase->status = Purchase::STATUS_COMPLETED;
+            $purchase->save();
+
+            $this->record = $purchase->fresh();
+
+            Notification::make()
+                ->title('Stock registrado')
+                ->body('La compra fue marcada como COMPLETADA y el stock se proceso automaticamente.')
+                ->success()
+                ->send();
+        } catch (QueryException $e) {
+            Notification::make()
+                ->title('Problema al registrar el stock')
+                ->body($this->getFriendlyErrorMessage($e))
+                ->danger()
+                ->persistent()
+                ->send();
+
+            Log::error('Error en register_stock action', [
+                'purchase_id' => $this->record->id,
+                'error_code' => $e->getCode(),
+                'error_message' => $e->getMessage(),
+            ]);
+        } catch (Exception $e) {
+            Notification::make()
+                ->title('Problema inesperado')
+                ->body('Ocurrio algo inesperado. Intenta de nuevo.')
+                ->danger()
+                ->send();
+
+            Log::error('Error general en register_stock', [
+                'purchase_id' => $this->record->id,
+                'error_message' => $e->getMessage(),
+            ]);
+        }
     }
 }

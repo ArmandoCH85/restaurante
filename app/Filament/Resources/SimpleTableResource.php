@@ -16,7 +16,7 @@ class SimpleTableResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-table-cells';
 
-    protected static ?string $navigationGroup = '⚙️ Configuración';
+    protected static ?string $navigationGroup = 'Configuracion';
 
     protected static ?string $navigationLabel = 'Mesas';
     

@@ -18,7 +18,7 @@ class InventarioPorAlmacen extends Page
     
     protected static ?string $slug = 'inventario/resumen-por-almacen';
     
-    protected static ?string $navigationGroup = 'Inventario';
+    protected static ?string $navigationGroup = 'Inventario y Compras';
     
     protected static ?int $navigationSort = 1;
 

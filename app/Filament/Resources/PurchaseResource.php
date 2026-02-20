@@ -17,7 +17,7 @@ class PurchaseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
-    protected static ?string $navigationGroup = '📦 Inventario y Compras';
+    protected static ?string $navigationGroup = 'Inventario y Compras';
 
     protected static ?string $navigationLabel = 'Compras';
 
@@ -292,25 +292,12 @@ class PurchaseResource extends Resource
                                                                         'both' => '🥤 Producto/Ingrediente'
                                                                     ])
                                                                     ->default('ingredient'),
-                                                                Forms\Components\Select::make('category_id')
-                                                                    ->label('📁 Categoría')
+                                                                Forms\Components\Select::make('area_id')
+                                                                    ->label('Area')
                                                                     ->placeholder('Seleccione...')
-                                                                    ->options(\App\Models\ProductCategory::pluck('name', 'id'))
+                                                                    ->options(\App\Models\Area::query()->orderBy('name')->pluck('name', 'id'))
                                                                     ->searchable()
-                                                                    ->preload()
-                                                                    ->createOptionForm([
-                                                                        Forms\Components\TextInput::make('name')
-                                                                            ->label('Nombre')
-                                                                            ->placeholder('Ej: Bebidas')
-                                                                            ->required()
-                                                                            ->maxLength(50),
-                                                                    ])
-                                                                    ->createOptionUsing(function (array $data) {
-                                                                        return \App\Models\ProductCategory::create([
-                                                                            'name' => $data['name'],
-                                                                            'description' => $data['description'] ?? null,
-                                                                        ])->id;
-                                                                    }),
+                                                                    ->preload(),
                                                             ]),
                                                         Forms\Components\Grid::make(2)
                                                             ->schema([
@@ -371,17 +358,16 @@ class PurchaseResource extends Resource
                                                     'available' => true,
                                                 ];
 
-                                                // Solo agregar category_id si es un producto tipo 'both' (gaseosas)
-                                                if ($data['product_type'] === 'both' && isset($data['category_id'])) {
-                                                    $productData['category_id'] = $data['category_id'];
-                                                } else {
-                                                    // Para ingredientes, usar una categoría por defecto
-                                                    $ingredientCategory = \App\Models\ProductCategory::firstOrCreate(
-                                                        ['name' => 'Ingredientes'],
-                                                        ['description' => 'Categoría para ingredientes de cocina']
-                                                    );
-                                                    $productData['category_id'] = $ingredientCategory->id;
+                                                if (!empty($data['area_id'])) {
+                                                    $productData['area_id'] = (int) $data['area_id'];
                                                 }
+
+                                                // category_id es obligatorio en products; usar categoria por defecto.
+                                                $defaultCategory = \App\Models\ProductCategory::firstOrCreate(
+                                                    ['name' => 'Ingredientes'],
+                                                    ['description' => 'Categoria para ingredientes de cocina']
+                                                );
+                                                $productData['category_id'] = $defaultCategory->id;
 
                                                 // Crear el producto
                                                 $product = \App\Models\Product::create($productData);
@@ -819,7 +805,7 @@ class PurchaseResource extends Resource
                     ->tooltip('Ver detalles completos de la compra')
                     ->action(function ($record) {
                         // Redirigir a página de detalles o mostrar modal
-                        return redirect()->to(route('filament.admin.resources.purchases.edit', $record));
+                        return redirect()->to(route('filament.admin.resources.inventario.compras.edit', $record));
                     })
                     ->visible(fn ($record): bool => $record->details()->count() > 0),
 

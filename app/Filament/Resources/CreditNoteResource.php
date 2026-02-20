@@ -23,7 +23,7 @@ class CreditNoteResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-receipt-refund';
 
-    protected static ?string $navigationGroup = '📄 Facturación y Ventas';
+    protected static ?string $navigationGroup = 'Facturacion y Ventas';
 
     protected static ?string $navigationLabel = 'Notas de Crédito';
 

@@ -306,8 +306,6 @@
             .bg-gray-100, .bg-gray-50, .bg-white, .bg-blue-50, .bg-indigo-50 {
                 background-color: transparent !important;
             }
-        }
-
             .print-hidden {
                 display: none !important;
             }
@@ -486,13 +484,13 @@
                                                    $systemDidiSales + $systemPedidosYaSales;
                                 
                                 // Totales manuales
-                                $manualCash = $cashRegister->calculated_cash_display ?? 0;
+                                $manualCash = $cashRegister->manual_cash ?? 0;
                                 $manualCard = $cashRegister->manual_card ?? 0;
                                 $manualYape = $cashRegister->manual_yape ?? 0;
                                 $manualPlin = $cashRegister->manual_plin ?? 0;
                                 $manualDidi = $cashRegister->manual_didi ?? 0;
                                 $manualPedidosYa = $cashRegister->manual_pedidos_ya ?? 0;
-                                $manualOtros = $cashRegister->manual_otros ?? 0 + $manualDidi + $manualPedidosYa;
+                                $manualOtros = ($cashRegister->manual_otros ?? 0) + $manualDidi + $manualPedidosYa;
                                 
                                 // Total general
                                 $totalSystemSales = $systemCashSales + $systemCardSales + $systemYapeSales + $systemPlinSales + $systemOtherSales;

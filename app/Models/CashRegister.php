@@ -40,6 +40,7 @@ class CashRegister extends Model
         'closing_datetime',
         'approval_datetime',
         'observations',
+        'closing_summary_json',
         'is_active',
         'is_approved',
         'approval_notes',
@@ -90,6 +91,7 @@ class CashRegister extends Model
         'opening_datetime' => 'datetime',
         'closing_datetime' => 'datetime',
         'approval_datetime' => 'datetime',
+        'closing_summary_json' => 'array',
         'is_active' => 'boolean',
         'is_approved' => 'boolean',
         // Campos de conteo manual
@@ -214,7 +216,10 @@ class CashRegister extends Model
      */
     public static function getOpenRegister(): ?CashRegister
     {
-        return self::where('is_active', self::STATUS_OPEN)->first();
+        return self::where('is_active', self::STATUS_OPEN)
+            ->orderByDesc('opening_datetime')
+            ->orderByDesc('id')
+            ->first();
     }
 
     public static function hasOpenRegister(): bool
@@ -244,6 +249,8 @@ class CashRegister extends Model
     public static function openRegister(float $openingAmount, ?string $observations = null): CashRegister
     {
         return DB::transaction(function () use ($openingAmount, $observations) {
+            self::validateOpeningAmount($openingAmount);
+
             // Verificar si ya existe una caja abierta (doble verificación)
             self::validateNoOpenRegisters($openingAmount);
 
@@ -255,6 +262,13 @@ class CashRegister extends Model
 
             return $cashRegister;
         });
+    }
+
+    private static function validateOpeningAmount(float $openingAmount): void
+    {
+        if ($openingAmount < 0) {
+            throw new \InvalidArgumentException('El monto inicial debe ser mayor o igual a cero.');
+        }
     }
 
     /**

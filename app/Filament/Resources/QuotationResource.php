@@ -22,7 +22,7 @@ class QuotationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = '📅 Reservas y Eventos';
+    protected static ?string $navigationGroup = 'Reservas y Eventos';
 
     protected static ?string $navigationLabel = 'Cotizaciones';
 

@@ -25,7 +25,7 @@ class ReservationResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar';
 
-    protected static ?string $navigationGroup = '📅 Reservas y Eventos';
+    protected static ?string $navigationGroup = 'Reservas y Eventos';
 
     protected static ?string $navigationLabel = 'Reservas';
 

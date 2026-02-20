@@ -7,6 +7,7 @@
 
             <form id="cancelDeliveryForm" class="mb-4">
                 <input type="hidden" id="cancelDeliveryId">
+                <label for="cancelReason" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Motivo de cancelación</label>
                 <textarea id="cancelReason" class="w-full px-3 py-2 text-gray-700 dark:text-gray-300 border rounded-lg focus:outline-none focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600" rows="3" placeholder="Motivo de cancelación"></textarea>
             </form>
 

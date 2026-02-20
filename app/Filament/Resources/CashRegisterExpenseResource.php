@@ -18,7 +18,7 @@ class CashRegisterExpenseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-trending-down';
 
-    protected static ?string $navigationGroup = '💰 Caja';
+    protected static ?string $navigationGroup = 'Caja';
 
     protected static ?string $navigationLabel = 'Egresos';
 

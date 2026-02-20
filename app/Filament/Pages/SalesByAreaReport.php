@@ -29,7 +29,7 @@ class SalesByAreaReport extends Page implements HasForms, HasTable
 
     protected static ?string $title = 'Reporte: Ventas por Area';
 
-    protected static ?string $navigationGroup = '📊 Reportes y Análisis';
+    protected static ?string $navigationGroup = 'Reportes y Analisis';
 
     protected static ?int $navigationSort = 6;
 
@@ -192,13 +192,15 @@ class SalesByAreaReport extends Page implements HasForms, HasTable
 
     public function exportCsv(): StreamedResponse
     {
-        $rows = app(SalesByAreaReportService::class)
+        $service = app(SalesByAreaReportService::class);
+
+        $rows = $service
             ->aggregateQuery($this->fromDate, $this->toDate, $this->areaId, $this->groupByMode)
             ->get();
 
         $filename = 'ventas_por_area_'.now()->format('Ymd_His').'.csv';
 
-        return response()->streamDownload(function () use ($rows): void {
+        return response()->streamDownload(function () use ($rows, $service): void {
             $handle = fopen('php://output', 'wb');
             fputcsv($handle, ['Area', 'Periodo', 'Unidades vendidas', 'Neto vendido']);
 
@@ -211,6 +213,42 @@ class SalesByAreaReport extends Page implements HasForms, HasTable
                 ]);
             }
 
+            fputcsv($handle, []);
+            fputcsv($handle, ['Productos vendidos (detalle)']);
+            fputcsv($handle, []);
+
+            foreach ($rows as $row) {
+                $products = $service->drillDownQuery(
+                    from: (string) $this->fromDate,
+                    to: (string) $this->toDate,
+                    areaId: (int) $row->area_id,
+                    groupBy: (string) $this->groupByMode,
+                    period: (string) $row->period_key,
+                )->get();
+
+                fputcsv($handle, ["Area: {$row->area_name} | Periodo: {$row->period_label}"]);
+                fputcsv($handle, []);
+                fputcsv($handle, ['Producto', 'Unidades', 'Neto']);
+
+                if ($products->isEmpty()) {
+                    fputcsv($handle, ['Sin productos', '', '']);
+                } else {
+                    foreach ($products as $product) {
+                        $code = trim((string) ($product->product_code ?? ''));
+                        $name = trim((string) $product->product_name);
+                        $productLabel = $code !== '' ? "{$code} - {$name}" : $name;
+
+                        fputcsv($handle, [
+                            $productLabel,
+                            number_format((float) $product->units_sold, 3, '.', ''),
+                            'S/ '.number_format((float) $product->net_sold, 2, '.', ''),
+                        ]);
+                    }
+                }
+
+                fputcsv($handle, []);
+            }
+
             fclose($handle);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -219,7 +257,9 @@ class SalesByAreaReport extends Page implements HasForms, HasTable
 
     public function exportXlsx(): StreamedResponse
     {
-        $rows = app(SalesByAreaReportService::class)
+        $service = app(SalesByAreaReportService::class);
+
+        $rows = $service
             ->aggregateQuery($this->fromDate, $this->toDate, $this->areaId, $this->groupByMode)
             ->get();
 
@@ -232,6 +272,9 @@ class SalesByAreaReport extends Page implements HasForms, HasTable
         $sheet->setCellValue('C1', 'Unidades vendidas');
         $sheet->setCellValue('D1', 'Neto vendido');
 
+        $sheet->getStyle('A1:D1')->getFont()->setBold(true);
+        $sheet->freezePane('A2');
+
         $rowNumber = 2;
         foreach ($rows as $row) {
             $sheet->setCellValue('A'.$rowNumber, $row->area_name);
@@ -239,6 +282,68 @@ class SalesByAreaReport extends Page implements HasForms, HasTable
             $sheet->setCellValue('C'.$rowNumber, (float) $row->units_sold);
             $sheet->setCellValue('D'.$rowNumber, (float) $row->net_sold);
             $rowNumber++;
+        }
+
+        $detailSheet = $spreadsheet->createSheet();
+        $detailSheet->setTitle('Productos vendidos');
+
+        $detailRow = 1;
+        $detailSectionRows = [];
+        $detailHeaderRows = [];
+
+        foreach ($rows as $row) {
+            $products = $service->drillDownQuery(
+                from: (string) $this->fromDate,
+                to: (string) $this->toDate,
+                areaId: (int) $row->area_id,
+                groupBy: (string) $this->groupByMode,
+                period: (string) $row->period_key,
+            )->get();
+
+            $detailSheet->setCellValue('A'.$detailRow, "Area: {$row->area_name} | Periodo: {$row->period_label}");
+            $detailSectionRows[] = $detailRow;
+            $detailRow += 2;
+
+            $detailSheet->setCellValue('A'.$detailRow, 'Producto');
+            $detailSheet->setCellValue('B'.$detailRow, 'Unidades');
+            $detailSheet->setCellValue('C'.$detailRow, 'Neto');
+            $detailHeaderRows[] = $detailRow;
+            $detailRow++;
+
+            if ($products->isEmpty()) {
+                $detailSheet->setCellValue('A'.$detailRow, 'Sin productos');
+                $detailRow += 2;
+                continue;
+            }
+
+            foreach ($products as $product) {
+                $code = trim((string) ($product->product_code ?? ''));
+                $name = trim((string) $product->product_name);
+                $productLabel = $code !== '' ? "{$code} - {$name}" : $name;
+
+                $detailSheet->setCellValue('A'.$detailRow, $productLabel);
+                $detailSheet->setCellValue('B'.$detailRow, number_format((float) $product->units_sold, 3, '.', ''));
+                $detailSheet->setCellValue('C'.$detailRow, 'S/ '.number_format((float) $product->net_sold, 2, '.', ''));
+                $detailRow++;
+            }
+
+            $detailRow++;
+        }
+
+        foreach ($detailSectionRows as $rowIndex) {
+            $detailSheet->getStyle('A'.$rowIndex.':C'.$rowIndex)->getFont()->setBold(true);
+        }
+
+        foreach ($detailHeaderRows as $rowIndex) {
+            $detailSheet->getStyle('A'.$rowIndex.':C'.$rowIndex)->getFont()->setBold(true);
+        }
+
+        foreach (['A', 'B', 'C', 'D'] as $column) {
+            $sheet->getColumnDimension($column)->setAutoSize(true);
+        }
+
+        foreach (['A', 'B', 'C'] as $column) {
+            $detailSheet->getColumnDimension($column)->setAutoSize(true);
         }
 
         $filename = 'ventas_por_area_'.now()->format('Ymd_His').'.xlsx';

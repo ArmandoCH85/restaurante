@@ -26,7 +26,7 @@ class WarehouseInventoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
 
-    protected static ?string $navigationGroup = '📦 Inventario y Compras';
+    protected static ?string $navigationGroup = 'Inventario y Compras';
 
     protected static ?string $navigationLabel = 'Inventario por Almacén';
 

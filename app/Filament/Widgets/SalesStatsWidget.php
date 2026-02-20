@@ -17,26 +17,22 @@ class SalesStatsWidget extends BaseWidget
 
     protected static ?int $sort = 1;
 
-    // 📐 GRID RESPONSIVO - 3 ESTADÍSTICAS PRINCIPALES
     protected int | string | array $columnSpan = [
-        'default' => 'full',  // Móvil: ancho completo
-        'sm' => 'full',       // Tablet pequeña: ancho completo
-        'md' => 'full',       // Tablet: ancho completo (3 estadísticas en línea)
-        'lg' => 'full',       // Desktop: ancho completo
-        'xl' => 'full',       // Desktop grande: ancho completo
-        '2xl' => 'full',      // Desktop extra: ancho completo
+        'default' => 'full',
+        'sm' => 'full',
+        'md' => 'full',
+        'lg' => 'full',
+        'xl' => 'full',
+        '2xl' => 'full',
     ];
 
-    // 🔄 PROPIEDADES PARA REACTIVIDAD
     protected static bool $isLazy = false;
 
-    // 📊 LISTENERS PARA ACTUALIZACIÓN AUTOMÁTICA
     protected $listeners = [
         'filtersFormUpdated' => '$refresh',
         'updateCharts' => '$refresh',
     ];
 
-    // 🎯 MÉTODO PARA FORZAR ACTUALIZACIÓN CUANDO CAMBIAN LOS FILTROS
     public function updatedFilters(): void
     {
         $this->dispatch('updateCharts');
@@ -53,7 +49,6 @@ class SalesStatsWidget extends BaseWidget
         ];
     }
 
-    // 🔢 N° OPERACIONES
     private function getOperationsCountStat(Carbon $startDate, Carbon $endDate): Stat
     {
         $count = 0;
@@ -113,7 +108,6 @@ class SalesStatsWidget extends BaseWidget
             ->color('primary');
     }
 
-    // 💰 TOTAL VENTAS
     private function getTotalSalesStat(Carbon $startDate, Carbon $endDate): Stat
     {
         $total = 0;
@@ -138,7 +132,7 @@ class SalesStatsWidget extends BaseWidget
                 $pastEndDate = today()->subDay();
                 if ($startDate->lte($pastEndDate)) {
                     $pastTotal = CashRegister::whereBetween('closing_datetime', [$startDate, $pastEndDate->endOfDay()])
-                        ->where('status', 'closed')
+                        ->where('is_active', CashRegister::STATUS_CLOSED)
                         ->sum('total_sales');
                     
                     $total += $pastTotal;
@@ -147,7 +141,7 @@ class SalesStatsWidget extends BaseWidget
         } else {
             // Solo fechas pasadas: usar total_sales de cajas cerradas
             $total = CashRegister::whereBetween('closing_datetime', [$startDate, $endDate])
-                ->where('status', 'closed')
+                ->where('is_active', CashRegister::STATUS_CLOSED)
                 ->sum('total_sales');
         }
 
@@ -159,7 +153,6 @@ class SalesStatsWidget extends BaseWidget
             ->color('success');
     }
 
-    // 🍽️ VENTAS EN MESA
     private function getMesaSalesStat(Carbon $startDate, Carbon $endDate): Stat
     {
         $total = 0;

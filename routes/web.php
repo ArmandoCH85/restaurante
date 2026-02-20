@@ -180,7 +180,7 @@ Route::get('/admin/print-cash-register/{id}', \App\Http\Controllers\Filament\Pri
 
 // Ruta para aprobar caja registradora
 Route::post('/admin/operaciones-caja/approve/{id}', [\App\Http\Controllers\CashRegisterApprovalController::class, 'approve'])
-    ->middleware(['web', 'auth'])
+    ->middleware(['web', 'auth', 'role:admin|super_admin|manager'])
     ->name('filament.admin.cash-register.approve');
 
 // Rutas para cotizaciones

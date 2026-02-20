@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\CashRegisterResource\Pages;
 
 use App\Filament\Resources\CashRegisterResource;
+use App\Support\CashRegisterClosingSummaryService;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 
 class EditCashRegister extends EditRecord
@@ -104,79 +106,49 @@ class EditCashRegister extends EditRecord
         $totalIngresos = $this->record->getSystemTotalSales();
         $gananciaReal = $totalIngresos - $totalExpenses;
 
-        // Guardar el desglose completo en las observaciones
-        $denominationDetails = "=== CIERRE DE CAJA - RESUMEN COMPLETO ===\n\n";
+        $summaryService = app(CashRegisterClosingSummaryService::class);
+        $summary = $summaryService->build([
+            'total_ingresos' => $totalIngresos,
+            'total_egresos' => $totalExpenses,
+            'ganancia_real' => $gananciaReal,
+            'monto_inicial' => (float) $this->record->opening_amount,
+            'monto_esperado' => $expectedAmount,
+            'efectivo_total' => $totalCashCounted,
+            'total_manual_ventas' => $totalCounted,
+            'difference' => $difference,
+            'billetes' => [
+                '200' => (int) ($data['bill_200'] ?? 0),
+                '100' => (int) ($data['bill_100'] ?? 0),
+                '50' => (int) ($data['bill_50'] ?? 0),
+                '20' => (int) ($data['bill_20'] ?? 0),
+                '10' => (int) ($data['bill_10'] ?? 0),
+            ],
+            'monedas' => [
+                '5' => (int) ($data['coin_5'] ?? 0),
+                '2' => (int) ($data['coin_2'] ?? 0),
+                '1' => (int) ($data['coin_1'] ?? 0),
+                '0.50' => (int) ($data['coin_050'] ?? 0),
+                '0.20' => (int) ($data['coin_020'] ?? 0),
+                '0.10' => (int) ($data['coin_010'] ?? 0),
+            ],
+            'otros_metodos' => [
+                'yape' => (float) ($data['manual_yape'] ?? 0),
+                'plin' => (float) ($data['manual_plin'] ?? 0),
+                'tarjeta' => (float) ($data['manual_card'] ?? 0),
+                'didi' => (float) ($data['manual_didi'] ?? 0),
+                'pedidos_ya' => (float) ($data['manual_pedidos_ya'] ?? 0),
+                'bita_express' => (float) ($data['manual_bita_express'] ?? 0),
+                'otros' => (float) ($data['manual_otros'] ?? 0),
+            ],
+            'closed_by' => Auth::id(),
+            'closing_datetime' => now()->toDateTimeString(),
+            'closing_observations' => $data['closing_observations'] ?? null,
+        ]);
 
-        // Información del cierre
-        $denominationDetails .= 'TOTAL INGRESOS: S/ '.number_format($totalIngresos, 2)."\n";
-        $denominationDetails .= 'TOTAL EGRESOS: S/ '.number_format($totalExpenses, 2)."\n";
-        $denominationDetails .= 'GANANCIA REAL: S/ '.number_format($gananciaReal, 2)."\n";
-        $denominationDetails .= "   (Ingresos - Egresos)\n\n";
-
-        $denominationDetails .= 'MONTO ESPERADO: S/ '.number_format($expectedAmount, 2)."\n";
-        $denominationDetails .= '   (Monto inicial: S/ '.number_format($this->record->opening_amount, 2);
-        $denominationDetails .= ' + Ventas del día: S/ '.number_format($totalIngresos, 2).")\n\n";
-
-        // Efectivo contado
-        $denominationDetails .= 'EFECTIVO CONTADO: S/ '.number_format($totalCashCounted, 2)."\n";
-        $denominationDetails .= 'Billetes: ';
-        $denominationDetails .= 'S/200×'.($data['bill_200'] ?? 0).' | S/100×'.($data['bill_100'] ?? 0).' | S/50×'.($data['bill_50'] ?? 0).' | ';
-        $denominationDetails .= 'S/20×'.($data['bill_20'] ?? 0).' | S/10×'.($data['bill_10'] ?? 0)."\n";
-        $denominationDetails .= 'Monedas: ';
-        $denominationDetails .= 'S/5×'.($data['coin_5'] ?? 0).' | S/2×'.($data['coin_2'] ?? 0).' | S/1×'.($data['coin_1'] ?? 0).' | ';
-        $denominationDetails .= 'S/0.50×'.($data['coin_050'] ?? 0).' | S/0.20×'.($data['coin_020'] ?? 0).' | S/0.10×'.($data['coin_010'] ?? 0)."\n\n";
-
-        // Otros métodos de pago
-        if ($otherPaymentsCounted > 0) {
-            $denominationDetails .= 'OTROS METODOS DE PAGO: S/ '.number_format($otherPaymentsCounted, 2)."\n";
-            if (($data['manual_yape'] ?? 0) > 0) {
-                $denominationDetails .= 'Yape: S/ '.number_format($data['manual_yape'], 2).' | ';
-            }
-            if (($data['manual_plin'] ?? 0) > 0) {
-                $denominationDetails .= 'Plin: S/ '.number_format($data['manual_plin'], 2).' | ';
-            }
-            if (($data['manual_card'] ?? 0) > 0) {
-                $denominationDetails .= 'Tarjeta: S/ '.number_format($data['manual_card'], 2).' | ';
-            }
-            if (($data['manual_didi'] ?? 0) > 0) {
-                $denominationDetails .= 'Didi: S/ '.number_format($data['manual_didi'], 2).' | ';
-            }
-            if (($data['manual_pedidos_ya'] ?? 0) > 0) {
-                $denominationDetails .= 'Pedidos Ya: S/ '.number_format($data['manual_pedidos_ya'], 2).' | ';
-            }
-            if (($data['manual_bita_express'] ?? 0) > 0) {
-                $denominationDetails .= 'Bita Express: S/ '.number_format($data['manual_bita_express'], 2).' | ';
-            }
-            if (($data['manual_otros'] ?? 0) > 0) {
-                $denominationDetails .= 'Otros: S/ '.number_format($data['manual_otros'], 2).' | ';
-            }
-            $denominationDetails .= "\n\n";
+        if (Schema::hasColumn('cash_registers', 'closing_summary_json')) {
+            $data['closing_summary_json'] = $summary;
         }
-
-        // Desglose de egresos (ahora se obtienen del módulo separado)
-        if ($totalExpenses > 0) {
-            $denominationDetails .= "EGRESOS REGISTRADOS (desde modulo de Egresos):\n";
-            $denominationDetails .= '  Total: S/ '.number_format($totalExpenses, 2)."\n";
-            $denominationDetails .= "  Ver detalles en: /admin/egresos\n\n";
-        }
-
-        // Totales finales
-        $denominationDetails .= 'TOTAL MANUAL (Ventas): S/ '.number_format($totalCounted, 2)."\n";
-        $denominationDetails .= 'DIFERENCIA: S/ '.number_format($difference, 2);
-        if ($difference > 0) {
-            $denominationDetails .= " (SOBRANTE)\n";
-        } elseif ($difference < 0) {
-            $denominationDetails .= " (FALTANTE)\n";
-        } else {
-            $denominationDetails .= " (SIN DIFERENCIA)\n";
-        }
-        $denominationDetails .= "   Fórmula: (Manual + Inicial) - Esperado\n";
-        $denominationDetails .= "   Nota: El Esperado ya considera egresos.\n";
-        $denominationDetails .= "\n";
-
-        if (! empty($data['closing_observations'])) {
-            $denominationDetails .= "Observaciones: {$data['closing_observations']}\n";
-        }
+        $denominationDetails = $summaryService->toLegacyText($summary);
 
         // Añadir a las observaciones existentes
         if (! empty($this->record->observations)) {

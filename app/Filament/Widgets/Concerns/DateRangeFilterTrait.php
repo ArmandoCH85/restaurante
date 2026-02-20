@@ -9,6 +9,8 @@ use Carbon\Carbon;
  */
 trait DateRangeFilterTrait
 {
+    private const MAX_CUSTOM_RANGE_DAYS = 31;
+
     /**
      * Devuelve array [$start, $end] (Carbon instances) según filtros estándar.
      */
@@ -24,11 +26,29 @@ trait DateRangeFilterTrait
             'last_30_days' => [Carbon::today()->subDays(29)->startOfDay(), Carbon::today()->endOfDay()],
             'this_month' => [Carbon::now()->startOfMonth()->startOfDay(), Carbon::now()->endOfMonth()->endOfDay()],
             'last_month' => [Carbon::now()->subMonth()->startOfMonth()->startOfDay(), Carbon::now()->subMonth()->endOfMonth()->endOfDay()],
-            'custom' => ($start && $end)
-                ? [Carbon::parse($start)->startOfDay(), Carbon::parse($end)->endOfDay()]
-                : [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()],
+            'custom' => $this->resolveCustomRange($start, $end),
             default => [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()],
         };
+    }
+
+    private function resolveCustomRange(mixed $start, mixed $end): array
+    {
+        if (! $start || ! $end) {
+            return [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()];
+        }
+
+        $startDate = Carbon::parse($start)->startOfDay();
+        $endDate = Carbon::parse($end)->endOfDay();
+
+        if ($startDate->gt($endDate)) {
+            [$startDate, $endDate] = [$endDate->copy()->startOfDay(), $startDate->copy()->endOfDay()];
+        }
+
+        if ($startDate->diffInDays($endDate) >= self::MAX_CUSTOM_RANGE_DAYS) {
+            $endDate = $startDate->copy()->addDays(self::MAX_CUSTOM_RANGE_DAYS - 1)->endOfDay();
+        }
+
+        return [$startDate, $endDate];
     }
 
     /**

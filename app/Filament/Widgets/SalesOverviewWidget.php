@@ -36,7 +36,7 @@ class SalesOverviewWidget extends BaseWidget
             
         // Ventas de ayer - Usar total_sales de cajas CERRADAS
         $yesterdaySales = CashRegister::whereDate('closing_datetime', $yesterday)
-            ->where('status', 'closed')
+            ->where('is_active', CashRegister::STATUS_CLOSED)
             ->sum('total_sales');
             
         // Calcular incremento/decremento
@@ -46,7 +46,7 @@ class SalesOverviewWidget extends BaseWidget
             
         // Ventas de la semana - Combinar cajas ABIERTAS (hoy) + CERRADAS (fechas pasadas)
         $weekSalesFromClosedRegisters = CashRegister::whereBetween('closing_datetime', [$startOfWeek, Carbon::yesterday()->endOfDay()])
-            ->where('status', 'closed')
+            ->where('is_active', CashRegister::STATUS_CLOSED)
             ->sum('total_sales');
             
         $weekSalesFromOpenRegisters = Order::whereDate('order_datetime', $today)
@@ -63,7 +63,7 @@ class SalesOverviewWidget extends BaseWidget
             
         // Ventas del mes - Combinar cajas ABIERTAS (hoy) + CERRADAS (fechas pasadas)
         $monthSalesFromClosedRegisters = CashRegister::whereBetween('closing_datetime', [$startOfMonth, Carbon::yesterday()->endOfDay()])
-            ->where('status', 'closed')
+            ->where('is_active', CashRegister::STATUS_CLOSED)
             ->sum('total_sales');
             
         $monthSalesFromOpenRegisters = Order::whereDate('order_datetime', $today)
@@ -124,7 +124,7 @@ class SalesOverviewWidget extends BaseWidget
             } else {
                 // Para fechas pasadas: usar total_sales de cajas cerradas
                 $dailySales = CashRegister::whereDate('closing_datetime', $date)
-                    ->where('status', 'closed')
+                    ->where('is_active', CashRegister::STATUS_CLOSED)
                     ->sum('total_sales');
             }
             

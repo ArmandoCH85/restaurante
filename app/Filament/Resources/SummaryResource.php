@@ -31,7 +31,7 @@ class SummaryResource extends Resource
     
     protected static ?string $pluralModelLabel = 'Resúmenes de Boletas';
     
-    protected static ?string $navigationGroup = '📄 Facturación y Ventas';
+    protected static ?string $navigationGroup = 'Facturacion y Ventas';
     
     protected static ?int $navigationSort = 6;
 

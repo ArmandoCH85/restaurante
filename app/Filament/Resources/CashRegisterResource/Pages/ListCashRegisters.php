@@ -6,6 +6,7 @@ use App\Filament\Resources\CashRegisterResource;
 use App\Models\CashRegister;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Auth;
 
 class ListCashRegisters extends ListRecords
 {
@@ -24,10 +25,10 @@ class ListCashRegisters extends ListRecords
         $openRegister = CashRegister::getOpenRegister();
 
         if ($openRegister) {
-            return 'Apertura y Cierre de Caja - Hay una caja abierta (ID: ' . $openRegister->id . ')';
+            return 'Operaciones de Caja - Caja abierta #' . $openRegister->id;
         }
 
-        return 'Apertura y Cierre de Caja';
+        return 'Operaciones de Caja';
     }
 
     protected function getHeaderWidgets(): array
@@ -45,12 +46,18 @@ class ListCashRegisters extends ListRecords
     public function approveCashRegister($recordId)
     {
         try {
+            /** @var \App\Models\User|null $user */
+            $user = Auth::user();
+            if (! $user || ! $user->hasAnyRole(['admin', 'super_admin', 'manager'])) {
+                throw new \Exception('No tiene permisos para aprobar cajas.');
+            }
+
             $record = CashRegister::findOrFail($recordId);
-            $record->reconcile(true, 'Aprobado desde lista');
+            $record->reconcile(true, 'Aprobado desde lista', $user->id);
             
             $this->dispatchBrowserEvent('notify', [
                 'type' => 'success',
-                'message' => '✅ Caja aprobada correctamente'
+                'message' => 'Caja aprobada correctamente'
             ]);
             
             // Refrescar la página
@@ -59,7 +66,7 @@ class ListCashRegisters extends ListRecords
         } catch (\Exception $e) {
             $this->dispatchBrowserEvent('notify', [
                 'type' => 'error',
-                'message' => '❌ Error al aprobar: ' . $e->getMessage()
+                'message' => 'Error al aprobar: ' . $e->getMessage()
             ]);
         }
     }

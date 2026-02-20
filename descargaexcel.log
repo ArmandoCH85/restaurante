@@ -3836,3 +3836,248 @@ ESTADÍSTICAS CALCULADAS:
   total_invoices: 0
   total_cancelled: 0
 === CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:08
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-20
+  endDate: 2026-02-20
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:08
+PARÁMETROS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:08
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:08
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-20
+  endDate: 2026-02-20
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:08
+PARÁMETROS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 0 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 0 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:08
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 0 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 0
+  total_sales: 0
+  total_sales_notes: 0
+  total_receipts: 0
+  total_invoices: 0
+  total_cancelled: 0
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:17
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-01
+  endDate: 2026-02-20
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-01 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:17
+PARÁMETROS:
+  startDateTime: 2026-02-01 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 3 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 3 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-20 13:06:17
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-01 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 1327 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 1327
+  total_sales: 33780.5
+  total_sales_notes: 28049.9
+  total_receipts: 4864.4
+  total_invoices: 866.2
+  total_cancelled: 209.9
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 18:07:28
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-20
+  endDate: 2026-02-20
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 18:07:28
+PARÁMETROS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 2 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 2 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-20 18:07:28
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 20 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 20
+  total_sales: 1612.9
+  total_sales_notes: 1571.4
+  total_receipts: 41.5
+  total_invoices: 0
+  total_cancelled: 146
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+=== LOAD REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 18:07:28
+ESTADO ACTUAL DEL COMPONENTE:
+  reportType: products_by_channel
+  invoiceType: null
+  channelFilter: null
+  startDate: 2026-02-20
+  endDate: 2026-02-20
+  startTime: null
+  endTime: null
+CON FECHAS: Procesando con rango de fechas
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  Llamando a getReportData() con:
+    channelFilter: null
+    invoiceType: null
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=== GET REPORT DATA - INICIO ===
+TIMESTAMP: 2026-02-20 18:07:28
+PARÁMETROS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  reportType: products_by_channel
+  channelFilter: null
+  invoiceType: null
+RESULTADO: 2 registros
+=== GET REPORT DATA - FIN ===
+  Resultados obtenidos: 2 registros
+
+************************************************************
+=== CALCULATE PRODUCTS BY CHANNEL STATS - INICIO ===
+TIMESTAMP: 2026-02-20 18:07:28
+PARÁMETROS RECIBIDOS:
+  startDateTime: 2026-02-20 00:00:00
+  endDateTime: 2026-02-20 23:59:59
+  channelFilter: null
+  invoiceType: null
+ÓRDENES OBTENIDAS: 20 registros
+ESTADÍSTICAS CALCULADAS:
+  total_operations: 20
+  total_sales: 1612.9
+  total_sales_notes: 1571.4
+  total_receipts: 41.5
+  total_invoices: 0
+  total_cancelled: 146
+=== CALCULATE PRODUCTS BY CHANNEL STATS - FIN ===

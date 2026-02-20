@@ -21,7 +21,7 @@ class DeliveryHeatmapPage extends Page implements HasForms
 
     protected static ?string $title = 'Mapa de calor - Delivery';
 
-    protected static ?string $navigationGroup = '📊 Reportes y Análisis';
+    protected static ?string $navigationGroup = 'Reportes y Analisis';
 
     protected static ?string $slug = 'reportes/mapa-calor-delivery';
 
