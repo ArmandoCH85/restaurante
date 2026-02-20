@@ -1,0 +1,209 @@
+.exec-dashboard-page {
+    --exec-bg: #f3f6fb;
+    --exec-surface: #ffffff;
+    --exec-border: #dbe4f0;
+    --exec-text: #0f172a;
+    --exec-muted: #475569;
+    --exec-shadow: 0 10px 30px -20px rgba(15, 23, 42, 0.45);
+    --exec-shadow-soft: 0 6px 18px -14px rgba(15, 23, 42, 0.35);
+    --exec-chart-height-desktop: 34rem;
+    --exec-chart-height-mobile: 24rem;
+    color-scheme: light;
+}
+
+.dark .exec-dashboard-page,
+.exec-dashboard-page.dark {
+    --exec-bg: #0b1220;
+    --exec-surface: #0f172a;
+    --exec-border: #1f2a3d;
+    --exec-text: #e2e8f0;
+    --exec-muted: #a8b7cc;
+    --exec-shadow: 0 10px 28px -20px rgba(2, 6, 23, 0.9);
+    --exec-shadow-soft: 0 8px 20px -16px rgba(2, 6, 23, 0.9);
+    color-scheme: dark;
+}
+
+.exec-dashboard-page.fi-body {
+    background:
+        radial-gradient(circle at 0% 0%, rgba(30, 64, 175, 0.07), transparent 42%),
+        radial-gradient(circle at 100% 0%, rgba(5, 150, 105, 0.06), transparent 30%),
+        var(--exec-bg);
+    color: var(--exec-text);
+}
+
+.exec-dashboard-page .fi-main,
+.exec-dashboard-page .fi-main-ctn {
+    background: transparent !important;
+}
+
+.exec-dashboard-page .fi-header,
+.exec-dashboard-page .fi-page-header {
+    background: linear-gradient(135deg, #0f3a6d, #155da6);
+    border: 1px solid rgba(147, 197, 253, 0.4);
+    border-radius: 18px;
+    box-shadow: var(--exec-shadow);
+    padding: 1rem 1.25rem;
+}
+
+.dark .exec-dashboard-page .fi-header,
+.dark .exec-dashboard-page .fi-page-header,
+.exec-dashboard-page.dark .fi-header,
+.exec-dashboard-page.dark .fi-page-header {
+    background: linear-gradient(135deg, #12355f, #1d4b82);
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+.exec-dashboard-page .fi-header .fi-header-heading,
+.exec-dashboard-page .fi-page-header .fi-header-heading {
+    color: #f8fafc !important;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+}
+
+.exec-dashboard-page .fi-header .fi-header-subheading,
+.exec-dashboard-page .fi-page-header .fi-header-subheading {
+    color: rgba(241, 245, 249, 0.88) !important;
+}
+
+.exec-dashboard-page .fi-section,
+.exec-dashboard-page .fi-ta,
+.exec-dashboard-page .fi-wi-widget,
+.exec-dashboard-page .fi-wi-chart,
+.exec-dashboard-page .fi-wi-stats-overview-stat {
+    background: var(--exec-surface) !important;
+    border: 1px solid var(--exec-border) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--exec-shadow-soft) !important;
+}
+
+.exec-dashboard-page .fi-wi-chart {
+    min-height: var(--exec-chart-height-desktop);
+}
+
+.exec-dashboard-page .fi-wi-chart canvas {
+    height: var(--exec-chart-height-desktop) !important;
+    max-height: var(--exec-chart-height-desktop) !important;
+}
+
+.exec-dashboard-page .fi-section {
+    overflow: hidden;
+}
+
+.exec-dashboard-page .fi-section-header {
+    border-bottom: 1px solid #e2e8f0;
+    background: linear-gradient(180deg, rgba(248, 250, 252, 0.85), rgba(248, 250, 252, 0.35));
+}
+
+.dark .exec-dashboard-page .fi-section-header,
+.exec-dashboard-page.dark .fi-section-header {
+    border-bottom: 1px solid #273449;
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.85), rgba(30, 41, 59, 0.4));
+}
+
+.exec-dashboard-page .fi-wi-stats-overview-stat-value {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+.exec-dashboard-page .fi-ta-cell,
+.exec-dashboard-page .fi-ta-header-cell,
+.exec-dashboard-page .fi-badge {
+    font-variant-numeric: tabular-nums;
+}
+
+.exec-dashboard-page .fi-wi-stats-overview-stat-description {
+    color: var(--exec-muted);
+}
+
+.exec-dashboard-page .fi-sidebar,
+.exec-dashboard-page nav.fi-sidebar-nav {
+    background: #f8fafc !important;
+}
+
+.dark .exec-dashboard-page .fi-sidebar,
+.dark .exec-dashboard-page nav.fi-sidebar-nav,
+.exec-dashboard-page.dark .fi-sidebar,
+.exec-dashboard-page.dark nav.fi-sidebar-nav {
+    background: #0f172a !important;
+    border-color: #243248 !important;
+}
+
+.dark .exec-dashboard-page .fi-sidebar-item-label,
+.dark .exec-dashboard-page .fi-sidebar-group-label,
+.exec-dashboard-page.dark .fi-sidebar-item-label,
+.exec-dashboard-page.dark .fi-sidebar-group-label {
+    color: #dbe7fb !important;
+}
+
+.exec-dashboard-page .fi-ta-header,
+.exec-dashboard-page .fi-ta-content,
+.exec-dashboard-page .fi-ta-empty-state {
+    background: transparent !important;
+}
+
+.exec-dashboard-page .fi-btn,
+.exec-dashboard-page .fi-input,
+.exec-dashboard-page .fi-select-input,
+.exec-dashboard-page .fi-date-time-picker,
+.exec-dashboard-page .fi-fo-field-wrp {
+    border-radius: 12px !important;
+}
+
+.exec-dashboard-page .fi-btn,
+.exec-dashboard-page .fi-link,
+.exec-dashboard-page a,
+.exec-dashboard-page button,
+.exec-dashboard-page [role="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(21, 93, 166, 0.15);
+}
+
+.exec-dashboard-page :is(a, button, input, select, textarea):focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.65);
+    outline-offset: 2px;
+}
+
+.exec-dashboard-page .fi-wi-widget {
+    transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.exec-dashboard-page .fi-wi-widget:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 16px 30px -24px rgba(15, 23, 42, 0.45) !important;
+}
+
+@media (max-width: 640px) {
+    .exec-dashboard-page .fi-page-header,
+    .exec-dashboard-page .fi-header {
+        border-radius: 14px;
+        padding: 0.875rem 0.9rem;
+    }
+
+    .exec-dashboard-page .fi-section,
+    .exec-dashboard-page .fi-ta,
+    .exec-dashboard-page .fi-wi-widget,
+    .exec-dashboard-page .fi-wi-chart,
+    .exec-dashboard-page .fi-wi-stats-overview-stat {
+        border-radius: 12px !important;
+    }
+
+    .exec-dashboard-page .fi-wi-chart {
+        min-height: var(--exec-chart-height-mobile);
+    }
+
+    .exec-dashboard-page .fi-wi-chart canvas {
+        height: var(--exec-chart-height-mobile) !important;
+        max-height: var(--exec-chart-height-mobile) !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .exec-dashboard-page .fi-wi-widget {
+        transition: none !important;
+    }
+
+    .exec-dashboard-page .fi-wi-widget:hover {
+        transform: none;
+    }
+}

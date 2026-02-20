@@ -16,6 +16,7 @@ use App\Models\User;
 class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
+
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
     protected static ?string $navigationLabel = 'Escritorio';
     protected static ?string $title = 'Panel';
@@ -23,7 +24,7 @@ class Dashboard extends BaseDashboard
 
     public function getMaxContentWidth(): ?string
     {
-        return 'full'; // Margen izquierdo reducido en dashboard
+        return 'full';
     }
 
     /**
@@ -143,12 +144,12 @@ class Dashboard extends BaseDashboard
     public function getColumns(): int | string | array
     {
         return [
-            'default' => 1,      // Móvil: 1 columna (stack vertical)
-            'sm' => 1,           // Tablet pequeña: 1 columna
-            'md' => 2,           // Tablet: 2 columnas (widgets lado a lado)
-            'lg' => 2,           // Desktop: 2 columnas (más espacio)
-            'xl' => 2,           // Desktop grande: 2 columnas
-            '2xl' => 3,          // Desktop extra: máximo 3 columnas
+            'default' => 1,
+            'sm' => 1,
+            'md' => 2,
+            'lg' => 2,
+            'xl' => 2,
+            '2xl' => 3,
         ];
     }
 
@@ -194,6 +195,7 @@ class Dashboard extends BaseDashboard
     {
         return $form->schema([
             Section::make('Filtros de Fecha')
+                ->description('Ajusta el rango para analizar el rendimiento comercial.')
                 ->schema([
                     Select::make('date_range')
                         ->label('Rango de Fecha')
@@ -225,7 +227,10 @@ class Dashboard extends BaseDashboard
                         ->visible(fn (callable $get) => $get('date_range') === 'custom')
                         ->required(fn (callable $get) => $get('date_range') === 'custom'),
                 ])
-                ->columns(3),
+                ->columns([
+                    'default' => 1,
+                    'md' => 3,
+                ]),
         ]);
     }
 
@@ -234,6 +239,7 @@ class Dashboard extends BaseDashboard
      */
     public function getSubheading(): ?string
     {
+        /** @var User|null $user */
         $user = Auth::user();
         $currentTime = now()->format('H:i');
         $currentDate = now()->format('d/m/Y');
@@ -242,10 +248,11 @@ class Dashboard extends BaseDashboard
             return null;
         }
 
-        $roleName = $user->roles->first()?->name ?? 'usuario';
+        $roleName = str_replace('_', ' ', $user->roles->first()?->name ?? 'usuario');
+        $roleName = ucfirst($roleName);
 
-    $tz = config('app.timezone', 'UTC');
-    return "Rol: {$roleName} • {$currentDate} {$currentTime} ({$tz}) • Datos al momento de carga";
+        $tz = config('app.timezone', 'UTC');
+
+        return "{$roleName} | {$currentDate} {$currentTime} ({$tz}) | Datos actualizados al cargar";
     }
 }
-//comentario
