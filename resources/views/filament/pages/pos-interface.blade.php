@@ -1,8 +1,5 @@
+<div>
 <x-filament-panels::page>
-    @php
-        // Forzar UTF-8 para caracteres especiales
-        header('Content-Type: text/html; charset=UTF-8');
-    @endphp
     <style>
         /* ========================================= */
         /* SISTEMA POS OPTIMIZADO - DISEÑO MODERNO */
@@ -3877,22 +3874,238 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
-            /* ===== Ajustes responsivos adicionales para maximizar densidad del carrito ===== */
-            @media (max-width: 1023px) {
-                .pos-cart-items { max-height: 320px; min-height: 160px; }
-            }
-            @media (max-width: 767px) {
-                .pos-cart-items { --cart-item-font-size: 10.5px; --cart-item-font-size-sm: 9.5px; --cart-item-padding:5px; max-height: 300px; min-height: 140px; }
-                .pos-cart-item { column-gap:4px; }
-                .pos-cart-items .pos-item-remove-btn { width:24px; height:24px; min-height:24px; }
-            }
-            @media (max-width: 480px) {
-                .pos-cart-items { --cart-item-font-size: 10px; --cart-item-font-size-sm: 9px; --cart-item-padding:4px; max-height: 280px; min-height: 120px; }
-                .pos-cart-items .pos-item-remove-btn { width:22px; height:22px; }
-            }
             to {
                 transform: translateX(0);
                 opacity: 1;
+            }
+        }
+
+        @media (max-width: 1023px) {
+            .pos-cart-items {
+                max-height: 320px;
+                min-height: 180px;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .pos-cart-items {
+                --cart-item-font-size: 12px;
+                --cart-item-font-size-sm: 12px;
+                --cart-item-padding: 8px;
+                max-height: 320px;
+                min-height: 180px;
+            }
+
+            .pos-cart-item {
+                column-gap: 8px;
+            }
+
+            .pos-cart-items .pos-item-remove-btn {
+                width: 44px;
+                height: 44px;
+                min-height: 44px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pos-cart-items {
+                --cart-item-font-size: 12px;
+                --cart-item-font-size-sm: 12px;
+                --cart-item-padding: 8px;
+                max-height: 300px;
+                min-height: 160px;
+            }
+
+            .pos-cart-items .pos-item-remove-btn {
+                width: 44px;
+                height: 44px;
+            }
+        }
+
+        /* PALETA PRO + COMPATIBILIDAD LIGHT/DARK FILAMENT */
+        .pos-interface {
+            --pos-primary: #2563eb;
+            --pos-primary-600: #1d4ed8;
+            --pos-success: #0f9d58;
+            --pos-warning: #b7791f;
+            --pos-danger: #c53030;
+            --pos-bg: #f8fafc;
+            --pos-surface: #ffffff;
+            --pos-surface-soft: #f1f5f9;
+            --pos-text: #0f172a;
+            --pos-text-muted: #475569;
+            --pos-border-subtle: #cbd5e1;
+            --pos-focus-ring: rgba(37, 99, 235, 0.32);
+        }
+
+        .dark .pos-interface {
+            --pos-primary: #60a5fa;
+            --pos-primary-600: #3b82f6;
+            --pos-success: #34d399;
+            --pos-warning: #fbbf24;
+            --pos-danger: #f87171;
+            --pos-bg: #0b1220;
+            --pos-surface: #111827;
+            --pos-surface-soft: #1f2937;
+            --pos-text: #e5e7eb;
+            --pos-text-muted: #cbd5e1;
+            --pos-border-subtle: #334155;
+            --pos-focus-ring: rgba(96, 165, 250, 0.4);
+        }
+
+        .pos-main-container,
+        .pos-products-grid,
+        .pos-search-bar,
+        .pos-categories,
+        .pos-cart,
+        .pos-cart-header,
+        .pos-cart-totals {
+            background: var(--pos-surface) !important;
+            border-color: var(--pos-border-subtle) !important;
+            color: var(--pos-text);
+        }
+
+        .dark .pos-main-container {
+            background: var(--pos-bg) !important;
+        }
+
+        .pos-category-btn,
+        .pos-subcategory-btn {
+            background: var(--pos-surface) !important;
+            border-color: var(--pos-border-subtle) !important;
+            color: var(--pos-text-muted) !important;
+            font-size: 12px !important;
+        }
+
+        .pos-category-btn.active,
+        .pos-subcategory-btn.active {
+            background: var(--pos-primary) !important;
+            border-color: var(--pos-primary-600) !important;
+            color: #ffffff !important;
+        }
+
+        .pos-product-card,
+        .pos-cart-item {
+            background: var(--pos-surface) !important;
+            border: 1px solid var(--pos-border-subtle) !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        .pos-product-card:hover,
+        .pos-cart-item:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.14) !important;
+            border-color: var(--pos-primary) !important;
+        }
+
+        .pos-search-container:focus-within,
+        .pos-search-input:focus,
+        .pos-quantity-input:focus,
+        .pos-guests-input:focus,
+        .pos-quick-action-btn:focus-visible,
+        .pos-action-btn:focus-visible,
+        .pos-item-remove-btn:focus-visible,
+        .pos-category-btn:focus-visible,
+        .pos-subcategory-btn:focus-visible {
+            outline: none !important;
+            box-shadow: 0 0 0 3px var(--pos-focus-ring) !important;
+        }
+
+        .pos-quick-actions-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 6px !important;
+        }
+
+        .pos-quick-action-btn {
+            min-height: 44px !important;
+            height: 44px !important;
+            padding: 8px 10px !important;
+            font-size: 12px !important;
+            border-radius: 8px !important;
+            text-shadow: none !important;
+            transform: none !important;
+        }
+
+        .pos-quick-action-btn:hover:not(:disabled) {
+            transform: translateY(-1px) !important;
+            filter: none !important;
+        }
+
+        .pos-quick-action-btn .btn-label,
+        .pos-action-btn,
+        .pos-metric-label,
+        .pos-selected-option-display,
+        .pos-selected-option-tag {
+            font-size: 12px !important;
+        }
+
+        .pos-item-remove-btn,
+        .pos-search-clear,
+        .pos-categories-toggle-btn-fixed {
+            min-width: 44px;
+            min-height: 44px;
+        }
+
+        .pos-total-row {
+            font-size: 14px;
+            color: var(--pos-text-muted);
+        }
+
+        .pos-total-row.final {
+            font-size: 18px !important;
+            color: var(--pos-text) !important;
+            background: color-mix(in srgb, var(--pos-primary) 14%, transparent) !important;
+            border-top: 1px solid var(--pos-primary) !important;
+        }
+
+        .pos-total-row.final .pos-total-amount {
+            font-size: 28px !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.2px;
+            color: var(--pos-primary) !important;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pos-action-btn.primary {
+            background: var(--pos-primary);
+            color: #ffffff;
+        }
+
+        .pos-action-btn.success {
+            background: var(--pos-success);
+            color: #ffffff;
+        }
+
+        .pos-action-btn {
+            min-height: 48px;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1280px) {
+            .pos-quick-actions-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .pos-quick-actions-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .pos-total-row.final .pos-total-amount {
+                font-size: 24px !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .pos-interface *,
+            .pos-interface *::before,
+            .pos-interface *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
             }
         }
     </style>
@@ -4077,16 +4290,104 @@
     </script>
 
     <script>
+    function openPosPinModal() {
+        return new Promise((resolve) => {
+            const existing = document.getElementById('pos-pin-modal-overlay');
+            if (existing) {
+                existing.remove();
+            }
+
+            const overlay = document.createElement('div');
+            overlay.id = 'pos-pin-modal-overlay';
+            overlay.style.position = 'fixed';
+            overlay.style.inset = '0';
+            overlay.style.background = 'rgba(15, 23, 42, 0.55)';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '100000';
+
+            const panel = document.createElement('div');
+            panel.style.width = 'min(92vw, 420px)';
+            panel.style.background = 'var(--pos-surface, #ffffff)';
+            panel.style.border = '1px solid var(--pos-border-subtle, #cbd5e1)';
+            panel.style.borderRadius = '12px';
+            panel.style.padding = '20px';
+            panel.style.boxShadow = '0 20px 45px rgba(0, 0, 0, 0.28)';
+            panel.style.color = 'var(--pos-text, #0f172a)';
+
+            panel.innerHTML = `
+                <h3 style="margin:0 0 8px;font-size:18px;font-weight:700;">Autorizacion requerida</h3>
+                <p style="margin:0 0 14px;font-size:14px;color:var(--pos-text-muted,#475569);">Ingrese PIN para confirmar esta accion.</p>
+                <label for="pos-pin-input" style="display:block;margin-bottom:6px;font-size:13px;font-weight:600;">PIN</label>
+                <input id="pos-pin-input" type="password" inputmode="numeric" autocomplete="off"
+                    style="width:100%;height:44px;padding:0 12px;border:1px solid var(--pos-border-subtle,#cbd5e1);border-radius:8px;background:var(--pos-surface-soft,#f8fafc);color:inherit;" />
+                <div id="pos-pin-error" style="display:none;margin-top:8px;font-size:12px;color:#c53030;">El PIN es obligatorio.</div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+                    <button id="pos-pin-cancel" type="button" style="height:40px;padding:0 14px;border:1px solid var(--pos-border-subtle,#cbd5e1);background:transparent;border-radius:8px;cursor:pointer;">Cancelar</button>
+                    <button id="pos-pin-confirm" type="button" style="height:40px;padding:0 14px;border:0;background:var(--pos-primary,#2563eb);color:#fff;border-radius:8px;cursor:pointer;font-weight:700;">Confirmar</button>
+                </div>
+            `;
+
+            overlay.appendChild(panel);
+            document.body.appendChild(overlay);
+
+            const input = panel.querySelector('#pos-pin-input');
+            const error = panel.querySelector('#pos-pin-error');
+            const confirmBtn = panel.querySelector('#pos-pin-confirm');
+            const cancelBtn = panel.querySelector('#pos-pin-cancel');
+
+            const close = (value = null) => {
+                overlay.remove();
+                resolve(value);
+            };
+
+            confirmBtn.addEventListener('click', () => {
+                const value = (input.value || '').trim();
+                if (!value) {
+                    error.style.display = 'block';
+                    input.focus();
+                    return;
+                }
+                close(value);
+            });
+
+            cancelBtn.addEventListener('click', () => close(null));
+
+            overlay.addEventListener('click', (event) => {
+                if (event.target === overlay) {
+                    close(null);
+                }
+            });
+
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    confirmBtn.click();
+                }
+
+                if (event.key === 'Escape') {
+                    event.preventDefault();
+                    close(null);
+                }
+            });
+
+            setTimeout(() => input.focus(), 20);
+        });
+    }
+
     // Solicitar PIN para rol waiter cuando se intenta eliminar o limpiar
-    window.addEventListener('pos-pin-required', (event) => {
+    window.addEventListener('pos-pin-required', async (event) => {
         try {
             const detail = event?.detail ?? {};
             const action = detail.action ?? null;
             const index = detail.index ?? null;
-            const pin = prompt('Ingrese PIN de autorización:');
-            if (pin === null || pin === '') return; // cancelado
+            const pin = await openPosPinModal();
+            if (!pin) return;
+
             const root = document.querySelector('[wire\\:id]');
             const id = root ? root.getAttribute('wire:id') : null;
+
             if (id && window.Livewire) {
                 const component = window.Livewire.find(id);
                 if (component) {
@@ -4094,6 +4395,7 @@
                     return;
                 }
             }
+
             if (window.$wire && typeof window.$wire.verifyPinAndExecute === 'function') {
                 window.$wire.verifyPinAndExecute(action, index, pin);
             }
@@ -4455,15 +4757,17 @@
             </button>
         @endif
 
-        <!-- Liberar Mesa -->
-        <button wire:click="mountAction('releaseTable')" class="pos-quick-action-btn btn-liberar" {{ !($this->order && $this->order->table_id) ? 'disabled' : '' }} title="Liberar Mesa">
-            <span class="btn-label">Liberar</span>
-        </button>
+        @if(auth()->user()->hasRole(['super_admin', 'admin']))
+            <!-- Liberar Mesa -->
+            <button wire:click="mountAction('releaseTable')" class="pos-quick-action-btn btn-liberar" {{ !($this->order && $this->order->table_id) ? 'disabled' : '' }} title="Liberar Mesa">
+                <span class="btn-label">Liberar</span>
+            </button>
 
-        <!-- Cancelar Pedido -->
-        <button wire:click="mountAction('cancelOrder')" class="pos-quick-action-btn btn-cancelar" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Cancelar Pedido">
-            <span class="btn-label">Cancelar</span>
-        </button>
+            <!-- Cancelar Pedido -->
+            <button wire:click="mountAction('cancelOrder')" class="pos-quick-action-btn btn-cancelar" {{ !($this->order || !empty($this->cartItems)) ? 'disabled' : '' }} title="Cancelar Pedido">
+                <span class="btn-label">Cancelar</span>
+            </button>
+        @endif
     </div>
 </div>
                 </div>
@@ -4658,7 +4962,7 @@
                 @if(count($cartItems) > 0)
                     <div class="pos-cart-totals">
                                                  {{-- HEADER CON INFORMACIÓN CONTEXTUAL - OCULTO --}}
-                         <div class="pos-totals-header" style="display: none;">
+                         <div class="pos-totals-header">
                              <div class="pos-totals-header-title">
                                  @if($order && $order->invoices()->exists())
                                      {{-- Estado: Facturado --}}
@@ -4694,11 +4998,11 @@
 
                         {{-- DESGLOSE DE TOTALES --}}
                         <div class="pos-totals-container">
-                            <div class="pos-total-row" style="display: none;">
+                            <div class="pos-total-row">
                                 <span>Subtotal:</span>
                                 <span class="pos-total-amount">S/ {{ number_format($subtotal, 2) }}</span>
                             </div>
-                            <div class="pos-total-row" style="display: none;">
+                            <div class="pos-total-row">
                                 <span>IGV (18%):</span>
                                 <span class="pos-total-amount">S/ {{ number_format($tax, 2) }}</span>
                             </div>
@@ -4709,7 +5013,7 @@
                                     </svg>
                                     Total:
                                 </span>
-                                <span class="pos-total-amount" style="font-size: 13px; font-weight: 700;">S/ {{ number_format($total, 2) }}</span>
+                                <span class="pos-total-amount">S/ {{ number_format($total, 2) }}</span>
                             </div>
                         </div>
 
@@ -4932,26 +5236,29 @@
             </div>
         </div>
     </div>
+
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
+    @endpush
+
+    @push('scripts')
+        <script>
+        // Listener para redirección automática al mapa de mesas después de imprimir comprobantes
+        window.addEventListener('message', function(event) {
+            console.log('🖨️ POS Interface - Evento recibido:', event.data);
+
+            if (event.data === 'invoice-completed' ||
+                (event.data && event.data.type === 'invoice-completed')) {
+
+                console.log('✅ Comprobante impreso - Redirigiendo al mapa de mesas');
+
+                setTimeout(function() {
+                    console.log('🔄 Redirigiendo al mapa de mesas...');
+                    window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';
+                }, 1500);
+            }
+        });
+        </script>
+    @endpush
 </x-filament-panels::page>
-
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('css/product-images.css') }}">
-@endpush
-
-<script>
-// Listener para redirección automática al mapa de mesas después de imprimir comprobantes
-window.addEventListener('message', function(event) {
-    console.log('🖨️ POS Interface - Evento recibido:', event.data);
-
-    if (event.data === 'invoice-completed' ||
-        (event.data && event.data.type === 'invoice-completed')) {
-
-        console.log('✅ Comprobante impreso - Redirigiendo al mapa de mesas');
-
-        setTimeout(function() {
-            console.log('🔄 Redirigiendo al mapa de mesas...');
-            window.location.href = '{{ \App\Filament\Pages\TableMap::getUrl() }}';
-        }, 1500);
-    }
-});
-</script>
+</div>

@@ -687,6 +687,12 @@ class PosInterface extends Page
                 ->modalHeading('Confirmar Liberación')
                 ->modalDescription('¿Estás seguro de que deseas marcar esta orden como PAGADA y liberar la mesa? Esta acción no se puede deshacer.')
                 ->action(function () {
+                    if (!Auth::user()->hasRole(['super_admin', 'admin'])) {
+                        Notification::make()->title('No autorizado')->danger()->send();
+
+                        return;
+                    }
+
                     if ($this->order) {
                         $this->order->update(['status' => Order::STATUS_COMPLETED]);
                         $this->order->syncTableStatusFromPendingOrders();
@@ -700,7 +706,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter'])), // ✅ Solo para órdenes con mesa y no visible para waiter
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && Auth::user()->hasRole(['super_admin', 'admin'])),
 
             Action::make('cancelOrder')
                 ->label('Cancelar Orden')
@@ -710,6 +716,12 @@ class PosInterface extends Page
                 ->modalHeading('Confirmar Cancelación')
                 ->modalDescription('¿Estás seguro de que deseas CANCELAR esta orden? Los productos no se cobrarán y la mesa quedará libre. Esta acción no se puede deshacer.')
                 ->action(function () {
+                    if (!Auth::user()->hasRole(['super_admin', 'admin'])) {
+                        Notification::make()->title('No autorizado')->danger()->send();
+
+                        return;
+                    }
+
                     if ($this->order) {
                         $this->order->update(['status' => Order::STATUS_CANCELLED]);
                         $this->order->syncTableStatusFromPendingOrders();
@@ -723,7 +735,7 @@ class PosInterface extends Page
                         return redirect(TableMap::getUrl());
                     }
                 })
-                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter'])), // ✅ Solo para órdenes con mesa y no visible para waiter
+                ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && Auth::user()->hasRole(['super_admin', 'admin'])),
 
             Action::make('transferOrder')
                 ->label('Transferir')
@@ -3658,6 +3670,12 @@ class PosInterface extends Page
             ->modalHeading('Confirmar Liberación')
             ->modalDescription('¿Estás seguro de que deseas marcar esta orden como PAGADA y liberar la mesa? Esta acción no se puede deshacer.')
             ->action(function () {
+                if (!Auth::user()->hasRole(['super_admin', 'admin'])) {
+                    Notification::make()->title('No autorizado')->danger()->send();
+
+                    return;
+                }
+
                 if ($this->order) {
                     $this->order->update(['status' => Order::STATUS_COMPLETED]);
                     $this->order->syncTableStatusFromPendingOrders();
@@ -3671,7 +3689,7 @@ class PosInterface extends Page
                     return redirect(TableMap::getUrl());
                 }
             })
-            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter']));
+            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && Auth::user()->hasRole(['super_admin', 'admin']));
     }
 
     /**
@@ -3687,6 +3705,12 @@ class PosInterface extends Page
             ->modalHeading('Confirmar Cancelación')
             ->modalDescription('¿Estás seguro de que deseas CANCELAR esta orden? Los productos no se cobrarán y la mesa quedará libre. Esta acción no se puede deshacer.')
             ->action(function () {
+                if (!Auth::user()->hasRole(['super_admin', 'admin'])) {
+                    Notification::make()->title('No autorizado')->danger()->send();
+
+                    return;
+                }
+
                 if ($this->order) {
                     $this->order->update(['status' => Order::STATUS_CANCELLED]);
                     $this->order->syncTableStatusFromPendingOrders();
@@ -3700,7 +3724,7 @@ class PosInterface extends Page
                     return redirect(TableMap::getUrl());
                 }
             })
-            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && !Auth::user()->hasRole(['waiter']));
+            ->visible(fn(): bool => $this->order && $this->order->table_id !== null && $this->order->status === Order::STATUS_OPEN && Auth::user()->hasRole(['super_admin', 'admin']));
     }
 
     /**
