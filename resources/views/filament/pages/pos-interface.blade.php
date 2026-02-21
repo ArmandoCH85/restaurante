@@ -3936,6 +3936,19 @@
             --pos-text-muted: #475569;
             --pos-border-subtle: #cbd5e1;
             --pos-focus-ring: rgba(37, 99, 235, 0.32);
+
+            /* Colores de categorias alineados con la paleta pro */
+            --cat-sopas-rgb: 217, 119, 6;
+            --cat-ensaladas-rgb: 5, 150, 105;
+            --cat-piqueos-rgb: 225, 29, 72;
+            --cat-pastas-rgb: 234, 88, 12;
+            --cat-entradas-rgb: 79, 70, 229;
+            --cat-parrillas-rgb: 220, 38, 38;
+            --cat-pollos-rgb: 202, 138, 4;
+            --cat-platos-rgb: 124, 58, 237;
+            --cat-bebidas-rgb: 2, 132, 199;
+            --cat-adicionales-rgb: 71, 85, 105;
+            --cat-carta-rgb: 8, 145, 178;
         }
 
         .dark .pos-interface {
@@ -3972,16 +3985,52 @@
         .pos-category-btn,
         .pos-subcategory-btn {
             background: var(--pos-surface) !important;
-            border-color: var(--pos-border-subtle) !important;
+            border: 1px solid var(--pos-border-subtle) !important;
             color: var(--pos-text-muted) !important;
             font-size: 12px !important;
+        }
+
+        .pos-category-btn {
+            --cat-accent: var(--category-accent, var(--pos-primary-600));
+            border: 1px solid color-mix(in srgb, var(--cat-accent) 52%, var(--pos-border-subtle)) !important;
+            border-left: 4px solid var(--cat-accent) !important;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+        }
+
+        .pos-category-btn:hover:not(.active) {
+            background: color-mix(in srgb, var(--cat-accent) 10%, var(--pos-surface)) !important;
+            border-color: color-mix(in srgb, var(--cat-accent) 30%, var(--pos-border-subtle)) !important;
+            color: var(--pos-text) !important;
+            transform: translateY(-1px);
         }
 
         .pos-category-btn.active,
         .pos-subcategory-btn.active {
             background: var(--pos-primary) !important;
-            border-color: var(--pos-primary-600) !important;
+            border-color: var(--cat-accent) !important;
             color: #ffffff !important;
+        }
+
+        .pos-category-btn.active {
+            border-left-color: var(--cat-accent) !important;
+        }
+
+        .pos-category-btn.cat-sopas { --cat-accent: rgb(var(--cat-sopas-rgb)); }
+        .pos-category-btn.cat-ensaladas { --cat-accent: rgb(var(--cat-ensaladas-rgb)); }
+        .pos-category-btn.cat-piqueos { --cat-accent: rgb(var(--cat-piqueos-rgb)); }
+        .pos-category-btn.cat-pastas { --cat-accent: rgb(var(--cat-pastas-rgb)); }
+        .pos-category-btn.cat-entradas { --cat-accent: rgb(var(--cat-entradas-rgb)); }
+        .pos-category-btn.cat-parrillas { --cat-accent: rgb(var(--cat-parrillas-rgb)); }
+        .pos-category-btn.cat-pollos { --cat-accent: rgb(var(--cat-pollos-rgb)); }
+        .pos-category-btn.cat-platos { --cat-accent: rgb(var(--cat-platos-rgb)); }
+        .pos-category-btn.cat-bebidas { --cat-accent: rgb(var(--cat-bebidas-rgb)); }
+        .pos-category-btn.cat-adicionales { --cat-accent: rgb(var(--cat-adicionales-rgb)); }
+        .pos-category-btn.cat-carta { --cat-accent: rgb(var(--cat-carta-rgb)); }
+        .pos-category-btn[class*="cat-auto-"] { --cat-accent: var(--auto-border-active, var(--pos-primary-600)); }
+
+        .dark .pos-category-btn:hover:not(.active) {
+            background: color-mix(in srgb, var(--cat-accent) 14%, var(--pos-surface)) !important;
+            color: var(--pos-text) !important;
         }
 
         .pos-product-card,
@@ -4446,12 +4495,28 @@
                             // Generar colores únicos para categorías nuevas
                             $autoColorIndex = $this->generateColorIndex($category->name);
                             $autoColors = $this->getAutoColors($autoColorIndex);
+
+                            $categoryAccent = match($categoryClass) {
+                                'cat-sopas' => '#d97706',
+                                'cat-ensaladas' => '#059669',
+                                'cat-piqueos' => '#e11d48',
+                                'cat-pastas' => '#ea580c',
+                                'cat-entradas' => '#4f46e5',
+                                'cat-parrillas' => '#dc2626',
+                                'cat-pollos' => '#ca8a04',
+                                'cat-platos' => '#7c3aed',
+                                'cat-bebidas' => '#0284c7',
+                                'cat-adicionales' => '#475569',
+                                'cat-carta' => '#0891b2',
+                                default => $autoColors['borderActive'],
+                            };
                         @endphp
                         <button
                             wire:click="selectCategory({{ $category->id }})"
                             class="pos-category-btn {{ $selectedCategoryId === $category->id ? 'active' : '' }} {{ $categoryClass }}"
-                            @if(str_starts_with($categoryClass, 'cat-auto-'))
-                                style="
+                            style="
+                                    --category-accent: {{ $categoryAccent }};
+                                    @if(str_starts_with($categoryClass, 'cat-auto-'))
                                     --auto-bg: {{ $autoColors['bg'] }};
                                     --auto-bg-hover: {{ $autoColors['bgHover'] }};
                                     --auto-bg-active: {{ $autoColors['bgActive'] }};
@@ -4460,8 +4525,8 @@
                                     --auto-border-active: {{ $autoColors['borderActive'] }};
                                     --auto-text: {{ $autoColors['text'] }};
                                     --auto-text-active: {{ $autoColors['textActive'] }};
+                                    @endif
                                 "
-                            @endif
                         >
                             {{ $category->name }}
                         </button>
