@@ -23,6 +23,10 @@ class ViewQuotation extends ViewRecord
                         Infolists\Components\TextEntry::make('quotation_number')
                             ->label('Número de Cotización'),
 
+                        Infolists\Components\TextEntry::make('contact_name')
+                            ->label('Contacto de la Proforma')
+                            ->placeholder('No registrado'),
+
                         Infolists\Components\TextEntry::make('issue_date')
                             ->label('Fecha de Emisión')
                             ->date('d/m/Y'),

@@ -30,6 +30,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\HtmlString;
 use App\Models\Quotation;
+use App\Models\AppSetting;
 use App\Models\QuotationDetail;
 use App\Models\Product;
 use App\Models\Customer;
@@ -97,6 +98,12 @@ class CreateQuotationEnhanced extends Page
                                     ->label('Número de Cotización')
                                     ->default(fn () => Quotation::generateQuotationNumber())
                                     ->disabled()
+                                    ->required(),
+
+                                TextInput::make('contact_name')
+                                    ->label('Contacto de la Proforma')
+                                    ->placeholder('Nombre de quien solicita la proforma')
+                                    ->maxLength(255)
                                     ->required(),
 
                                 DatePicker::make('issue_date')
@@ -289,8 +296,11 @@ class CreateQuotationEnhanced extends Page
 
     public function calculateTotal(): void
     {
+        $igvPercent = (float) (AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?? 10.50);
+        $igvRate = $igvPercent / 100;
+
         $this->subtotal = array_sum($this->productSubtotals);
-        $this->tax = $this->subtotal * 0.18; // 18% IGV
+        $this->tax = $this->subtotal * $igvRate;
         $this->total = $this->subtotal + $this->tax - $this->discount;
     }
 
@@ -320,6 +330,7 @@ class CreateQuotationEnhanced extends Page
             $quotation = new Quotation();
             $quotation->quotation_number = Quotation::generateQuotationNumber();
             $quotation->customer_id = $this->data['customer_id'];
+            $quotation->contact_name = $this->data['contact_name'];
             $quotation->user_id = Auth::id();
             $quotation->issue_date = $this->data['issue_date'];
             $quotation->valid_until = $this->data['valid_until'];
@@ -353,8 +364,8 @@ class CreateQuotationEnhanced extends Page
                 ->success()
                 ->send();
 
-            // Redirigir a la vista de la cotización
-            redirect('/admin/ventas/cotizaciones/' . $quotation->id);
+            // Redirigir a la vista de la proforma
+            redirect(QuotationResource::getUrl('view', ['record' => $quotation]));
         } catch (\Exception $e) {
             DB::rollBack();
 
@@ -380,7 +391,7 @@ class CreateQuotationEnhanced extends Page
         return [
             \Filament\Actions\Action::make('cancel')
                 ->label('Cancelar')
-                ->url('/admin/ventas/cotizaciones')
+                ->url(QuotationResource::getUrl('index'))
                 ->color('gray'),
         ];
     }

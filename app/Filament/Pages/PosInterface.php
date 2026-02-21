@@ -20,6 +20,7 @@ use Filament\Forms\Form;
 use Filament\Tables;
 use Filament\Tables\Table;
 use App\Models\CashMovement;
+use App\Models\AppSetting;
 use App\Filament\Pages\TableMap;
 use Filament\Forms\Components\Select;
 use Illuminate\Support\Facades\DB;
@@ -1606,9 +1607,13 @@ class PosInterface extends Page
             return $item['unit_price'] * $item['quantity'];
         });
 
-        // 🧮 CÁLCULO INVERSO DEL IGV (18%)
-        $this->subtotal = $totalConIGV / 1.18;  // Base imponible sin IGV
-        $this->tax = $this->subtotal * 0.18;    // IGV calculado
+        $igvPercent = (float) (AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?? 10.50);
+        $igvRate = $igvPercent / 100;
+        $igvFactor = 1 + $igvRate;
+
+        // 🧮 CÁLCULO INVERSO DEL IGV CONFIGURABLE
+        $this->subtotal = round($totalConIGV / $igvFactor, 2);  // Base imponible sin IGV
+        $this->tax = round($this->subtotal * $igvRate, 2);      // IGV calculado
         $this->total = $this->subtotal + $this->tax; // Total (igual al precio original)
     }
 

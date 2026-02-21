@@ -15,19 +15,19 @@ class CreateQuotation extends CreateRecord
     // Personalizar el título de la página
     public function getTitle(): string
     {
-        return 'Crear Nueva Cotización';
+        return 'Crear Nueva Proforma';
     }
 
     // Personalizar el subtítulo de la página
     public function getSubheading(): string
     {
-        return 'Complete el formulario para crear una nueva cotización';
+        return 'Complete el formulario para crear una nueva proforma';
     }
 
     // Personalizar la descripción de la página
     public function getDescription(): string
     {
-        return 'Las cotizaciones permiten ofrecer precios a los clientes antes de generar un pedido.';
+        return 'Las proformas permiten ofrecer precios a los clientes antes de generar un pedido.';
     }
 
     // Personalizar los botones de acción
@@ -36,7 +36,7 @@ class CreateQuotation extends CreateRecord
         return [
             Actions\Action::make('volver')
                 ->label('Volver al listado')
-                ->url('/admin/ventas/cotizaciones')
+                ->url(QuotationResource::getUrl('index'))
                 ->color('gray')
                 ->icon('heroicon-o-arrow-left'),
         ];
@@ -83,7 +83,7 @@ class CreateQuotation extends CreateRecord
     // Personalizar el mensaje de éxito
     public function getCreatedNotificationTitle(): string
     {
-        return 'Cotización creada correctamente';
+        return 'Proforma creada correctamente';
     }
 
     // Personalizar el botón de guardar
@@ -91,7 +91,7 @@ class CreateQuotation extends CreateRecord
     {
         return [
             $this->getCreateFormAction()
-                ->label('Crear Cotización')
+                ->label('Crear Proforma')
                 ->icon('heroicon-o-document-plus'),
 
             $this->getCancelFormAction()

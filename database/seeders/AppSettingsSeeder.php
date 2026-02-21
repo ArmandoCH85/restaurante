@@ -145,8 +145,8 @@ class AppSettingsSeeder extends Seeder
             [
                 'tab' => 'FacturacionElectronica',
                 'key' => 'igv_percent',
-                'default' => '18.00',
-                'value' => '18.00', // Porcentaje de IGV (18% es el estándar en Perú)
+                'default' => '10.50',
+                'value' => '10.50', // Porcentaje de IGV
             ],
             [
                 'tab' => 'FacturacionElectronica',

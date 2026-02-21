@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\QuotationResource\Pages;
 use App\Models\Quotation;
+use App\Models\AppSetting;
 use App\Models\Customer;
 use App\Models\Product;
 use Filament\Forms;
@@ -24,13 +25,13 @@ class QuotationResource extends Resource
 
     protected static ?string $navigationGroup = 'Reservas y Eventos';
 
-    protected static ?string $navigationLabel = 'Cotizaciones';
+    protected static ?string $navigationLabel = 'Proforma';
 
-    protected static ?string $modelLabel = 'Cotización';
+    protected static ?string $modelLabel = 'Proforma';
 
-    protected static ?string $pluralModelLabel = 'Cotizaciones';
+    protected static ?string $pluralModelLabel = 'Proformas';
 
-    protected static ?string $slug = 'ventas/cotizaciones';
+    protected static ?string $slug = 'ventas/proforma';
 
     protected static ?int $navigationSort = 5;
 
@@ -103,16 +104,22 @@ class QuotationResource extends Resource
                 Forms\Components\Group::make()
                     ->schema([
                         Forms\Components\Section::make('Información General')
-                            ->description('Información básica de la cotización')
+                            ->description('Información básica de la proforma')
                             ->icon('heroicon-o-document-text')
                             ->collapsible()
                             ->schema([
                                 Forms\Components\Grid::make(3)
                                     ->schema([
                                         Forms\Components\TextInput::make('quotation_number')
-                                            ->label('Número de Cotización')
+                                            ->label('Número de Proforma')
                                             ->default(fn () => Quotation::generateQuotationNumber())
                                             ->disabled()
+                                            ->required(),
+
+                                        Forms\Components\TextInput::make('contact_name')
+                                            ->label('Contacto de la Proforma')
+                                            ->placeholder('Nombre de quien solicita la proforma')
+                                            ->maxLength(255)
                                             ->required(),
 
                                         Forms\Components\DatePicker::make('issue_date')
@@ -159,7 +166,7 @@ class QuotationResource extends Resource
                             ]),
 
                         Forms\Components\Section::make('Cliente')
-                            ->description('Seleccione o cree un cliente para la cotización')
+                            ->description('Seleccione o cree un cliente para la proforma')
                             ->icon('heroicon-o-user')
                             ->collapsible()
                             ->schema([
@@ -213,7 +220,7 @@ class QuotationResource extends Resource
                             ]),
 
                         Forms\Components\Section::make('Productos')
-                            ->description('Agregue los productos a la cotización')
+                            ->description('Agregue los productos a la proforma')
                             ->icon('heroicon-o-shopping-cart')
                             ->schema([
                                 Forms\Components\Repeater::make('details')
@@ -286,7 +293,7 @@ class QuotationResource extends Resource
                             ]),
 
                         Forms\Components\Section::make('Totales')
-                            ->description('Resumen de los montos de la cotización')
+                            ->description('Resumen de los montos de la proforma')
                             ->icon('heroicon-o-calculator')
                             ->collapsible()
                             ->schema([
@@ -301,7 +308,7 @@ class QuotationResource extends Resource
                                             ->dehydrated(true),
 
                                         Forms\Components\TextInput::make('tax')
-                                            ->label('IGV (18%)')
+                                            ->label('IGV (10.50%)')
                                             ->prefix('S/')
                                             ->disabled()
                                             ->numeric()
@@ -380,7 +387,7 @@ class QuotationResource extends Resource
                             ]),
 
                         Forms\Components\Section::make('Notas y Condiciones')
-                            ->description('Información adicional para la cotización')
+                            ->description('Información adicional para la proforma')
                             ->icon('heroicon-o-document')
                             ->collapsible()
                             ->collapsed()
@@ -392,9 +399,9 @@ class QuotationResource extends Resource
 
                                 Forms\Components\Textarea::make('terms_and_conditions')
                                     ->label('Términos y Condiciones')
-                                    ->placeholder('Términos y condiciones de la cotización')
+                                    ->placeholder('Términos y condiciones de la proforma')
                                     ->default('1. Precios incluyen IGV.
-2. Cotización válida hasta la fecha indicada.
+2. Proforma válida hasta la fecha indicada.
 3. Forma de pago según lo acordado.
 4. Tiempo de entrega a coordinar.')
                                     ->maxLength(1000),
@@ -747,9 +754,13 @@ class QuotationResource extends Resource
             $discount = floatval($get('discount') ?? 0);
             $totalWithIgvAfterDiscount = $totalWithIgv - $discount;
 
-            // Calcular IGV incluido en el precio
-            $subtotalWithoutIgv = round($totalWithIgvAfterDiscount / 1.18, 2);
-            $tax = round($totalWithIgvAfterDiscount / 1.18 * 0.18, 2);
+            // Calcular IGV incluido en el precio (configurable)
+            $igvPercent = (float) (AppSetting::getSetting('FacturacionElectronica', 'igv_percent') ?? 10.50);
+            $igvRate = $igvPercent / 100;
+            $igvFactor = 1 + $igvRate;
+
+            $subtotalWithoutIgv = round($totalWithIgvAfterDiscount / $igvFactor, 2);
+            $tax = round($totalWithIgvAfterDiscount - $subtotalWithoutIgv, 2);
 
             // El total es el precio con IGV después del descuento
             $total = $totalWithIgvAfterDiscount;

@@ -5068,7 +5068,7 @@
                                 <span class="pos-total-amount">S/ {{ number_format($subtotal, 2) }}</span>
                             </div>
                             <div class="pos-total-row">
-                                <span>IGV (18%):</span>
+                                <span>IGV (10.50%):</span>
                                 <span class="pos-total-amount">S/ {{ number_format($tax, 2) }}</span>
                             </div>
                             <div class="pos-total-row final">

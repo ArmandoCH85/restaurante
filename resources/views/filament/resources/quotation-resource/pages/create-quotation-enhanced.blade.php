@@ -164,7 +164,7 @@
                             <span class="font-medium">S/ {{ number_format($subtotal, 2) }}</span>
                         </div>
                         <div class="flex justify-between mb-2">
-                            <span class="text-gray-700 dark:text-gray-300">IGV (18%):</span>
+                            <span class="text-gray-700 dark:text-gray-300">IGV (10.50%):</span>
                             <span class="font-medium">S/ {{ number_format($tax, 2) }}</span>
                         </div>
                         <div class="flex justify-between mb-2">
@@ -193,7 +193,7 @@
                     <x-filament::button
                         color="gray"
                         tag="a"
-                        href="/admin/ventas/cotizaciones"
+                        href="{{ \App\Filament\Resources\QuotationResource::getUrl('index') }}"
                     >
                         Cancelar
                     </x-filament::button>
@@ -202,7 +202,7 @@
                         wire:loading.attr="disabled"
                         wire:target="create"
                     >
-                        <span wire:loading.remove wire:target="create">Crear Cotización</span>
+                        <span wire:loading.remove wire:target="create">Crear Proforma</span>
                         <span wire:loading wire:target="create">Creando...</span>
                     </x-filament::button>
                 </div>

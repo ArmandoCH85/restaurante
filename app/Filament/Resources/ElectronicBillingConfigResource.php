@@ -195,7 +195,7 @@ class ElectronicBillingConfigResource extends Resource
                                     'certificate_password' => 'Contraseña del certificado (se guardará cifrada)',
                                     'send_automatically' => 'Si los comprobantes se envían automáticamente (true/false)',
                                     'generate_pdf' => 'Si se generan PDFs automáticamente (true/false)',
-                                    'igv_percent' => 'Porcentaje de IGV (18.00)',
+                                    'igv_percent' => 'Porcentaje de IGV (10.50)',
                                     'qpse_endpoint_beta' => '🧪 URL del endpoint QPSE para PRUEBAS. Ejemplo: https://demo-cpe.qpse.pe',
                                     'qpse_endpoint_production' => '🚀 URL del endpoint QPSE para PRODUCCIÓN. Ejemplo: https://cpe.qpse.pe',
                                     'qpse_username' => '👤 Usuario QPSE (credenciales proporcionadas por QPSE)',
