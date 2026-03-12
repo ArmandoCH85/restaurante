@@ -784,6 +784,372 @@ class QpsService
     }
 
     /**
+     * Consultar y recuperar el CDR de un comprobante rechazado sin reenviarlo.
+     */
+    public function fetchRejectedInvoiceCdr(Invoice $invoice): array
+    {
+        try {
+            if (!in_array($invoice->invoice_type, ['invoice', 'receipt']) || str_starts_with($invoice->series, 'NV')) {
+                throw new Exception("Tipo de documento no valido para consulta CDR: {$invoice->invoice_type} con serie {$invoice->series}");
+            }
+
+            if (!in_array($invoice->sunat_status, ['RECHAZADO', 'ERROR'])) {
+                throw new Exception('Solo se puede consultar CDR para comprobantes en estado RECHAZADO o ERROR');
+            }
+
+            $filename = $this->generateXmlFilename($invoice);
+            $queryResult = $this->queryInvoiceCdrFromQps($filename);
+
+            if (!($queryResult['success'] ?? false)) {
+                throw new Exception($queryResult['message'] ?? 'No fue posible consultar el CDR en QPS');
+            }
+
+            $qpsData = $queryResult['data'] ?? [];
+            $cdrBinary = $this->extractCdrBinaryFromQpsData($qpsData);
+
+            if (!$cdrBinary) {
+                throw new Exception('QPSE no devolvio un CDR para este comprobante');
+            }
+
+            $documentName = $invoice->series . '-' . $invoice->number;
+            $cdrPath = $this->saveInvoiceCdrBinary($documentName, $filename, $cdrBinary);
+            $cdrInfo = $this->parseSunatInfoFromCdr($cdrBinary, $invoice);
+
+            $invoice->update([
+                'sunat_status' => $cdrInfo['sunat_status'],
+                'sunat_code' => $cdrInfo['sunat_code'],
+                'sunat_description' => $cdrInfo['sunat_description'],
+                'cdr_path' => $cdrPath,
+            ]);
+
+            Log::channel('qps')->info('QPS: CDR recuperado sin reenvio', [
+                'invoice_id' => $invoice->id,
+                'series_number' => $documentName,
+                'sunat_status' => $cdrInfo['sunat_status'],
+                'sunat_code' => $cdrInfo['sunat_code'],
+                'cdr_path' => $cdrPath,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'CDR recuperado correctamente desde QPS',
+                'cdr_path' => $cdrPath,
+                'cdr_url' => Storage::url($cdrPath),
+                'sunat_status' => $cdrInfo['sunat_status'],
+                'sunat_code' => $cdrInfo['sunat_code'],
+                'sunat_description' => $cdrInfo['sunat_description'],
+            ];
+
+        } catch (Exception $e) {
+            Log::channel('qps')->error('QPS: Error al recuperar CDR sin reenvio', [
+                'invoice_id' => $invoice->id,
+                'series_number' => $invoice->series . '-' . $invoice->number,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'message' => $e->getMessage(),
+                'error' => 'No se pudo recuperar el CDR via QPS',
+            ];
+        }
+    }
+
+    private function queryInvoiceCdrFromQps(string $filename): array
+    {
+        $this->validateFilename($filename);
+        $token = $this->getAccessToken();
+        $endpoint = $this->apiUrl . '/consultar';
+        $payloads = $this->buildCdrQueryPayloads($filename);
+        $lastError = 'No se encontro una respuesta compatible para consulta CDR en QPS';
+        $externalIdError = null;
+
+        foreach ($payloads as $payload) {
+            try {
+                $response = Http::timeout(20)
+                    ->withHeaders([
+                        'Accept' => 'application/json',
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer ' . $token,
+                    ])
+                    ->post($endpoint, $payload);
+
+                $responseData = $response->json();
+                $remoteMessage = is_array($responseData)
+                    ? ($responseData['message'] ?? $responseData['mensaje'] ?? null)
+                    : null;
+
+                if (!$response->successful()) {
+                    $lastError = $remoteMessage
+                        ? "{$remoteMessage} (HTTP {$response->status()} en {$endpoint})"
+                        : "HTTP {$response->status()} en {$endpoint}";
+
+                    if (is_string($remoteMessage) && str_contains(strtolower($remoteMessage), 'external_id')) {
+                        $externalIdError = $lastError;
+                    }
+
+                    continue;
+                }
+
+                if (!is_array($responseData)) {
+                    $lastError = "Respuesta invalida en {$endpoint}";
+                    continue;
+                }
+
+                $normalized = $this->normalizeQpsResponsePayload($responseData);
+                if (!$this->responseContainsCdrData($normalized)) {
+                    $lastError = $normalized['message'] ?? $normalized['mensaje'] ?? $lastError;
+                    continue;
+                }
+
+                Log::channel('qps')->info('QPS: Consulta CDR exitosa', [
+                    'endpoint' => $endpoint,
+                    'payload_keys' => array_keys($payload),
+                    'response_keys' => array_keys($normalized),
+                ]);
+
+                return [
+                    'success' => true,
+                    'data' => $normalized,
+                    'endpoint' => $endpoint,
+                ];
+            } catch (Exception $e) {
+                $lastError = $e->getMessage();
+            }
+        }
+
+        return [
+            'success' => false,
+            'message' => $externalIdError ?? $lastError,
+        ];
+    }
+
+    private function buildCdrQueryPayloads(string $filename): array
+    {
+        $payloads = [];
+
+        foreach ($this->buildExternalIdVariants($filename) as $externalId) {
+            $payloads[] = ['external_id' => $externalId];
+        }
+
+        return $payloads;
+    }
+
+    private function buildExternalIdVariants(string $filename): array
+    {
+        $variants = [$filename];
+
+        if (preg_match('/^(?<ruc>\d{11})-(?<tipo>\d{2})-(?<serie>[A-Z0-9]+)-(?<correlativo>\d+)$/', $filename, $matches)) {
+            $ruc = $matches['ruc'];
+            $tipo = $matches['tipo'];
+            $serie = $matches['serie'];
+            $correlativo = $matches['correlativo'];
+            $paddedCorrelativo = str_pad($correlativo, 8, '0', STR_PAD_LEFT);
+
+            if ($paddedCorrelativo !== $correlativo) {
+                $variants[] = "{$ruc}-{$tipo}-{$serie}-{$paddedCorrelativo}";
+            }
+
+            if (preg_match('/^[BF]0\d{2}$/', $serie)) {
+                $compactSerie = $serie[0] . substr($serie, 2);
+                $variants[] = "{$ruc}-{$tipo}-{$compactSerie}-{$correlativo}";
+
+                if ($paddedCorrelativo !== $correlativo) {
+                    $variants[] = "{$ruc}-{$tipo}-{$compactSerie}-{$paddedCorrelativo}";
+                }
+            }
+        }
+
+        return array_values(array_unique($variants));
+    }
+
+    private function normalizeQpsResponsePayload(array $responseData): array
+    {
+        $normalized = $responseData;
+
+        if (isset($responseData['data']) && is_array($responseData['data'])) {
+            $normalized = array_merge($normalized, $responseData['data']);
+        }
+
+        if (isset($responseData['result']) && is_array($responseData['result'])) {
+            $normalized = array_merge($normalized, $responseData['result']);
+        }
+
+        return $normalized;
+    }
+
+    private function responseContainsCdrData(array $data): bool
+    {
+        return !empty($data['cdr_content']) ||
+            !empty($data['cdr_base64']) ||
+            !empty($data['cdr']) ||
+            !empty($data['cdr_url']);
+    }
+
+    private function extractCdrBinaryFromQpsData(array $qpsData): ?string
+    {
+        $cdrBinary = null;
+        $cdrBase64 = $qpsData['cdr_content'] ?? $qpsData['cdr_base64'] ?? null;
+
+        if (!$cdrBase64 && !empty($qpsData['cdr'])) {
+            $possible = $qpsData['cdr'];
+
+            if (is_string($possible) && preg_match('/^https?:\\/\\//i', $possible)) {
+                $response = Http::timeout(90)->get($possible);
+                if ($response->successful()) {
+                    $cdrBinary = $response->body();
+                }
+            } else {
+                $decoded = base64_decode((string) $possible, true);
+                if ($decoded !== false) {
+                    $cdrBinary = $decoded;
+                }
+            }
+        }
+
+        if (!$cdrBinary && !empty($qpsData['cdr_url'])) {
+            $response = Http::timeout(90)->get($qpsData['cdr_url']);
+            if ($response->successful()) {
+                $cdrBinary = $response->body();
+            }
+        }
+
+        if (!$cdrBinary && $cdrBase64) {
+            $decoded = base64_decode((string) $cdrBase64, true);
+            if ($decoded !== false) {
+                $cdrBinary = $decoded;
+            }
+        }
+
+        return $cdrBinary ?: null;
+    }
+
+    private function saveInvoiceCdrBinary(string $documentName, string $filename, string $cdrBinary): string
+    {
+        if (!Storage::exists('sunat/cdr')) {
+            Storage::makeDirectory('sunat/cdr');
+        }
+
+        $cdrPath = "sunat/cdr/{$documentName}.zip";
+        $isZip = (strlen($cdrBinary) >= 2) && (substr($cdrBinary, 0, 2) === 'PK');
+
+        if ($isZip) {
+            Storage::put($cdrPath, $cdrBinary);
+            return $cdrPath;
+        }
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'cdrzip_');
+        $zip = new \ZipArchive;
+        if ($zip->open($tmpPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+            throw new Exception('No se pudo crear ZIP temporal para el CDR');
+        }
+
+        $entryName = 'R-' . $filename . '.xml';
+        $zip->addFromString($entryName, $cdrBinary);
+        $zip->close();
+
+        $zipBytes = file_get_contents($tmpPath);
+        @unlink($tmpPath);
+
+        if ($zipBytes === false) {
+            throw new Exception('No se pudo leer el ZIP temporal del CDR');
+        }
+
+        Storage::put($cdrPath, $zipBytes);
+        return $cdrPath;
+    }
+
+    private function parseSunatInfoFromCdr(string $cdrBinary, Invoice $invoice): array
+    {
+        $sunatCode = $invoice->sunat_code ?: '9999';
+        $sunatDescription = $invoice->sunat_description ?: 'CDR recuperado';
+        $sunatStatus = $invoice->sunat_status ?: 'RECHAZADO';
+
+        try {
+            $cdrXml = null;
+            if ((strlen($cdrBinary) >= 2) && (substr($cdrBinary, 0, 2) === 'PK')) {
+                $zip = new \ZipArchive;
+                $tmpFile = tempnam(sys_get_temp_dir(), 'cdr_parse_');
+                file_put_contents($tmpFile, $cdrBinary);
+
+                if ($zip->open($tmpFile) === true) {
+                    for ($i = 0; $i < $zip->numFiles; $i++) {
+                        $zipEntry = $zip->getNameIndex($i);
+                        if (is_string($zipEntry) && str_ends_with(strtolower($zipEntry), '.xml')) {
+                            $cdrXml = $zip->getFromIndex($i);
+                            break;
+                        }
+                    }
+                    $zip->close();
+                }
+                @unlink($tmpFile);
+            } else {
+                $cdrXml = $cdrBinary;
+            }
+
+            if ($cdrXml) {
+                $parsedByGreenter = false;
+
+                if (class_exists('Greenter\\Xml\\Parser\\CdrParser')) {
+                    try {
+                        $parser = new \Greenter\Xml\Parser\CdrParser;
+                        $cdr = $parser->parse($cdrXml);
+                        $sunatCode = $cdr->getCode();
+                        $sunatDescription = $cdr->getDescription();
+                        $parsedByGreenter = true;
+                    } catch (\Throwable $e) {
+                        Log::channel('qps')->warning('QPS: CdrParser no pudo interpretar el CDR, usando fallback XML', [
+                            'invoice_id' => $invoice->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+
+                if (!$parsedByGreenter) {
+                    $xml = @simplexml_load_string($cdrXml);
+                    if ($xml) {
+                        $namespaces = $xml->getNamespaces(true);
+                        $cbc = $xml->children($namespaces['cbc'] ?? 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2');
+                        $sunatCode = (string) ($cbc->ResponseCode ?? $sunatCode);
+                        $sunatDescription = (string) ($cbc->Description ?? $sunatDescription);
+
+                        $responseCodeNodes = $xml->xpath('//*[local-name()="ResponseCode"]');
+                        if (!empty($responseCodeNodes) && isset($responseCodeNodes[0])) {
+                            $sunatCode = (string) $responseCodeNodes[0];
+                        }
+
+                        $descriptionNodes = $xml->xpath('//*[local-name()="Description"]');
+                        if (!empty($descriptionNodes) && isset($descriptionNodes[0])) {
+                            $sunatDescription = (string) $descriptionNodes[0];
+                        }
+                    }
+                }
+
+                if (preg_match('/<[^>]*ResponseCode[^>]*>([^<]+)<\/[^>]*ResponseCode>/i', $cdrXml, $codeMatch)) {
+                    $sunatCode = trim($codeMatch[1]);
+                }
+
+                if (preg_match('/<[^>]*Description[^>]*>([^<]+)<\/[^>]*Description>/i', $cdrXml, $descriptionMatch)) {
+                    $sunatDescription = trim(html_entity_decode($descriptionMatch[1]));
+                }
+
+                $sunatStatus = ((int) $sunatCode) < 1000 ? 'ACEPTADO' : 'RECHAZADO';
+            }
+        } catch (Exception $e) {
+            Log::channel('qps')->warning('QPS: No se pudo parsear el CDR recuperado', [
+                'invoice_id' => $invoice->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return [
+            'sunat_status' => $sunatStatus,
+            'sunat_code' => (string) $sunatCode,
+            'sunat_description' => (string) $sunatDescription,
+        ];
+    }
+
+    /**
      * Generar nombre del archivo XML
      * 
      * @param Invoice $invoice

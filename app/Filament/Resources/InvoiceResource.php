@@ -532,6 +532,58 @@ class InvoiceResource extends Resource
                     )
                     ->url(fn(Invoice $record): string => route('filament.admin.invoices.download-cdr', $record))
                     ->openUrlInNewTab(),
+                Action::make('fetch_rejected_cdr')
+                    ->label('Traer CDR')
+                    ->icon('heroicon-o-cloud-arrow-down')
+                    ->color('warning')
+                    ->visible(
+                        fn(Invoice $record): bool =>
+                        in_array($record->invoice_type, ['invoice', 'receipt']) &&
+                        in_array($record->sunat_status, ['RECHAZADO', 'ERROR']) &&
+                        (function ($path) {
+                            if (empty($path))
+                                return true;
+                            if (file_exists($path))
+                                return false;
+                            $normalized = ltrim(str_replace('\\', '/', $path), '/');
+                            if (file_exists(storage_path('app/private/' . $normalized)))
+                                return false;
+                            if (file_exists(storage_path('app/' . $normalized)))
+                                return false;
+                            return true;
+                        })($record->cdr_path)
+                    )
+                    ->requiresConfirmation()
+                    ->modalHeading('Traer CDR de SUNAT')
+                    ->modalDescription(fn(Invoice $record): string =>
+                        "Se consultarÃ¡ el CDR del comprobante {$record->series}-{$record->number} en QPS sin reenviar el documento.")
+                    ->modalSubmitActionLabel('Traer CDR')
+                    ->action(function (Invoice $record): void {
+                        try {
+                            $qpsService = new \App\Services\QpsService();
+                            $result = $qpsService->fetchRejectedInvoiceCdr($record);
+
+                            if ($result['success'] ?? false) {
+                                Notification::make()
+                                    ->title('CDR recuperado correctamente')
+                                    ->body(($result['sunat_code'] ?? 'N/A') . ' - ' . ($result['sunat_description'] ?? 'Respuesta SUNAT actualizada'))
+                                    ->success()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('No se pudo recuperar el CDR')
+                                    ->body($result['message'] ?? 'Error desconocido al consultar CDR')
+                                    ->danger()
+                                    ->send();
+                            }
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Error inesperado')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    }),
                 Action::make('download_pdf')
                     ->label('Descargar PDF')
                     ->icon('heroicon-o-document-arrow-down')
